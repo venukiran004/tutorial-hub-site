@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lenses — Agentic AI &amp; RAG</title>
+<meta name="description" content="Scaling, productionization, optimization, latency and metrics for RAG, agentic RAG and agent systems">
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+:root{
+  color-scheme:dark;
+  --bg:#0d1117; --surface:#151b23; --surface-2:#1c232d; --surface-3:#232b36;
+  --border:#2a313c; --border-soft:#21262d;
+  --ink:#e6edf3; --ink-2:#9da7b3; --ink-mut:#6e7681;
+  --accent:#3987e5; --accent-soft:rgba(57,135,229,.14); --accent-bd:rgba(57,135,229,.42);
+  --t-rag:#3987e5; --t-agentic:#d95926; --t-recall:#199e70;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+  --warn-soft:rgba(250,178,25,.12); --good-soft:rgba(12,163,12,.12); --crit-soft:rgba(208,59,59,.12);
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;
+  --r1:#86b6ef;--r2:#5598e7;--r3:#2a78d6;--r4:#1c5cab;
+  --o1:#f0a882;--o2:#e88a5c;--o3:#d95926;--o4:#b8471d;--o5:#8f3716;
+  --code-bg:#0b0f15;
+  --fig-surface:#1c232d; --fig-surface-2:#171d26; --fig-surface-3:#232b36;
+  --fig-border:#39424f; --fig-ink:#e6edf3; --fig-ink-2:#b6c0cc; --fig-mut:#8d97a4;
+  --fig-accent:#3987e5; --fig-rag:#3987e5; --fig-agentic:#e2703a; --fig-recall:#22a97a;
+  --fig-good:#2eb82e; --fig-warn:#f0b429; --fig-crit:#e05252;
+  --mono:"SF Mono",SFMono-Regular,ui-monospace,"Cascadia Code",Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --radius:14px; --radius-sm:9px; --shadow:0 8px 30px rgba(0,0,0,.38); --sbw:302px;
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f6f8fa; --surface:#fff; --surface-2:#fbfcfd; --surface-3:#eff2f6;
+  --border:#d8dee4; --border-soft:#e6eaef;
+  --ink:#1f2328; --ink-2:#57606a; --ink-mut:#8b949e;
+  --accent:#2a78d6; --accent-soft:rgba(42,120,214,.10); --accent-bd:rgba(42,120,214,.34);
+  --t-rag:#2a78d6; --t-agentic:#eb6834; --t-recall:#1baf7a;
+  --warn-soft:rgba(250,178,25,.16); --good-soft:rgba(12,163,12,.10); --crit-soft:rgba(208,59,59,.09);
+  --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;
+  --r1:#86b6ef;--r2:#3987e5;--r3:#256abf;--r4:#184f95;
+  --o1:#f7c4a8;--o2:#f0996b;--o3:#eb6834;--o4:#c14a1f;--o5:#8f3716;
+  --code-bg:#f0f3f6; --shadow:0 6px 24px rgba(140,149,159,.20);
+  --fig-surface:#fff; --fig-surface-2:#f7f9fb; --fig-surface-3:#eef2f6;
+  --fig-border:#c9d1da; --fig-ink:#1f2328; --fig-ink-2:#414a54; --fig-mut:#6b747e;
+  --fig-accent:#2a78d6; --fig-rag:#2a78d6; --fig-agentic:#d1541f; --fig-recall:#12855c;
+  --fig-good:#1a7f1a; --fig-warn:#a97400; --fig-crit:#c62d2d;
+}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+
+.siteswitch{background:var(--surface-3);border-bottom:1px solid var(--border)}
+.siteswitch-in{max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:4px;padding:5px 18px;flex-wrap:wrap}
+.siteswitch a{font-size:11.5px;padding:4px 10px;border-radius:7px;color:var(--ink-mut);text-decoration:none;white-space:nowrap}
+.siteswitch a:hover{background:var(--surface);color:var(--ink)}
+.siteswitch a.on{background:var(--accent);color:#fff;font-weight:700}
+.siteswitch .sw-home{font-weight:800;color:var(--ink-2);margin-right:8px}
+/* ---------- top bar (site nav) ---------- */
+.sitebar{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 93%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.sitebar-in{max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:6px;padding:9px 18px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:14px;letter-spacing:-.3px;margin-right:10px;text-decoration:none;color:var(--ink);white-space:nowrap}
+.logo b{color:var(--accent)}
+.sitebar a.tab{font-size:12.8px;padding:6px 12px;border-radius:8px;color:var(--ink-2);text-decoration:none;border:1px solid transparent;white-space:nowrap}
+.sitebar a.tab:hover{background:var(--surface-2);color:var(--ink)}
+.sitebar a.tab.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-bd);font-weight:700}
+.sitebar .sp{margin-left:auto}
+.btn{background:var(--surface);border:1px solid var(--border);color:var(--ink-2);padding:6px 11px;border-radius:8px;cursor:pointer;font-size:12.3px;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--ink)}
+.btn.on{background:var(--accent-soft);border-color:var(--accent-bd);color:var(--accent);font-weight:700}
+
+.app{display:grid;grid-template-columns:var(--sbw) 1fr;max-width:1560px;margin:0 auto;min-height:100vh}
+aside{position:sticky;top:47px;height:calc(100vh - 47px);overflow-y:auto;overscroll-behavior:contain;border-right:1px solid var(--border);padding:12px 0 40px;background:var(--bg)}
+aside::-webkit-scrollbar{width:8px}aside::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.sb-search{padding:0 14px 8px}
+.sb-search input{width:100%;padding:8px 11px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:13px;font-family:inherit;outline:none}
+.sb-search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.sb-hint{font-size:10.3px;color:var(--ink-mut);padding:2px 15px 10px}
+nav{padding:0 8px;font-size:13px}
+.nav-grp{margin:12px 0 3px;padding:0 10px;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-mut);font-weight:800}
+nav a{display:flex;gap:7px;align-items:flex-start;padding:5px 10px;margin:1px 2px;border-radius:7px;color:var(--ink-2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;font-size:12.5px}
+nav a:hover{background:var(--surface-2);color:var(--ink)}
+nav a.active{background:var(--accent-soft);color:var(--accent);border-left-color:var(--accent);font-weight:650}
+nav a.done .qn{background:var(--good);border-color:var(--good);color:#fff}
+.qn{flex:none;min-width:21px;text-align:center;font-family:var(--mono);font-size:9.5px;padding:1px 4px;border-radius:5px;border:1px solid var(--border);color:var(--ink-mut);height:17px;line-height:15px}
+
+main{min-width:0;padding:0 40px 140px}
+.wrap{max-width:1000px;margin:0 auto}
+
+/* ---------- hero ---------- */
+.hero{padding:36px 0 4px}
+.eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tc,var(--accent));font-weight:800}
+.hero h1{font-size:40px;line-height:1.08;margin:9px 0 12px;letter-spacing:-1px}
+.hero .lede{color:var(--ink-2);font-size:17px;margin:0 0 20px;max-width:70ch}
+.hero .lede b{color:var(--ink)}
+.oneliner{border-left:4px solid var(--tc,var(--accent));background:var(--surface);border-radius:0 var(--radius) var(--radius) 0;padding:14px 18px;margin:18px 0;font-size:16px}
+.oneliner b{color:var(--tc,var(--accent))}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:22px 0}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat-v{font-size:27px;font-weight:750;letter-spacing:-.6px;line-height:1.05;color:var(--tc,var(--accent))}
+.stat-l{font-size:11px;color:var(--ink-mut);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;line-height:1.35}
+
+/* ---------- figures ---------- */
+figure.viz{margin:26px 0;background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--border);border-radius:var(--radius);padding:17px 19px 10px;overflow:hidden;box-shadow:var(--shadow)}
+figure.viz figcaption b::before{content:"";display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--tc,var(--accent));margin-right:9px;vertical-align:middle}
+figure.viz figcaption{margin-bottom:12px}
+figure.viz figcaption b{display:block;font-size:15px;letter-spacing:-.2px}
+figure.viz figcaption span{display:block;font-size:12px;color:var(--ink-mut);margin-top:2px}
+figure.viz figcaption .terms{display:block;font-size:11px;color:var(--ink-mut);margin-top:5px;
+  padding-top:5px;border-top:1px dashed var(--border-soft);line-height:1.65}
+figure.viz figcaption .terms b{display:inline;font-size:11px;letter-spacing:0;color:var(--ink-2);
+  font-weight:700;font-family:var(--mono)}
+figure.viz figcaption .terms b::before{content:none;display:none;margin:0}
+abbr[title]{text-decoration:underline dotted var(--ink-mut);text-underline-offset:3px;cursor:help;border:0;text-decoration-thickness:1px}
+abbr[title]:hover{text-decoration-color:var(--accent)}
+.viz-scroll{overflow-x:auto;padding-bottom:6px}
+.viz-scroll svg{display:block;width:100%;min-width:660px;height:auto}
+
+/* ---------- standard topic panels ---------- */
+.panels{display:grid;gap:13px;margin:18px 0}
+.panel{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--pc,var(--accent));border-radius:var(--radius);padding:15px 18px}
+.panel > h3{margin:0 0 4px;font-size:15.5px;display:flex;align-items:center;gap:9px}
+.panel > h3 .ic{width:23px;height:23px;border-radius:7px;background:var(--pc,var(--accent));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:none}
+.panel > h3 small{margin-left:auto;font-size:10.5px;color:var(--ink-mut);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.p-scale{--pc:var(--t-rag)} .p-prod{--pc:var(--t-recall)} .p-opt{--pc:var(--t-agentic)}
+.p-lat{--pc:var(--warn)} .p-met{--pc:var(--accent)}
+
+/* ---------- per-answer visual furniture ---------- */
+.keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
+.kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
+.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram pre{margin:0;padding-top:12px;background:none;border:none;font-family:var(--mono);font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
+.flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
+.flow .fl{font-size:10px;font-weight:800;letter-spacing:.09em;color:var(--ink-mut);margin-right:10px;text-transform:uppercase}
+.q-a ol{counter-reset:st;list-style:none;padding-left:0;margin:11px 0}
+.q-a ol > li{counter-increment:st;position:relative;padding-left:36px;margin:8px 0}
+.q-a ol > li::before{content:counter(st);position:absolute;left:0;top:1px;width:24px;height:24px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+/* ---------- content ---------- */
+.sec{margin-top:44px;scroll-margin-top:60px}
+.sec > h2{font-size:25px;margin:0 0 4px;letter-spacing:-.5px;padding-bottom:9px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:11px}
+.sec > h2 .hn{font-size:11.5px;font-family:var(--mono);font-weight:800;background:var(--tc,var(--accent));color:#fff;border-radius:7px;padding:3px 8px}
+.parthead{display:flex;align-items:center;gap:12px;margin:30px 0 12px}
+.parthead span{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mut);white-space:nowrap}
+.parthead i{flex:1;height:1px;background:var(--border)}
+.q{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 18px;margin:10px 0;scroll-margin-top:60px}
+.q:target{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.q.done{border-left:3px solid var(--good)}
+.q-h{display:flex;align-items:flex-start;gap:11px}
+.q-n{flex:none;font-family:var(--mono);font-size:11px;font-weight:800;min-width:26px;height:23px;line-height:21px;text-align:center;border-radius:7px;border:1px solid var(--border);color:var(--ink-mut);background:var(--bg)}
+.q.done .q-n{background:var(--good);border-color:var(--good);color:#fff}
+.q-h h3{margin:0;font-size:17px;line-height:1.35;letter-spacing:-.2px;flex:1}
+.q-done{flex:none;cursor:pointer}
+.q-done input{position:absolute;opacity:0;pointer-events:none}
+.q-done span{display:block;width:22px;height:22px;border-radius:7px;border:1px solid var(--border);background:var(--bg);position:relative}
+.q-done span::after{content:"";position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid transparent;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.q-done input:checked+span{background:var(--good);border-color:var(--good)}
+.q-done input:checked+span::after{border-color:#fff}
+.q-a{margin-top:11px}
+.reveal{display:none;margin-top:10px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);padding:7px 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:12.4px;font-weight:700}
+body.drill .q-a{display:none} body.drill .reveal{display:inline-block}
+/* reference cards have no answer to hide - never drill them */
+body.drill .q.q-ref .q-a{display:block}
+body.drill .q.open .q-a{display:block} body.drill .q.open .reveal{display:none}
+
+p{margin:9px 0}
+h3{font-size:17px;margin:20px 0 7px}h4{font-size:14px;margin:15px 0 5px;color:var(--ink-2)}
+ul{margin:9px 0;padding-left:22px}li{margin:4px 0}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+hr{border:none;border-top:1px solid var(--border);margin:20px 0}
+code{font-family:var(--mono);font-size:.855em;background:var(--code-bg);padding:.12em .42em;border-radius:5px;border:1px solid var(--border-soft);color:#ffa657;word-break:break-word}
+html[data-theme="light"] code{color:#953800}
+pre.code{background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 15px;overflow-x:auto;margin:11px 0;line-height:1.55;position:relative}
+pre.code code{background:none;border:none;padding:0;color:var(--ink);font-size:12.4px;white-space:pre}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:0;right:0;font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-mut);background:var(--surface-3);border-left:1px solid var(--border);border-bottom:1px solid var(--border);border-radius:0 var(--radius-sm) 0 7px;padding:2px 8px}
+.cmt{color:var(--ink-mut);font-style:italic}.kw{color:#ff7b72}.str{color:#a5d6ff}.fn{color:#d2a8ff}.num{color:#79c0ff}
+html[data-theme="light"] .kw{color:#cf222e}html[data-theme="light"] .str{color:#0a3069}
+html[data-theme="light"] .fn{color:#8250df}html[data-theme="light"] .num{color:#0550ae}
+.say{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 16px;margin:12px 0}
+.say-h{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.say-h::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.say p{margin:0;font-size:15.2px;line-height:1.68}.say em{font-style:normal;color:var(--ink)}
+.note{border-left:3px solid var(--border);background:var(--surface-2);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 15px;margin:12px 0;font-size:13.8px;color:var(--ink-2)}
+.note p:first-child{margin-top:0}.note p:last-child{margin-bottom:0}.note strong{color:var(--ink)}
+.tbl-wrap{overflow-x:auto;margin:15px 0;border:1px solid var(--border);border-radius:12px;
+  background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.10)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.2px;background:transparent}
+th,td{padding:10px 13px;text-align:left;border-bottom:1px solid var(--border-soft);vertical-align:top;line-height:1.55}
+th{position:sticky;top:0;z-index:2;background:var(--surface-3);font-weight:800;font-size:10.5px;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2);white-space:nowrap;
+  border-bottom:1px solid var(--border);backdrop-filter:blur(6px)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover>td{background:var(--surface-2)}
+tbody tr.g1>td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+tbody tr.g1:hover>td{background:var(--surface-2)}
+
+/* merged category column: the label is stated once, as a vertical band */
+td.c-grp{background:var(--surface-3);border-right:1px solid var(--border);vertical-align:top;
+  width:1%;white-space:nowrap;padding:11px 13px}
+tbody tr:hover>td.c-grp{background:var(--surface-3)}
+td.c-grp .grp-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--tc,var(--accent));background:var(--accent-soft);
+  border:1px solid var(--accent-bd);border-radius:999px;padding:3px 11px;position:sticky;top:44px}
+table.t-grouped td:not(.c-grp):first-of-type{font-weight:600;color:var(--ink)}
+
+/* two-column glossary: term rail on the left */
+table.t-def td.c-term{width:210px;font-weight:700;color:var(--ink);background:var(--surface-2);
+  border-right:2px solid var(--accent-bd)}
+table.t-def td.c-term code{background:none;border:none;padding:0;color:inherit}
+
+/* magnitudes should read as data, not prose */
+.mag{font-family:var(--mono);font-size:.9em;font-weight:700;color:var(--warn);
+  background:var(--warn-soft);border-radius:5px;padding:.05em .38em;white-space:nowrap}
+
+/* term / description list rows */
+li.dl{list-style:none;margin:7px 0;padding:7px 12px;border-radius:9px;background:var(--surface-2);
+  border-left:3px solid var(--border)}
+li.dl:hover{border-left-color:var(--accent)}
+li.dl .dt{display:inline-block;font-weight:800;color:var(--ink);margin-right:8px}
+li.dl .dt::after{content:"—";color:var(--ink-mut);font-weight:400;margin-left:8px}
+li.dl .dd{color:var(--ink-2)}
+ul:has(> li.dl){padding-left:0}
+
+/* typed callouts */
+.note.n-crit{border-left-color:var(--crit);background:var(--crit-soft)}
+.note.n-warn{border-left-color:var(--warn);background:var(--warn-soft)}
+.note.n-good{border-left-color:var(--good);background:var(--good-soft)}
+.note.n-key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.n-crit strong:first-child{color:var(--crit)}
+.note.n-warn strong:first-child{color:var(--warn)}
+.note.n-good strong:first-child{color:var(--good)}
+.note.n-key strong:first-child{color:var(--accent)}
+
+/* headings inside an answer body */
+.q-a h3,.q-a h4{display:flex;align-items:center;gap:9px;letter-spacing:-.2px}
+.q-a h3::before{content:"";width:3px;height:15px;border-radius:2px;background:var(--tc,var(--accent));flex:none}
+.q-a h4{color:var(--ink-2);font-size:13.5px;text-transform:none}
+.q-a h4::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--ink-mut);flex:none}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:13px;margin:20px 0}
+.tcard{display:block;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--tc,var(--accent));border-radius:var(--radius);padding:15px 16px;text-decoration:none;color:inherit}
+.tcard:hover{border-color:var(--accent);box-shadow:var(--shadow);text-decoration:none}
+.tcard h4{margin:0 0 5px;font-size:15px;color:var(--ink)}
+.tcard p{margin:0;font-size:12.2px;color:var(--ink-mut);line-height:1.5}
+.tcard .meta{margin-top:9px;font-size:10.5px;color:var(--tc,var(--accent));font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.no-result{display:none;text-align:center;color:var(--ink-mut);padding:60px 20px}.no-result.show{display:block}
+kbd{font-family:var(--mono);font-size:10px;background:var(--surface-3);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 5px;color:var(--ink-2)}
+.totop{position:fixed;right:20px;bottom:20px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:18px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;z-index:55}
+.totop.show{opacity:1;pointer-events:auto}
+.menu-toggle{display:none}
+@media(max-width:1060px){
+  .app{grid-template-columns:1fr}
+  aside{position:fixed;left:calc(-1 * var(--sbw));top:0;height:100vh;width:var(--sbw);z-index:100;transition:left .25s;box-shadow:var(--shadow);background:var(--surface)}
+  aside.open{left:0}
+  .menu-toggle{display:inline-flex}
+  main{padding:0 15px 110px}
+  .hero h1{font-size:29px}
+}
+@media print{.sitebar,aside,.totop,.reveal,.q-done{display:none}.app{grid-template-columns:1fr}body.drill .q-a{display:block}}
+
+/* =====================================================================
+   DESIGN LAYER  --  loaded last, so these rules win.
+   Depth, type scale, motion, and the components the base sheet lacks.
+   ===================================================================== */
+
+:root{
+  --e1:0 1px 2px rgba(0,0,0,.18);
+  --e2:0 4px 14px rgba(0,0,0,.24);
+  --e3:0 14px 40px rgba(0,0,0,.34);
+  --ring:0 0 0 3px var(--accent-soft);
+  --tight:-.022em;
+  --glass:color-mix(in srgb,var(--bg) 78%,transparent);
+}
+html[data-theme="light"]{
+  --e1:0 1px 2px rgba(16,24,40,.06);
+  --e2:0 6px 18px rgba(16,24,40,.09);
+  --e3:0 18px 44px rgba(16,24,40,.13);
+}
+html[data-theme="dark"],:root{ --bg:#0a0e14; --surface:#12181f; --surface-2:#171e26; --surface-3:#1e2630;
+  --border:#262f3a; --border-soft:#1c242e; }
+
+body{font-size:15.6px;line-height:1.68;letter-spacing:.002em;
+  text-rendering:optimizeLegibility;font-variant-ligatures:common-ligatures}
+::selection{background:var(--accent);color:#fff}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+@media(prefers-reduced-motion:no-preference){
+  a,button,.tcard,.q,.stat,.hub-card,.learn-item,nav a,.tab,.sw{transition:
+    background-color .16s ease,border-color .16s ease,color .16s ease,
+    transform .16s cubic-bezier(.2,.7,.3,1),box-shadow .16s ease}
+}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--border)}
+
+/* ---------- reading progress ---------- */
+#rprog{position:fixed;top:0;left:0;height:2.5px;width:0;z-index:200;
+  background:linear-gradient(90deg,var(--t-rag),var(--t-agentic),var(--t-recall));
+  box-shadow:0 0 12px var(--accent);transition:width .08s linear}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));
+  border-bottom:1px solid var(--border-soft)}
+.siteswitch a{font-weight:600;letter-spacing:.01em}
+.siteswitch a.on{box-shadow:0 2px 10px color-mix(in srgb,var(--accent) 45%,transparent)}
+.sitebar{background:var(--glass);backdrop-filter:blur(14px) saturate(1.5);
+  -webkit-backdrop-filter:blur(14px) saturate(1.5);box-shadow:var(--e1)}
+.sitebar a.tab.on{box-shadow:inset 0 0 0 1px var(--accent-bd)}
+.logo{font-size:14.5px;letter-spacing:var(--tight)}
+.btn{box-shadow:var(--e1);font-weight:600}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--e2)}
+.btn:active{transform:translateY(0)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,var(--bg),color-mix(in srgb,var(--surface) 55%,var(--bg)));
+  border-right:1px solid var(--border-soft)}
+.sb-search input{box-shadow:var(--e1)}
+nav a{border-radius:9px;border-left:0;position:relative;padding-left:12px}
+nav a.active{background:linear-gradient(90deg,var(--accent-soft),transparent);
+  box-shadow:inset 0 0 0 1px var(--accent-bd)}
+nav a.active::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--accent)}
+.nav-grp{margin-top:16px;color:var(--ink-mut);opacity:.85}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:52px 0 8px}
+.hero::before{content:"";position:absolute;left:-56px;right:-56px;top:-140px;height:420px;z-index:-1;
+  pointer-events:none;opacity:.5;
+  background:
+    radial-gradient(58% 62% at 14% 24%,color-mix(in srgb,var(--tc,var(--accent)) 34%,transparent),transparent 70%),
+    radial-gradient(46% 54% at 82% 8%,color-mix(in srgb,var(--t-agentic) 22%,transparent),transparent 72%);
+  filter:blur(26px)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;padding:5px 12px;
+  border-radius:999px;background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 34%,transparent)}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--tc,var(--accent));
+  box-shadow:0 0 9px var(--tc,var(--accent))}
+.hero h1{font-size:clamp(32px,4.4vw,46px);line-height:1.04;letter-spacing:-.032em;
+  margin:16px 0 14px;font-weight:800;
+  background:linear-gradient(175deg,var(--ink) 30%,color-mix(in srgb,var(--ink) 62%,var(--tc,var(--accent))));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lede{font-size:17.5px;line-height:1.62;max-width:86ch}
+.oneliner{background:linear-gradient(100deg,
+    color-mix(in srgb,var(--tc,var(--accent)) 11%,var(--surface)),var(--surface) 62%);
+  border:1px solid var(--border);border-left:4px solid var(--tc,var(--accent));
+  border-radius:var(--radius);box-shadow:var(--e1);line-height:1.6}
+
+/* ---------- stat tiles ---------- */
+.stat{position:relative;overflow:hidden;box-shadow:var(--e1);
+  background:linear-gradient(180deg,var(--surface),var(--surface-2))}
+.stat::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),transparent 78%)}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--e2);border-color:var(--tc,var(--accent))}
+.stat-v{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+
+/* ---------- what you'll learn ---------- */
+.learn{margin:26px 0 10px;padding:20px 22px 18px;border-radius:16px;position:relative;
+  background:linear-gradient(150deg,
+    color-mix(in srgb,var(--tc,var(--accent)) 9%,var(--surface)),var(--surface) 58%);
+  border:1px solid var(--border);box-shadow:var(--e1)}
+.learn-h{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:800;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--tc,var(--accent))}
+.learn-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;background:var(--tc,var(--accent));color:#fff;font-size:11px}
+.learn-lede{margin:10px 0 4px;font-size:15px;color:var(--ink-2);max-width:92ch}
+.learn-grid{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px;
+  grid-template-columns:repeat(auto-fill,minmax(268px,1fr))}
+.learn-item{background:var(--bg);border:1px solid var(--border-soft);border-radius:11px;
+  padding:11px 13px;margin:0}
+.learn-item:hover{border-color:var(--tc,var(--accent));transform:translateY(-1px);box-shadow:var(--e1)}
+.learn-top{display:flex;align-items:baseline;gap:9px}
+.learn-top b{font-size:13.4px;color:var(--ink);letter-spacing:var(--tight)}
+.learn-n{margin-left:auto;font-size:10px;font-family:var(--mono);color:var(--ink-mut);white-space:nowrap}
+.learn-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.learn-tags span{font-size:10px;padding:2px 8px;border-radius:999px;background:var(--surface-3);
+  border:1px solid var(--border-soft);color:var(--ink-mut)}
+
+/* ---------- section + file headers ---------- */
+.sec > h2{letter-spacing:-.028em;border-bottom:1px solid var(--border)}
+.sec > h2 .hn{box-shadow:0 2px 10px color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent)}
+.filehead h2{letter-spacing:-.028em}
+.parthead span{color:var(--tc,var(--accent));opacity:.9}
+.parthead i{background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- question cards ---------- */
+.q{box-shadow:var(--e1);border-radius:14px}
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,var(--border));box-shadow:var(--e2)}
+.q-h h3{letter-spacing:-.02em}
+.q-n{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));font-weight:800}
+.q.done{box-shadow:inset 3px 0 0 var(--good),var(--e1);border-left-color:transparent}
+.q-a{max-width:none}
+.q-a > p:first-child{color:var(--ink)}
+/* block content fills the card; only loose prose keeps a comfortable measure */
+.q-a > p{max-width:96ch}
+.q-a > ul:not(.steplist),.q-a > ol:not(.steplist){max-width:96ch}
+
+/* ---------- cards ---------- */
+.tcard{box-shadow:var(--e1);background:linear-gradient(170deg,var(--surface),var(--surface-2))}
+.tcard:hover{transform:translateY(-3px);box-shadow:var(--e3)}
+.tcard h4{letter-spacing:var(--tight)}
+
+/* ---------- code ---------- */
+pre.code{box-shadow:inset 0 0 0 1px var(--border-soft),var(--e1);border-radius:12px;padding:15px 16px}
+pre.code:hover .copy{opacity:1}
+.copy{position:absolute;top:7px;right:8px;opacity:0;font-family:var(--sans);font-size:10.5px;
+  font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:7px;
+  border:1px solid var(--border);background:var(--surface-3);color:var(--ink-2);cursor:pointer;z-index:3}
+.copy:hover{border-color:var(--accent);color:var(--accent)}
+.copy.ok{border-color:var(--good);color:var(--good)}
+pre.code[data-lang]::before{top:0;right:auto;left:0;border-radius:12px 0 8px 0;border-left:0;
+  border-right:1px solid var(--border)}
+
+/* ---------- figures ---------- */
+figure.viz{border-radius:16px;box-shadow:var(--e2);padding:19px 21px 12px}
+figure.viz figcaption b{font-size:15.5px;letter-spacing:-.024em}
+figure.viz:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,var(--border))}
+
+/* ---------- tables ---------- */
+.tbl-wrap{box-shadow:var(--e1)}
+td.c-grp .grp-tag{box-shadow:var(--e1)}
+.mag{letter-spacing:-.01em}
+
+/* ---------- callouts + say ---------- */
+.say{border-radius:12px;border-left-width:4px;box-shadow:var(--e1);
+  background:linear-gradient(100deg,var(--accent-soft),transparent 70%)}
+.note{border-radius:12px;border-left-width:4px}
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key{box-shadow:var(--e1)}
+
+/* ---------- panels ---------- */
+.panel{box-shadow:var(--e1);border-radius:14px;
+  background:linear-gradient(170deg,color-mix(in srgb,var(--pc,var(--accent)) 7%,var(--surface)),var(--surface) 55%)}
+.panel:hover{box-shadow:var(--e2)}
+.panel > h3 .ic{box-shadow:0 2px 9px color-mix(in srgb,var(--pc,var(--accent)) 50%,transparent)}
+
+/* ---------- keyterms + flow ---------- */
+.kt{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));font-weight:650}
+.kt:hover{border-color:var(--accent);color:var(--accent)}
+.flow{border-radius:12px;box-shadow:var(--e1)}
+.flow .st{box-shadow:var(--e1)}
+.diagram{border-radius:12px}
+
+/* ---------- step lists (a fence that was really a list) ---------- */
+ol.steplist{counter-reset:sl;list-style:none;padding-left:0;margin:14px 0}
+ol.steplist > li{counter-increment:sl;position:relative;padding:9px 14px 9px 44px;margin:7px 0;
+  background:var(--surface-2);border:1px solid var(--border-soft);border-radius:11px;
+  line-height:1.6;font-size:14.4px}
+ol.steplist > li::before{content:counter(sl);position:absolute;left:11px;top:9px;width:24px;height:24px;
+  border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);
+  font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono)}
+ol.steplist > li:hover{border-color:var(--accent-bd)}
+ul.steplist{list-style:none;padding-left:0;margin:14px 0}
+ul.steplist > li{position:relative;padding:8px 14px 8px 30px;margin:6px 0;background:var(--surface-2);
+  border:1px solid var(--border-soft);border-radius:11px;line-height:1.6;font-size:14.4px}
+ul.steplist > li::before{content:"";position:absolute;left:13px;top:17px;width:6px;height:6px;
+  border-radius:50%;background:var(--tc,var(--accent))}
+
+/* a source heading with no body under it: don't render an empty card */
+.q-a:empty{display:none}
+.q-a:empty + .reveal{display:none}
+.q:has(> .q-a:empty){padding:11px 18px;background:var(--surface-2);opacity:.85}
+.q:has(> .q-a:empty) .q-h h3{font-size:14.5px;color:var(--ink-2)}
+
+.q-h h3 code{font-size:.88em;background:var(--code-bg);border:1px solid var(--border-soft);padding:.06em .34em}
+nav a code{font-size:.9em;background:none;border:0;padding:0;color:inherit}
+.parthead code{font-size:.92em;background:none;border:0;padding:0;color:inherit}
+
+/* ---------- hub ---------- */
+.hub-card{box-shadow:var(--e1);background:linear-gradient(170deg,var(--surface),var(--surface-2))}
+.hub-card:hover{transform:translateY(-4px);box-shadow:var(--e3)}
+.hub h1{letter-spacing:-.034em;font-weight:800}
+
+@media(max-width:1060px){
+  .hero{padding:34px 0 4px}
+  .hero::before{display:none}
+  .learn-grid{grid-template-columns:1fr}
+}
+@media print{
+  .sitebar,.siteswitch,aside,.totop,.reveal,.copy,#rprog{display:none!important}
+  .app{grid-template-columns:1fr}
+  .q,.tbl-wrap,figure.viz{break-inside:avoid;box-shadow:none}
+}
+
+/* ---------- long-page ergonomics ---------- */
+/* the group header stays put while you scroll a 200-question list */
+.parthead{position:sticky;top:44px;z-index:12;background:var(--glass);
+  backdrop-filter:blur(10px) saturate(1.4);-webkit-backdrop-filter:blur(10px) saturate(1.4);
+  padding:8px 10px;margin:26px -10px 10px;border-radius:10px}
+.filehead{position:relative;z-index:1}
+
+/* question cards: tint the badge, and offer a deep link on hover */
+.q-n{color:var(--tc,var(--accent));border-color:color-mix(in srgb,var(--tc,var(--accent)) 40%,var(--border))}
+.q-h{position:relative}
+.q-anchor{opacity:0;margin-left:8px;font-size:12px;color:var(--ink-mut);text-decoration:none;
+  cursor:pointer;font-family:var(--mono);flex:none;align-self:center}
+.q:hover .q-anchor{opacity:.7}
+.q-anchor:hover{opacity:1!important;color:var(--accent);text-decoration:none}
+.q-anchor.ok{color:var(--good);opacity:1!important}
+
+/* card affordances */
+.tcard,.hub-card{position:relative}
+.tcard::after,.hub-card::after{content:"92";position:absolute;right:16px;bottom:12px;
+  font-size:15px;color:var(--tc,var(--accent));opacity:0;transform:translateX(-4px)}
+.tcard:hover::after,.hub-card:hover::after{opacity:.9;transform:translateX(0);
+  transition:opacity .16s ease,transform .16s ease}
+
+/* search: dim the page while filtering so hits stand out */
+body.searching .q{opacity:1}
+body.searching .parthead{opacity:.5}
+
+@media(max-width:1060px){ .parthead{top:0} }
+
+</style>
+</head>
+<body>
+<div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
+  <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw" href="../03_Data_Handling/index.html">03 Data</a><a class="sw" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw on" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw" href="../11_System_Design/index.html">11 Sys Design</a>
+</div></div><div class="sitebar-in">
+  <button class="btn menu-toggle" id="menuBtn">&#9776;</button>
+  <a class="logo" href="index.html">LangChain &amp; <b>LangGraph</b></a>
+  <a class="tab" href="index.html">Home</a><a class="tab" href="langchain.html">LangChain</a><a class="tab" href="langgraph.html">LangGraph</a><a class="tab" href="patterns.html">Patterns</a><a class="tab" href="failure.html">Failure</a><a class="tab" href="cookbooks.html">Cookbooks</a><a class="tab" href="interview.html">Interview</a><a class="tab" href="questions.html">200 Qs</a><a class="tab" href="scenarios1.html">Scenarios 1-5</a><a class="tab" href="scenarios2.html">Scenarios 6-10</a><a class="tab on" href="lenses.html">Lenses</a><a class="tab" href="rag-qa.html">RAG Q&amp;A</a><a class="tab" href="agentic-qa.html">Agentic Q&amp;A</a><a class="tab" href="reference.html">Reference</a><a class="tab" href="production.html">Production</a><a class="tab" href="prod-scenarios.html">Prod Scenarios</a>
+  <span class="sp"></span>
+  <span class="btn" style="cursor:default" title="Questions ticked on this page"><span id="pgCount">0 / 0</span></span>
+  <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
+  <button class="btn" id="themeBtn">Dark</button>
+</div></div>
+<div class="app" style="--tc:var(--t-rag)">
+<aside id="sidebar">
+  <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
+  <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
+  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><a href="#figs"><span class="qn">&#9635;</span>Diagrams</a><div class="nav-grp">21 &middot; Production lenses</div><a href="#f21RAGandAgenti-0" data-q="f21RAGandAgenti-0"><span class="qn">&bull;</span>Scaling — capacity vs throughput are different levers</a><a href="#f21RAGandAgenti-1" data-q="f21RAGandAgenti-1"><span class="qn">&bull;</span>Productionization — what separates a demo from a system</a><a href="#f21RAGandAgenti-2" data-q="f21RAGandAgenti-2"><span class="qn">&bull;</span>Optimization — cheapest and broadest first</a><a href="#f21RAGandAgenti-3" data-q="f21RAGandAgenti-3"><span class="qn">&bull;</span>Latency — measured, not guessed</a><a href="#f21RAGandAgenti-4" data-q="f21RAGandAgenti-4"><span class="qn">&bull;</span>Metrics — split retrieval from generation or you will fix the wrong thing</a><a href="#f21RAGandAgenti-5" data-q="f21RAGandAgenti-5"><span class="qn">&bull;</span>Scaling — the loop is the thing that scales badly</a><a href="#f21RAGandAgenti-6" data-q="f21RAGandAgenti-6"><span class="qn">&bull;</span>Productionization — a loop in production needs brakes</a><a href="#f21RAGandAgenti-7" data-q="f21RAGandAgenti-7"><span class="qn">&bull;</span>Optimization — the cheapest hop is the one you don't take</a><a href="#f21RAGandAgenti-8" data-q="f21RAGandAgenti-8"><span class="qn">&bull;</span>Latency — the multiplier, made concrete</a><a href="#f21RAGandAgenti-9" data-q="f21RAGandAgenti-9"><span class="qn">&bull;</span>Metrics — outcome AND trajectory — vanilla metrics are not enough</a><a href="#f21RAGandAgenti-10" data-q="f21RAGandAgenti-10"><span class="qn">&bull;</span>Scaling — cheapest reflective pattern to scale</a><a href="#f21RAGandAgenti-11" data-q="f21RAGandAgenti-11"><span class="qn">&bull;</span>Productionization — you are trusting the model to mark its own homework</a><a href="#f21RAGandAgenti-12" data-q="f21RAGandAgenti-12"><span class="qn">&bull;</span>Optimization — spend the savings on verification</a><a href="#f21RAGandAgenti-13" data-q="f21RAGandAgenti-13"><span class="qn">&bull;</span>Latency — the cheap reflective option</a><a href="#f21RAGandAgenti-14" data-q="f21RAGandAgenti-14"><span class="qn">&bull;</span>Metrics — measure whether the self-grading is honest</a><a href="#f21RAGandAgenti-15" data-q="f21RAGandAgenti-15"><span class="qn">&bull;</span>Scaling — the grader is the thing that multiplies</a><a href="#f21RAGandAgenti-16" data-q="f21RAGandAgenti-16"><span class="qn">&bull;</span>Productionization — a grader is a model in production, with all that implies</a><a href="#f21RAGandAgenti-17" data-q="f21RAGandAgenti-17"><span class="qn">&bull;</span>Optimization — grade cheaply, correct rarely</a><a href="#f21RAGandAgenti-18" data-q="f21RAGandAgenti-18"><span class="qn">&bull;</span>Latency — you pay the grader on every query, corrections only on some</a><a href="#f21RAGandAgenti-19" data-q="f21RAGandAgenti-19"><span class="qn">&bull;</span>Metrics — the grader needs the same scrutiny as any LLM judge</a><a href="#f21RAGandAgenti-20" data-q="f21RAGandAgenti-20"><span class="qn">&bull;</span>Scaling — call count is the thing that explodes</a><a href="#f21RAGandAgenti-21" data-q="f21RAGandAgenti-21"><span class="qn">&bull;</span>Productionization — brakes, budgets, and blast radius</a><a href="#f21RAGandAgenti-22" data-q="f21RAGandAgenti-22"><span class="qn">&bull;</span>Optimization — the best optimization is a smaller graph</a><a href="#f21RAGandAgenti-23" data-q="f21RAGandAgenti-23"><span class="qn">&bull;</span>Latency — pattern choice IS a latency decision</a><a href="#f21RAGandAgenti-24" data-q="f21RAGandAgenti-24"><span class="qn">&bull;</span>Metrics — outcome tells you IF, trajectory tells you WHY</a></nav>
+</aside>
+<main><div class="wrap">
+
+<section class="hero" id="top"><div class="eyebrow">08_LangChain_and_LangGraph &middot; Lenses</div>
+<h1>Lenses</h1><p class="lede">Scaling, productionization, optimization, latency and metrics for RAG, agentic RAG and agent systems</p><div class="oneliner"><b>1 file</b> in this section, <b>25 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
+<div class="stats"><div class="stat"><div class="stat-v">1</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">25</div><div class="stat-l">sections</div></div></div></section>
+<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">Scaling, productionization, optimization, latency and metrics for RAG, agentic RAG and agent systems</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>21 &middot; Production lenses</b><span class="learn-n">25 sections</span></div><div class="learn-tags"><span>Classic RAG</span><span>Agentic RAG</span><span>Self-RAG</span><span>Corrective RAG (CRAG)</span><span>Agent Systems</span></div></li></ul></section>
+<section class="sec" id="figs"><figure class="viz"><figcaption><b>The two pipelines every RAG answer starts from</b><span>Draw this first, then let the interviewer pick a box</span></figcaption><div class="viz-scroll"><svg viewBox="0 0 920 262" role="img" aria-label="The two pipelines every RAG answer starts from"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-mut)"/></marker><marker id="ahb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--t-rag)"/></marker><marker id="aho" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--t-agentic)"/></marker></defs><text x="8" y="20" text-anchor="start" font-size="10.5" font-weight="700" letter-spacing=".08em" fill="var(--ink-mut)">OFFLINE · BUILD THE LIBRARY</text><rect x="8" y="32" width="160" height="46" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="88" y="54" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Documents</text><text x="88" y="68" text-anchor="middle" font-size="10" fill="var(--ink-mut)">PDF · HTML · DB</text><line x1="168" y1="55" x2="178" y2="55" stroke="var(--ink-mut)" stroke-width="2" marker-end="url(#ah)"/><rect x="186" y="32" width="160" height="46" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="266" y="54" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Parse</text><text x="266" y="68" text-anchor="middle" font-size="10" fill="var(--ink-mut)">extract + clean</text><line x1="346" y1="55" x2="356" y2="55" stroke="var(--ink-mut)" stroke-width="2" marker-end="url(#ah)"/><rect x="364" y="32" width="160" height="46" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="444" y="54" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Chunk</text><text x="444" y="68" text-anchor="middle" font-size="10" fill="var(--ink-mut)">recursive / semantic</text><line x1="524" y1="55" x2="534" y2="55" stroke="var(--ink-mut)" stroke-width="2" marker-end="url(#ah)"/><rect x="542" y="32" width="160" height="46" rx="9" fill="var(--surface-2)" stroke="var(--t-rag)" stroke-width="1.5"/><text x="622" y="54" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Embed</text><text x="622" y="68" text-anchor="middle" font-size="10" fill="var(--ink-mut)">bi-encoder</text><line x1="702" y1="55" x2="712" y2="55" stroke="var(--ink-mut)" stroke-width="2" marker-end="url(#ah)"/><rect x="720" y="32" width="160" height="46" rx="9" fill="var(--surface-2)" stroke="var(--t-rag)" stroke-width="1.5"/><text x="800" y="54" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Index</text><text x="800" y="68" text-anchor="middle" font-size="10" fill="var(--ink-mut)">HNSW / IVF</text><ellipse cx="800" cy="122" rx="66" ry="11" fill="var(--surface-3)" stroke="var(--t-rag)" stroke-width="1.5"/><rect x="734" y="122" width="132" height="26" fill="var(--surface-3)" stroke="var(--t-rag)" stroke-width="1.5" stroke-dasharray="0 132 26 132"/><ellipse cx="800" cy="148" rx="66" ry="11" fill="var(--surface-3)" stroke="var(--t-rag)" stroke-width="1.5"/><text x="800" y="139" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--t-rag)">VECTOR STORE</text><line x1="800" y1="78" x2="800" y2="106" stroke="var(--t-rag)" stroke-width="2" marker-end="url(#ahb)"/><text x="8" y="186" text-anchor="start" font-size="10.5" font-weight="700" letter-spacing=".08em" fill="var(--ink-mut)">ONLINE · ANSWER THE QUESTION</text><rect x="8" y="198" width="132" height="46" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="74" y="220" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Query</text><text x="74" y="234" text-anchor="middle" font-size="10" fill="var(--ink-mut)">user</text><line x1="140" y1="221" x2="148" y2="221" stroke="var(--ink-mut)" stroke-width="2" marker-end="url(#ah)"/><rect x="156" y="198" width="132" height="46" rx="9" fill="var(--surface-2)" stroke="var(--t-rag)" stroke-width="1.5"/><text x="222" y="220" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Retrieve</text><text x="222" y="234" text-anchor="middle" font-size="10" fill="var(--ink-mut)">hybrid + filter</text><line x1="288" y1="221" x2="296" y2="221" stroke="var(--ink-mut)" stroke-width="2" marker-end="url(#ah)"/><rect x="304" y="198" width="132" height="46" rx="9" fill="var(--surface-2)" stroke="var(--t-rag)" stroke-width="1.5"/><text x="370" y="220" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Rerank</text><text x="370" y="234" text-anchor="middle" font-size="10" fill="var(--ink-mut)">cross-encoder</text><line x1="436" y1="221" x2="444" y2="221" stroke="var(--ink-mut)" stroke-width="2" marker-end="url(#ah)"/><rect x="452" y="198" width="132" height="46" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="518" y="220" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Assemble</text><text x="518" y="234" text-anchor="middle" font-size="10" fill="var(--ink-mut)">token budget</text><line x1="584" y1="221" x2="592" y2="221" stroke="var(--ink-mut)" stroke-width="2" marker-end="url(#ah)"/><rect x="600" y="198" width="132" height="46" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="666" y="220" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Generate</text><text x="666" y="234" text-anchor="middle" font-size="10" fill="var(--ink-mut)">grounded</text><line x1="732" y1="221" x2="740" y2="221" stroke="var(--ink-mut)" stroke-width="2" marker-end="url(#ah)"/><rect x="748" y="198" width="132" height="46" rx="9" fill="var(--surface-2)" stroke="var(--good)" stroke-width="1.5"/><text x="814" y="220" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Answer</text><text x="814" y="234" text-anchor="middle" font-size="10" fill="var(--ink-mut)">+ citations</text><path d="M800 160 L800 178 L288 178 L288 196" fill="none" stroke="var(--t-rag)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#ahb)"/></svg></div></figure><figure class="viz"><figcaption><b>Agentic RAG = classic RAG + a decision loop</b><span>Every extra hop must earn its cost — that is the whole interview</span></figcaption><div class="viz-scroll"><svg viewBox="0 0 920 200" role="img" aria-label="Agentic RAG = classic RAG + a decision loop"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-mut)"/></marker><marker id="ahb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--t-rag)"/></marker><marker id="aho" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--t-agentic)"/></marker></defs><rect x="8" y="76" width="118" height="46" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="67" y="103" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Query</text><line x1="126" y1="99" x2="160" y2="99" stroke="var(--ink-mut)" stroke-width="2" marker-end="url(#ah)"/><rect x="168" y="68" width="130" height="62" rx="9" fill="var(--surface-2)" stroke="var(--t-agentic)" stroke-width="1.5"/><text x="233" y="98" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Router</text><text x="233" y="112" text-anchor="middle" font-size="10" fill="var(--ink-mut)">which source?</text><line x1="298" y1="99" x2="352" y2="39" stroke="var(--ink-mut)" stroke-width="1.5" marker-end="url(#ah)"/><rect x="360" y="16" width="138" height="46" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="429" y="38" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Vector DB</text><text x="429" y="52" text-anchor="middle" font-size="10" fill="var(--ink-mut)">unstructured</text><line x1="498" y1="39" x2="552" y2="99" stroke="var(--ink-mut)" stroke-width="1.5" marker-end="url(#ah)"/><line x1="298" y1="99" x2="352" y2="109" stroke="var(--ink-mut)" stroke-width="1.5" marker-end="url(#ah)"/><rect x="360" y="86" width="138" height="46" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="429" y="108" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">SQL</text><text x="429" y="122" text-anchor="middle" font-size="10" fill="var(--ink-mut)">exact / numeric</text><line x1="498" y1="109" x2="552" y2="99" stroke="var(--ink-mut)" stroke-width="1.5" marker-end="url(#ah)"/><line x1="298" y1="99" x2="352" y2="179" stroke="var(--ink-mut)" stroke-width="1.5" marker-end="url(#ah)"/><rect x="360" y="156" width="138" height="46" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="429" y="178" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Web / API</text><text x="429" y="192" text-anchor="middle" font-size="10" fill="var(--ink-mut)">live data</text><line x1="498" y1="179" x2="552" y2="99" stroke="var(--ink-mut)" stroke-width="1.5" marker-end="url(#ah)"/><rect x="560" y="68" width="132" height="62" rx="9" fill="var(--surface-2)" stroke="var(--t-agentic)" stroke-width="1.5"/><text x="626" y="98" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Grade</text><text x="626" y="112" text-anchor="middle" font-size="10" fill="var(--ink-mut)">relevant enough?</text><path d="M754 99 L790 71 L826 99 L790 127 z" fill="var(--surface-2)" stroke="var(--t-agentic)" stroke-width="1.5"/><text x="790" y="103" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">ok?</text><line x1="692" y1="99" x2="746" y2="99" stroke="var(--ink-mut)" stroke-width="2" marker-end="url(#ah)"/><rect x="846" y="76" width="66" height="46" rx="9" fill="var(--surface-2)" stroke="var(--good)" stroke-width="1.5"/><text x="879" y="103" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Answer</text><line x1="826" y1="99" x2="838" y2="99" stroke="var(--good)" stroke-width="2" marker-end="url(#ah)"/><text x="832" y="92" text-anchor="start" font-size="9.5" font-weight="700" letter-spacing=".08em" fill="var(--good)">yes</text><path d="M790 127 L790 176 L233 176 L233 132" fill="none" stroke="var(--t-agentic)" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#aho)"/><text x="462" y="170" text-anchor="middle" font-size="11" font-weight="700" letter-spacing=".08em" fill="var(--t-agentic)">no — rewrite query / try another source  (hard hop-cap: 3)</text></svg></div></figure><figure class="viz"><figcaption><b>Latency budget — vanilla RAG vs a 3-hop agentic loop</b><span>Numbers from ../08_LangChain_and_LangGraph/47_Scaling_Optimization_RAG.md and /27 · hover a segment for detail</span></figcaption><div class="viz-scroll"><svg viewBox="0 0 920 266" role="img" aria-label="Latency budget — vanilla RAG vs a 3-hop agentic loop"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-mut)"/></marker><marker id="ahb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--t-rag)"/></marker><marker id="aho" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--t-agentic)"/></marker></defs><text x="8" y="18" text-anchor="start" font-size="10.5" font-weight="700" letter-spacing=".08em" fill="var(--ink-mut)">END-TO-END LATENCY, SAME SCALE — WHERE THE TIME ACTUALLY GOES</text><text x="8" y="56" text-anchor="start" font-size="11.5" font-weight="800" letter-spacing=".08em" fill="var(--t-rag)">VANILLA RAG</text><rect x="108" y="30" width="12.08" height="38" rx="4" fill="var(--r1)"><title>Retrieve — 36ms</title></rect><rect x="122.08" y="30" width="29.2889" height="38" rx="4" fill="var(--r2)"><title>Rerank — 80ms</title></rect><rect x="153.369" y="30" width="56.6667" height="38" rx="4" fill="var(--r3)"><title>Prefill — 150ms</title></rect><text x="181.702" y="47" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">Prefill</text><text x="181.702" y="60" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.82)">150ms</text><rect x="212.036" y="30" width="232.667" height="38" rx="4" fill="var(--r4)"><title>Decode — 600ms</title></rect><text x="328.369" y="47" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">Decode</text><text x="328.369" y="60" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.82)">600ms</text><text x="456.702" y="54" font-size="13" font-weight="700" fill="var(--ink)">867ms</text><text x="108" y="84" text-anchor="start" font-size="10.5" font-weight="600" letter-spacing=".08em" fill="var(--ink-mut)">embed 10 + dense/sparse 25 (parallel, max not sum) + RRF 1 · assembly 1ms folded into prefill</text><text x="8" y="148" text-anchor="start" font-size="11.5" font-weight="800" letter-spacing=".08em" fill="var(--t-agentic)">AGENTIC, 3 HOPS</text><rect x="108" y="122" width="56.6667" height="38" rx="4" fill="var(--o1)"><title>Routing — 150ms</title></rect><text x="136.333" y="139" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">Routing</text><text x="136.333" y="152" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.82)">150ms</text><rect x="166.667" y="122" width="125.111" height="38" rx="4" fill="var(--o2)"><title>Hop 1 — 325ms</title></rect><text x="229.222" y="139" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">Hop 1</text><text x="229.222" y="152" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.82)">325ms</text><rect x="293.778" y="122" width="125.111" height="38" rx="4" fill="var(--o3)"><title>Hop 2 — 325ms</title></rect><text x="356.333" y="139" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">Hop 2</text><text x="356.333" y="152" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.82)">325ms</text><rect x="420.889" y="122" width="125.111" height="38" rx="4" fill="var(--o4)"><title>Hop 3 — 325ms</title></rect><text x="483.444" y="139" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">Hop 3</text><text x="483.444" y="152" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.82)">325ms</text><rect x="548" y="122" width="350" height="38" rx="4" fill="var(--o5)"><title>Synthesis — 900ms</title></rect><text x="723" y="139" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">Synthesis</text><text x="723" y="152" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.82)">900ms</text><text x="910" y="146" font-size="13" font-weight="700" fill="var(--ink)">2,025ms</text><text x="108" y="176" text-anchor="start" font-size="10.5" font-weight="600" letter-spacing=".08em" fill="var(--ink-mut)">each hop = retrieve 25ms + grader LLM call 300ms · ~2.3x vanilla — the loop must earn this</text><line x1="113.867" y1="26" x2="113.867" y2="196" stroke="var(--good)" stroke-width="2" stroke-dasharray="4 4"/><text x="109.867" y="208" font-size="10.5" font-weight="700" fill="var(--good)">&#8592; semantic-cache hit ≈ 5–15ms — skips everything</text><rect x="8" y="222" width="904" height="34" rx="9" fill="var(--warn-soft)" stroke="var(--warn)"/><text x="24" y="244" font-size="12" fill="var(--ink)"><tspan font-weight="800" fill="var(--warn)">Read it:</tspan> generation is <tspan font-weight="700">~87%</tspan> of the uncached vanilla total — optimise there first, not the vector DB. In the agentic path the <tspan font-weight="700">graders</tspan> are the new tax.</text></svg></div></figure></section>
+<section class="filesec" id="f21RAGandAgenti"><header class="filehead"><div class="fh-top"><span class="fh-num">21 &middot; Production lenses</span><span class="fh-count">25 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/21_RAG_and_Agentic_Production_Lenses.md">source .md &#8599;</a></div><h2>Production Lenses — RAG, Agentic RAG and Agent Systems</h2><div class="note">
+<p>Every topic below is examined through the same five lenses: <strong>Scaling</strong>, <strong>Productionization</strong>,
+<strong>Optimization</strong>, <strong>Latency</strong> and <strong>Metrics</strong>. That structure is the point — an interview answer
+that covers all five reads as someone who has run the thing, not read about it.</p>
+<p>Pattern deep-dives and the question banks live in
+<a href="rag-qa.html#f23RAGProductio">23_RAG_Production_Technical_QA.md</a>,
+<a href="agentic-qa.html#f24AgenticRAGTe">24_Agentic_RAG_Technical_Interview_QA.md</a> and
+<a href="agentic-qa.html#f25AgenticAITec">25_Agentic_AI_Technical_Interview_QA.md</a>.</p>
+</div></header><div class="parthead"><span>Classic RAG</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="note">
+<p>Retrieval-Augmented Generation: give the model the facts at query time instead of baking them into weights. Everything else on this site is a modification of this pipeline — so this is the one you must be able to draw from memory.</p>
+</div>
+<p><strong>One-liner:</strong> two pipelines sharing a <abbr title="a database that indexes embeddings for nearest-neighbour search">vector store</abbr> — an <strong>offline</strong> one that indexes documents, and an <strong>online</strong> one that retrieves, reranks, assembles and generates. <abbr title="retrieval-augmented generation">RAG</abbr> fixes <strong>missing knowledge</strong>; fine-tuning fixes <strong>wrong behaviour</strong>. Confusing those two is the most common interview filter.</p>
+<div class="tbl-wrap"><table class="t2"><thead><tr><th>Number</th><th>What it is</th></tr></thead><tbody><tr class="g1"><td><strong><span class="mag">~867ms</span></strong></td><td>typical uncached end-to-end</td></tr><tr class="g0"><td><strong><span class="mag">~87%</span></strong></td><td>of that is generation</td></tr><tr class="g1"><td><strong><span class="mag">5–15ms</span></strong></td><td>on a semantic-cache hit</td></tr><tr class="g0"><td><strong><abbr title="the share of answerable questions whose supporting passage appears in the top k results">Recall@k</abbr></strong></td><td>the metric to fix first</td></tr></tbody></table></div></div><article class="q" id="f21RAGandAgenti-0"><div class="q-h"><span class="q-n">&bull;</span><h3>Scaling — capacity vs throughput are different levers</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-0"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Ingestion</span><span class="kt">idempotent by content hash</span><span class="kt">Index</span><span class="kt">shard for capacity</span><span class="kt">replicate for QPS/availability</span><span class="kt">The RAM cliff</span></div><ul>
+<li>
+<p><strong>Ingestion</strong> — batch + parallel workers, <strong><abbr title="safe to run more than once with the same result">idempotent</abbr> by content hash</strong> so a re-run is free, dead-letter queue for corrupt files. Never re-embed what hasn't changed.</p>
+</li>
+<li>
+<p><strong>Index</strong> — <strong>shard for capacity</strong> (corpus outgrows RAM), <strong>replicate for <abbr title="queries per second">QPS</abbr>/availability</strong>. These are not the same lever and interviewers listen for that distinction.</p>
+</li>
+<li>
+<p><strong>The RAM cliff</strong> — an <abbr title="hierarchical navigable small world — the graph index most vector stores use for approximate nearest-neighbour search">HNSW</abbr> index that spills out of RAM goes from <span class="mag">~50ms</span> to ~5s. Do the memory math up front: <code>vectors × dim × 4 bytes × ~1.1 graph overhead</code>; use <abbr title="product quantization — compressing vectors into sub-space codes to shrink the index">PQ</abbr>/quantized vectors when it won't fit.</p>
+</li>
+<li>
+<p><strong>Retrieval</strong> — metadata pre-filtering shrinks the candidate set before <abbr title="approximate nearest neighbour">ANN</abbr> search; dense and sparse run <strong>in parallel</strong> (cost is the max, not the sum).</p>
+</li>
+<li>
+<p><strong>Serving</strong> — stateless API pods behind autoscaling; the vector DB and the <abbr title="large language model">LLM</abbr> are the stateful dependencies, so they get their own scaling story and their own circuit breakers.</p>
+</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-1"><div class="q-h"><span class="q-n">&bull;</span><h3>Productionization — what separates a demo from a system</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-1"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Index versioning + alias cutover</span><span class="kt">No-context guard</span><span class="kt">abstain</span><span class="kt">Citations on every claim</span><span class="kt">Observability per hop</span><span class="kt">Golden set + canary</span></div><ul>
+<li>
+<p><strong>Pin the <abbr title="a dense numeric vector representing text so that similar meanings sit close together">embedding</abbr> model as metadata on the index.</strong> Vectors from two models are not comparable — this single field prevents the worst silent failure in <abbr title="retrieval-augmented generation">RAG</abbr>.</p>
+</li>
+<li>
+<p><strong>Index versioning + alias cutover</strong> so a rebuild is atomic and reversible.</p>
+</li>
+<li>
+<p><strong>Access control via metadata filters</strong>, applied at query time, never post-hoc filtering of results.</p>
+</li>
+<li>
+<p><strong>No-context guard</strong> — if the best score is under threshold, <strong>abstain</strong> rather than generate. Ungrounded confidence is worse than "I don't know".</p>
+</li>
+<li>
+<p><strong>Citations on every claim</strong>, with a post-generation check that cited chunks were actually retrieved.</p>
+</li>
+<li>
+<p><strong>Observability per hop</strong> — log query, retrieved IDs + scores, reranked set, final prompt tokens, answer, latency per stage. You cannot debug retrieval you didn't log.</p>
+</li>
+<li>
+<p><strong>Golden set + canary</strong> on every prompt, model, chunking or embedding change.</p>
+</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-2"><div class="q-h"><span class="q-n">&bull;</span><h3>Optimization — cheapest and broadest first</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-2"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Hybrid search (BM25 + vector)</span><span class="kt">Rerank to fewer, better chunks</span><span class="kt">Semantic cache</span><span class="kt">Prefix / KV cache</span><span class="kt">Right-size the chunk</span><span class="kt">Quantize the reranker</span></div><ul>
+<li>
+<p><strong><abbr title="fusing keyword (BM25) and dense vector results, usually with reciprocal rank fusion">Hybrid search</abbr> (<abbr title="Best Match 25, the classic keyword-ranking function">BM25</abbr> + vector)</strong> — the highest-value single addition in most enterprise corpora, because exact terms (error codes, part numbers, names) are exactly what dense retrieval misses.</p>
+</li>
+<li>
+<p><strong>Rerank to fewer, better chunks</strong> — going 20→4 usually improves <abbr title="whether an answer is actually supported by the context it was given">faithfulness</abbr> <em>and</em> cuts cost <em>and</em> cuts latency. The rare change with no trade-off.</p>
+</li>
+<li>
+<p><strong><abbr title="reusing a previous answer when a new query is close enough in embedding space">Semantic cache</abbr></strong> on the query — a hit skips the entire pipeline.</p>
+</li>
+<li>
+<p><strong>Prefix / <abbr title="the stored attention keys and values for tokens already generated, so each new token attends without recomputing the sequence">KV cache</abbr></strong> — keep the stable prompt prefix first so it caches; never put a timestamp above it.</p>
+</li>
+<li>
+<p><strong>Right-size the chunk</strong> — or decouple it entirely with <abbr title="matching on a small precise unit but handing the model the larger parent passage">small-to-big</abbr>: search small chunks, return their parent.</p>
+</li>
+<li>
+<p><strong>Quantize the reranker</strong> or distil it — cross-encoders are the second-biggest cost after generation.</p>
+</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-3"><div class="q-h"><span class="q-n">&bull;</span><h3>Latency — measured, not guessed</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-3"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">prefix caching → ~40–60ms</span><span class="kt">stream</span><span class="kt">Total</span><span class="kt">~867ms</span><span class="kt">semantic-cache hit → ~5–15ms</span><span class="kt">Stream the answer</span></div><p>The worked budget below is the one to quote. The shape of it — generation dominating — is what tells you where to optimise.</p>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Stage</th><th>Typical</th><th>Lever</th></tr></thead><tbody><tr class="g1"><td>Embed query</td><td><span class="mag">~10ms</span></td><td>cache common queries</td></tr><tr class="g0"><td>Dense + sparse retrieval</td><td><span class="mag">~25ms</span> <em>(parallel — max, not sum)</em></td><td>metadata pre-filter, keep index in RAM</td></tr><tr class="g1"><td><abbr title="reciprocal rank fusion — merges two ranked lists by summing 1/(k+rank), needing no score calibration">RRF</abbr> fusion</td><td><span class="mag">~1ms</span></td><td>—</td></tr><tr class="g0"><td>Rerank top-50 → top-5</td><td><span class="mag">~80ms</span></td><td>batch, quantize, or distil the <abbr title="a model that scores a query and passage together in one pass, more accurate but slower than separate embeddings">cross-encoder</abbr></td></tr><tr class="g1"><td>Prompt assembly</td><td><span class="mag">~1ms</span></td><td>—</td></tr><tr class="g0"><td><abbr title="large language model">LLM</abbr> <abbr title="processing the whole prompt to produce the first output token">prefill</abbr></td><td><span class="mag">~150ms</span></td><td><strong><abbr title="reusing the computed KV cache of a shared prompt prefix across requests, so prefill is not repeated">prefix caching</abbr> → <span class="mag">~40–60ms</span></strong></td></tr><tr class="g1"><td>LLM <abbr title="generating output tokens one at a time after prefill">decode</abbr></td><td><span class="mag">~600ms</span></td><td>smaller model, fewer output tokens, <strong>stream</strong></td></tr><tr class="g0"><td><strong>Total</strong></td><td><strong><span class="mag">~867ms</span></strong></td><td><strong>semantic-cache hit → <span class="mag">~5–15ms</span></strong></td></tr></tbody></table></div>
+<p><strong>Stream the answer.</strong> Perceived latency is time-to-first-token, not total. Streaming turns an <span class="mag">867ms</span> wait into a <span class="mag">~200ms</span> one, with zero backend change.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-4"><div class="q-h"><span class="q-n">&bull;</span><h3>Metrics — split retrieval from generation or you will fix the wrong thing</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-4"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Retrieval</span><span class="kt">Precision@k</span><span class="kt">MRR</span><span class="kt">first</span><span class="kt">reranking</span><span class="kt">nDCG@k</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Layer</th><th>Metric</th><th>Tells you</th></tr></thead><tbody><tr class="g1"><td><strong>Retrieval</strong></td><td><abbr title="the share of answerable questions whose supporting passage appears in the top k results">Recall@k</abbr></td><td>Is the right chunk in the top-k <em>at all</em>? Fix this first — nothing downstream can recover from a miss.</td></tr><tr class="g0"><td><strong>Precision@k</strong></td><td>How much of what you retrieved was noise — <code>(relevant in top-k)/k</code>.</td><td></td></tr><tr class="g1"><td><strong><abbr title="mean reciprocal rank — 1/(rank of the first relevant result), averaged over queries; measures how HIGH the first hit lands, not whether it was found at all">MRR</abbr></strong> <em>(mean reciprocal rank)</em></td><td>How high the <strong>first</strong> correct hit ranks — mean of <code>1/(rank of first relevant)</code>. First hit at rank 3 → 0.33. This is the metric <strong><abbr title="a cross-encoder rescoring the top-k candidates and keeping only the best few">reranking</abbr></strong> moves.</td><td></td></tr><tr class="g0"><td><strong><abbr title="normalised discounted cumulative gain">nDCG</abbr>@k</strong></td><td>Graded relevance across the whole ranking: <code>&amp;Sigma; gainᵢ/log₂(i+1)</code>, normalised by the ideal ordering. Use it when relevance is not binary.</td><td></td></tr><tr class="g1"><td><strong>Generation</strong></td><td><abbr title="whether an answer is actually supported by the context it was given">Faithfulness</abbr> / groundedness</td><td>Is the answer supported by the retrieved context?</td></tr><tr class="g0"><td>Answer relevancy</td><td>Does it actually answer the question asked?</td><td></td></tr><tr class="g1"><td>Context precision</td><td>Was the useful context ranked high?</td><td></td></tr><tr class="g0"><td>Context recall</td><td>Did retrieval get everything the answer needed?</td><td></td></tr><tr class="g1"><td><strong>Operations</strong></td><td>p50 / p95 latency per stage</td><td>Where the time goes</td></tr><tr class="g0"><td>Cache-hit rate</td><td>Cost and latency headroom you're leaving unused</td><td></td></tr><tr class="g1"><td>Abstain rate</td><td>Guard too tight (unhelpful) or too loose (hallucinating)</td><td></td></tr><tr class="g0"><td>Cost per query</td><td>The number the business actually asks about</td><td></td></tr></tbody></table></div>
+<p><strong>The diagnostic that matters:</strong> high context precision/recall + low faithfulness points at <strong>generation</strong>. Low context recall points at <strong>retrieval</strong>. Reporting one blended score hides which half is broken.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>Agentic RAG</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="note">
+<p>Classic <abbr title="retrieval-augmented generation">RAG</abbr> retrieves once and hopes. Agentic RAG wraps that pipeline in a loop that can decide <strong>whether</strong> to retrieve, <strong>where</strong> from, and <strong>whether what came back is good enough</strong> — and retry if not.</p>
+</div>
+<p><strong>One-liner:</strong> the pipeline stops being a straight line and becomes a <strong>control loop</strong>. Every extra hop costs money and latency, so the whole discipline is <strong>proving the loop earned its cost</strong>.</p>
+<div class="tbl-wrap"><table class="t2"><thead><tr><th>Number</th><th>What it is</th></tr></thead><tbody><tr class="g1"><td><strong><span class="mag">~2,025ms</span></strong></td><td>3-hop loop, end to end</td></tr><tr class="g0"><td><strong><span class="mag">~2.3×</span></strong></td><td>vs vanilla RAG</td></tr><tr class="g1"><td><strong>3 hops</strong></td><td>the hard cap you must set</td></tr><tr class="g0"><td><strong>Routing acc.</strong></td><td>the metric vanilla RAG doesn't have</td></tr></tbody></table></div></div><article class="q" id="f21RAGandAgenti-5"><div class="q-h"><span class="q-n">&bull;</span><h3>Scaling — the loop is the thing that scales badly</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-5"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Distil the grader</span><span class="kt">Cache tool results</span><span class="kt">Queue long runs</span></div><ul>
+<li>
+<p><strong>Parallelize decomposition, never iteration.</strong> Independent sub-questions (known up front) fan out and collapse N hops toward one hop's wall-clock. Iterative retrieval — where query <em>n+1</em> depends on result <em>n</em> — cannot be parallelized, ever. Knowing which you have is the design decision.</p>
+</li>
+<li>
+<p><strong>Distil the grader.</strong> A <span class="mag">~300ms</span> frontier-model grading call per hop is the agentic tax. A small distilled model or even a similarity threshold does the same job for a fraction of the cost.</p>
+</li>
+<li>
+<p><strong>Cache tool results</strong> keyed on <code>(tool, args)</code> — distinct from a query-keyed <abbr title="reusing a previous answer when a new query is close enough in embedding space">semantic cache</abbr>, and reusable across entirely different runs.</p>
+</li>
+<li>
+<p><strong>Stateless workers + externalized checkpointer</strong> so any pod can resume any run.</p>
+</li>
+<li>
+<p><strong>Queue long runs</strong> (async, webhook/poll) rather than holding an HTTP connection open for 10 seconds.</p>
+</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-6"><div class="q-h"><span class="q-n">&bull;</span><h3>Productionization — a loop in production needs brakes</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-6"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">A hard hop cap</span><span class="kt">Per-request budget</span><span class="kt">Loop detection</span><span class="kt">Graceful degradation</span><span class="kt">Trace every decision</span><span class="kt">Human-in-the-loop</span></div><ul>
+<li>
+<p><strong>A hard hop cap.</strong> Not a suggestion in the prompt — a counter in code with a guaranteed exit branch. Runaway loops are the #1 agentic failure mode and they are a <em>cost</em> incident as much as a latency one.</p>
+</li>
+<li>
+<p><strong>Per-request budget</strong> in tokens and wall-clock; abort and degrade to vanilla <abbr title="retrieval-augmented generation">RAG</abbr> when exceeded.</p>
+</li>
+<li>
+<p><strong>Loop detection</strong> — if the rewritten query is semantically the same as the last one, you are not making progress; break.</p>
+</li>
+<li>
+<p><strong>Graceful degradation</strong> — when the loop fails or the budget blows, fall back to a single-pass answer with lower confidence, not an error.</p>
+</li>
+<li>
+<p><strong>Trace every decision</strong>, not just every call: which source was routed to, what the grade was, why it retried. A trace without decisions is unusable for debugging an agent.</p>
+</li>
+<li>
+<p><strong>Human-in-the-loop</strong> for high-stakes actions, wired as an interrupt rather than a prompt instruction.</p>
+</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-7"><div class="q-h"><span class="q-n">&bull;</span><h3>Optimization — the cheapest hop is the one you don't take</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-7"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Route first, and route cheaply</span><span class="kt">Skip retrieval entirely</span><span class="kt">Small models for router and grader</span><span class="kt">Cap and cache</span></div><ul>
+<li>
+<p><strong>Route first, and route cheaply</strong> — a small fast model deciding "does this even need retrieval?" pays for itself immediately. If routing itself becomes multi-step you've made deciding as expensive as doing.</p>
+</li>
+<li>
+<p><strong>Skip retrieval entirely</strong> when the query doesn't need it. Correctly skipping is a win worth reporting.</p>
+</li>
+<li>
+<p><strong>Small models for router and grader</strong>, frontier model only for final synthesis.</p>
+</li>
+<li>
+<p><strong>Cap and cache</strong> before you optimise anything else — most agentic cost blowups are loops, not slow calls.</p>
+</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-8"><div class="q-h"><span class="q-n">&bull;</span><h3>Latency — the multiplier, made concrete</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-8"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Total (N=3)</span><span class="kt">~2,025ms — ~2.3× vanilla</span><span class="kt">Where it compresses</span></div><div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Stage</th><th>Cost</th></tr></thead><tbody><tr class="g1"><td class="c-term">Routing decision (up front)</td><td><span class="mag">~150ms</span></td></tr><tr class="g0"><td class="c-term">Hop 1 — retrieve <span class="mag">25ms</span> + grader <abbr title="large language model">LLM</abbr> call <span class="mag">300ms</span></td><td><span class="mag">~325ms</span></td></tr><tr class="g1"><td class="c-term">Hop 2</td><td><span class="mag">~325ms</span></td></tr><tr class="g0"><td class="c-term">Hop 3</td><td><span class="mag">~325ms</span></td></tr><tr class="g1"><td class="c-term">Final synthesis (bigger context, longer output)</td><td><span class="mag">~900ms</span></td></tr><tr class="g0"><td class="c-term"><strong>Total (N=3)</strong></td><td><strong><span class="mag">~2,025ms</span> — <span class="mag">~2.3×</span> vanilla</strong></td></tr></tbody></table></div>
+<p><strong>Where it compresses:</strong> parallelizing independent sub-questions collapses N hops toward one; distilling the grader cuts <span class="mag">~300ms</span> per hop; tool-result caching turns a repeated hop into a cache hit.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-9"><div class="q-h"><span class="q-n">&bull;</span><h3>Metrics — outcome AND trajectory — vanilla metrics are not enough</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-9"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">and</span><span class="kt">The question every review asks</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Axis</th><th>Metric</th><th>How</th></tr></thead><tbody><tr class="g1"><td>Outcome</td><td>Answer correctness / <abbr title="whether an answer is actually supported by the context it was given">faithfulness</abbr></td><td>Same as vanilla <abbr title="retrieval-augmented generation">RAG</abbr> — the loop shouldn't change how you grade the final answer</td></tr><tr class="g0"><td>Routing</td><td>Routing accuracy</td><td>The router is a classifier — evaluate it as one, on a labelled (query → correct source) set</td></tr><tr class="g1"><td>Decisions</td><td>Retrieval-decision precision/recall</td><td>Did it retrieve when needed and skip when not? Re-retrieve only when pass 1 was genuinely bad?</td></tr><tr class="g0"><td>Efficiency</td><td>Hop efficiency</td><td>Hops used vs minimum needed; flag queries burning far above the median for their tier</td></tr><tr class="g1"><td>Grader</td><td>Grader calibration</td><td>Sample (query, docs, grade) triples against human relevance labels — a miscalibrated grader misdirects the entire loop</td></tr><tr class="g0"><td>Worth it?</td><td>Cost/latency vs vanilla baseline</td><td>A/B on the same eval set — report the accuracy delta <strong>and</strong> the cost/latency delta together, never accuracy alone</td></tr></tbody></table></div>
+<p><strong>The question every review asks:</strong> <em>"you added a loop — prove it was worth it."</em> Bring both deltas in one table.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>Self-RAG</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="note">
+<p>The generator grades <strong>itself</strong>, inline. Reflection isn't a separate node in your graph — it's part of the model's own output, emitted as reflection tokens while it works.</p>
+</div>
+<p><strong>One-liner:</strong> same problem as Corrective <abbr title="retrieval-augmented generation">RAG</abbr>, solved inside the model. The generator emits its own judgments — <em>should I retrieve? is this passage relevant? is my draft supported? is this answer useful?</em> — instead of a wrapper asking on its behalf.</p>
+<div class="tbl-wrap"><table class="t2"><thead><tr><th>Number</th><th>What it is</th></tr></thead><tbody><tr class="g1"><td><strong>4</strong></td><td>reflection tokens</td></tr><tr class="g0"><td><strong>1</strong></td><td>model — trained, not wrapped</td></tr><tr class="g1"><td><strong>0</strong></td><td>extra model calls</td></tr><tr class="g0"><td><strong>Overconfidence</strong></td><td>the failure mode to watch</td></tr></tbody></table></div></div><article class="q" id="f21RAGandAgenti-10"><div class="q-h"><span class="q-n">&bull;</span><h3>Scaling — cheapest reflective pattern to scale</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-10"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">No second model to scale</span><span class="kt">Cap the regenerate loop</span></div><ul>
+<li>
+<p><strong>No second model to scale</strong> — reflection rides along with generation, so throughput is bounded by your existing <abbr title="large language model">LLM</abbr> capacity, not by a separate grader fleet.</p>
+</li>
+<li>
+<p><strong>The <code>Retrieve?</code> token is a scaling lever in disguise</strong> — every query it correctly answers "no" to skips the retrieval pipeline entirely, taking load off the vector DB.</p>
+</li>
+<li>
+<p><strong>Cap the regenerate loop.</strong> <code>IsSup?</code> failing repeatedly must terminate — two attempts then abstain, never unbounded.</p>
+</li>
+<li>
+<p>Output tokens grow because reflection is emitted — budget for it, and strip reflection tokens before showing the user.</p>
+</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-11"><div class="q-h"><span class="q-n">&bull;</span><h3>Productionization — you are trusting the model to mark its own homework</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-11"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Log every reflection judgment</span><span class="kt">Parse defensively</span><span class="kt">Strip reflection tokens</span><span class="kt">any</span></div><ul>
+<li>
+<p><strong>Never ship self-assessment as your only quality gate</strong> in a high-stakes flow. Pair it with an independent check — a citation verifier, an <abbr title="natural language inference">NLI</abbr> entailment check, or a sampled external judge.</p>
+</li>
+<li>
+<p><strong>Log every reflection judgment</strong> alongside the answer. These are the ground truth for measuring whether self-grading is calibrated at all.</p>
+</li>
+<li>
+<p><strong>Parse defensively</strong> — reflection tokens are model output, so they can be malformed or absent. Treat a missing judgment as "unsupported", not as a pass.</p>
+</li>
+<li>
+<p><strong>Strip reflection tokens</strong> from user-facing output, but keep them in the trace.</p>
+</li>
+<li>
+<p>Re-validate after <strong>any</strong> model change — self-grading behaviour is a property of the specific model version and does not survive migration.</p>
+</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-12"><div class="q-h"><span class="q-n">&bull;</span><h3>Optimization — spend the savings on verification</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-12"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">skip retrieval</span><span class="kt">switch to CRAG</span></div><ul>
+<li>
+<p>Use the <code>Retrieve?</code> judgment to <strong>skip retrieval</strong>, then spend part of the saved budget on an independent groundedness check — net cost is roughly flat, and reliability goes up.</p>
+</li>
+<li>
+<p>Keep reflection terse — a one-token judgment, not a paragraph of reasoning, unless you need the rationale for audit.</p>
+</li>
+<li>
+<p>Prefix-cache the reflection instructions with the rest of the system prompt.</p>
+</li>
+<li>
+<p>If self-grading measures poorly calibrated on your traffic, <strong>switch to <abbr title="corrective retrieval-augmented generation">CRAG</abbr></strong> rather than tuning the prompt indefinitely. That is the honest optimisation.</p>
+</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-13"><div class="q-h"><span class="q-n">&bull;</span><h3>Latency — the cheap reflective option</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-13"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">+0 network hops</span><span class="kt">Negative</span><span class="kt">lowest-latency</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th>Path</th><th>Added latency vs vanilla</th></tr></thead><tbody><tr class="g1"><td>Reflection tokens only (no extra call)</td><td><strong>+0 network hops</strong> — only the extra output tokens, typically tens of ms</td></tr><tr class="g0"><td><code>Retrieve? = no</code> → skip retrieval</td><td><strong>Negative</strong> — faster than vanilla <abbr title="retrieval-augmented generation">RAG</abbr></td></tr><tr class="g1"><td><code>IsSup? = no</code> → one regeneration</td><td>+1 full generation (<span class="mag">~600ms</span>) — cap at one retry</td></tr><tr class="g0"><td>Compare: <abbr title="corrective retrieval-augmented generation">CRAG</abbr> grader call</td><td>+<span class="mag">~300ms</span> <em>per hop</em>, always paid</td></tr></tbody></table></div>
+<p>Self-RAG is the <strong>lowest-latency</strong> way to add reflection, because the judgment travels inside a call you were already making.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-14"><div class="q-h"><span class="q-n">&bull;</span><h3>Metrics — measure whether the self-grading is honest</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-14"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Self-grade calibration</span><span class="kt">Overconfidence rate</span><span class="kt">Retrieve-decision precision/recall</span><span class="kt">Faithfulness (independent)</span><span class="kt">Regeneration rate</span><span class="kt">vs CRAG A/B</span></div><div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Metric</th><th>What it catches</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>Self-grade calibration</strong></td><td>Agreement between <code>IsSup?</code> and a human/<abbr title="natural language inference">NLI</abbr> verdict. The headline metric — if this is low, the pattern is decorative.</td></tr><tr class="g0"><td class="c-term"><strong>Overconfidence rate</strong></td><td>How often the model says "supported" when it isn't. Track this specifically; it's the known failure direction.</td></tr><tr class="g1"><td class="c-term"><strong>Retrieve-decision precision/recall</strong></td><td>Did it skip retrieval when it should have, and only then?</td></tr><tr class="g0"><td class="c-term"><strong><abbr title="whether an answer is actually supported by the context it was given">Faithfulness</abbr> (independent)</strong></td><td>Measured by something that is <em>not</em> the generator — the whole point is an outside opinion</td></tr><tr class="g1"><td class="c-term"><strong>Regeneration rate</strong></td><td>Rising rate means retrieval quality is degrading upstream</td></tr><tr class="g0"><td class="c-term"><strong>vs <abbr title="corrective retrieval-augmented generation">CRAG</abbr> A/B</strong></td><td>Accuracy, cost and latency deltas side by side on one eval set</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>Corrective RAG (CRAG)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="note">
+<p>Grade what you retrieved, then <strong>act on the grade</strong>. A separate grading step sits between retrieval and generation and routes to one of three outcomes — generate, correct, or escape.</p>
+</div>
+<p><strong>One-liner:</strong> a <strong>wrapper</strong> you can bolt onto any existing <abbr title="retrieval-augmented generation">RAG</abbr> pipeline. The generator is unchanged; the grader is the new moving part — and its calibration quietly becomes a dependency of the whole system.</p>
+<div class="tbl-wrap"><table class="t2"><thead><tr><th>Number</th><th>What it is</th></tr></thead><tbody><tr class="g1"><td><strong>3</strong></td><td>knowledge actions</td></tr><tr class="g0"><td><strong>1</strong></td><td>small evaluator — <abbr title="large language model">LLM</abbr> untouched</td></tr><tr class="g1"><td><strong>Any</strong></td><td>pipeline it can wrap</td></tr><tr class="g0"><td><strong>Calibration</strong></td><td>the metric that decides everything</td></tr></tbody></table></div></div><article class="q" id="f21RAGandAgenti-15"><div class="q-h"><span class="q-n">&bull;</span><h3>Scaling — the grader is the thing that multiplies</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-15"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Distil the grader</span><span class="kt">Try a threshold first</span><span class="kt">Batch grading</span><span class="kt">Cap the correction loop hard</span><span class="kt">fallback source</span></div><ul>
+<li>
+<p><strong>Distil the grader.</strong> This is the single biggest lever. Relevance grading is a narrow classification task — a small distilled model or a fine-tuned classifier matches a frontier model at a fraction of the cost and latency, and you can retrain it independently.</p>
+</li>
+<li>
+<p><strong>Try a threshold first.</strong> Sometimes a plain reranker score cutoff grades well enough, at zero <abbr title="large language model">LLM</abbr> cost. Measure before assuming you need a model.</p>
+</li>
+<li>
+<p><strong>Batch grading</strong> across retrieved documents in one call rather than one call per document.</p>
+</li>
+<li>
+<p><strong>Cap the correction loop hard</strong> — one or two rewrites, then escape to fallback or abstain. Uncapped rewrite loops are the classic <abbr title="corrective retrieval-augmented generation">CRAG</abbr> cost incident.</p>
+</li>
+<li>
+<p>Rate-limit and circuit-break the <strong>fallback source</strong> (web search) separately — it's an external dependency with its own failure modes and its own bill.</p>
+</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-16"><div class="q-h"><span class="q-n">&bull;</span><h3>Productionization — a grader is a model in production, with all that implies</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-16"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Alert on grade distribution shift</span><span class="kt">index</span><span class="kt">Guard the web-search fallback</span><span class="kt">Log the grade with every trace</span></div><ul>
+<li>
+<p><strong>Version and monitor the grader like a model</strong>, because it is one: pinned version, eval set, drift monitoring, rollback path.</p>
+</li>
+<li>
+<p><strong>Alert on grade distribution shift.</strong> A sudden jump in "irrelevant" almost always means the <strong>index</strong> broke — a failed reindex, a bad <abbr title="a dense numeric vector representing text so that similar meanings sit close together">embedding</abbr> migration — not that the world changed. This is one of the best early-warning signals you can have.</p>
+</li>
+<li>
+<p><strong>Make abstention a first-class outcome</strong> with its own UX. "I couldn't find this in our documentation" is a good answer; a confident guess is not.</p>
+</li>
+<li>
+<p><strong>Guard the web-search fallback</strong> — it pulls untrusted content into your context, so treat results as data, never instructions, and apply prompt-injection defences.</p>
+</li>
+<li>
+<p><strong>Log the grade with every trace</strong> so you can reconstruct why a given answer took the path it did.</p>
+</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-17"><div class="q-h"><span class="q-n">&bull;</span><h3>Optimization — grade cheaply, correct rarely</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-17"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">only on the reranked top-k</span><span class="kt">Cache grades</span><span class="kt">Tune the thresholds asymmetrically</span></div><ul>
+<li>
+<p><strong>Fix retrieval before adding correction.</strong> <abbr title="fusing keyword (BM25) and dense vector results, usually with reciprocal rank fusion">Hybrid search</abbr> + <abbr title="a cross-encoder rescoring the top-k candidates and keeping only the best few">reranking</abbr> removes many of the cases <abbr title="corrective retrieval-augmented generation">CRAG</abbr> exists to catch, and costs less per query than a grading call.</p>
+</li>
+<li>
+<p>Run grading <strong>only on the reranked top-k</strong>, not the raw candidate set.</p>
+</li>
+<li>
+<p><strong>Cache grades</strong> keyed on (query, doc-id) — repeated queries re-grade the same documents constantly.</p>
+</li>
+<li>
+<p><strong>Tune the thresholds asymmetrically:</strong> the cost of a false "relevant" (hallucinated answer) usually far exceeds a false "irrelevant" (one extra retrieval). Set the boundary where the business cost is symmetric, not where accuracy peaks.</p>
+</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-18"><div class="q-h"><span class="q-n">&bull;</span><h3>Latency — you pay the grader on every query, corrections only on some</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-18"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">+~300ms</span><span class="kt">~300ms → ~40–80ms</span><span class="kt">The honest framing</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Path</th><th>Added latency</th><th>Share of traffic</th></tr></thead><tbody><tr class="g1"><td>Grade → relevant → generate</td><td><strong>+<span class="mag">~300ms</span></strong> (grading only)</td><td>The majority, if retrieval is healthy</td></tr><tr class="g0"><td>Grade → partial → rewrite + re-retrieve + re-grade</td><td>+<span class="mag">~650ms</span> per correction cycle</td><td>Should be a minority — watch this rate</td></tr><tr class="g1"><td>Grade → irrelevant → web fallback</td><td>+<span class="mag">500–2,000ms</span> (external call)</td><td>Small — and cap it</td></tr><tr class="g0"><td>Distilled grader instead of frontier</td><td><strong><span class="mag">~300ms</span> → <span class="mag">~40–80ms</span></strong></td><td>All traffic — the best available win</td></tr></tbody></table></div>
+<p><strong>The honest framing:</strong> <abbr title="corrective retrieval-augmented generation">CRAG</abbr> trades a fixed latency tax on <em>every</em> query for a large reduction in confidently-wrong answers on <em>some</em>. Whether that's worth it is an eval question, not a taste question.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-19"><div class="q-h"><span class="q-n">&bull;</span><h3>Metrics — the grader needs the same scrutiny as any LLM judge</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-19"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Grader calibration / agreement</span><span class="kt">The metric CRAG lives or dies on</span><span class="kt">False-relevant rate</span><span class="kt">False-irrelevant rate</span><span class="kt">Correction rate</span><span class="kt">Correction success rate</span></div><div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Metric</th><th>What it tells you</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>Grader calibration / agreement</strong></td><td>Do grades match human relevance labels? <strong>The metric <abbr title="corrective retrieval-augmented generation">CRAG</abbr> lives or dies on</strong> — a miscalibrated grader misdirects the entire loop, and confidently.</td></tr><tr class="g0"><td class="c-term"><strong>False-relevant rate</strong></td><td>Graded relevant, actually wasn't → a <abbr title="a fluent, confident answer that is not supported by the evidence or the facts">hallucination</abbr> got through. The expensive error.</td></tr><tr class="g1"><td class="c-term"><strong>False-irrelevant rate</strong></td><td>Graded irrelevant, actually fine → wasted correction cycles and latency.</td></tr><tr class="g0"><td class="c-term"><strong>Correction rate</strong></td><td>Share of queries needing a rewrite. Rising = retrieval quality degrading upstream.</td></tr><tr class="g1"><td class="c-term"><strong>Correction success rate</strong></td><td>Of corrections attempted, how many ended in a good answer? If low, rewriting isn't the right fix.</td></tr><tr class="g0"><td class="c-term"><strong>Grade distribution over time</strong></td><td>Your index health canary — a shift usually means the index, not the traffic, changed.</td></tr><tr class="g1"><td class="c-term"><strong>Abstain rate</strong></td><td>Too high = corpus gap or over-tight grader; too low = you're not catching the misses.</td></tr><tr class="g0"><td class="c-term"><strong>End-to-end vs vanilla A/B</strong></td><td>Accuracy gain against the fixed latency and cost tax — always reported together.</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>Agent Systems</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="note">
+<p>Nine patterns, one decision. Everything here follows from a single question: <strong>does the next step depend on the result of the last one?</strong></p>
+</div>
+<p><strong>One-liner:</strong> an agent is an <abbr title="large language model">LLM</abbr> in a loop with tools and a termination condition. The patterns differ only in <strong>who decides the next step</strong> — and every one of them fails by looping.</p>
+<div class="tbl-wrap"><table class="t2"><thead><tr><th>Number</th><th>What it is</th></tr></thead><tbody><tr class="g1"><td><strong>9</strong></td><td>patterns worth knowing</td></tr><tr class="g0"><td><strong>#1</strong></td><td>failure is runaway loops</td></tr><tr class="g1"><td><strong><abbr title="an agent that routes work to other agents and owns the overall plan">Supervisor</abbr></strong></td><td>sequential, sum of hops</td></tr><tr class="g0"><td><strong>Orchestrator</strong></td><td>parallel, slowest branch</td></tr></tbody></table></div></div><article class="q" id="f21RAGandAgenti-20"><div class="q-h"><span class="q-n">&bull;</span><h3>Scaling — call count is the thing that explodes</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-20"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Do the call-count math out loud</span><span class="kt">capability</span><span class="kt">Parallel tool calls</span><span class="kt">Async queues</span><span class="kt">Tool-result caching</span><span class="kt">Code-enforced execution paths</span></div><ul>
+<li>
+<p><strong>Do the call-count math out loud.</strong> Three agents × five steps = 15 <abbr title="large language model">LLM</abbr> calls versus a single agent's ~6. Multi-agent is a <strong>capability</strong> decision, not a performance one — it usually costs more, not less.</p>
+</li>
+<li>
+<p><strong>Parallel tool calls</strong> within one step: a worked example goes <span class="mag">1,800ms</span> → <span class="mag">1,050ms</span> (<span class="mag">~42%</span>) from orchestration alone, with zero model changes.</p>
+</li>
+<li>
+<p><strong>Stateless workers + externalized checkpointer</strong> — any pod resumes any run; this is what makes <abbr title="adding more machines behind a load balancer">horizontal scaling</abbr> possible at all.</p>
+</li>
+<li>
+<p><strong>Async queues</strong> (Kafka/SQS/Redis Streams) for long-running jobs; return a run ID, not a held connection.</p>
+</li>
+<li>
+<p><strong>Tool-result caching</strong> keyed on <code>(tool, args)</code> — reusable across entirely different runs.</p>
+</li>
+<li>
+<p><strong>Code-enforced execution paths</strong> — a deterministic state machine where the LLM only fills decision nodes. Cheaper, faster, and far more testable than letting the model drive the whole graph.</p>
+</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-21"><div class="q-h"><span class="q-n">&bull;</span><h3>Productionization — brakes, budgets, and blast radius</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-21"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Least privilege per tool</span><span class="kt">Saga/compensation</span><span class="kt">Distributed tracing</span><span class="kt">Dead-letter + human escalation</span></div><ul>
+<li>
+<p><strong>Recursion limit + explicit step cap + a guaranteed exit branch</strong> the router can always reach. Every pattern needs all three.</p>
+</li>
+<li>
+<p><strong>Least privilege per tool.</strong> The agent gets the narrowest credential that works — and destructive tools sit behind human approval, wired as an interrupt, not a prompt instruction.</p>
+</li>
+<li>
+<p><strong>Idempotency keys on every side-effecting tool</strong> so a retry doesn't double-charge a customer.</p>
+</li>
+<li>
+<p><strong>Saga/compensation</strong> for multi-step side effects that can half-apply.</p>
+</li>
+<li>
+<p><strong>Treat tool output as untrusted data</strong>, never as instructions — this is the prompt-injection boundary.</p>
+</li>
+<li>
+<p><strong>Distributed tracing</strong>: a span per model call, tool call and routing decision, with a propagated run ID. Debugging an agent without this is guesswork.</p>
+</li>
+<li>
+<p><strong>Dead-letter + human escalation</strong> for runs that exhaust their budget.</p>
+</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-22"><div class="q-h"><span class="q-n">&bull;</span><h3>Optimization — the best optimization is a smaller graph</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-22"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Fewer, better-scoped tools</span><span class="kt">Model routing</span><span class="kt">Prompt/prefix caching</span><span class="kt">Sub-agents for context isolation</span><span class="kt">Replace LLM decisions with code</span></div><ul>
+<li>
+<p><strong>Fewer, better-scoped tools.</strong> Tool-selection accuracy degrades measurably as tool count grows and as descriptions overlap. Non-overlapping trigger conditions, or merge into one parametric tool.</p>
+</li>
+<li>
+<p><strong><abbr title="sending each request to the cheapest model capable of handling it">Model routing</abbr></strong> — small model for routing/grading/extraction, frontier model only where reasoning genuinely matters.</p>
+</li>
+<li>
+<p><strong>Prompt/<abbr title="reusing the computed KV cache of a shared prompt prefix across requests, so prefill is not repeated">prefix caching</abbr></strong> on the stable system + tool-definition prefix (audit it — 20 rich tool schemas can be <span class="mag">5k tokens</span> on <em>every</em> call).</p>
+</li>
+<li>
+<p><strong>Sub-agents for context isolation</strong> — keep a context-heavy subtask's 40 documents out of the parent's window; the parent sees only the 300-token finding.</p>
+</li>
+<li>
+<p><strong>Replace <abbr title="large language model">LLM</abbr> decisions with code</strong> wherever the decision is actually deterministic.</p>
+</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-23"><div class="q-h"><span class="q-n">&bull;</span><h3>Latency — pattern choice IS a latency decision</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-23"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Supervisor</span><span class="kt">Sum of hops</span><span class="kt">Orchestrator</span><span class="kt">~Slowest branch</span></div><div class="tbl-wrap"><table class="t4"><thead><tr><th>Pattern</th><th><abbr title="large language model">LLM</abbr> calls</th><th>Latency shape</th><th>Main risk</th></tr></thead><tbody><tr class="g1"><td>Router</td><td>1 + 1</td><td>Lowest — one hop</td><td>Misroutes</td></tr><tr class="g0"><td>ReAct</td><td>N (loop)</td><td>Sum of iterations — unbounded without a cap</td><td>Infinite loops</td></tr><tr class="g1"><td>Reflection</td><td><span class="mag">2–3×</span></td><td>Multiplies the whole generation</td><td>Cost, diminishing returns</td></tr><tr class="g0"><td>Reflexion</td><td><span class="mag">2–3×</span> + memory</td><td>As reflection, plus memory lookup</td><td>Memory grows / goes stale</td></tr><tr class="g1"><td>Plan-and-Execute</td><td>1 + N + replan</td><td>Plan then steps — steps can parallelize</td><td>Bad plan → all steps wrong</td></tr><tr class="g0"><td><strong><abbr title="an agent that routes work to other agents and owns the overall plan">Supervisor</abbr></strong></td><td>1 per hop</td><td><strong>Sum of hops</strong></td><td>Supervisor bottleneck</td></tr><tr class="g1"><td><strong>Orchestrator</strong></td><td>1 + N + 1</td><td><strong>~Slowest branch</strong></td><td>Bad plan poisons all branches</td></tr><tr class="g0"><td>Swarm</td><td>1 per hop</td><td>Sum, unpredictable</td><td>Ping-pong loops</td></tr><tr class="g1"><td>Hierarchical</td><td>Many</td><td>Highest</td><td>Latency, cost</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f21RAGandAgenti-24"><div class="q-h"><span class="q-n">&bull;</span><h3>Metrics — outcome tells you IF, trajectory tells you WHY</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f21RAGandAgenti-24"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Outcome</span><span class="kt">Trajectory</span><span class="kt">Operations</span><span class="kt">Goal adherence at end of run</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Axis</th><th>Metric</th><th>What it catches</th></tr></thead><tbody><tr class="g1"><td><strong>Outcome</strong></td><td>Task success rate</td><td>Did it achieve the goal? The number the business cares about.</td></tr><tr class="g0"><td>pass^k</td><td>Consistency — does it succeed k times in a row? Agents that pass once and fail twice are not shippable.</td><td></td></tr><tr class="g1"><td><strong>Trajectory</strong></td><td>Tool-selection accuracy</td><td>Right tool for the step</td></tr><tr class="g0"><td>Tool-argument accuracy</td><td>Right tool, wrong arguments — a distinct and common failure</td><td></td></tr><tr class="g1"><td>Step efficiency</td><td>Steps used vs minimum needed</td><td></td></tr><tr class="g0"><td>LLM-judge over trajectories</td><td>Was the <em>reasoning path</em> sound, not just the answer</td><td></td></tr><tr class="g1"><td><strong>Operations</strong></td><td>Loop/cap-hit rate</td><td>How often runs hit the step cap — your runaway canary</td></tr><tr class="g0"><td>Cost per successful task</td><td>The only cost metric that means anything (cost per <em>call</em> hides failures)</td><td></td></tr><tr class="g1"><td>p95 wall-clock per run</td><td>Tail latency, where agents hurt most</td><td></td></tr><tr class="g0"><td>Human-escalation rate</td><td>Is the agent actually deflecting work?</td><td></td></tr></tbody></table></div>
+<p><strong>Goal adherence at end of run</strong> is the metric that catches long-horizon drift — a change can improve every individual turn and still make the trajectory worse. Single-turn eval will not find it.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>Self-RAG vs Corrective RAG — definitions and the difference</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>A single language model, trained to retrieve on demand and to critique its own work</strong> by emitting special <strong>reflection tokens</strong> inline with its output. Those tokens decide whether retrieval happens at all, judge each retrieved passage, judge whether the draft is actually supported by it, and score how useful the answer is — and at inference they are used to <strong>rank candidate answers</strong> and pick the best one.</p>
+<p><strong>In one line:</strong> the critic <em>is</em> the generator. Self-correction is a property of the model, learned during training.</p>
+<p><strong>A lightweight retrieval evaluator bolted in front of an unchanged generator.</strong> It scores the confidence of what retrieval returned and triggers one of three knowledge actions before generation: refine the retrieved text, discard it and go to web search, or combine both. The correction happens in the <strong>retrieval layer</strong>.</p>
+<p><strong>In one line:</strong> the critic is a <em>separate, small model</em> sitting outside the generator. Self-correction is a property of your pipeline.</p>
+<p>Both fix the same failure — <strong>generating confidently from evidence that was never any good</strong>. They differ in <strong>who does the checking</strong>, and everything else follows from that one choice.</p>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th></th><th>Self-RAG</th><th>Corrective <abbr title="retrieval-augmented generation">RAG</abbr></th></tr></thead><tbody><tr class="g1"><td><strong>Who critiques</strong></td><td>The generator itself</td><td>A separate retrieval evaluator</td></tr><tr class="g0"><td><strong>What is trained</strong></td><td><strong>The LM itself</strong> — fine-tuned to emit reflection tokens</td><td><strong>Only the evaluator</strong> — a small classifier; the LM is untouched</td></tr><tr class="g1"><td><strong>Where correction happens</strong></td><td><strong>Generation layer</strong> — re-draft or re-retrieve</td><td><strong>Retrieval layer</strong> — refine, replace, or supplement the evidence</td></tr><tr class="g0"><td><strong>When it acts</strong></td><td>During generation, continuously</td><td>Once, between retrieval and generation</td></tr><tr class="g1"><td><strong>Granularity</strong></td><td><strong>Per segment</strong> — each passage drafts a candidate, scored and ranked</td><td><strong>Per retrieval set</strong> — one confidence verdict drives one action</td></tr><tr class="g0"><td><strong>Retrieval is…</strong></td><td><strong>Adaptive</strong> — the <code>Retrieve</code> token can skip it entirely</td><td><strong>Always performed</strong>, then judged after the fact</td></tr><tr class="g1"><td><strong>Bolt onto an existing system?</strong></td><td>No — needs a model trained (or reliably prompted) for reflection</td><td><strong>Yes</strong> — genuinely plug-and-play around any RAG pipeline</td></tr><tr class="g0"><td><strong>Extra model call</strong></td><td>None — the judgments ride inside the generation call</td><td>Yes, but cheap — and it can be a threshold instead</td></tr><tr class="g1"><td><strong>Independently tunable / auditable</strong></td><td>No — changing grading means changing the model or its prompt</td><td><strong>Yes</strong> — retrain or re-threshold the evaluator alone</td></tr><tr class="g0"><td><strong>External fallback</strong></td><td>Not part of the method</td><td><strong>Built in</strong> — web search on low confidence</td></tr><tr class="g1"><td><strong>Main failure mode</strong></td><td><strong>Overconfidence</strong> — models grade their own output generously</td><td><strong>Miscalibration</strong> — a wrong evaluator misdirects every query, confidently</td></tr><tr class="g0"><td><strong>Latency cost</strong></td><td>Extra output tokens only; can be <strong>net negative</strong> when it skips retrieval</td><td>A fixed evaluator tax on <strong>every</strong> query, plus web latency on the bad ones</td></tr></tbody></table></div>
+<p><strong>Say it like this:</strong> <em>"Both are self-correcting RAG, but the correction sits in different places. Self-RAG pushes it into the model — one LM trained to emit reflection tokens, so it can skip retrieval when it isn't needed and rank its own candidate answers; it's cheaper at inference but you're trusting the model to mark its own homework. <abbr title="corrective retrieval-augmented generation">CRAG</abbr> keeps the generator untouched and puts a small evaluator in front of it that grades the retrieved evidence and either refines it, replaces it with web results, or combines both. CRAG is the one you can actually bolt onto an existing pipeline and audit independently, so it's usually what I'd reach for in production; Self-RAG is the more elegant idea and the cheaper one per query if you control the model."</em></p>
+<p><strong>They compose.</strong> Nothing stops you running a CRAG-style evaluator on retrieval <em>and</em> asking the generator for a groundedness judgment on its draft. In practice that pairing — an external check on the evidence, an internal check on the answer — catches more than either alone.</p></div></section>
+<div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+</div></main>
+</div>
+<button class="totop" id="totop" title="Back to top">&#8593;</button>
+<script>
+var LS='ai14.done.v2', TH='ai14.theme';
+var done={};try{done=JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){}
+var root=document.documentElement;
+function setTheme(t){root.setAttribute('data-theme',t);try{localStorage.setItem(TH,t)}catch(e){}
+  var b=document.getElementById('themeBtn'); if(b)b.textContent=(t==='dark'?'Light':'Dark');}
+setTheme((function(){try{return localStorage.getItem(TH)}catch(e){return null}})()||
+  (window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'));
+var tb=document.getElementById('themeBtn');
+if(tb)tb.onclick=function(){setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark')};
+
+var boxes=[].slice.call(document.querySelectorAll('.q-done input'));
+function refresh(){
+  var n=0;
+  boxes.forEach(function(b){
+    var q=b.closest('.q'), on=!!done[b.dataset.id];
+    b.checked=on; q.classList.toggle('done',on); if(on)n++;
+    var l=document.querySelector('nav a[data-q="'+q.id+'"]'); if(l)l.classList.toggle('done',on);
+  });
+  var el=document.getElementById('pgCount');
+  if(el)el.textContent=n+' / '+boxes.length;
+}
+boxes.forEach(function(b){b.addEventListener('change',function(){
+  if(b.checked)done[b.dataset.id]=1;else delete done[b.dataset.id];
+  try{localStorage.setItem(LS,JSON.stringify(done))}catch(e){}refresh();});});
+refresh();
+
+var db=document.getElementById('drillBtn');
+if(db)db.onclick=function(){var on=document.body.classList.toggle('drill');db.classList.toggle('on',on);
+  if(!on)[].forEach.call(document.querySelectorAll('.q.open'),function(q){q.classList.remove('open')});};
+[].forEach.call(document.querySelectorAll('.reveal'),function(b){
+  b.onclick=function(){b.closest('.q').classList.add('open')};});
+
+var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementById('search'),
+    noRes=document.getElementById('noRes');
+qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
+function runSearch(){
+  if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
+    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  [].forEach.call(document.querySelectorAll('.parthead'),function(p){
+    if(!v){p.style.display='';return}
+    var vis=false,n=p.nextElementSibling;
+    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
+    p.style.display=vis?'':'none';});
+  if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
+}
+if(inp)inp.addEventListener('input',runSearch);
+
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+var totop=document.getElementById('totop');
+function onScroll(){
+  var sc=document.documentElement.scrollTop;
+  if(totop)totop.classList.toggle('show',sc>600);
+  var cur=null;
+  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
+    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  navLinks.forEach(function(l){l.classList.remove('active')});
+  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
+    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
+      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+}
+window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
+
+var sb=document.getElementById('sidebar'), mb=document.getElementById('menuBtn');
+if(mb)mb.onclick=function(){sb.classList.toggle('open')};
+if(sb)sb.addEventListener('click',function(e){if(e.target.tagName==='A'&&window.innerWidth<=1060)sb.classList.remove('open')});
+
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'){if(e.key==='Escape'){e.target.value='';runSearch();e.target.blur()}return}
+  if(e.key==='/'&&inp){e.preventDefault();inp.focus()}
+  else if(e.key==='d'&&db){db.click()}
+  else if(e.key==='t'&&tb){tb.click()}
+  else if(e.key==='j'||e.key==='k'){
+    var vis=qs.filter(function(q){return q.style.display!=='none'}),idx=-1;
+    for(var i=0;i<vis.length;i++){if(vis[i].getBoundingClientRect().top>64){idx=i;break}}
+    if(e.key==='k')idx=(idx<0?vis.length:idx)-2;
+    var t=vis[Math.max(0,Math.min(vis.length-1,idx<0?0:idx))];
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}
+});
+/* reading progress */
+(function(){
+  var b=document.createElement('div'); b.id='rprog'; document.body.appendChild(b);
+  var t=null;
+  function upd(){
+    var h=document.documentElement, m=(h.scrollHeight-h.clientHeight);
+    b.style.width=(m>0?(h.scrollTop/m)*100:0)+'%';
+  }
+  addEventListener('scroll',function(){ if(t)return; t=requestAnimationFrame(function(){t=null;upd();}); },
+                   {passive:true});
+  addEventListener('resize',upd); upd();
+})();
+
+/* copy button on every code block */
+(function(){
+  document.querySelectorAll('pre.code').forEach(function(pre){
+    var b=document.createElement('button'); b.className='copy'; b.type='button'; b.textContent='Copy';
+    b.addEventListener('click',function(){
+      var code=pre.querySelector('code'); var txt=code?code.innerText:pre.innerText;
+      var done=function(){ b.textContent='Copied'; b.classList.add('ok');
+        setTimeout(function(){ b.textContent='Copy'; b.classList.remove('ok'); },1400); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(done,function(){});
+      } else {
+        var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta);
+        ta.select(); try{document.execCommand('copy');done();}catch(e){} document.body.removeChild(ta);
+      }
+    });
+    pre.appendChild(b);
+  });
+})();
+
+/* deep link on each question card */
+(function(){
+  document.querySelectorAll('.q[id] > .q-h').forEach(function(h){
+    var id=h.parentNode.id, a=document.createElement('a');
+    a.className='q-anchor'; a.href='#'+id; a.textContent='#';
+    a.title='Copy a link to this question';
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      var url=location.href.split('#')[0]+'#'+id;
+      history.replaceState(null,'','#'+id);
+      var done=function(){ a.classList.add('ok'); a.textContent='✓';
+        setTimeout(function(){ a.classList.remove('ok'); a.textContent='#'; },1200); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(done,done);
+      } else { done(); }
+    });
+    var label=h.querySelector('.q-done');
+    if(label){ h.insertBefore(a,label); } else { h.appendChild(a); }
+  });
+})();
+
+</script>
+</body></html>

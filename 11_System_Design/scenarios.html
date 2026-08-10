@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scenarios — Agentic AI &amp; RAG</title>
+<meta name="description" content="Production scenarios: data, queues, performance, security, and an end-to-end walkthrough">
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+:root{
+  color-scheme:dark;
+  --bg:#0d1117; --surface:#151b23; --surface-2:#1c232d; --surface-3:#232b36;
+  --border:#2a313c; --border-soft:#21262d;
+  --ink:#e6edf3; --ink-2:#9da7b3; --ink-mut:#6e7681;
+  --accent:#3987e5; --accent-soft:rgba(57,135,229,.14); --accent-bd:rgba(57,135,229,.42);
+  --t-rag:#3987e5; --t-agentic:#d95926; --t-recall:#199e70;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+  --warn-soft:rgba(250,178,25,.12); --good-soft:rgba(12,163,12,.12); --crit-soft:rgba(208,59,59,.12);
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;
+  --r1:#86b6ef;--r2:#5598e7;--r3:#2a78d6;--r4:#1c5cab;
+  --o1:#f0a882;--o2:#e88a5c;--o3:#d95926;--o4:#b8471d;--o5:#8f3716;
+  --code-bg:#0b0f15;
+  --fig-surface:#1c232d; --fig-surface-2:#171d26; --fig-surface-3:#232b36;
+  --fig-border:#39424f; --fig-ink:#e6edf3; --fig-ink-2:#b6c0cc; --fig-mut:#8d97a4;
+  --fig-accent:#3987e5; --fig-rag:#3987e5; --fig-agentic:#e2703a; --fig-recall:#22a97a;
+  --fig-good:#2eb82e; --fig-warn:#f0b429; --fig-crit:#e05252;
+  --mono:"SF Mono",SFMono-Regular,ui-monospace,"Cascadia Code",Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --radius:14px; --radius-sm:9px; --shadow:0 8px 30px rgba(0,0,0,.38); --sbw:302px;
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f6f8fa; --surface:#fff; --surface-2:#fbfcfd; --surface-3:#eff2f6;
+  --border:#d8dee4; --border-soft:#e6eaef;
+  --ink:#1f2328; --ink-2:#57606a; --ink-mut:#8b949e;
+  --accent:#2a78d6; --accent-soft:rgba(42,120,214,.10); --accent-bd:rgba(42,120,214,.34);
+  --t-rag:#2a78d6; --t-agentic:#eb6834; --t-recall:#1baf7a;
+  --warn-soft:rgba(250,178,25,.16); --good-soft:rgba(12,163,12,.10); --crit-soft:rgba(208,59,59,.09);
+  --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;
+  --r1:#86b6ef;--r2:#3987e5;--r3:#256abf;--r4:#184f95;
+  --o1:#f7c4a8;--o2:#f0996b;--o3:#eb6834;--o4:#c14a1f;--o5:#8f3716;
+  --code-bg:#f0f3f6; --shadow:0 6px 24px rgba(140,149,159,.20);
+  --fig-surface:#fff; --fig-surface-2:#f7f9fb; --fig-surface-3:#eef2f6;
+  --fig-border:#c9d1da; --fig-ink:#1f2328; --fig-ink-2:#414a54; --fig-mut:#6b747e;
+  --fig-accent:#2a78d6; --fig-rag:#2a78d6; --fig-agentic:#d1541f; --fig-recall:#12855c;
+  --fig-good:#1a7f1a; --fig-warn:#a97400; --fig-crit:#c62d2d;
+}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+
+.siteswitch{background:var(--surface-3);border-bottom:1px solid var(--border)}
+.siteswitch-in{max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:4px;padding:5px 18px;flex-wrap:wrap}
+.siteswitch a{font-size:11.5px;padding:4px 10px;border-radius:7px;color:var(--ink-mut);text-decoration:none;white-space:nowrap}
+.siteswitch a:hover{background:var(--surface);color:var(--ink)}
+.siteswitch a.on{background:var(--accent);color:#fff;font-weight:700}
+.siteswitch .sw-home{font-weight:800;color:var(--ink-2);margin-right:8px}
+/* ---------- top bar (site nav) ---------- */
+.sitebar{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 93%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.sitebar-in{max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:6px;padding:9px 18px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:14px;letter-spacing:-.3px;margin-right:10px;text-decoration:none;color:var(--ink);white-space:nowrap}
+.logo b{color:var(--accent)}
+.sitebar a.tab{font-size:12.8px;padding:6px 12px;border-radius:8px;color:var(--ink-2);text-decoration:none;border:1px solid transparent;white-space:nowrap}
+.sitebar a.tab:hover{background:var(--surface-2);color:var(--ink)}
+.sitebar a.tab.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-bd);font-weight:700}
+.sitebar .sp{margin-left:auto}
+.btn{background:var(--surface);border:1px solid var(--border);color:var(--ink-2);padding:6px 11px;border-radius:8px;cursor:pointer;font-size:12.3px;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--ink)}
+.btn.on{background:var(--accent-soft);border-color:var(--accent-bd);color:var(--accent);font-weight:700}
+
+.app{display:grid;grid-template-columns:var(--sbw) 1fr;max-width:1560px;margin:0 auto;min-height:100vh}
+aside{position:sticky;top:47px;height:calc(100vh - 47px);overflow-y:auto;overscroll-behavior:contain;border-right:1px solid var(--border);padding:12px 0 40px;background:var(--bg)}
+aside::-webkit-scrollbar{width:8px}aside::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.sb-search{padding:0 14px 8px}
+.sb-search input{width:100%;padding:8px 11px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:13px;font-family:inherit;outline:none}
+.sb-search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.sb-hint{font-size:10.3px;color:var(--ink-mut);padding:2px 15px 10px}
+nav{padding:0 8px;font-size:13px}
+.nav-grp{margin:12px 0 3px;padding:0 10px;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-mut);font-weight:800}
+nav a{display:flex;gap:7px;align-items:flex-start;padding:5px 10px;margin:1px 2px;border-radius:7px;color:var(--ink-2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;font-size:12.5px}
+nav a:hover{background:var(--surface-2);color:var(--ink)}
+nav a.active{background:var(--accent-soft);color:var(--accent);border-left-color:var(--accent);font-weight:650}
+nav a.done .qn{background:var(--good);border-color:var(--good);color:#fff}
+.qn{flex:none;min-width:21px;text-align:center;font-family:var(--mono);font-size:9.5px;padding:1px 4px;border-radius:5px;border:1px solid var(--border);color:var(--ink-mut);height:17px;line-height:15px}
+
+main{min-width:0;padding:0 40px 140px}
+.wrap{max-width:1000px;margin:0 auto}
+
+/* ---------- hero ---------- */
+.hero{padding:36px 0 4px}
+.eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tc,var(--accent));font-weight:800}
+.hero h1{font-size:40px;line-height:1.08;margin:9px 0 12px;letter-spacing:-1px}
+.hero .lede{color:var(--ink-2);font-size:17px;margin:0 0 20px;max-width:70ch}
+.hero .lede b{color:var(--ink)}
+.oneliner{border-left:4px solid var(--tc,var(--accent));background:var(--surface);border-radius:0 var(--radius) var(--radius) 0;padding:14px 18px;margin:18px 0;font-size:16px}
+.oneliner b{color:var(--tc,var(--accent))}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:22px 0}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat-v{font-size:27px;font-weight:750;letter-spacing:-.6px;line-height:1.05;color:var(--tc,var(--accent))}
+.stat-l{font-size:11px;color:var(--ink-mut);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;line-height:1.35}
+
+/* ---------- figures ---------- */
+figure.viz{margin:26px 0;background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--border);border-radius:var(--radius);padding:17px 19px 10px;overflow:hidden;box-shadow:var(--shadow)}
+figure.viz figcaption b::before{content:"";display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--tc,var(--accent));margin-right:9px;vertical-align:middle}
+figure.viz figcaption{margin-bottom:12px}
+figure.viz figcaption b{display:block;font-size:15px;letter-spacing:-.2px}
+figure.viz figcaption span{display:block;font-size:12px;color:var(--ink-mut);margin-top:2px}
+figure.viz figcaption .terms{display:block;font-size:11px;color:var(--ink-mut);margin-top:5px;
+  padding-top:5px;border-top:1px dashed var(--border-soft);line-height:1.65}
+figure.viz figcaption .terms b{display:inline;font-size:11px;letter-spacing:0;color:var(--ink-2);
+  font-weight:700;font-family:var(--mono)}
+figure.viz figcaption .terms b::before{content:none;display:none;margin:0}
+abbr[title]{text-decoration:underline dotted var(--ink-mut);text-underline-offset:3px;cursor:help;border:0;text-decoration-thickness:1px}
+abbr[title]:hover{text-decoration-color:var(--accent)}
+.viz-scroll{overflow-x:auto;padding-bottom:6px}
+.viz-scroll svg{display:block;width:100%;min-width:660px;height:auto}
+
+/* ---------- standard topic panels ---------- */
+.panels{display:grid;gap:13px;margin:18px 0}
+.panel{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--pc,var(--accent));border-radius:var(--radius);padding:15px 18px}
+.panel > h3{margin:0 0 4px;font-size:15.5px;display:flex;align-items:center;gap:9px}
+.panel > h3 .ic{width:23px;height:23px;border-radius:7px;background:var(--pc,var(--accent));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:none}
+.panel > h3 small{margin-left:auto;font-size:10.5px;color:var(--ink-mut);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.p-scale{--pc:var(--t-rag)} .p-prod{--pc:var(--t-recall)} .p-opt{--pc:var(--t-agentic)}
+.p-lat{--pc:var(--warn)} .p-met{--pc:var(--accent)}
+
+/* ---------- per-answer visual furniture ---------- */
+.keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
+.kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
+.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram pre{margin:0;padding-top:12px;background:none;border:none;font-family:var(--mono);font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
+.flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
+.flow .fl{font-size:10px;font-weight:800;letter-spacing:.09em;color:var(--ink-mut);margin-right:10px;text-transform:uppercase}
+.q-a ol{counter-reset:st;list-style:none;padding-left:0;margin:11px 0}
+.q-a ol > li{counter-increment:st;position:relative;padding-left:36px;margin:8px 0}
+.q-a ol > li::before{content:counter(st);position:absolute;left:0;top:1px;width:24px;height:24px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+/* ---------- content ---------- */
+.sec{margin-top:44px;scroll-margin-top:60px}
+.sec > h2{font-size:25px;margin:0 0 4px;letter-spacing:-.5px;padding-bottom:9px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:11px}
+.sec > h2 .hn{font-size:11.5px;font-family:var(--mono);font-weight:800;background:var(--tc,var(--accent));color:#fff;border-radius:7px;padding:3px 8px}
+.parthead{display:flex;align-items:center;gap:12px;margin:30px 0 12px}
+.parthead span{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mut);white-space:nowrap}
+.parthead i{flex:1;height:1px;background:var(--border)}
+.q{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 18px;margin:10px 0;scroll-margin-top:60px}
+.q:target{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.q.done{border-left:3px solid var(--good)}
+.q-h{display:flex;align-items:flex-start;gap:11px}
+.q-n{flex:none;font-family:var(--mono);font-size:11px;font-weight:800;min-width:26px;height:23px;line-height:21px;text-align:center;border-radius:7px;border:1px solid var(--border);color:var(--ink-mut);background:var(--bg)}
+.q.done .q-n{background:var(--good);border-color:var(--good);color:#fff}
+.q-h h3{margin:0;font-size:17px;line-height:1.35;letter-spacing:-.2px;flex:1}
+.q-done{flex:none;cursor:pointer}
+.q-done input{position:absolute;opacity:0;pointer-events:none}
+.q-done span{display:block;width:22px;height:22px;border-radius:7px;border:1px solid var(--border);background:var(--bg);position:relative}
+.q-done span::after{content:"";position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid transparent;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.q-done input:checked+span{background:var(--good);border-color:var(--good)}
+.q-done input:checked+span::after{border-color:#fff}
+.q-a{margin-top:11px}
+.reveal{display:none;margin-top:10px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);padding:7px 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:12.4px;font-weight:700}
+body.drill .q-a{display:none} body.drill .reveal{display:inline-block}
+/* reference cards have no answer to hide - never drill them */
+body.drill .q.q-ref .q-a{display:block}
+body.drill .q.open .q-a{display:block} body.drill .q.open .reveal{display:none}
+
+p{margin:9px 0}
+h3{font-size:17px;margin:20px 0 7px}h4{font-size:14px;margin:15px 0 5px;color:var(--ink-2)}
+ul{margin:9px 0;padding-left:22px}li{margin:4px 0}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+hr{border:none;border-top:1px solid var(--border);margin:20px 0}
+code{font-family:var(--mono);font-size:.855em;background:var(--code-bg);padding:.12em .42em;border-radius:5px;border:1px solid var(--border-soft);color:#ffa657;word-break:break-word}
+html[data-theme="light"] code{color:#953800}
+pre.code{background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 15px;overflow-x:auto;margin:11px 0;line-height:1.55;position:relative}
+pre.code code{background:none;border:none;padding:0;color:var(--ink);font-size:12.4px;white-space:pre}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:0;right:0;font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-mut);background:var(--surface-3);border-left:1px solid var(--border);border-bottom:1px solid var(--border);border-radius:0 var(--radius-sm) 0 7px;padding:2px 8px}
+.cmt{color:var(--ink-mut);font-style:italic}.kw{color:#ff7b72}.str{color:#a5d6ff}.fn{color:#d2a8ff}.num{color:#79c0ff}
+html[data-theme="light"] .kw{color:#cf222e}html[data-theme="light"] .str{color:#0a3069}
+html[data-theme="light"] .fn{color:#8250df}html[data-theme="light"] .num{color:#0550ae}
+.say{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 16px;margin:12px 0}
+.say-h{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.say-h::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.say p{margin:0;font-size:15.2px;line-height:1.68}.say em{font-style:normal;color:var(--ink)}
+.note{border-left:3px solid var(--border);background:var(--surface-2);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 15px;margin:12px 0;font-size:13.8px;color:var(--ink-2)}
+.note p:first-child{margin-top:0}.note p:last-child{margin-bottom:0}.note strong{color:var(--ink)}
+.tbl-wrap{overflow-x:auto;margin:15px 0;border:1px solid var(--border);border-radius:12px;
+  background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.10)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.2px;background:transparent}
+th,td{padding:10px 13px;text-align:left;border-bottom:1px solid var(--border-soft);vertical-align:top;line-height:1.55}
+th{position:sticky;top:0;z-index:2;background:var(--surface-3);font-weight:800;font-size:10.5px;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2);white-space:nowrap;
+  border-bottom:1px solid var(--border);backdrop-filter:blur(6px)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover>td{background:var(--surface-2)}
+tbody tr.g1>td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+tbody tr.g1:hover>td{background:var(--surface-2)}
+
+/* merged category column: the label is stated once, as a vertical band */
+td.c-grp{background:var(--surface-3);border-right:1px solid var(--border);vertical-align:top;
+  width:1%;white-space:nowrap;padding:11px 13px}
+tbody tr:hover>td.c-grp{background:var(--surface-3)}
+td.c-grp .grp-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--tc,var(--accent));background:var(--accent-soft);
+  border:1px solid var(--accent-bd);border-radius:999px;padding:3px 11px;position:sticky;top:44px}
+table.t-grouped td:not(.c-grp):first-of-type{font-weight:600;color:var(--ink)}
+
+/* two-column glossary: term rail on the left */
+table.t-def td.c-term{width:210px;font-weight:700;color:var(--ink);background:var(--surface-2);
+  border-right:2px solid var(--accent-bd)}
+table.t-def td.c-term code{background:none;border:none;padding:0;color:inherit}
+
+/* magnitudes should read as data, not prose */
+.mag{font-family:var(--mono);font-size:.9em;font-weight:700;color:var(--warn);
+  background:var(--warn-soft);border-radius:5px;padding:.05em .38em;white-space:nowrap}
+
+/* term / description list rows */
+li.dl{list-style:none;margin:7px 0;padding:7px 12px;border-radius:9px;background:var(--surface-2);
+  border-left:3px solid var(--border)}
+li.dl:hover{border-left-color:var(--accent)}
+li.dl .dt{display:inline-block;font-weight:800;color:var(--ink);margin-right:8px}
+li.dl .dt::after{content:"—";color:var(--ink-mut);font-weight:400;margin-left:8px}
+li.dl .dd{color:var(--ink-2)}
+ul:has(> li.dl){padding-left:0}
+
+/* typed callouts */
+.note.n-crit{border-left-color:var(--crit);background:var(--crit-soft)}
+.note.n-warn{border-left-color:var(--warn);background:var(--warn-soft)}
+.note.n-good{border-left-color:var(--good);background:var(--good-soft)}
+.note.n-key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.n-crit strong:first-child{color:var(--crit)}
+.note.n-warn strong:first-child{color:var(--warn)}
+.note.n-good strong:first-child{color:var(--good)}
+.note.n-key strong:first-child{color:var(--accent)}
+
+/* headings inside an answer body */
+.q-a h3,.q-a h4{display:flex;align-items:center;gap:9px;letter-spacing:-.2px}
+.q-a h3::before{content:"";width:3px;height:15px;border-radius:2px;background:var(--tc,var(--accent));flex:none}
+.q-a h4{color:var(--ink-2);font-size:13.5px;text-transform:none}
+.q-a h4::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--ink-mut);flex:none}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:13px;margin:20px 0}
+.tcard{display:block;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--tc,var(--accent));border-radius:var(--radius);padding:15px 16px;text-decoration:none;color:inherit}
+.tcard:hover{border-color:var(--accent);box-shadow:var(--shadow);text-decoration:none}
+.tcard h4{margin:0 0 5px;font-size:15px;color:var(--ink)}
+.tcard p{margin:0;font-size:12.2px;color:var(--ink-mut);line-height:1.5}
+.tcard .meta{margin-top:9px;font-size:10.5px;color:var(--tc,var(--accent));font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.no-result{display:none;text-align:center;color:var(--ink-mut);padding:60px 20px}.no-result.show{display:block}
+kbd{font-family:var(--mono);font-size:10px;background:var(--surface-3);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 5px;color:var(--ink-2)}
+.totop{position:fixed;right:20px;bottom:20px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:18px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;z-index:55}
+.totop.show{opacity:1;pointer-events:auto}
+.menu-toggle{display:none}
+@media(max-width:1060px){
+  .app{grid-template-columns:1fr}
+  aside{position:fixed;left:calc(-1 * var(--sbw));top:0;height:100vh;width:var(--sbw);z-index:100;transition:left .25s;box-shadow:var(--shadow);background:var(--surface)}
+  aside.open{left:0}
+  .menu-toggle{display:inline-flex}
+  main{padding:0 15px 110px}
+  .hero h1{font-size:29px}
+}
+@media print{.sitebar,aside,.totop,.reveal,.q-done{display:none}.app{grid-template-columns:1fr}body.drill .q-a{display:block}}
+
+/* =====================================================================
+   DESIGN LAYER  --  loaded last, so these rules win.
+   Depth, type scale, motion, and the components the base sheet lacks.
+   ===================================================================== */
+
+:root{
+  --e1:0 1px 2px rgba(0,0,0,.18);
+  --e2:0 4px 14px rgba(0,0,0,.24);
+  --e3:0 14px 40px rgba(0,0,0,.34);
+  --ring:0 0 0 3px var(--accent-soft);
+  --tight:-.022em;
+  --glass:color-mix(in srgb,var(--bg) 78%,transparent);
+}
+html[data-theme="light"]{
+  --e1:0 1px 2px rgba(16,24,40,.06);
+  --e2:0 6px 18px rgba(16,24,40,.09);
+  --e3:0 18px 44px rgba(16,24,40,.13);
+}
+html[data-theme="dark"],:root{ --bg:#0a0e14; --surface:#12181f; --surface-2:#171e26; --surface-3:#1e2630;
+  --border:#262f3a; --border-soft:#1c242e; }
+
+body{font-size:15.6px;line-height:1.68;letter-spacing:.002em;
+  text-rendering:optimizeLegibility;font-variant-ligatures:common-ligatures}
+::selection{background:var(--accent);color:#fff}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+@media(prefers-reduced-motion:no-preference){
+  a,button,.tcard,.q,.stat,.hub-card,.learn-item,nav a,.tab,.sw{transition:
+    background-color .16s ease,border-color .16s ease,color .16s ease,
+    transform .16s cubic-bezier(.2,.7,.3,1),box-shadow .16s ease}
+}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--border)}
+
+/* ---------- reading progress ---------- */
+#rprog{position:fixed;top:0;left:0;height:2.5px;width:0;z-index:200;
+  background:linear-gradient(90deg,var(--t-rag),var(--t-agentic),var(--t-recall));
+  box-shadow:0 0 12px var(--accent);transition:width .08s linear}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));
+  border-bottom:1px solid var(--border-soft)}
+.siteswitch a{font-weight:600;letter-spacing:.01em}
+.siteswitch a.on{box-shadow:0 2px 10px color-mix(in srgb,var(--accent) 45%,transparent)}
+.sitebar{background:var(--glass);backdrop-filter:blur(14px) saturate(1.5);
+  -webkit-backdrop-filter:blur(14px) saturate(1.5);box-shadow:var(--e1)}
+.sitebar a.tab.on{box-shadow:inset 0 0 0 1px var(--accent-bd)}
+.logo{font-size:14.5px;letter-spacing:var(--tight)}
+.btn{box-shadow:var(--e1);font-weight:600}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--e2)}
+.btn:active{transform:translateY(0)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,var(--bg),color-mix(in srgb,var(--surface) 55%,var(--bg)));
+  border-right:1px solid var(--border-soft)}
+.sb-search input{box-shadow:var(--e1)}
+nav a{border-radius:9px;border-left:0;position:relative;padding-left:12px}
+nav a.active{background:linear-gradient(90deg,var(--accent-soft),transparent);
+  box-shadow:inset 0 0 0 1px var(--accent-bd)}
+nav a.active::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--accent)}
+.nav-grp{margin-top:16px;color:var(--ink-mut);opacity:.85}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:52px 0 8px}
+.hero::before{content:"";position:absolute;left:-56px;right:-56px;top:-140px;height:420px;z-index:-1;
+  pointer-events:none;opacity:.5;
+  background:
+    radial-gradient(58% 62% at 14% 24%,color-mix(in srgb,var(--tc,var(--accent)) 34%,transparent),transparent 70%),
+    radial-gradient(46% 54% at 82% 8%,color-mix(in srgb,var(--t-agentic) 22%,transparent),transparent 72%);
+  filter:blur(26px)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;padding:5px 12px;
+  border-radius:999px;background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 34%,transparent)}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--tc,var(--accent));
+  box-shadow:0 0 9px var(--tc,var(--accent))}
+.hero h1{font-size:clamp(32px,4.4vw,46px);line-height:1.04;letter-spacing:-.032em;
+  margin:16px 0 14px;font-weight:800;
+  background:linear-gradient(175deg,var(--ink) 30%,color-mix(in srgb,var(--ink) 62%,var(--tc,var(--accent))));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lede{font-size:17.5px;line-height:1.62;max-width:86ch}
+.oneliner{background:linear-gradient(100deg,
+    color-mix(in srgb,var(--tc,var(--accent)) 11%,var(--surface)),var(--surface) 62%);
+  border:1px solid var(--border);border-left:4px solid var(--tc,var(--accent));
+  border-radius:var(--radius);box-shadow:var(--e1);line-height:1.6}
+
+/* ---------- stat tiles ---------- */
+.stat{position:relative;overflow:hidden;box-shadow:var(--e1);
+  background:linear-gradient(180deg,var(--surface),var(--surface-2))}
+.stat::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),transparent 78%)}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--e2);border-color:var(--tc,var(--accent))}
+.stat-v{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+
+/* ---------- what you'll learn ---------- */
+.learn{margin:26px 0 10px;padding:20px 22px 18px;border-radius:16px;position:relative;
+  background:linear-gradient(150deg,
+    color-mix(in srgb,var(--tc,var(--accent)) 9%,var(--surface)),var(--surface) 58%);
+  border:1px solid var(--border);box-shadow:var(--e1)}
+.learn-h{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:800;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--tc,var(--accent))}
+.learn-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;background:var(--tc,var(--accent));color:#fff;font-size:11px}
+.learn-lede{margin:10px 0 4px;font-size:15px;color:var(--ink-2);max-width:92ch}
+.learn-grid{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px;
+  grid-template-columns:repeat(auto-fill,minmax(268px,1fr))}
+.learn-item{background:var(--bg);border:1px solid var(--border-soft);border-radius:11px;
+  padding:11px 13px;margin:0}
+.learn-item:hover{border-color:var(--tc,var(--accent));transform:translateY(-1px);box-shadow:var(--e1)}
+.learn-top{display:flex;align-items:baseline;gap:9px}
+.learn-top b{font-size:13.4px;color:var(--ink);letter-spacing:var(--tight)}
+.learn-n{margin-left:auto;font-size:10px;font-family:var(--mono);color:var(--ink-mut);white-space:nowrap}
+.learn-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.learn-tags span{font-size:10px;padding:2px 8px;border-radius:999px;background:var(--surface-3);
+  border:1px solid var(--border-soft);color:var(--ink-mut)}
+
+/* ---------- section + file headers ---------- */
+.sec > h2{letter-spacing:-.028em;border-bottom:1px solid var(--border)}
+.sec > h2 .hn{box-shadow:0 2px 10px color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent)}
+.filehead h2{letter-spacing:-.028em}
+.parthead span{color:var(--tc,var(--accent));opacity:.9}
+.parthead i{background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- question cards ---------- */
+.q{box-shadow:var(--e1);border-radius:14px}
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,var(--border));box-shadow:var(--e2)}
+.q-h h3{letter-spacing:-.02em}
+.q-n{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));font-weight:800}
+.q.done{box-shadow:inset 3px 0 0 var(--good),var(--e1);border-left-color:transparent}
+.q-a{max-width:none}
+.q-a > p:first-child{color:var(--ink)}
+/* block content fills the card; only loose prose keeps a comfortable measure */
+.q-a > p{max-width:96ch}
+.q-a > ul:not(.steplist),.q-a > ol:not(.steplist){max-width:96ch}
+
+/* ---------- cards ---------- */
+.tcard{box-shadow:var(--e1);background:linear-gradient(170deg,var(--surface),var(--surface-2))}
+.tcard:hover{transform:translateY(-3px);box-shadow:var(--e3)}
+.tcard h4{letter-spacing:var(--tight)}
+
+/* ---------- code ---------- */
+pre.code{box-shadow:inset 0 0 0 1px var(--border-soft),var(--e1);border-radius:12px;padding:15px 16px}
+pre.code:hover .copy{opacity:1}
+.copy{position:absolute;top:7px;right:8px;opacity:0;font-family:var(--sans);font-size:10.5px;
+  font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:7px;
+  border:1px solid var(--border);background:var(--surface-3);color:var(--ink-2);cursor:pointer;z-index:3}
+.copy:hover{border-color:var(--accent);color:var(--accent)}
+.copy.ok{border-color:var(--good);color:var(--good)}
+pre.code[data-lang]::before{top:0;right:auto;left:0;border-radius:12px 0 8px 0;border-left:0;
+  border-right:1px solid var(--border)}
+
+/* ---------- figures ---------- */
+figure.viz{border-radius:16px;box-shadow:var(--e2);padding:19px 21px 12px}
+figure.viz figcaption b{font-size:15.5px;letter-spacing:-.024em}
+figure.viz:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,var(--border))}
+
+/* ---------- tables ---------- */
+.tbl-wrap{box-shadow:var(--e1)}
+td.c-grp .grp-tag{box-shadow:var(--e1)}
+.mag{letter-spacing:-.01em}
+
+/* ---------- callouts + say ---------- */
+.say{border-radius:12px;border-left-width:4px;box-shadow:var(--e1);
+  background:linear-gradient(100deg,var(--accent-soft),transparent 70%)}
+.note{border-radius:12px;border-left-width:4px}
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key{box-shadow:var(--e1)}
+
+/* ---------- panels ---------- */
+.panel{box-shadow:var(--e1);border-radius:14px;
+  background:linear-gradient(170deg,color-mix(in srgb,var(--pc,var(--accent)) 7%,var(--surface)),var(--surface) 55%)}
+.panel:hover{box-shadow:var(--e2)}
+.panel > h3 .ic{box-shadow:0 2px 9px color-mix(in srgb,var(--pc,var(--accent)) 50%,transparent)}
+
+/* ---------- keyterms + flow ---------- */
+.kt{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));font-weight:650}
+.kt:hover{border-color:var(--accent);color:var(--accent)}
+.flow{border-radius:12px;box-shadow:var(--e1)}
+.flow .st{box-shadow:var(--e1)}
+.diagram{border-radius:12px}
+
+/* ---------- step lists (a fence that was really a list) ---------- */
+ol.steplist{counter-reset:sl;list-style:none;padding-left:0;margin:14px 0}
+ol.steplist > li{counter-increment:sl;position:relative;padding:9px 14px 9px 44px;margin:7px 0;
+  background:var(--surface-2);border:1px solid var(--border-soft);border-radius:11px;
+  line-height:1.6;font-size:14.4px}
+ol.steplist > li::before{content:counter(sl);position:absolute;left:11px;top:9px;width:24px;height:24px;
+  border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);
+  font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono)}
+ol.steplist > li:hover{border-color:var(--accent-bd)}
+ul.steplist{list-style:none;padding-left:0;margin:14px 0}
+ul.steplist > li{position:relative;padding:8px 14px 8px 30px;margin:6px 0;background:var(--surface-2);
+  border:1px solid var(--border-soft);border-radius:11px;line-height:1.6;font-size:14.4px}
+ul.steplist > li::before{content:"";position:absolute;left:13px;top:17px;width:6px;height:6px;
+  border-radius:50%;background:var(--tc,var(--accent))}
+
+/* a source heading with no body under it: don't render an empty card */
+.q-a:empty{display:none}
+.q-a:empty + .reveal{display:none}
+.q:has(> .q-a:empty){padding:11px 18px;background:var(--surface-2);opacity:.85}
+.q:has(> .q-a:empty) .q-h h3{font-size:14.5px;color:var(--ink-2)}
+
+.q-h h3 code{font-size:.88em;background:var(--code-bg);border:1px solid var(--border-soft);padding:.06em .34em}
+nav a code{font-size:.9em;background:none;border:0;padding:0;color:inherit}
+.parthead code{font-size:.92em;background:none;border:0;padding:0;color:inherit}
+
+/* ---------- hub ---------- */
+.hub-card{box-shadow:var(--e1);background:linear-gradient(170deg,var(--surface),var(--surface-2))}
+.hub-card:hover{transform:translateY(-4px);box-shadow:var(--e3)}
+.hub h1{letter-spacing:-.034em;font-weight:800}
+
+@media(max-width:1060px){
+  .hero{padding:34px 0 4px}
+  .hero::before{display:none}
+  .learn-grid{grid-template-columns:1fr}
+}
+@media print{
+  .sitebar,.siteswitch,aside,.totop,.reveal,.copy,#rprog{display:none!important}
+  .app{grid-template-columns:1fr}
+  .q,.tbl-wrap,figure.viz{break-inside:avoid;box-shadow:none}
+}
+
+/* ---------- long-page ergonomics ---------- */
+/* the group header stays put while you scroll a 200-question list */
+.parthead{position:sticky;top:44px;z-index:12;background:var(--glass);
+  backdrop-filter:blur(10px) saturate(1.4);-webkit-backdrop-filter:blur(10px) saturate(1.4);
+  padding:8px 10px;margin:26px -10px 10px;border-radius:10px}
+.filehead{position:relative;z-index:1}
+
+/* question cards: tint the badge, and offer a deep link on hover */
+.q-n{color:var(--tc,var(--accent));border-color:color-mix(in srgb,var(--tc,var(--accent)) 40%,var(--border))}
+.q-h{position:relative}
+.q-anchor{opacity:0;margin-left:8px;font-size:12px;color:var(--ink-mut);text-decoration:none;
+  cursor:pointer;font-family:var(--mono);flex:none;align-self:center}
+.q:hover .q-anchor{opacity:.7}
+.q-anchor:hover{opacity:1!important;color:var(--accent);text-decoration:none}
+.q-anchor.ok{color:var(--good);opacity:1!important}
+
+/* card affordances */
+.tcard,.hub-card{position:relative}
+.tcard::after,.hub-card::after{content:"92";position:absolute;right:16px;bottom:12px;
+  font-size:15px;color:var(--tc,var(--accent));opacity:0;transform:translateX(-4px)}
+.tcard:hover::after,.hub-card:hover::after{opacity:.9;transform:translateX(0);
+  transition:opacity .16s ease,transform .16s ease}
+
+/* search: dim the page while filtering so hits stand out */
+body.searching .q{opacity:1}
+body.searching .parthead{opacity:.5}
+
+@media(max-width:1060px){ .parthead{top:0} }
+
+</style>
+</head>
+<body>
+<div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
+  <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw" href="../03_Data_Handling/index.html">03 Data</a><a class="sw" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw on" href="../11_System_Design/index.html">11 Sys Design</a>
+</div></div><div class="sitebar-in">
+  <button class="btn menu-toggle" id="menuBtn">&#9776;</button>
+  <a class="logo" href="index.html">System <b>Design</b></a>
+  <a class="tab" href="index.html">Home</a><a class="tab" href="foundations.html">Foundations</a><a class="tab" href="scaling.html">Scaling</a><a class="tab" href="patterns.html">Patterns</a><a class="tab" href="distributed.html">Distributed</a><a class="tab" href="ml.html">ML Systems</a><a class="tab" href="security.html">Security</a><a class="tab" href="interview.html">Interview</a><a class="tab on" href="scenarios.html">Scenarios</a>
+  <span class="sp"></span>
+  <span class="btn" style="cursor:default" title="Questions ticked on this page"><span id="pgCount">0 / 0</span></span>
+  <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
+  <button class="btn" id="themeBtn">Dark</button>
+</div></div>
+<div class="app" style="--tc:var(--t-rag)">
+<aside id="sidebar">
+  <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
+  <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
+  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><div class="nav-grp">15 &middot; Data &amp; queue scenarios</div><a href="#f15ProductionSc-0" data-q="f15ProductionSc-0"><span class="qn">&bull;</span>Q16: PostgreSQL is suddenly at 100% CPU. How do you investigate?</a><a href="#f15ProductionSc-1" data-q="f15ProductionSc-1"><span class="qn">&bull;</span>Q17: A transaction is locked for 30 minutes. What happens and how do you fix it?</a><a href="#f15ProductionSc-2" data-q="f15ProductionSc-2"><span class="qn">&bull;</span>Q18: Two workflows update the same record simultaneously. How do you prevent race conditions?</a><a href="#f15ProductionSc-3" data-q="f15ProductionSc-3"><span class="qn">&bull;</span>Q19: The DB connection pool is exhausted. What could cause it?</a><a href="#f15ProductionSc-4" data-q="f15ProductionSc-4"><span class="qn">&bull;</span>Q20: How do you recover from accidental data deletion?</a><a href="#f15ProductionSc-5" data-q="f15ProductionSc-5"><span class="qn">&bull;</span>Q21: A Kafka consumer crashes after processing a message but before committing the offset. What happens?</a><a href="#f15ProductionSc-6" data-q="f15ProductionSc-6"><span class="qn">&bull;</span>Q22: How do you guarantee a message is processed exactly once?</a><a href="#f15ProductionSc-7" data-q="f15ProductionSc-7"><span class="qn">&bull;</span>Q23: Messages are piling up in Kafka. How do you debug it?</a><a href="#f15ProductionSc-8" data-q="f15ProductionSc-8"><span class="qn">&bull;</span>Q24: What is a Dead Letter Queue and when would you use it?</a><a href="#f15ProductionSc-9" data-q="f15ProductionSc-9"><span class="qn">&bull;</span>Q25: How do you replay failed messages safely?</a><div class="nav-grp">16 &middot; Performance &amp; security scenarios</div><a href="#f16ProductionSc-10" data-q="f16ProductionSc-10"><span class="qn">&bull;</span>Q31: An API that responded in 500ms now takes 10s. How do you debug it?</a><a href="#f16ProductionSc-11" data-q="f16ProductionSc-11"><span class="qn">&bull;</span>Q32: How do you find a memory leak in a Python service?</a><a href="#f16ProductionSc-12" data-q="f16ProductionSc-12"><span class="qn">&bull;</span>Q33: CPU hits 100%. What metrics do you check first?</a><a href="#f16ProductionSc-13" data-q="f16ProductionSc-13"><span class="qn">&bull;</span>Q34: How do you profile a slow Python application?</a><a href="#f16ProductionSc-14" data-q="f16ProductionSc-14"><span class="qn">&bull;</span>Q35: A service gets slower every day and needs restarts. What's happening?</a><a href="#f16ProductionSc-15" data-q="f16ProductionSc-15"><span class="qn">&bull;</span>Q36: How do you protect LLM applications from prompt injection?</a><a href="#f16ProductionSc-16" data-q="f16ProductionSc-16"><span class="qn">&bull;</span>Q37: A user uploads a malicious file. How do you secure the system?</a><a href="#f16ProductionSc-17" data-q="f16ProductionSc-17"><span class="qn">&bull;</span>Q38: How do you store API keys securely?</a><a href="#f16ProductionSc-18" data-q="f16ProductionSc-18"><span class="qn">&bull;</span>Q39: How do you prevent sensitive data from reaching the LLM?</a><a href="#f16ProductionSc-19" data-q="f16ProductionSc-19"><span class="qn">&bull;</span>Q40: How do you implement role-based access control?</a><div class="nav-grp">17 &middot; End-to-end walkthrough</div><a href="#f17ClientRoundS-20" data-q="f17ClientRoundS-20"><span class="qn">&bull;</span>7. End-to-End System Design Walkthrough</a></nav>
+</aside>
+<main><div class="wrap">
+
+<section class="hero" id="top"><div class="eyebrow">11_System_Design &middot; Scenarios</div>
+<h1>Scenarios</h1><p class="lede">Production scenarios: data, queues, performance, security, and an end-to-end walkthrough</p><div class="oneliner"><b>3 files</b> in this section, <b>21 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
+<div class="stats"><div class="stat"><div class="stat-v">3</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">21</div><div class="stat-l">sections</div></div></div></section>
+<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">Production scenarios: data, queues, performance, security, and an end-to-end walkthrough</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>15 &middot; Data &amp; queue scenarios</b><span class="learn-n">10 sections</span></div><div class="learn-tags"><span>Database Issues</span><span>Queue Systems</span></div></li><li class="learn-item"><div class="learn-top"><b>16 &middot; Performance &amp; security scenarios</b><span class="learn-n">10 sections</span></div><div class="learn-tags"><span>Performance Issues</span><span>Security</span></div></li><li class="learn-item"><div class="learn-top"><b>17 &middot; End-to-end walkthrough</b><span class="learn-n">1 sections</span></div><div class="learn-tags"><span>End-to-End System Design Walkthrough</span></div></li></ul></section>
+
+<section class="filesec" id="f15ProductionSc"><header class="filehead"><div class="fh-top"><span class="fh-num">15 &middot; Data &amp; queue scenarios</span><span class="fh-count">10 sections</span><a class="fh-src" href="../../11_System_Design/15_Production_Scenarios_Data_and_Queues.md">source .md &#8599;</a></div><h2>LLM / Agent / Workflow Production Scenarios — Production Scenarios Data and Queues</h2><div class="note">
+<p>Part of the 60-scenario production set that used to live in <code>../08_LangChain_and_LangGraph/30_Production_Scenarios_Workflows.md</code>. The other parts are listed at the bottom of this file.</p>
+</div></header><div class="parthead"><span>Database Issues</span><i></i></div><article class="q" id="f15ProductionSc-0"><div class="q-h"><span class="q-n">&bull;</span><h3>Q16: PostgreSQL is suddenly at 100% CPU. How do you investigate?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f15ProductionSc-0"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">pgstatactivity</span><span class="kt">pgstatstatements</span><span class="kt">EXPLAIN (ANALYZE, BUFFERS)</span><span class="kt">Missing/incorrect indexes</span><span class="kt">Plan regression</span><span class="kt">Connection storm</span></div><p><strong>A:</strong> Find the work the DB is doing, then why it's expensive:</p>
+<ol>
+<li class="dl"><b class="dt"><code>pg_stat_activity</code></b><span class="dd">what's running <em>right now</em>? Long queries, <code>idle in transaction</code>, lock waits, how many active backends.</span></li>
+<li class="dl"><b class="dt"><code>pg_stat_statements</code></b><span class="dd">top queries by total/mean time and calls. Usually a few queries dominate.</span></li>
+<li><strong><code>EXPLAIN (ANALYZE, BUFFERS)</code></strong> the offenders — seq scans on big tables, missing indexes, bad join plans, sorts spilling to disk.</li>
+<li class="dl"><b class="dt">Missing/incorrect indexes</b><span class="dd">the #1 cause; a query that lost its index (e.g. after a data-type change or function wrap) suddenly scans.</span></li>
+<li class="dl"><b class="dt">Plan regression</b><span class="dd">stale stats → bad plan; <code>ANALYZE</code> / autovacuum lagging.</span></li>
+<li class="dl"><b class="dt">Connection storm</b><span class="dd">too many connections (no pooler), each running heavy work; add PgBouncer.</span></li>
+<li class="dl"><b class="dt">Vacuum/bloat</b><span class="dd">autovacuum overdue, table bloat inflating scans; or a vacuum running.</span></li>
+<li><strong>Lock contention</strong> producing retries/spins.</li>
+<li class="dl"><b class="dt">Recent change</b><span class="dd">new deploy, traffic spike, a batch job, or a cache that stopped working.</span></li>
+</ol>
+<p><strong>Key takeaway:</strong> Start at <code>pg_stat_activity</code> + <code>pg_stat_statements</code> to find the hot queries, <code>EXPLAIN ANALYZE</code> them, and look for missing indexes / seq scans / stale stats / connection storms. It's almost always a handful of queries or a lost index.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f15ProductionSc-1"><div class="q-h"><span class="q-n">&bull;</span><h3>Q17: A transaction is locked for 30 minutes. What happens and how do you fix it?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f15ProductionSc-1"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Diagnose</span><span class="kt">Immediate fix</span><span class="kt">Root causes &amp; prevention</span><span class="kt">idle in transaction</span><span class="kt">Lock-then-slow-work</span><span class="kt">Lock ordering</span></div><p><strong>A:</strong> A long-held lock blocks every transaction that needs the same row/table — queries queue up, connection pool fills, latency climbs, and you can cascade into an outage.</p>
+<p><strong>Diagnose:</strong> <code>pg_stat_activity</code> (look for <code>idle in transaction</code> and <code>wait_event_type = Lock</code>) + <code>pg_locks</code> joined to see who blocks whom (<code>pg_blocking_pids()</code>).</p>
+<p><strong>Immediate fix:</strong> Terminate the blocker — <code>pg_cancel_backend(pid)</code> (cancel query) or <code>pg_terminate_backend(pid)</code> (kill connection).</p>
+<p><strong>Root causes &amp; prevention:</strong>
+- <strong><code>idle in transaction</code></strong> — app opened a transaction and never committed (held across an external call / user think-time). Set <code>idle_in_transaction_session_timeout</code>; keep transactions short.
+- <strong>Lock-then-slow-work</strong> — doing <abbr title="large language model">LLM</abbr> calls or HTTP inside a transaction. Never hold a DB transaction across a network/LLM call.
+- <strong>Lock ordering</strong> — acquire locks in a consistent order to avoid deadlocks; set <code>lock_timeout</code> / <code>statement_timeout</code>.
+- <strong>Long-running batch</strong> competing with <abbr title="online transaction processing">OLTP</abbr> — isolate or run off-peak.</p>
+<p><strong>Key takeaway:</strong> Find the blocker via <code>pg_locks</code>/<code>pg_blocking_pids()</code>, kill it with <code>pg_terminate_backend</code>, then prevent recurrence with short transactions, <code>idle_in_transaction_session_timeout</code>, and never holding locks across slow/network work.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f15ProductionSc-2"><div class="q-h"><span class="q-n">&bull;</span><h3>Q18: Two workflows update the same record simultaneously. How do you prevent race conditions?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f15ProductionSc-2"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Pessimistic locking</span><span class="kt">Atomic / conditional writes</span><span class="kt">Serializable isolation</span><span class="kt">Idempotency keys</span><span class="kt">Key takeaway</span></div><p><strong>A:</strong> Use concurrency control so the second writer can't silently clobber the first:</p>
+<ul>
+<li><strong>Optimistic locking (version column).</strong> Read with a <code>version</code>; update <code>WHERE id = ? AND version = ?</code> and bump it. If 0 rows updated, someone else won — re-read and retry. Best for low contention.</li>
+<li><strong>Pessimistic locking.</strong> <code>SELECT ... FOR UPDATE</code> locks the row for the transaction; the second writer waits. Best for high contention / must-not-fail.</li>
+<li><strong>Atomic / conditional writes.</strong> Push the logic into the DB: <code>UPDATE balance = balance - 10 WHERE balance &gt;= 10</code> instead of read-modify-write in app code.</li>
+<li><strong>Serializable isolation</strong> for complex invariants (DB aborts conflicting txns; you retry).</li>
+<li><strong>Idempotency keys</strong> so a retried update is safe (Q2, Q60).</li>
+</ul>
+<pre class="code" data-lang="sql"><code>-- optimistic concurrency control
+UPDATE jobs SET status = 'done', version = version + 1
+WHERE id = :id AND version = :expected_version;   -- 0 rows =&gt; conflict, retry</code></pre>
+<p><strong>Key takeaway:</strong> Don't do read-modify-write in app code under concurrency. Use optimistic (version column) for low contention, <code>SELECT FOR UPDATE</code> for high contention, or atomic conditional updates — and retry on conflict.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f15ProductionSc-3"><div class="q-h"><span class="q-n">&bull;</span><h3>Q19: The DB connection pool is exhausted. What could cause it?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f15ProductionSc-3"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Connection leaks</span><span class="kt">Long-running / slow queries</span><span class="kt">idle in transaction</span><span class="kt">Pool too small for concurrency</span><span class="kt">Traffic spike</span><span class="kt">No pooler</span></div><p><strong>A:</strong> Demand for connections exceeds the pool, so requests block waiting for one. Common causes:</p>
+<ol>
+<li class="dl"><b class="dt">Connection leaks</b><span class="dd">code that doesn't return connections (missing <code>with</code>/<code>finally</code>, exception path skips close). The #1 cause.</span></li>
+<li><strong>Long-running / slow queries</strong> holding connections (see Q16/Q17) — each in-flight slow query occupies a slot.</li>
+<li class="dl"><b class="dt"><code>idle in transaction</code></b><span class="dd">transactions opened and not committed, pinning connections.</span></li>
+<li class="dl"><b class="dt">Pool too small for concurrency</b><span class="dd">undersized <code>pool_size</code>/<code>max_overflow</code> vs. worker/thread count.</span></li>
+<li><strong>Traffic spike</strong> beyond capacity.</li>
+<li><strong>Holding connections across slow external calls</strong> (<abbr title="large language model">LLM</abbr>/HTTP) inside a request — checkout time balloons.</li>
+<li><strong>No pooler</strong> in a high-fan-out service (e.g. many serverless instances each opening connections) — add PgBouncer.</li>
+</ol>
+<p><strong>Fix:</strong> Always release with context managers, keep transactions short, set checkout/idle timeouts, right-size the pool, and move slow work outside the DB checkout window.</p>
+<p><strong>Key takeaway:</strong> Pool exhaustion is usually leaks or connections held too long (slow queries, <code>idle in transaction</code>, network calls inside the checkout). Use context managers, short transactions, timeouts, and a properly sized pool/pooler.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f15ProductionSc-4"><div class="q-h"><span class="q-n">&bull;</span><h3>Q20: How do you recover from accidental data deletion?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f15ProductionSc-4"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Recovery options</span><span class="kt">Point-in-Time Recovery (PITR)</span><span class="kt">Backups / snapshots</span><span class="kt">Soft deletes</span><span class="kt">Logical replication / standby</span><span class="kt">Prevent recurrence</span></div><p><strong>A:</strong> Depends on what's in place — and the best recovery is set up <em>before</em> the incident.</p>
+<p><strong>If caught immediately (within a transaction):</strong> <code>ROLLBACK</code> if not yet committed.</p>
+<p><strong>Recovery options:</strong>
+- <strong>Point-in-Time Recovery (PITR).</strong> With continuous <abbr title="write-ahead log">WAL</abbr> archiving you can restore to the second <em>before</em> the delete — the gold standard. Restore to a side instance, extract the rows, backfill.
+- <strong>Backups / snapshots.</strong> Restore the latest backup (you'll lose changes since); reconcile.
+- <strong>Soft deletes.</strong> If you use <code>deleted_at</code> flags instead of hard <code>DELETE</code>, "recovery" is just clearing the flag — no restore needed.
+- <strong>Audit log / CDC / outbox / replica lag.</strong> A change-data-capture stream or a lagged <abbr title="a copy of the database that serves reads, kept in sync asynchronously">read replica</abbr> may still hold the pre-delete state.
+- <strong>Logical replication / standby</strong> not yet caught up.</p>
+<p><strong>Prevent recurrence:</strong> soft deletes, <code>DELETE</code> requires <code>WHERE</code> review / disable autocommit for ad-hoc, least-privilege (no prod DELETE for app/humans casually), staging-first, and <strong>test your restores regularly</strong> — an untested backup isn't a backup.</p>
+<p><strong>Key takeaway:</strong> PITR (WAL archiving) lets you restore to just before the delete; soft deletes make it a one-line undo. Whatever you use, <em>test restores</em> and apply least-privilege so the deletion is hard to trigger in the first place.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>Queue Systems</span><i></i></div><article class="q" id="f15ProductionSc-5"><div class="q-h"><span class="q-n">&bull;</span><h3>Q21: A Kafka consumer crashes after processing a message but before committing the offset. What happens?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f15ProductionSc-5"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">processed again</span><span class="kt">at-least-once</span><span class="kt">duplicates are possible</span><span class="kt">Idempotent processing</span><span class="kt">Transactional writes</span><span class="kt">Key takeaway</span></div><p><strong>A:</strong> The offset wasn't committed, so on restart (or partition rebalance to another consumer) the broker redelivers that message → it gets <strong>processed again</strong>. This is <strong>at-least-once</strong> delivery — the default, and it means <strong>duplicates are possible</strong>.</p>
+<p>The fix isn't to avoid redelivery (you can't fully) but to make reprocessing harmless:
+- <strong><abbr title="safe to run more than once with the same result">Idempotent</abbr> processing</strong> keyed by message id / business key (Q2, Q22, Q60), so the second processing is a no-op or overwrite.
+- <strong>Commit offsets <em>after</em> the side-effect succeeds</strong> (process → write → commit), which keeps you at at-least-once rather than at-most-once.
+- <strong>Transactional writes</strong> binding the result + offset where the sink supports it (Q22).</p>
+<p><strong>Key takeaway:</strong> Uncommitted offset ⇒ redelivery ⇒ the message is processed again (at-least-once). You don't prevent redelivery; you make processing idempotent so duplicates don't cause harm.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f15ProductionSc-6"><div class="q-h"><span class="q-n">&bull;</span><h3>Q22: How do you guarantee a message is processed exactly once?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f15ProductionSc-6"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">effectively-once</span><span class="kt">Idempotency / dedup</span><span class="kt">and</span><span class="kt">same transaction</span><span class="kt">Kafka transactions / EOS</span><span class="kt">Key takeaway</span></div><p><strong>A:</strong> True end-to-end exactly-once is hard; you achieve <strong>effectively-once</strong> = at-least-once delivery + <abbr title="safe to run more than once with the same result">idempotent</abbr>/transactional processing:</p>
+<ol>
+<li><strong>Idempotency / dedup.</strong> Each message carries a unique id. Before applying side-effects, check a dedup store ("seen this id?"); skip if present. Atomic dedup-check + write.</li>
+<li><strong>Transactional outbox / atomic commit.</strong> Write the result <strong>and</strong> record the processed id in the <strong>same transaction</strong> — both or neither.</li>
+<li><strong>Kafka transactions / EOS.</strong> Within Kafka (consume-process-produce), <code>enable.idempotence=true</code> + transactional producer + <code>read_committed</code> gives exactly-once <em>within Kafka</em>. External sinks (DB, API) still need idempotency.</li>
+<li><strong>Commit offset only after the side-effect is durably applied.</strong></li>
+</ol>
+<pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">handle</span>(msg, db):
+    <span class="kw">with</span> db.<span class="fn">begin</span>():                              <span class="cmt"># one transaction</span>
+        <span class="kw">if</span> db.<span class="fn">seen</span>(msg.id):                       <span class="cmt"># dedup check</span>
+            <span class="kw">return</span>
+        <span class="fn">apply_effect</span>(db, msg)                     <span class="cmt"># the real work</span>
+        db.<span class="fn">mark_seen</span>(msg.id)                      <span class="cmt"># record processed id</span>
+    consumer.<span class="fn">commit</span>(msg)                          <span class="cmt"># offset after durability</span></code></pre>
+<p><strong>Key takeaway:</strong> "Exactly once" in practice = at-least-once delivery + idempotent processing (dedup id) or a transactional outbox. Commit the offset only after the effect is durably applied. Don't promise EOS to external systems without idempotency.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f15ProductionSc-7"><div class="q-h"><span class="q-n">&bull;</span><h3>Q23: Messages are piling up in Kafka. How do you debug it?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f15ProductionSc-7"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">consumer lag</span><span class="kt">Measure the lag</span><span class="kt">Consumer slow/stuck?</span><span class="kt">Producer surge?</span><span class="kt">Partition skew</span><span class="kt">Fixes</span></div><p><strong>A:</strong> Piling up = <strong>consumer lag</strong> growing = produce rate &gt; consume rate. Investigate both sides:</p>
+<ol>
+<li><strong>Measure the lag.</strong> <code>kafka-consumer-groups --describe</code> (or Burrow/monitoring) — which partitions/group, how fast it's growing.</li>
+<li class="dl"><b class="dt">Consumer slow/stuck?</b><span class="dd">Slow per-message processing (a slow DB/<abbr title="large language model">LLM</abbr> call in the handler).
+   - Too few consumers vs. partitions (parallelism capped by partition count).
+   - Frequent rebalances (consumers thrashing, <code>max.poll.interval.ms</code> exceeded → kicked out).
+   - Consumers crashing/erroring on a poison message (stuck retrying — send to <abbr title="dead-letter queue">DLQ</abbr>, Q24).
+   - <abbr title="garbage collector">GC</abbr> pauses / resource limits.</span></li>
+<li><strong>Producer surge?</strong> Traffic spike or a backfill flooding the topic.</li>
+<li class="dl"><b class="dt">Partition skew</b><span class="dd">one hot key sends most traffic to one partition; that partition lags while others idle.</span></li>
+</ol>
+<p><strong>Fixes:</strong> scale consumers up to (≤) partition count, increase partitions for parallelism, speed up the handler (batch, async, move slow work out), fix the hot-key partitioning, route poison messages to a DLQ.</p>
+<p><strong>Key takeaway:</strong> Growing consumer lag is produce-rate &gt; consume-rate. Check lag per partition, then whether consumers are slow/under-parallelized/rebalancing/stuck on a poison message, vs. a producer surge or partition skew. Scale consumers to partitions and speed up the handler.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f15ProductionSc-8"><div class="q-h"><span class="q-n">&bull;</span><h3>Q24: What is a Dead Letter Queue and when would you use it?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f15ProductionSc-8"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Dead Letter Queue</span><span class="kt">can&#x27;t be processed successfully</span><span class="kt">Use it when</span><span class="kt">Poison messages</span><span class="kt">Persistent downstream failures</span><span class="kt">Decoupling failure handling</span></div><p><strong>A:</strong> A <strong>Dead Letter Queue</strong> is a separate queue/topic where messages that <strong>can't be processed successfully</strong> are routed after exhausting retries — so they don't block the main flow or loop forever.</p>
+<p><strong>Use it when:</strong>
+- <strong>Poison messages</strong> — malformed/unparseable payloads that will <em>never</em> succeed; without a <abbr title="dead-letter queue">DLQ</abbr> they stall the partition and retry endlessly (Q3, Q23).
+- <strong>Persistent downstream failures</strong> for a specific item (e.g. a record that violates a constraint).
+- <strong>Decoupling failure handling</strong> — keep the main consumer fast; triage failures asynchronously.</p>
+<p><strong>What it gives you:</strong> failures are <strong>captured with context</strong> (original payload, error, attempt count, timestamp) for inspection, alerting, fixing the bug, and <strong>replay</strong> once fixed (Q25). Pair it with a max-retry policy and monitoring/alerts on DLQ depth (a filling DLQ is a signal).</p>
+<p><strong>Key takeaway:</strong> A DLQ is the parking lot for messages that fail after max retries — it stops poison messages from blocking or infinitely looping the main queue, preserves them with error context for triage, and enables later replay. Alert on its depth.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f15ProductionSc-9"><div class="q-h"><span class="q-n">&bull;</span><h3>Q25: How do you replay failed messages safely?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f15ProductionSc-9"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Fix the root cause first</span><span class="kt">Idempotency is mandatory</span><span class="kt">Controlled, observable replay</span><span class="kt">Selective replay</span><span class="kt">Dry-run / shadow</span><span class="kt">Cap re-failures</span></div><p><strong>A:</strong> Replaying from a <abbr title="dead-letter queue">DLQ</abbr> (Q24) is powerful but must avoid re-breaking things:</p>
+<ol>
+<li><strong>Fix the root cause first.</strong> Don't replay into the same bug — you'll just refill the DLQ.</li>
+<li><strong>Idempotency is mandatory.</strong> Replayed messages may have <em>partially</em> processed before failing; without <abbr title="safe to run more than once with the same result">idempotent</abbr> handlers (Q22, Q60) you create duplicates. This is the single most important safeguard.</li>
+<li><strong>Controlled, observable replay.</strong> Rate-limit the replay so you don't overwhelm downstreams; replay in batches; monitor success/failure.</li>
+<li><strong>Selective replay.</strong> Filter which messages to replay (by error type, time range) rather than blindly draining the DLQ.</li>
+<li><strong>Dry-run / shadow</strong> first if the side-effects are dangerous.</li>
+<li><strong>Cap re-failures.</strong> If a replayed message fails again, send it back to the DLQ with an incremented attempt count — don't loop.</li>
+<li><strong>Preserve ordering</strong> where it matters (replay per-key in order).</li>
+</ol>
+<p><strong>Key takeaway:</strong> Fix the bug, then replay through <em>idempotent</em> handlers, rate-limited and monitored, with selective filtering and a re-fail cap. Idempotency is what makes replay safe.</p>
+<hr />
+<hr />
+<p><strong>The rest of this set:</strong> <a href="../../01_Python/35_Production_Scenarios_Python.md">35 Production Scenarios Python</a> · <a href="../../07_GenAI_and_LLMs/18_Production_Scenarios_LLM_APIs.md">18 Production Scenarios <abbr title="large language model">LLM</abbr> APIs</a> · <a href="../../08_LangChain_and_LangGraph/30_Production_Scenarios_Workflows.md">30 Production Scenarios Workflows</a> · <a href="../../10_MLOps_and_Deployment/11_Production_Scenarios_Deploy_and_Observe.md">11 Production Scenarios Deploy and Observe</a> · <a href="scenarios.html#f16ProductionSc">16 Production Scenarios Performance and Security</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f16ProductionSc"><header class="filehead"><div class="fh-top"><span class="fh-num">16 &middot; Performance &amp; security scenarios</span><span class="fh-count">10 sections</span><a class="fh-src" href="../../11_System_Design/16_Production_Scenarios_Performance_and_Security.md">source .md &#8599;</a></div><h2>LLM / Agent / Workflow Production Scenarios — Production Scenarios Performance and Security</h2><div class="note">
+<p>Part of the 60-scenario production set that used to live in <code>../08_LangChain_and_LangGraph/30_Production_Scenarios_Workflows.md</code>. The other parts are listed at the bottom of this file.</p>
+</div></header><div class="parthead"><span>Performance Issues</span><i></i></div><article class="q" id="f16ProductionSc-10"><div class="q-h"><span class="q-n">&bull;</span><h3>Q31: An API that responded in 500ms now takes 10s. How do you debug it?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f16ProductionSc-10"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Scope it</span><span class="kt">Distributed tracing</span><span class="kt">Database</span><span class="kt">Downstream calls</span><span class="kt">N+1 queries</span><span class="kt">Resource saturation</span></div><p><strong>A:</strong> Localize <em>where</em> the time goes, then <em>why</em>:</p>
+<ol>
+<li><strong>Scope it.</strong> All endpoints or one? All requests or some inputs? When did it start — correlate with a deploy, traffic change, or data growth.</li>
+<li><strong>Distributed tracing</strong> (<a href="../../10_MLOps_and_Deployment/11_Production_Scenarios_Deploy_and_Observe.md#q43">Q43</a>). Break the request into spans — which span exploded? App code, DB, cache, an <abbr title="large language model">LLM</abbr>/3rd-party call, network?</li>
+<li><strong>Database</strong> (most common): a query lost its index, plan regression, lock contention, connection-pool waits (Q16–Q19). Check slow-query logs.</li>
+<li><strong>Downstream calls.</strong> A slow dependency (LLM, external API) with no/large timeout; missing cache → <abbr title="many simultaneous misses on the same expired key all hitting the source at once">cache stampede</abbr>.</li>
+<li><strong>N+1 queries</strong> introduced by a recent change.</li>
+<li><strong>Resource saturation.</strong> CPU/memory/<abbr title="garbage collector">GC</abbr> pauses, thread/connection pool exhaustion, disk/network I/O.</li>
+<li><strong>Data growth.</strong> A query/loop that's O(n) over a table that <span class="mag">10×</span>'d.</li>
+<li><strong>External:</strong> <abbr title="domain name system">DNS</abbr>, <abbr title="transport layer security">TLS</abbr>, noisy neighbor.</li>
+</ol>
+<p><strong>Key takeaway:</strong> Use tracing to find the slow span first, then drill in — most "suddenly <span class="mag">20×</span> slower" cases are a DB query that lost its index, a slow/uncached downstream call, pool exhaustion, or an N+1 from a recent deploy. Always correlate with what changed.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f16ProductionSc-11"><div class="q-h"><span class="q-n">&bull;</span><h3>Q32: How do you find a memory leak in a Python service?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f16ProductionSc-11"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Confirm the trend</span><span class="kt">tracemalloc</span><span class="kt">gc + objgraph</span><span class="kt">memoryprofiler</span><span class="kt">Usual culprits</span><span class="kt">reference cycles with del</span></div><p><strong>A:</strong> Confirm it's growing, then find what isn't being freed:</p>
+<ol>
+<li><strong>Confirm the trend.</strong> RSS climbs monotonically and never recovers after load drops (vs. a high-but-stable plateau). Graph it over time.</li>
+<li class="dl"><b class="dt"><code>tracemalloc</code></b><span class="dd">snapshot allocations, run workload, snapshot again, <code>compare_to()</code> to see which lines/types grew the most. The primary tool.</span></li>
+<li class="dl"><b class="dt"><code>gc</code> + <code>objgraph</code></b><span class="dd"><code>objgraph.show_growth()</code> between iterations shows which object types keep increasing; trace back-references to find who holds them.</span></li>
+<li><strong><code>memory_profiler</code></strong> / <code>psutil</code> for per-function or process-level tracking.</li>
+<li><strong>Usual culprits:</strong> unbounded caches/dicts (no eviction), accumulating lists/global state, lingering references in closures, <strong>reference cycles with <code>__del__</code></strong>, C-extension leaks, not closing resources (files, connections, sessions), ever-growing logging/metrics buffers.</li>
+<li><strong>Reproduce in isolation</strong> with a tight loop of the suspect path; watch memory per iteration.</li>
+</ol>
+<p><strong>Key takeaway:</strong> Confirm monotonic RSS growth, then use <code>tracemalloc</code> (allocation diffs) + <code>objgraph</code> (growing object types and their referrers) to pinpoint it. Most Python "leaks" are unbounded caches/global accumulation or unreleased resources, not the <abbr title="garbage collector">GC</abbr> failing.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f16ProductionSc-12"><div class="q-h"><span class="q-n">&bull;</span><h3>Q33: CPU hits 100%. What metrics do you check first?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f16ProductionSc-12"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Which process / container?</span><span class="kt">User vs. system vs. iowait</span><span class="kt">Load average vs. core count</span><span class="kt">Per-thread / profile</span><span class="kt">Request rate / concurrency</span><span class="kt">GC activity</span></div><p><strong>A:</strong> Identify <em>what</em> is burning CPU before guessing:</p>
+<ol>
+<li><strong>Which process / container?</strong> <code>top</code>/<code>htop</code>, <code>kubectl top pod</code>, container cgroup CPU. Your service, a sidecar, or a noisy neighbor?</li>
+<li><strong>User vs. system vs. iowait.</strong> High <code>user</code> = app compute; high <code>sys</code> = syscalls/context switches; high <code>iowait</code> = it's actually disk/IO-bound, not CPU.</li>
+<li class="dl"><b class="dt">Load average vs. core count</b><span class="dd">is it sustained saturation or a spike?</span></li>
+<li class="dl"><b class="dt">Per-thread / profile</b><span class="dd">which code path? (CPU profiler, Q34.) Tight loop, regex backtracking, unbounded retry (<a href="../../08_LangChain_and_LangGraph/30_Production_Scenarios_Workflows.md#q3">Q3</a>), JSON of huge payloads, inefficient algorithm hit by data growth.</span></li>
+<li class="dl"><b class="dt">Request rate / concurrency</b><span class="dd">traffic spike, or a retry storm amplifying load.</span></li>
+<li class="dl"><b class="dt"><abbr title="garbage collector">GC</abbr> activity</b><span class="dd">frequent full GCs can pin CPU.</span></li>
+<li><strong>Correlate with a deploy / input change.</strong></li>
+</ol>
+<p><strong>Key takeaway:</strong> First find which process and whether it's <code>user</code>/<code>sys</code>/<code>iowait</code> CPU, then profile the hot path. <span class="mag">100%</span> CPU is usually a hot code path (tight loop / bad algorithm / regex), a retry storm, or a traffic spike — confirm with a profiler, and check it isn't actually iowait masquerading as "CPU."</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f16ProductionSc-13"><div class="q-h"><span class="q-n">&bull;</span><h3>Q34: How do you profile a slow Python application?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f16ProductionSc-13"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Deterministic CPU profiling</span><span class="kt">Statistical / production profiling</span><span class="kt">no code changes and low overhead</span><span class="kt">Line-level</span><span class="kt">Memory</span><span class="kt">Async / wall-clock</span></div><p><strong>A:</strong> Match the profiler to the question:</p>
+<ul>
+<li><strong>Deterministic CPU profiling:</strong> <code>cProfile</code> (+ <code>pstats</code>/<code>snakeviz</code>) — function call counts and cumulative/total time. Great for "where is CPU spent in this run?"</li>
+<li><strong>Statistical / production profiling:</strong> <code>py-spy</code> — samples a <em>running</em> process with <strong>no code changes and low overhead</strong>; <code>py-spy top</code> (live) and <code>py-spy dump</code> (stack of a hung process). Best for prod.</li>
+<li><strong>Line-level:</strong> <code>line_profiler</code> (<code>@profile</code>) for hotspots within a function.</li>
+<li><strong>Memory:</strong> <code>tracemalloc</code> / <code>memory_profiler</code> (Q32).</li>
+<li><strong>Async / wall-clock:</strong> <code>yappi</code> (multi-thread/async aware) — important because <code>cProfile</code> measures CPU, not time spent <em>waiting</em> on I/O.</li>
+<li><strong>I/O-bound vs CPU-bound first.</strong> If the app is slow but CPU is low, it's waiting (DB/network) — profile wall-clock and use tracing (<a href="../../10_MLOps_and_Deployment/11_Production_Scenarios_Deploy_and_Observe.md#q43">Q43</a>), not a CPU profiler.</li>
+</ul>
+<p><strong>Workflow:</strong> reproduce → profile to find the dominant cost → optimize the top item → re-measure (don't guess; measure).</p>
+<p><strong>Key takeaway:</strong> <code>cProfile</code>/<code>snakeviz</code> for CPU, <code>py-spy</code> for low-overhead production sampling, <code>line_profiler</code> for line-level, <code>yappi</code> for async/wall-clock. First decide CPU-bound vs I/O-bound — a CPU profiler won't show time spent waiting on the network.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f16ProductionSc-14"><div class="q-h"><span class="q-n">&bull;</span><h3>Q35: A service gets slower every day and needs restarts. What's happening?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f16ProductionSc-14"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Memory leak</span><span class="kt">Connection / file-descriptor leak</span><span class="kt">Thread/task leak</span><span class="kt">External growth</span><span class="kt">Fragmentation</span><span class="kt">Approach</span></div><p><strong>A:</strong> "Restart fixes it" + "degrades over time" is the signature of a <strong>resource leak / unbounded accumulation</strong> — state that grows while the process lives and is wiped by restart:</p>
+<ul>
+<li><strong>Memory leak</strong> (Q32) → more RSS → <abbr title="garbage collector">GC</abbr> pressure / swapping → slowdown, eventually OOM.</li>
+<li><strong>Unbounded in-memory cache/dict/list/global</strong> with no eviction (<abbr title="time to live">TTL</abbr>/<abbr title="least recently used">LRU</abbr>) — grows forever.</li>
+<li class="dl"><b class="dt">Connection / file-descriptor leak</b><span class="dd">pool slowly exhausts (<a href="scenarios.html#f15ProductionSc">Q19</a>), each request waits longer.</span></li>
+<li class="dl"><b class="dt">Thread/task leak</b><span class="dd">workers spawned and never reaped; scheduling overhead grows.</span></li>
+<li class="dl"><b class="dt">External growth</b><span class="dd">a table the service scans grows daily (add index/pagination/archival); log/temp files filling disk.</span></li>
+<li><strong>Fragmentation</strong> or accumulating timers/listeners/subscriptions.</li>
+</ul>
+<p><strong>Approach:</strong> trend memory + FD count + thread count + pool usage over a day; whichever climbs monotonically is the leak. Fix root cause (bounded caches, release resources, archive data); a scheduled restart is a <em>band-aid</em>, not a fix.</p>
+<p><strong>Key takeaway:</strong> Daily degradation cured by restart = something accumulates across the process lifetime — leaked memory/FDs/threads or an unbounded cache, or unbounded data growth queried each request. Trend those counters to find which grows, then bound it. Scheduled restarts only mask it.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>Security</span><i></i></div><article class="q" id="f16ProductionSc-15"><div class="q-h"><span class="q-n">&bull;</span><h3>Q36: How do you protect LLM applications from prompt injection?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f16ProductionSc-15"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Separate instructions from data</span><span class="kt">Input guardrails</span><span class="kt">Output guardrails</span><span class="kt">Least privilege on tools/actions</span><span class="kt">Human-in-the-loop</span><span class="kt">Indirect injection defense (RAG)</span></div><p><strong>A:</strong> Prompt injection = untrusted input (user text, retrieved docs, tool outputs, web pages) carrying instructions that hijack the model. There's no single fix — defense in depth:</p>
+<ol>
+<li><strong>Separate instructions from data.</strong> Keep the system prompt authoritative; clearly delimit and label user/retrieved content as untrusted data, not instructions. Use the provider's role/instruction hierarchy.</li>
+<li><strong>Input <abbr title="checks around a model that block or rewrite unsafe or malformed input and output">guardrails</abbr>.</strong> Filter/scan inputs for known injection patterns and jailbreak attempts (classifier or rules) — imperfect but raises the bar.</li>
+<li><strong>Output guardrails.</strong> Validate model output before acting — schema checks, content filters, never blindly execute generated commands/SQL.</li>
+<li><strong>Least privilege on tools/actions.</strong> The model should <em>propose</em>; a constrained layer executes only allow-listed, parameter-validated actions. Sandbox tool execution.</li>
+<li><strong>Human-in-the-loop</strong> for dangerous/irreversible actions (<a href="../../08_LangChain_and_LangGraph/30_Production_Scenarios_Workflows.md#q50">Q50</a>).</li>
+<li><strong>Indirect injection defense (<abbr title="retrieval-augmented generation">RAG</abbr>).</strong> Treat retrieved documents as untrusted — they're a top injection vector; don't let document text grant new capabilities.</li>
+<li><strong>Don't put secrets in the prompt</strong> (Q38/Q39) — assume the prompt can leak.</li>
+<li><strong>Constrain output format / <abbr title="the model emitting a structured request for a function the application then executes">function calling</abbr></strong> so free-text instructions can't expand scope.</li>
+</ol>
+<p><strong>Key takeaway:</strong> Assume any untrusted text (including retrieved docs and tool output) may contain instructions. Separate data from instructions, guardrail input and output, run tools under least privilege with validation, and gate dangerous actions behind humans. No single defense suffices — layer them.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f16ProductionSc-16"><div class="q-h"><span class="q-n">&bull;</span><h3>Q37: A user uploads a malicious file. How do you secure the system?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f16ProductionSc-16"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Validate type &amp; size</span><span class="kt">magic bytes</span><span class="kt">Scan for malware</span><span class="kt">Isolate processing</span><span class="kt">sandbox</span><span class="kt">Store safely</span></div><p><strong>A:</strong> Treat every upload as hostile and constrain it at every stage:</p>
+<ol>
+<li><strong>Validate type &amp; size.</strong> Allow-list extensions/MIME, verify <strong>magic bytes</strong> (don't trust the extension/Content-Type), enforce max size to prevent DoS.</li>
+<li><strong>Scan for malware</strong> (e.g. ClamatV/AV, or a scanning service) before any processing.</li>
+<li><strong>Isolate processing.</strong> Parse/convert untrusted files in a <strong>sandbox</strong> (separate container/VM, no network, dropped privileges, resource limits). Never parse risky formats in the main app process.</li>
+<li><strong>Store safely.</strong> Object storage <em>outside</em> the web root; randomized names (avoid path traversal / overwrites); never execute uploaded content; serve with correct <code>Content-Type</code> + <code>Content-Disposition: attachment</code> and restrictive CSP.</li>
+<li><strong>Format-specific risks.</strong> Zip/decompression bombs (limit decompressed size/ratio), XML/SVG XXE and embedded scripts, malicious PDFs/Office macros, image parser exploits, <strong>CSV injection</strong> (formula cells).</li>
+<li><strong>Resource limits &amp; timeouts</strong> so a crafted file can't exhaust CPU/memory.</li>
+<li><strong><abbr title="large language model">LLM</abbr> angle:</strong> an uploaded doc fed to a model is also an <strong>indirect prompt-injection</strong> vector (Q36) — treat its contents as untrusted.</li>
+</ol>
+<p><strong>Key takeaway:</strong> Validate by magic bytes (not extension), AV-scan, then parse in a network-isolated sandbox with resource limits; store outside web root with random names and never execute it. Watch for decompression bombs, XXE, and (for LLM apps) injection via file contents.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f16ProductionSc-17"><div class="q-h"><span class="q-n">&bull;</span><h3>Q38: How do you store API keys securely?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f16ProductionSc-17"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Secrets manager</span><span class="kt">auditable</span><span class="kt">rotation</span><span class="kt">Never commit</span><span class="kt">rotate immediately</span><span class="kt">Least privilege &amp; scoping</span></div><p><strong>A:</strong> Never in code, never in the repo. Layered:</p>
+<ol>
+<li class="dl"><b class="dt">Secrets manager</b><span class="dd">AWS Secrets Manager / GCP Secret Manager / HashiCorp Vault / Azure Key Vault. Centralized, encrypted at rest, access-controlled, <strong>auditable</strong>, supports <strong>rotation</strong>.</span></li>
+<li><strong>Environment variables / mounted secrets</strong> injected at runtime (K8s Secrets, ideally backed by a manager + sealed-secrets/CSI) — not baked into the image.</li>
+<li><strong>Never commit.</strong> <code>.gitignore</code> secrets; scan with git-secrets/trufflehog/pre-commit hooks; if leaked, <strong>rotate immediately</strong> (consider it compromised).</li>
+<li class="dl"><b class="dt">Least privilege &amp; scoping</b><span class="dd">narrowest scopes, separate keys per service/env (dev/stage/prod isolated).</span></li>
+<li class="dl"><b class="dt">Rotation</b><span class="dd">regular + on-incident; design for zero-downtime rotation (Q28 expand/contract idea).</span></li>
+<li><strong>Encryption in transit</strong> (<abbr title="transport layer security">TLS</abbr>) and at rest; restrict who/what can read each secret (<abbr title="identity and access management">IAM</abbr>).</li>
+<li><strong>Audit &amp; monitor</strong> access; alert on anomalous use.</li>
+<li><strong>Prefer short-lived credentials / workload identity</strong> (IAM roles, OIDC) over long-lived static keys where possible.</li>
+</ol>
+<p><strong>Key takeaway:</strong> Use a secrets manager (or runtime-injected secrets), never commit keys, enforce least privilege + rotation + auditing, and prefer short-lived workload identities over static long-lived keys. A leaked key = rotate now.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f16ProductionSc-18"><div class="q-h"><span class="q-n">&bull;</span><h3>Q39: How do you prevent sensitive data from reaching the LLM?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f16ProductionSc-18"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">mask or tokenize</span><span class="kt">Data minimization</span><span class="kt">Input/output guardrails</span><span class="kt">Field-level access control</span><span class="kt">Choose the right deployment</span><span class="kt">no-training / zero-retention</span></div><p><strong>A:</strong> Especially important with third-party APIs where data leaves your boundary:</p>
+<ol>
+<li><strong><abbr title="personally identifiable information">PII</abbr> detection + redaction/tokenization</strong> before the prompt. Detect (regex + <abbr title="named entity recognition">NER</abbr> / Presidio) and <strong>mask or tokenize</strong> sensitive fields (replace with placeholders you can re-hydrate after the response if needed).</li>
+<li><strong>Data minimization.</strong> Send only the context the task needs — don't dump whole records/tables into the prompt.</li>
+<li><strong>Input/output <abbr title="checks around a model that block or rewrite unsafe or malformed input and output">guardrails</abbr></strong> that block or scrub sensitive content (DLP) in both directions.</li>
+<li><strong>Field-level access control.</strong> Filter by the requesting user's permissions <em>before</em> building context (don't retrieve docs they can't see — also fixes <abbr title="retrieval-augmented generation">RAG</abbr> over-permissioning).</li>
+<li><strong>Choose the right deployment.</strong> For regulated data, use a provider with <strong>no-training / zero-retention</strong> terms, a private/<abbr title="virtual private cloud">VPC</abbr> deployment, or a <strong>self-hosted</strong> model so data never leaves your environment.</li>
+<li><strong>Encrypt &amp; contract.</strong> <abbr title="transport layer security">TLS</abbr> in transit; DPAs; confirm retention/training policies.</li>
+<li><strong>Audit &amp; log</strong> what's sent (without logging the sensitive values themselves).</li>
+</ol>
+<p><strong>Key takeaway:</strong> Detect-and-redact PII, minimize what you send, gate context by the user's permissions, and use zero-retention/self-hosted deployments for regulated data. Assume anything in the prompt could be retained/leaked — so keep secrets and PII out of it.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f16ProductionSc-19"><div class="q-h"><span class="q-n">&bull;</span><h3>Q40: How do you implement role-based access control?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f16ProductionSc-19"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">users → roles → permissions</span><span class="kt">Model</span><span class="kt">Enforce centrally &amp; server-side</span><span class="kt">tenant isolation</span><span class="kt">Least privilege</span><span class="kt">Externalize policy</span></div><p><strong>A:</strong> Map <strong>users → roles → permissions</strong>, then enforce on every protected action server-side.</p>
+<ul>
+<li><strong>Model:</strong> users have roles; roles grant permissions; check permissions (not roles) at the action — <code>require('document:delete')</code> rather than <code>if role == 'admin'</code>. This keeps policy flexible.</li>
+<li><strong>Enforce centrally &amp; server-side.</strong> Middleware/decorator/policy engine; never trust the client. Default-deny.</li>
+<li><strong>Resource-scoped (ABAC where needed).</strong> "Can edit <em>this</em> document" depends on ownership/tenant — combine <abbr title="role-based access control">RBAC</abbr> with attribute/ownership checks; enforce <strong>tenant isolation</strong> in multi-tenant systems.</li>
+<li><strong>Least privilege</strong>; separate duties; avoid a god "admin" role.</li>
+<li><strong>Externalize policy</strong> for complex systems (OPA/Cedar/Casbin) so rules aren't scattered in code.</li>
+<li><strong>Audit</strong> every allow/deny on sensitive actions.</li>
+</ul>
+<pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">requires</span>(permission):
+    <span class="kw">def</span> <span class="fn">deco</span>(fn):
+        @<span class="fn">wraps</span>(fn)
+        <span class="kw">def</span> <span class="fn">wrapper</span>(user, *a, **kw):
+            <span class="kw">if</span> permission <span class="kw">not</span> <span class="kw">in</span> user.permissions:   <span class="cmt"># default deny</span>
+                <span class="kw">raise</span> <span class="fn">Forbidden</span>(permission)
+            <span class="kw">return</span> <span class="fn">fn</span>(user, *a, **kw)
+        <span class="kw">return</span> wrapper
+    <span class="kw">return</span> deco
+
+@<span class="fn">requires</span>(<span class="str">"document:delete"</span>)
+<span class="kw">def</span> <span class="fn">delete_document</span>(user, doc_id): ...</code></pre>
+<p><strong>For <abbr title="large language model">LLM</abbr>/<abbr title="retrieval-augmented generation">RAG</abbr> apps:</strong> apply the <em>same</em> permissions to retrieval — only fetch context the user is allowed to see (ties to Q39).</p>
+<p><strong>Key takeaway:</strong> Users→roles→permissions, checked per-action server-side with default-deny; combine with resource/tenant scoping for "this object" decisions, externalize complex policy (OPA/Casbin), and audit. In RAG, enforce the same access control on retrieval, not just on the API.</p>
+<hr />
+<hr />
+<p><strong>The rest of this set:</strong> <a href="../../01_Python/35_Production_Scenarios_Python.md">35 Production Scenarios Python</a> · <a href="../../07_GenAI_and_LLMs/18_Production_Scenarios_LLM_APIs.md">18 Production Scenarios LLM APIs</a> · <a href="../../08_LangChain_and_LangGraph/30_Production_Scenarios_Workflows.md">30 Production Scenarios Workflows</a> · <a href="../../10_MLOps_and_Deployment/11_Production_Scenarios_Deploy_and_Observe.md">11 Production Scenarios Deploy and Observe</a> · <a href="scenarios.html#f15ProductionSc">15 Production Scenarios Data and Queues</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f17ClientRoundS"><header class="filehead"><div class="fh-top"><span class="fh-num">17 &middot; End-to-end walkthrough</span><span class="fh-count">1 sections</span><a class="fh-src" href="../../11_System_Design/17_Client_Round_System_Design_Walkthrough.md">source .md &#8599;</a></div><h2>Client Round Prep — Client Round System Design Walkthrough</h2><div class="note">
+<p>Part of the client-round preparation set that used to live in <code>../08_LangChain_and_LangGraph/31_Client_Round_RAG_and_Agents.md</code>. The other parts are listed at the bottom of this file.</p>
+</div></header><article class="q" id="f17ClientRoundS-20"><div class="q-h"><span class="q-n">&bull;</span><h3>7. End-to-End System Design Walkthrough</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f17ClientRoundS-20"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">One-sentence idea</span><span class="kt">Agentic RAG (§2)</span><span class="kt">Latency (§2/§3/§6)</span><span class="kt">Cost (§3)</span><span class="kt">Evaluation &amp; validation (§4/§6)</span><span class="kt">Multi-agent coordination (§5)</span></div><p><strong>One-sentence idea:</strong> Client-round system-design questions rarely ask about one topic in isolation — the realistic ask is <em>"design an agentic system that investigates flagged fraud cases using our internal knowledge base"</em> (or equivalent), which forces you to compose all six sections above into one coherent architecture with an explicit latency/cost/validation story at every stage. This section is a worked answer to exactly that prompt, reusable as a template for any similar "design an agentic <abbr title="retrieval-augmented generation">RAG</abbr> system for X" question.</p>
+<h3>The prompt (representative of what a client round asks)</h3>
+<div class="note">
+<p><em>"Design a system where an AI agent investigates transactions flagged as potentially fraudulent, pulls relevant context (account history, past cases, policy docs), explains why it's suspicious, and drafts a report for a human investigator — at production scale, low latency, and controlled cost."</em></p>
+</div>
+<h3>Architecture</h3>
+<div class="diagram"><pre>                                   ┌─────────────────────────────────────────┐
+  streaming txn events ──────────►│ (1) FRAUD ML SCORER  (§6)                │
+  (Kafka/Flink)                   │   online feature store + XGBoost/LGBM    │
+                                   │   rules engine + ML score, &lt;100ms        │
+                                   └───────────────────┬───────────────────────┘
+                                                        │ score &gt; threshold → flagged case
+                                                        ▼
+                          ┌─────────────────────────────────────────────────────┐
+                          │ (2) SUPERVISOR AGENT   (LangGraph StateGraph, §3/§5) │
+                          │     routes the case, bounds cost/steps, owns HITL    │
+                          └───┬───────────────┬──────────────────┬──────────────┘
+                              ▼               ▼                  ▼
+                 ┌─────────────────┐ ┌────────────────┐ ┌──────────────────────┐
+                 │ (3) RETRIEVAL    │ │ (4) RISK-SCORE  │ │ (5) REPORT-DRAFTING   │
+                 │     AGENT        │ │     TOOL CALL   │ │     AGENT             │
+                 │  Agentic RAG     │ │  (calls the §6  │ │  synthesizes findings │
+                 │  over case notes,│ │   model as a    │ │  into investigator-   │
+                 │  account history,│ │   deterministic │ │  readable narrative + │
+                 │  policy docs;    │ │   tool — LLM     │ │  cited evidence       │
+                 │  hybrid search + │ │   never re-     │ └───────────┬───────────┘
+                 │  CRAG-style      │ │   derives the    │             │
+                 │  evidence grading│ │   score itself)  │             ▼
+                 └────────┬─────────┘ └─────────────────┘   ┌──────────────────────┐
+                          │                                  │ (6) HUMAN-APPROVAL   │
+                          └─────────────► synthesized ───────►│     INTERRUPT        │
+                                          context               │  investigator       │
+                                                                 │  reviews/edits/     │
+                                                                 │  approves action     │
+                                                                 └──────────┬───────────┘
+                                                                            ▼
+                                                                  approve / escalate / dismiss
+                                                                  (account action only after
+                                                                   human sign-off — never agent-only)</pre></div>
+<h3>How each section's concerns map onto this one system</h3>
+<div class="tbl-wrap"><table class="t2"><thead><tr><th>Concern</th><th>Where it shows up here</th></tr></thead><tbody><tr class="g1"><td><strong>System prompt / <abbr title="deciding what occupies the context window at each step, from a much larger pool of candidates">context engineering</abbr> (§1)</strong></td><td><abbr title="an agent that routes work to other agents and owns the overall plan">Supervisor</abbr>'s system prompt defines hard constraints ("never state an account action without the risk-score tool," <abbr title="tying a generated answer to retrieved evidence rather than model memory">grounding</abbr> instruction for the retrieval agent); each sub-agent gets an <em>isolated</em>, small context instead of one shared bloated window.</td></tr><tr class="g0"><td><strong>Agentic RAG (§2)</strong></td><td>The retrieval agent decides which source to query (case notes vs account history vs policy), grades evidence (CRAG-style) before handing it to the report-drafting agent, and re-retrieves if evidence is weak.</td></tr><tr class="g1"><td><strong>LangGraph orchestration/memory (§3)</strong></td><td>Supervisor pattern (bounded, loggable routing) over a swarm; short-term memory = this case's investigation thread; long-term memory = analyst feedback/prior similar-case outcomes recalled via semantic search; checkpointer makes the human-approval pause/resume (interrupt) durable across a shift change.</td></tr><tr class="g0"><td><strong>Latency (§2/§3/§6)</strong></td><td>Fraud scoring (1) must clear <span class="mag">&lt;100ms</span> — fully separate, synchronous path; the agentic investigation (2)-(6) is async/best-effort (seconds, not milliseconds) since it runs only on the already-flagged minority, and its own retrieval/tool calls are parallelized where independent.</td></tr><tr class="g1"><td><strong>Cost (§3)</strong></td><td>Model cascading: the risk-score tool (4) is the cheap deterministic model, not an <abbr title="large language model">LLM</abbr>; the retrieval/report agents use a smaller model for routing/grading and reserve the strongest model for the final narrative synthesis; agent step budget is capped per case.</td></tr><tr class="g0"><td><strong>Evaluation &amp; validation (§4/§6)</strong></td><td>Retrieval agent evaluated with Ragas/TruLens (<abbr title="whether an answer is actually supported by the context it was given">faithfulness</abbr> of its case summary to retrieved evidence — no hallucinated "prior incidents"); the fraud scorer validated with time-based CV, backtesting, and shadow/champion-challenger deployment; the whole agent graph has trajectory regression tests and schema-validated tool calls.</td></tr><tr class="g1"><td><strong>Multi-agent coordination (§5)</strong></td><td>Supervisor owns cost/step budget and prevents redundant retrieval; report-drafting agent only <em>reads</em> the retrieval agent's synthesized output (no direct write access to case data) to avoid conflicting-write failure modes.</td></tr><tr class="g0"><td><strong>Fraud domain correctness (§6)</strong></td><td>The LLM layer explains and drafts — it never independently blocks an account; that action requires the deterministic score plus the human-approval interrupt, satisfying both the accuracy and regulatory-auditability requirement named in §6.</td></tr></tbody></table></div>
+<h3>Code — wiring the whole workflow (reuses §2's <code>crag_app</code>, §3's checkpointer pattern, §5's <code>supervisor_app</code>)</h3>
+<pre class="code" data-lang="python"><code><span class="cmt"># Synchronous, hard-real-time path (&lt;100ms) — completely separate from the agentic path below</span>
+<span class="kw">def</span> <span class="fn">score_and_route</span>(transaction: dict) -&gt; dict:
+    features = feature_store.<span class="fn">get_online_features</span>(transaction)      <span class="cmt"># precomputed velocity features (§6)</span>
+    score = fraud_model.<span class="fn">predict_proba</span>(features)[<span class="num">0</span>, <span class="num">1</span>]
+    <span class="kw">if</span> score &lt; THRESHOLD:
+        <span class="kw">return</span> {<span class="str">"decision"</span>: <span class="str">"approve"</span>}
+    case_id = <span class="fn">open_investigation_case</span>(transaction, score)
+    investigation_queue.<span class="fn">enqueue</span>(case_id)                            <span class="cmt"># hands off, never blocks the sync path</span>
+    <span class="kw">return</span> {<span class="str">"decision"</span>: <span class="str">"review_pending"</span>, <span class="str">"case_id"</span>: case_id}
+
+<span class="cmt"># Best-effort, async agentic investigation path (seconds, not milliseconds) — runs supervisor_app from §5</span>
+<span class="kw">def</span> <span class="fn">run_investigation</span>(case_id: str):
+    initial_state = {<span class="str">"messages"</span>: [<span class="fn">load_case_summary</span>(case_id)], <span class="str">"next"</span>: <span class="str">"retrieval_agent"</span>}
+    config = {<span class="str">"configurable"</span>: {<span class="str">"thread_id"</span>: case_id}}                <span class="cmt"># checkpointer makes the HITL pause durable (§3)</span>
+    result = supervisor_app.<span class="fn">invoke</span>(initial_state, config=config)     <span class="cmt"># runs until END or an interrupt()</span>
+    <span class="fn">notify_investigator</span>(case_id, result)
+
+<span class="cmt"># Resume once a human approves/rejects the paused account-action interrupt</span>
+<span class="kw">def</span> <span class="fn">resume_after_human_decision</span>(case_id: str, decision: str):
+    supervisor_app.<span class="fn">invoke</span>(<span class="fn">Command</span>(resume=decision), config={<span class="str">"configurable"</span>: {<span class="str">"thread_id"</span>: case_id}})</code></pre>
+<h3>The three questions a client-round interviewer is actually listening for</h3>
+<ol>
+<li><strong>"Where's the latency budget spent, and did you separate the hard-real-time path from the best-effort path?"</strong> — the <span class="mag">&lt;100ms</span> fraud score and the multi-second agentic investigation are architecturally separate for exactly this reason; conflating them is the most common design mistake.</li>
+<li class="dl"><b class="dt">"What stops this from being expensive or unbounded?"</b><span class="dd">model cascading, step/cost budgets on the supervisor, bounded retrieval-retry loops — cost control has to be a first-class design constraint, not an afterthought.</span></li>
+<li><strong>"What stops a wrong or hallucinated agent output from causing real-world harm?"</strong> — grounding instructions + faithfulness evaluation + schema-validated tool calls + a mandatory human-approval interrupt before any side-effecting action. This is the answer a client evaluating you for a regulated/high-stakes domain is specifically probing for.</li>
+</ol>
+<hr />
+<hr />
+<p><strong>The rest of this set:</strong> <a href="../../04_Machine_Learning/17_Client_Round_Fraud_Detection.md">17 Client Round Fraud Detection</a> · <a href="../../07_GenAI_and_LLMs/19_Client_Round_Prompting_and_Context.md">19 Client Round Prompting and Context</a> · <a href="../../08_LangChain_and_LangGraph/31_Client_Round_RAG_and_Agents.md">31 Client Round RAG and Agents</a></p></div><button class="reveal">Reveal answer</button></article></section>
+<div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+</div></main>
+</div>
+<button class="totop" id="totop" title="Back to top">&#8593;</button>
+<script>
+var LS='ai14.done.v2', TH='ai14.theme';
+var done={};try{done=JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){}
+var root=document.documentElement;
+function setTheme(t){root.setAttribute('data-theme',t);try{localStorage.setItem(TH,t)}catch(e){}
+  var b=document.getElementById('themeBtn'); if(b)b.textContent=(t==='dark'?'Light':'Dark');}
+setTheme((function(){try{return localStorage.getItem(TH)}catch(e){return null}})()||
+  (window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'));
+var tb=document.getElementById('themeBtn');
+if(tb)tb.onclick=function(){setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark')};
+
+var boxes=[].slice.call(document.querySelectorAll('.q-done input'));
+function refresh(){
+  var n=0;
+  boxes.forEach(function(b){
+    var q=b.closest('.q'), on=!!done[b.dataset.id];
+    b.checked=on; q.classList.toggle('done',on); if(on)n++;
+    var l=document.querySelector('nav a[data-q="'+q.id+'"]'); if(l)l.classList.toggle('done',on);
+  });
+  var el=document.getElementById('pgCount');
+  if(el)el.textContent=n+' / '+boxes.length;
+}
+boxes.forEach(function(b){b.addEventListener('change',function(){
+  if(b.checked)done[b.dataset.id]=1;else delete done[b.dataset.id];
+  try{localStorage.setItem(LS,JSON.stringify(done))}catch(e){}refresh();});});
+refresh();
+
+var db=document.getElementById('drillBtn');
+if(db)db.onclick=function(){var on=document.body.classList.toggle('drill');db.classList.toggle('on',on);
+  if(!on)[].forEach.call(document.querySelectorAll('.q.open'),function(q){q.classList.remove('open')});};
+[].forEach.call(document.querySelectorAll('.reveal'),function(b){
+  b.onclick=function(){b.closest('.q').classList.add('open')};});
+
+var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementById('search'),
+    noRes=document.getElementById('noRes');
+qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
+function runSearch(){
+  if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
+    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  [].forEach.call(document.querySelectorAll('.parthead'),function(p){
+    if(!v){p.style.display='';return}
+    var vis=false,n=p.nextElementSibling;
+    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
+    p.style.display=vis?'':'none';});
+  if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
+}
+if(inp)inp.addEventListener('input',runSearch);
+
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+var totop=document.getElementById('totop');
+function onScroll(){
+  var sc=document.documentElement.scrollTop;
+  if(totop)totop.classList.toggle('show',sc>600);
+  var cur=null;
+  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
+    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  navLinks.forEach(function(l){l.classList.remove('active')});
+  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
+    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
+      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+}
+window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
+
+var sb=document.getElementById('sidebar'), mb=document.getElementById('menuBtn');
+if(mb)mb.onclick=function(){sb.classList.toggle('open')};
+if(sb)sb.addEventListener('click',function(e){if(e.target.tagName==='A'&&window.innerWidth<=1060)sb.classList.remove('open')});
+
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'){if(e.key==='Escape'){e.target.value='';runSearch();e.target.blur()}return}
+  if(e.key==='/'&&inp){e.preventDefault();inp.focus()}
+  else if(e.key==='d'&&db){db.click()}
+  else if(e.key==='t'&&tb){tb.click()}
+  else if(e.key==='j'||e.key==='k'){
+    var vis=qs.filter(function(q){return q.style.display!=='none'}),idx=-1;
+    for(var i=0;i<vis.length;i++){if(vis[i].getBoundingClientRect().top>64){idx=i;break}}
+    if(e.key==='k')idx=(idx<0?vis.length:idx)-2;
+    var t=vis[Math.max(0,Math.min(vis.length-1,idx<0?0:idx))];
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}
+});
+/* reading progress */
+(function(){
+  var b=document.createElement('div'); b.id='rprog'; document.body.appendChild(b);
+  var t=null;
+  function upd(){
+    var h=document.documentElement, m=(h.scrollHeight-h.clientHeight);
+    b.style.width=(m>0?(h.scrollTop/m)*100:0)+'%';
+  }
+  addEventListener('scroll',function(){ if(t)return; t=requestAnimationFrame(function(){t=null;upd();}); },
+                   {passive:true});
+  addEventListener('resize',upd); upd();
+})();
+
+/* copy button on every code block */
+(function(){
+  document.querySelectorAll('pre.code').forEach(function(pre){
+    var b=document.createElement('button'); b.className='copy'; b.type='button'; b.textContent='Copy';
+    b.addEventListener('click',function(){
+      var code=pre.querySelector('code'); var txt=code?code.innerText:pre.innerText;
+      var done=function(){ b.textContent='Copied'; b.classList.add('ok');
+        setTimeout(function(){ b.textContent='Copy'; b.classList.remove('ok'); },1400); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(done,function(){});
+      } else {
+        var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta);
+        ta.select(); try{document.execCommand('copy');done();}catch(e){} document.body.removeChild(ta);
+      }
+    });
+    pre.appendChild(b);
+  });
+})();
+
+/* deep link on each question card */
+(function(){
+  document.querySelectorAll('.q[id] > .q-h').forEach(function(h){
+    var id=h.parentNode.id, a=document.createElement('a');
+    a.className='q-anchor'; a.href='#'+id; a.textContent='#';
+    a.title='Copy a link to this question';
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      var url=location.href.split('#')[0]+'#'+id;
+      history.replaceState(null,'','#'+id);
+      var done=function(){ a.classList.add('ok'); a.textContent='✓';
+        setTimeout(function(){ a.classList.remove('ok'); a.textContent='#'; },1200); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(done,done);
+      } else { done(); }
+    });
+    var label=h.querySelector('.q-done');
+    if(label){ h.insertBefore(a,label); } else { h.appendChild(a); }
+  });
+})();
+
+</script>
+</body></html>

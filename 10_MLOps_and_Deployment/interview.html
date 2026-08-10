@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interview — Agentic AI &amp; RAG</title>
+<meta name="description" content="MLOps interview bank">
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+:root{
+  color-scheme:dark;
+  --bg:#0d1117; --surface:#151b23; --surface-2:#1c232d; --surface-3:#232b36;
+  --border:#2a313c; --border-soft:#21262d;
+  --ink:#e6edf3; --ink-2:#9da7b3; --ink-mut:#6e7681;
+  --accent:#3987e5; --accent-soft:rgba(57,135,229,.14); --accent-bd:rgba(57,135,229,.42);
+  --t-rag:#3987e5; --t-agentic:#d95926; --t-recall:#199e70;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+  --warn-soft:rgba(250,178,25,.12); --good-soft:rgba(12,163,12,.12); --crit-soft:rgba(208,59,59,.12);
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;
+  --r1:#86b6ef;--r2:#5598e7;--r3:#2a78d6;--r4:#1c5cab;
+  --o1:#f0a882;--o2:#e88a5c;--o3:#d95926;--o4:#b8471d;--o5:#8f3716;
+  --code-bg:#0b0f15;
+  --fig-surface:#1c232d; --fig-surface-2:#171d26; --fig-surface-3:#232b36;
+  --fig-border:#39424f; --fig-ink:#e6edf3; --fig-ink-2:#b6c0cc; --fig-mut:#8d97a4;
+  --fig-accent:#3987e5; --fig-rag:#3987e5; --fig-agentic:#e2703a; --fig-recall:#22a97a;
+  --fig-good:#2eb82e; --fig-warn:#f0b429; --fig-crit:#e05252;
+  --mono:"SF Mono",SFMono-Regular,ui-monospace,"Cascadia Code",Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --radius:14px; --radius-sm:9px; --shadow:0 8px 30px rgba(0,0,0,.38); --sbw:302px;
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f6f8fa; --surface:#fff; --surface-2:#fbfcfd; --surface-3:#eff2f6;
+  --border:#d8dee4; --border-soft:#e6eaef;
+  --ink:#1f2328; --ink-2:#57606a; --ink-mut:#8b949e;
+  --accent:#2a78d6; --accent-soft:rgba(42,120,214,.10); --accent-bd:rgba(42,120,214,.34);
+  --t-rag:#2a78d6; --t-agentic:#eb6834; --t-recall:#1baf7a;
+  --warn-soft:rgba(250,178,25,.16); --good-soft:rgba(12,163,12,.10); --crit-soft:rgba(208,59,59,.09);
+  --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;
+  --r1:#86b6ef;--r2:#3987e5;--r3:#256abf;--r4:#184f95;
+  --o1:#f7c4a8;--o2:#f0996b;--o3:#eb6834;--o4:#c14a1f;--o5:#8f3716;
+  --code-bg:#f0f3f6; --shadow:0 6px 24px rgba(140,149,159,.20);
+  --fig-surface:#fff; --fig-surface-2:#f7f9fb; --fig-surface-3:#eef2f6;
+  --fig-border:#c9d1da; --fig-ink:#1f2328; --fig-ink-2:#414a54; --fig-mut:#6b747e;
+  --fig-accent:#2a78d6; --fig-rag:#2a78d6; --fig-agentic:#d1541f; --fig-recall:#12855c;
+  --fig-good:#1a7f1a; --fig-warn:#a97400; --fig-crit:#c62d2d;
+}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+
+.siteswitch{background:var(--surface-3);border-bottom:1px solid var(--border)}
+.siteswitch-in{max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:4px;padding:5px 18px;flex-wrap:wrap}
+.siteswitch a{font-size:11.5px;padding:4px 10px;border-radius:7px;color:var(--ink-mut);text-decoration:none;white-space:nowrap}
+.siteswitch a:hover{background:var(--surface);color:var(--ink)}
+.siteswitch a.on{background:var(--accent);color:#fff;font-weight:700}
+.siteswitch .sw-home{font-weight:800;color:var(--ink-2);margin-right:8px}
+/* ---------- top bar (site nav) ---------- */
+.sitebar{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 93%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.sitebar-in{max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:6px;padding:9px 18px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:14px;letter-spacing:-.3px;margin-right:10px;text-decoration:none;color:var(--ink);white-space:nowrap}
+.logo b{color:var(--accent)}
+.sitebar a.tab{font-size:12.8px;padding:6px 12px;border-radius:8px;color:var(--ink-2);text-decoration:none;border:1px solid transparent;white-space:nowrap}
+.sitebar a.tab:hover{background:var(--surface-2);color:var(--ink)}
+.sitebar a.tab.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-bd);font-weight:700}
+.sitebar .sp{margin-left:auto}
+.btn{background:var(--surface);border:1px solid var(--border);color:var(--ink-2);padding:6px 11px;border-radius:8px;cursor:pointer;font-size:12.3px;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--ink)}
+.btn.on{background:var(--accent-soft);border-color:var(--accent-bd);color:var(--accent);font-weight:700}
+
+.app{display:grid;grid-template-columns:var(--sbw) 1fr;max-width:1560px;margin:0 auto;min-height:100vh}
+aside{position:sticky;top:47px;height:calc(100vh - 47px);overflow-y:auto;overscroll-behavior:contain;border-right:1px solid var(--border);padding:12px 0 40px;background:var(--bg)}
+aside::-webkit-scrollbar{width:8px}aside::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.sb-search{padding:0 14px 8px}
+.sb-search input{width:100%;padding:8px 11px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:13px;font-family:inherit;outline:none}
+.sb-search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.sb-hint{font-size:10.3px;color:var(--ink-mut);padding:2px 15px 10px}
+nav{padding:0 8px;font-size:13px}
+.nav-grp{margin:12px 0 3px;padding:0 10px;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-mut);font-weight:800}
+nav a{display:flex;gap:7px;align-items:flex-start;padding:5px 10px;margin:1px 2px;border-radius:7px;color:var(--ink-2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;font-size:12.5px}
+nav a:hover{background:var(--surface-2);color:var(--ink)}
+nav a.active{background:var(--accent-soft);color:var(--accent);border-left-color:var(--accent);font-weight:650}
+nav a.done .qn{background:var(--good);border-color:var(--good);color:#fff}
+.qn{flex:none;min-width:21px;text-align:center;font-family:var(--mono);font-size:9.5px;padding:1px 4px;border-radius:5px;border:1px solid var(--border);color:var(--ink-mut);height:17px;line-height:15px}
+
+main{min-width:0;padding:0 40px 140px}
+.wrap{max-width:1000px;margin:0 auto}
+
+/* ---------- hero ---------- */
+.hero{padding:36px 0 4px}
+.eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tc,var(--accent));font-weight:800}
+.hero h1{font-size:40px;line-height:1.08;margin:9px 0 12px;letter-spacing:-1px}
+.hero .lede{color:var(--ink-2);font-size:17px;margin:0 0 20px;max-width:70ch}
+.hero .lede b{color:var(--ink)}
+.oneliner{border-left:4px solid var(--tc,var(--accent));background:var(--surface);border-radius:0 var(--radius) var(--radius) 0;padding:14px 18px;margin:18px 0;font-size:16px}
+.oneliner b{color:var(--tc,var(--accent))}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:22px 0}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat-v{font-size:27px;font-weight:750;letter-spacing:-.6px;line-height:1.05;color:var(--tc,var(--accent))}
+.stat-l{font-size:11px;color:var(--ink-mut);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;line-height:1.35}
+
+/* ---------- figures ---------- */
+figure.viz{margin:26px 0;background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--border);border-radius:var(--radius);padding:17px 19px 10px;overflow:hidden;box-shadow:var(--shadow)}
+figure.viz figcaption b::before{content:"";display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--tc,var(--accent));margin-right:9px;vertical-align:middle}
+figure.viz figcaption{margin-bottom:12px}
+figure.viz figcaption b{display:block;font-size:15px;letter-spacing:-.2px}
+figure.viz figcaption span{display:block;font-size:12px;color:var(--ink-mut);margin-top:2px}
+figure.viz figcaption .terms{display:block;font-size:11px;color:var(--ink-mut);margin-top:5px;
+  padding-top:5px;border-top:1px dashed var(--border-soft);line-height:1.65}
+figure.viz figcaption .terms b{display:inline;font-size:11px;letter-spacing:0;color:var(--ink-2);
+  font-weight:700;font-family:var(--mono)}
+figure.viz figcaption .terms b::before{content:none;display:none;margin:0}
+abbr[title]{text-decoration:underline dotted var(--ink-mut);text-underline-offset:3px;cursor:help;border:0;text-decoration-thickness:1px}
+abbr[title]:hover{text-decoration-color:var(--accent)}
+.viz-scroll{overflow-x:auto;padding-bottom:6px}
+.viz-scroll svg{display:block;width:100%;min-width:660px;height:auto}
+
+/* ---------- standard topic panels ---------- */
+.panels{display:grid;gap:13px;margin:18px 0}
+.panel{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--pc,var(--accent));border-radius:var(--radius);padding:15px 18px}
+.panel > h3{margin:0 0 4px;font-size:15.5px;display:flex;align-items:center;gap:9px}
+.panel > h3 .ic{width:23px;height:23px;border-radius:7px;background:var(--pc,var(--accent));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:none}
+.panel > h3 small{margin-left:auto;font-size:10.5px;color:var(--ink-mut);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.p-scale{--pc:var(--t-rag)} .p-prod{--pc:var(--t-recall)} .p-opt{--pc:var(--t-agentic)}
+.p-lat{--pc:var(--warn)} .p-met{--pc:var(--accent)}
+
+/* ---------- per-answer visual furniture ---------- */
+.keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
+.kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
+.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram pre{margin:0;padding-top:12px;background:none;border:none;font-family:var(--mono);font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
+.flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
+.flow .fl{font-size:10px;font-weight:800;letter-spacing:.09em;color:var(--ink-mut);margin-right:10px;text-transform:uppercase}
+.q-a ol{counter-reset:st;list-style:none;padding-left:0;margin:11px 0}
+.q-a ol > li{counter-increment:st;position:relative;padding-left:36px;margin:8px 0}
+.q-a ol > li::before{content:counter(st);position:absolute;left:0;top:1px;width:24px;height:24px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+/* ---------- content ---------- */
+.sec{margin-top:44px;scroll-margin-top:60px}
+.sec > h2{font-size:25px;margin:0 0 4px;letter-spacing:-.5px;padding-bottom:9px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:11px}
+.sec > h2 .hn{font-size:11.5px;font-family:var(--mono);font-weight:800;background:var(--tc,var(--accent));color:#fff;border-radius:7px;padding:3px 8px}
+.parthead{display:flex;align-items:center;gap:12px;margin:30px 0 12px}
+.parthead span{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mut);white-space:nowrap}
+.parthead i{flex:1;height:1px;background:var(--border)}
+.q{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 18px;margin:10px 0;scroll-margin-top:60px}
+.q:target{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.q.done{border-left:3px solid var(--good)}
+.q-h{display:flex;align-items:flex-start;gap:11px}
+.q-n{flex:none;font-family:var(--mono);font-size:11px;font-weight:800;min-width:26px;height:23px;line-height:21px;text-align:center;border-radius:7px;border:1px solid var(--border);color:var(--ink-mut);background:var(--bg)}
+.q.done .q-n{background:var(--good);border-color:var(--good);color:#fff}
+.q-h h3{margin:0;font-size:17px;line-height:1.35;letter-spacing:-.2px;flex:1}
+.q-done{flex:none;cursor:pointer}
+.q-done input{position:absolute;opacity:0;pointer-events:none}
+.q-done span{display:block;width:22px;height:22px;border-radius:7px;border:1px solid var(--border);background:var(--bg);position:relative}
+.q-done span::after{content:"";position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid transparent;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.q-done input:checked+span{background:var(--good);border-color:var(--good)}
+.q-done input:checked+span::after{border-color:#fff}
+.q-a{margin-top:11px}
+.reveal{display:none;margin-top:10px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);padding:7px 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:12.4px;font-weight:700}
+body.drill .q-a{display:none} body.drill .reveal{display:inline-block}
+/* reference cards have no answer to hide - never drill them */
+body.drill .q.q-ref .q-a{display:block}
+body.drill .q.open .q-a{display:block} body.drill .q.open .reveal{display:none}
+
+p{margin:9px 0}
+h3{font-size:17px;margin:20px 0 7px}h4{font-size:14px;margin:15px 0 5px;color:var(--ink-2)}
+ul{margin:9px 0;padding-left:22px}li{margin:4px 0}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+hr{border:none;border-top:1px solid var(--border);margin:20px 0}
+code{font-family:var(--mono);font-size:.855em;background:var(--code-bg);padding:.12em .42em;border-radius:5px;border:1px solid var(--border-soft);color:#ffa657;word-break:break-word}
+html[data-theme="light"] code{color:#953800}
+pre.code{background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 15px;overflow-x:auto;margin:11px 0;line-height:1.55;position:relative}
+pre.code code{background:none;border:none;padding:0;color:var(--ink);font-size:12.4px;white-space:pre}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:0;right:0;font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-mut);background:var(--surface-3);border-left:1px solid var(--border);border-bottom:1px solid var(--border);border-radius:0 var(--radius-sm) 0 7px;padding:2px 8px}
+.cmt{color:var(--ink-mut);font-style:italic}.kw{color:#ff7b72}.str{color:#a5d6ff}.fn{color:#d2a8ff}.num{color:#79c0ff}
+html[data-theme="light"] .kw{color:#cf222e}html[data-theme="light"] .str{color:#0a3069}
+html[data-theme="light"] .fn{color:#8250df}html[data-theme="light"] .num{color:#0550ae}
+.say{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 16px;margin:12px 0}
+.say-h{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.say-h::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.say p{margin:0;font-size:15.2px;line-height:1.68}.say em{font-style:normal;color:var(--ink)}
+.note{border-left:3px solid var(--border);background:var(--surface-2);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 15px;margin:12px 0;font-size:13.8px;color:var(--ink-2)}
+.note p:first-child{margin-top:0}.note p:last-child{margin-bottom:0}.note strong{color:var(--ink)}
+.tbl-wrap{overflow-x:auto;margin:15px 0;border:1px solid var(--border);border-radius:12px;
+  background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.10)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.2px;background:transparent}
+th,td{padding:10px 13px;text-align:left;border-bottom:1px solid var(--border-soft);vertical-align:top;line-height:1.55}
+th{position:sticky;top:0;z-index:2;background:var(--surface-3);font-weight:800;font-size:10.5px;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2);white-space:nowrap;
+  border-bottom:1px solid var(--border);backdrop-filter:blur(6px)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover>td{background:var(--surface-2)}
+tbody tr.g1>td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+tbody tr.g1:hover>td{background:var(--surface-2)}
+
+/* merged category column: the label is stated once, as a vertical band */
+td.c-grp{background:var(--surface-3);border-right:1px solid var(--border);vertical-align:top;
+  width:1%;white-space:nowrap;padding:11px 13px}
+tbody tr:hover>td.c-grp{background:var(--surface-3)}
+td.c-grp .grp-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--tc,var(--accent));background:var(--accent-soft);
+  border:1px solid var(--accent-bd);border-radius:999px;padding:3px 11px;position:sticky;top:44px}
+table.t-grouped td:not(.c-grp):first-of-type{font-weight:600;color:var(--ink)}
+
+/* two-column glossary: term rail on the left */
+table.t-def td.c-term{width:210px;font-weight:700;color:var(--ink);background:var(--surface-2);
+  border-right:2px solid var(--accent-bd)}
+table.t-def td.c-term code{background:none;border:none;padding:0;color:inherit}
+
+/* magnitudes should read as data, not prose */
+.mag{font-family:var(--mono);font-size:.9em;font-weight:700;color:var(--warn);
+  background:var(--warn-soft);border-radius:5px;padding:.05em .38em;white-space:nowrap}
+
+/* term / description list rows */
+li.dl{list-style:none;margin:7px 0;padding:7px 12px;border-radius:9px;background:var(--surface-2);
+  border-left:3px solid var(--border)}
+li.dl:hover{border-left-color:var(--accent)}
+li.dl .dt{display:inline-block;font-weight:800;color:var(--ink);margin-right:8px}
+li.dl .dt::after{content:"—";color:var(--ink-mut);font-weight:400;margin-left:8px}
+li.dl .dd{color:var(--ink-2)}
+ul:has(> li.dl){padding-left:0}
+
+/* typed callouts */
+.note.n-crit{border-left-color:var(--crit);background:var(--crit-soft)}
+.note.n-warn{border-left-color:var(--warn);background:var(--warn-soft)}
+.note.n-good{border-left-color:var(--good);background:var(--good-soft)}
+.note.n-key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.n-crit strong:first-child{color:var(--crit)}
+.note.n-warn strong:first-child{color:var(--warn)}
+.note.n-good strong:first-child{color:var(--good)}
+.note.n-key strong:first-child{color:var(--accent)}
+
+/* headings inside an answer body */
+.q-a h3,.q-a h4{display:flex;align-items:center;gap:9px;letter-spacing:-.2px}
+.q-a h3::before{content:"";width:3px;height:15px;border-radius:2px;background:var(--tc,var(--accent));flex:none}
+.q-a h4{color:var(--ink-2);font-size:13.5px;text-transform:none}
+.q-a h4::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--ink-mut);flex:none}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:13px;margin:20px 0}
+.tcard{display:block;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--tc,var(--accent));border-radius:var(--radius);padding:15px 16px;text-decoration:none;color:inherit}
+.tcard:hover{border-color:var(--accent);box-shadow:var(--shadow);text-decoration:none}
+.tcard h4{margin:0 0 5px;font-size:15px;color:var(--ink)}
+.tcard p{margin:0;font-size:12.2px;color:var(--ink-mut);line-height:1.5}
+.tcard .meta{margin-top:9px;font-size:10.5px;color:var(--tc,var(--accent));font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.no-result{display:none;text-align:center;color:var(--ink-mut);padding:60px 20px}.no-result.show{display:block}
+kbd{font-family:var(--mono);font-size:10px;background:var(--surface-3);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 5px;color:var(--ink-2)}
+.totop{position:fixed;right:20px;bottom:20px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:18px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;z-index:55}
+.totop.show{opacity:1;pointer-events:auto}
+.menu-toggle{display:none}
+@media(max-width:1060px){
+  .app{grid-template-columns:1fr}
+  aside{position:fixed;left:calc(-1 * var(--sbw));top:0;height:100vh;width:var(--sbw);z-index:100;transition:left .25s;box-shadow:var(--shadow);background:var(--surface)}
+  aside.open{left:0}
+  .menu-toggle{display:inline-flex}
+  main{padding:0 15px 110px}
+  .hero h1{font-size:29px}
+}
+@media print{.sitebar,aside,.totop,.reveal,.q-done{display:none}.app{grid-template-columns:1fr}body.drill .q-a{display:block}}
+
+/* =====================================================================
+   DESIGN LAYER  --  loaded last, so these rules win.
+   Depth, type scale, motion, and the components the base sheet lacks.
+   ===================================================================== */
+
+:root{
+  --e1:0 1px 2px rgba(0,0,0,.18);
+  --e2:0 4px 14px rgba(0,0,0,.24);
+  --e3:0 14px 40px rgba(0,0,0,.34);
+  --ring:0 0 0 3px var(--accent-soft);
+  --tight:-.022em;
+  --glass:color-mix(in srgb,var(--bg) 78%,transparent);
+}
+html[data-theme="light"]{
+  --e1:0 1px 2px rgba(16,24,40,.06);
+  --e2:0 6px 18px rgba(16,24,40,.09);
+  --e3:0 18px 44px rgba(16,24,40,.13);
+}
+html[data-theme="dark"],:root{ --bg:#0a0e14; --surface:#12181f; --surface-2:#171e26; --surface-3:#1e2630;
+  --border:#262f3a; --border-soft:#1c242e; }
+
+body{font-size:15.6px;line-height:1.68;letter-spacing:.002em;
+  text-rendering:optimizeLegibility;font-variant-ligatures:common-ligatures}
+::selection{background:var(--accent);color:#fff}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+@media(prefers-reduced-motion:no-preference){
+  a,button,.tcard,.q,.stat,.hub-card,.learn-item,nav a,.tab,.sw{transition:
+    background-color .16s ease,border-color .16s ease,color .16s ease,
+    transform .16s cubic-bezier(.2,.7,.3,1),box-shadow .16s ease}
+}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--border)}
+
+/* ---------- reading progress ---------- */
+#rprog{position:fixed;top:0;left:0;height:2.5px;width:0;z-index:200;
+  background:linear-gradient(90deg,var(--t-rag),var(--t-agentic),var(--t-recall));
+  box-shadow:0 0 12px var(--accent);transition:width .08s linear}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));
+  border-bottom:1px solid var(--border-soft)}
+.siteswitch a{font-weight:600;letter-spacing:.01em}
+.siteswitch a.on{box-shadow:0 2px 10px color-mix(in srgb,var(--accent) 45%,transparent)}
+.sitebar{background:var(--glass);backdrop-filter:blur(14px) saturate(1.5);
+  -webkit-backdrop-filter:blur(14px) saturate(1.5);box-shadow:var(--e1)}
+.sitebar a.tab.on{box-shadow:inset 0 0 0 1px var(--accent-bd)}
+.logo{font-size:14.5px;letter-spacing:var(--tight)}
+.btn{box-shadow:var(--e1);font-weight:600}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--e2)}
+.btn:active{transform:translateY(0)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,var(--bg),color-mix(in srgb,var(--surface) 55%,var(--bg)));
+  border-right:1px solid var(--border-soft)}
+.sb-search input{box-shadow:var(--e1)}
+nav a{border-radius:9px;border-left:0;position:relative;padding-left:12px}
+nav a.active{background:linear-gradient(90deg,var(--accent-soft),transparent);
+  box-shadow:inset 0 0 0 1px var(--accent-bd)}
+nav a.active::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--accent)}
+.nav-grp{margin-top:16px;color:var(--ink-mut);opacity:.85}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:52px 0 8px}
+.hero::before{content:"";position:absolute;left:-56px;right:-56px;top:-140px;height:420px;z-index:-1;
+  pointer-events:none;opacity:.5;
+  background:
+    radial-gradient(58% 62% at 14% 24%,color-mix(in srgb,var(--tc,var(--accent)) 34%,transparent),transparent 70%),
+    radial-gradient(46% 54% at 82% 8%,color-mix(in srgb,var(--t-agentic) 22%,transparent),transparent 72%);
+  filter:blur(26px)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;padding:5px 12px;
+  border-radius:999px;background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 34%,transparent)}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--tc,var(--accent));
+  box-shadow:0 0 9px var(--tc,var(--accent))}
+.hero h1{font-size:clamp(32px,4.4vw,46px);line-height:1.04;letter-spacing:-.032em;
+  margin:16px 0 14px;font-weight:800;
+  background:linear-gradient(175deg,var(--ink) 30%,color-mix(in srgb,var(--ink) 62%,var(--tc,var(--accent))));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lede{font-size:17.5px;line-height:1.62;max-width:86ch}
+.oneliner{background:linear-gradient(100deg,
+    color-mix(in srgb,var(--tc,var(--accent)) 11%,var(--surface)),var(--surface) 62%);
+  border:1px solid var(--border);border-left:4px solid var(--tc,var(--accent));
+  border-radius:var(--radius);box-shadow:var(--e1);line-height:1.6}
+
+/* ---------- stat tiles ---------- */
+.stat{position:relative;overflow:hidden;box-shadow:var(--e1);
+  background:linear-gradient(180deg,var(--surface),var(--surface-2))}
+.stat::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),transparent 78%)}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--e2);border-color:var(--tc,var(--accent))}
+.stat-v{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+
+/* ---------- what you'll learn ---------- */
+.learn{margin:26px 0 10px;padding:20px 22px 18px;border-radius:16px;position:relative;
+  background:linear-gradient(150deg,
+    color-mix(in srgb,var(--tc,var(--accent)) 9%,var(--surface)),var(--surface) 58%);
+  border:1px solid var(--border);box-shadow:var(--e1)}
+.learn-h{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:800;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--tc,var(--accent))}
+.learn-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;background:var(--tc,var(--accent));color:#fff;font-size:11px}
+.learn-lede{margin:10px 0 4px;font-size:15px;color:var(--ink-2);max-width:92ch}
+.learn-grid{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px;
+  grid-template-columns:repeat(auto-fill,minmax(268px,1fr))}
+.learn-item{background:var(--bg);border:1px solid var(--border-soft);border-radius:11px;
+  padding:11px 13px;margin:0}
+.learn-item:hover{border-color:var(--tc,var(--accent));transform:translateY(-1px);box-shadow:var(--e1)}
+.learn-top{display:flex;align-items:baseline;gap:9px}
+.learn-top b{font-size:13.4px;color:var(--ink);letter-spacing:var(--tight)}
+.learn-n{margin-left:auto;font-size:10px;font-family:var(--mono);color:var(--ink-mut);white-space:nowrap}
+.learn-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.learn-tags span{font-size:10px;padding:2px 8px;border-radius:999px;background:var(--surface-3);
+  border:1px solid var(--border-soft);color:var(--ink-mut)}
+
+/* ---------- section + file headers ---------- */
+.sec > h2{letter-spacing:-.028em;border-bottom:1px solid var(--border)}
+.sec > h2 .hn{box-shadow:0 2px 10px color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent)}
+.filehead h2{letter-spacing:-.028em}
+.parthead span{color:var(--tc,var(--accent));opacity:.9}
+.parthead i{background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- question cards ---------- */
+.q{box-shadow:var(--e1);border-radius:14px}
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,var(--border));box-shadow:var(--e2)}
+.q-h h3{letter-spacing:-.02em}
+.q-n{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));font-weight:800}
+.q.done{box-shadow:inset 3px 0 0 var(--good),var(--e1);border-left-color:transparent}
+.q-a{max-width:none}
+.q-a > p:first-child{color:var(--ink)}
+/* block content fills the card; only loose prose keeps a comfortable measure */
+.q-a > p{max-width:96ch}
+.q-a > ul:not(.steplist),.q-a > ol:not(.steplist){max-width:96ch}
+
+/* ---------- cards ---------- */
+.tcard{box-shadow:var(--e1);background:linear-gradient(170deg,var(--surface),var(--surface-2))}
+.tcard:hover{transform:translateY(-3px);box-shadow:var(--e3)}
+.tcard h4{letter-spacing:var(--tight)}
+
+/* ---------- code ---------- */
+pre.code{box-shadow:inset 0 0 0 1px var(--border-soft),var(--e1);border-radius:12px;padding:15px 16px}
+pre.code:hover .copy{opacity:1}
+.copy{position:absolute;top:7px;right:8px;opacity:0;font-family:var(--sans);font-size:10.5px;
+  font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:7px;
+  border:1px solid var(--border);background:var(--surface-3);color:var(--ink-2);cursor:pointer;z-index:3}
+.copy:hover{border-color:var(--accent);color:var(--accent)}
+.copy.ok{border-color:var(--good);color:var(--good)}
+pre.code[data-lang]::before{top:0;right:auto;left:0;border-radius:12px 0 8px 0;border-left:0;
+  border-right:1px solid var(--border)}
+
+/* ---------- figures ---------- */
+figure.viz{border-radius:16px;box-shadow:var(--e2);padding:19px 21px 12px}
+figure.viz figcaption b{font-size:15.5px;letter-spacing:-.024em}
+figure.viz:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,var(--border))}
+
+/* ---------- tables ---------- */
+.tbl-wrap{box-shadow:var(--e1)}
+td.c-grp .grp-tag{box-shadow:var(--e1)}
+.mag{letter-spacing:-.01em}
+
+/* ---------- callouts + say ---------- */
+.say{border-radius:12px;border-left-width:4px;box-shadow:var(--e1);
+  background:linear-gradient(100deg,var(--accent-soft),transparent 70%)}
+.note{border-radius:12px;border-left-width:4px}
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key{box-shadow:var(--e1)}
+
+/* ---------- panels ---------- */
+.panel{box-shadow:var(--e1);border-radius:14px;
+  background:linear-gradient(170deg,color-mix(in srgb,var(--pc,var(--accent)) 7%,var(--surface)),var(--surface) 55%)}
+.panel:hover{box-shadow:var(--e2)}
+.panel > h3 .ic{box-shadow:0 2px 9px color-mix(in srgb,var(--pc,var(--accent)) 50%,transparent)}
+
+/* ---------- keyterms + flow ---------- */
+.kt{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));font-weight:650}
+.kt:hover{border-color:var(--accent);color:var(--accent)}
+.flow{border-radius:12px;box-shadow:var(--e1)}
+.flow .st{box-shadow:var(--e1)}
+.diagram{border-radius:12px}
+
+/* ---------- step lists (a fence that was really a list) ---------- */
+ol.steplist{counter-reset:sl;list-style:none;padding-left:0;margin:14px 0}
+ol.steplist > li{counter-increment:sl;position:relative;padding:9px 14px 9px 44px;margin:7px 0;
+  background:var(--surface-2);border:1px solid var(--border-soft);border-radius:11px;
+  line-height:1.6;font-size:14.4px}
+ol.steplist > li::before{content:counter(sl);position:absolute;left:11px;top:9px;width:24px;height:24px;
+  border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);
+  font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono)}
+ol.steplist > li:hover{border-color:var(--accent-bd)}
+ul.steplist{list-style:none;padding-left:0;margin:14px 0}
+ul.steplist > li{position:relative;padding:8px 14px 8px 30px;margin:6px 0;background:var(--surface-2);
+  border:1px solid var(--border-soft);border-radius:11px;line-height:1.6;font-size:14.4px}
+ul.steplist > li::before{content:"";position:absolute;left:13px;top:17px;width:6px;height:6px;
+  border-radius:50%;background:var(--tc,var(--accent))}
+
+/* a source heading with no body under it: don't render an empty card */
+.q-a:empty{display:none}
+.q-a:empty + .reveal{display:none}
+.q:has(> .q-a:empty){padding:11px 18px;background:var(--surface-2);opacity:.85}
+.q:has(> .q-a:empty) .q-h h3{font-size:14.5px;color:var(--ink-2)}
+
+.q-h h3 code{font-size:.88em;background:var(--code-bg);border:1px solid var(--border-soft);padding:.06em .34em}
+nav a code{font-size:.9em;background:none;border:0;padding:0;color:inherit}
+.parthead code{font-size:.92em;background:none;border:0;padding:0;color:inherit}
+
+/* ---------- hub ---------- */
+.hub-card{box-shadow:var(--e1);background:linear-gradient(170deg,var(--surface),var(--surface-2))}
+.hub-card:hover{transform:translateY(-4px);box-shadow:var(--e3)}
+.hub h1{letter-spacing:-.034em;font-weight:800}
+
+@media(max-width:1060px){
+  .hero{padding:34px 0 4px}
+  .hero::before{display:none}
+  .learn-grid{grid-template-columns:1fr}
+}
+@media print{
+  .sitebar,.siteswitch,aside,.totop,.reveal,.copy,#rprog{display:none!important}
+  .app{grid-template-columns:1fr}
+  .q,.tbl-wrap,figure.viz{break-inside:avoid;box-shadow:none}
+}
+
+/* ---------- long-page ergonomics ---------- */
+/* the group header stays put while you scroll a 200-question list */
+.parthead{position:sticky;top:44px;z-index:12;background:var(--glass);
+  backdrop-filter:blur(10px) saturate(1.4);-webkit-backdrop-filter:blur(10px) saturate(1.4);
+  padding:8px 10px;margin:26px -10px 10px;border-radius:10px}
+.filehead{position:relative;z-index:1}
+
+/* question cards: tint the badge, and offer a deep link on hover */
+.q-n{color:var(--tc,var(--accent));border-color:color-mix(in srgb,var(--tc,var(--accent)) 40%,var(--border))}
+.q-h{position:relative}
+.q-anchor{opacity:0;margin-left:8px;font-size:12px;color:var(--ink-mut);text-decoration:none;
+  cursor:pointer;font-family:var(--mono);flex:none;align-self:center}
+.q:hover .q-anchor{opacity:.7}
+.q-anchor:hover{opacity:1!important;color:var(--accent);text-decoration:none}
+.q-anchor.ok{color:var(--good);opacity:1!important}
+
+/* card affordances */
+.tcard,.hub-card{position:relative}
+.tcard::after,.hub-card::after{content:"92";position:absolute;right:16px;bottom:12px;
+  font-size:15px;color:var(--tc,var(--accent));opacity:0;transform:translateX(-4px)}
+.tcard:hover::after,.hub-card:hover::after{opacity:.9;transform:translateX(0);
+  transition:opacity .16s ease,transform .16s ease}
+
+/* search: dim the page while filtering so hits stand out */
+body.searching .q{opacity:1}
+body.searching .parthead{opacity:.5}
+
+@media(max-width:1060px){ .parthead{top:0} }
+
+</style>
+</head>
+<body>
+<div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
+  <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw" href="../03_Data_Handling/index.html">03 Data</a><a class="sw" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw on" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw" href="../11_System_Design/index.html">11 Sys Design</a>
+</div></div><div class="sitebar-in">
+  <button class="btn menu-toggle" id="menuBtn">&#9776;</button>
+  <a class="logo" href="index.html"><b>MLOps</b></a>
+  <a class="tab" href="index.html">Home</a><a class="tab" href="mlops.html">MLOps</a><a class="tab" href="infra.html">Infra & Tools</a><a class="tab" href="scenarios.html">Scenarios</a><a class="tab on" href="interview.html">Interview</a><a class="tab" href="production.html">Production</a>
+  <span class="sp"></span>
+  <span class="btn" style="cursor:default" title="Questions ticked on this page"><span id="pgCount">0 / 0</span></span>
+  <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
+  <button class="btn" id="themeBtn">Dark</button>
+</div></div>
+<div class="app" style="--tc:var(--t-accent)">
+<aside id="sidebar">
+  <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
+  <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
+  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><div class="nav-grp">MLOps Interview</div><a href="#f10MLOpsIntervi-0" data-q="f10MLOpsIntervi-0"><span class="qn">&bull;</span>Q61. How do you deploy models on AWS SageMaker?</a><a href="#f10MLOpsIntervi-1" data-q="f10MLOpsIntervi-1"><span class="qn">&bull;</span>Q62. What is Vertex AI?</a><a href="#f10MLOpsIntervi-2" data-q="f10MLOpsIntervi-2"><span class="qn">&bull;</span>Q63. How do you use spot/preemptible instances for ML training?</a><a href="#f10MLOpsIntervi-3" data-q="f10MLOpsIntervi-3"><span class="qn">&bull;</span>Q64. What are the essential Linux commands for MLOps?</a><a href="#f10MLOpsIntervi-4" data-q="f10MLOpsIntervi-4"><span class="qn">&bull;</span>Q65. How do you use cron jobs for ML?</a><a href="#f10MLOpsIntervi-5" data-q="f10MLOpsIntervi-5"><span class="qn">&bull;</span>Q66. What is SSH tunneling for remote ML development?</a><a href="#f10MLOpsIntervi-6" data-q="f10MLOpsIntervi-6"><span class="qn">&bull;</span>Q67. What are Git hooks useful for in ML?</a><a href="#f10MLOpsIntervi-7" data-q="f10MLOpsIntervi-7"><span class="qn">&bull;</span>Q68. What is the 12-factor app methodology for ML?</a><a href="#f10MLOpsIntervi-8" data-q="f10MLOpsIntervi-8"><span class="qn">&bull;</span>Q69. What is serverless ML inference?</a><a href="#f10MLOpsIntervi-9" data-q="f10MLOpsIntervi-9"><span class="qn">&bull;</span>Q70. What is the difference between model serving on CPU vs GPU?</a></nav>
+</aside>
+<main><div class="wrap">
+
+<section class="hero" id="top"><div class="eyebrow">10_MLOps_and_Deployment &middot; Interview</div>
+<h1>Interview</h1><p class="lede">MLOps interview bank</p><div class="oneliner"><b>1 file</b> in this section, <b>10 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
+<div class="stats"><div class="stat"><div class="stat-v">1</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">10</div><div class="stat-l">sections</div></div></div></section>
+<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">MLOps interview bank</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>MLOps Interview</b><span class="learn-n">10 sections</span></div><div class="learn-tags"><span>Section 1: MLOps Fundamentals (Q1–Q25)</span><span>Section 2: Docker &amp; Kubernetes (Q26–Q…</span><span>Section 3: FastAPI &amp; APIs (Q51–Q70)</span><span>Section 4: Production &amp; Advanced (Q71…</span></div></li></ul></section>
+
+<section class="filesec" id="f10MLOpsIntervi"><header class="filehead"><div class="fh-top"><span class="fh-num">MLOps Interview</span><span class="fh-count">10 sections</span><a class="fh-src" href="../../10_MLOps_and_Deployment/Interview_Questions/10_MLOps_Interview.md">source .md &#8599;</a></div><h2>MLOps &amp; Deployment — 100 Interview Questions</h2><div class="note">
+<p><strong>Coverage:</strong> <abbr title="machine-learning operations">MLOps</abbr> lifecycle, experiment tracking, model serving, Docker, Kubernetes, CI/CD, FastAPI, cloud platforms, monitoring, infrastructure as code, <abbr title="software development life cycle">SDLC</abbr>.</p>
+</div></header><div class="parthead"><span>Section 1: MLOps Fundamentals (Q1–Q25)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Q1. What is <abbr title="machine-learning operations">MLOps</abbr> and why is it needed?</h3>
+<p>MLOps = ML + DevOps. It applies DevOps principles (CI/CD, automation, monitoring) to the ML lifecycle:</p>
+<div class="diagram"><pre>TRADITIONAL SOFTWARE:   Code → Build → Test → Deploy → Monitor
+ML SYSTEMS:             Data → Train → Validate → Deploy → Monitor → Retrain
+                           ↑                                    ↓
+                           └────────── Feedback Loop ──────────┘</pre></div>
+<p><strong>Why needed:</strong> <span class="mag">87%</span> of ML models never reach production (Gartner). MLOps solves: reproducibility, versioning, deployment automation, monitoring, and retraining.</p>
+<h3>Q2. What are the MLOps maturity levels?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Level</th><th>Name</th><th>Description</th></tr></thead><tbody><tr class="g1"><td><strong>0</strong></td><td>No MLOps</td><td>Manual notebook experiments, no versioning</td></tr><tr class="g0"><td><strong>1</strong></td><td>DevOps, no MLOps</td><td>CI/CD for code, but manual ML pipeline</td></tr><tr class="g1"><td><strong>2</strong></td><td>Automated Training</td><td>Automated pipeline for training, manual deployment</td></tr><tr class="g0"><td><strong>3</strong></td><td>Automated Deployment</td><td>CI/CD for models, A/B testing, canary releases</td></tr><tr class="g1"><td><strong>4</strong></td><td>Full MLOps</td><td>Automated retraining on drift, self-healing, feature stores</td></tr></tbody></table></div>
+<h3>Q3. What is experiment tracking and which tools are used?</h3>
+<p>Track hyperparameters, metrics, artifacts, and code versions for every experiment:</p>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Tool</th><th>Key Feature</th><th>Storage</th></tr></thead><tbody><tr class="g1"><td><strong>MLflow</strong></td><td>Open-source, model registry, serving</td><td>Local/S3/DB</td></tr><tr class="g0"><td><strong>Weights &amp; Biases</strong></td><td>Rich UI, sweeps, team collaboration</td><td>Cloud</td></tr><tr class="g1"><td><strong>Neptune</strong></td><td>Metadata store, integrations</td><td>Cloud</td></tr><tr class="g0"><td><strong>CometML</strong></td><td>Diff experiments, panels</td><td>Cloud</td></tr><tr class="g1"><td><strong>TensorBoard</strong></td><td>Built-in for TF/PyTorch, basic tracking</td><td>Local</td></tr></tbody></table></div>
+<pre class="code" data-lang="python"><code><span class="kw">import</span> mlflow
+
+mlflow.<span class="fn">set_experiment</span>(<span class="str">"fraud-detection-v2"</span>)
+<span class="kw">with</span> mlflow.<span class="fn">start_run</span>():
+    mlflow.<span class="fn">log_param</span>(<span class="str">"learning_rate"</span>, <span class="num">0.001</span>)
+    mlflow.<span class="fn">log_param</span>(<span class="str">"batch_size"</span>, <span class="num">32</span>)
+    mlflow.<span class="fn">log_metric</span>(<span class="str">"accuracy"</span>, <span class="num">0.95</span>)
+    mlflow.<span class="fn">log_metric</span>(<span class="str">"f1_score"</span>, <span class="num">0.91</span>)
+    mlflow.sklearn.<span class="fn">log_model</span>(model, <span class="str">"model"</span>)</code></pre>
+<h3>Q4. What is a <abbr title="the shared service that computes and serves features identically to training and serving">feature store</abbr> and why is it important?</h3>
+<p>A centralized repository for storing, managing, and serving ML features:</p>
+<div class="diagram"><pre>DATA SOURCES → Feature Engineering → FEATURE STORE → Training / Serving
+                                          ↓
+                              ┌───────────┴───────────┐
+                              │ Offline Store (batch)  │  → Training
+                              │ Online Store (low-lat) │  → Inference
+                              └───────────────────────┘</pre></div>
+<ul>
+<li><strong>Prevents <abbr title="the batch and online paths computing the same feature differently, so production silently disagrees with the offline metric">training-serving skew</abbr>:</strong> Same feature computation for training and inference</li>
+<li><strong>Tools:</strong> Feast (open-source), Tecton, Hopsworks, SageMaker Feature Store</li>
+<li><strong>Key features:</strong> Point-in-time joins, feature versioning, data lineage, access control</li>
+</ul>
+<h3>Q5. What is model versioning and how does it differ from code versioning?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Aspect</th><th>Code Versioning (Git)</th><th>Model Versioning</th></tr></thead><tbody><tr class="g1"><td>What's versioned</td><td>Source code</td><td>Model weights + config + data</td></tr><tr class="g0"><td>Size</td><td>KBs-MBs</td><td>MBs-GBs</td></tr><tr class="g1"><td>Tools</td><td>Git</td><td>MLflow Model Registry, DVC, W&amp;B</td></tr><tr class="g0"><td>Metadata</td><td>Commit message</td><td>Hyperparams, metrics, dataset version</td></tr><tr class="g1"><td>Lineage</td><td>Git history</td><td>Data → features → model → predictions</td></tr></tbody></table></div>
+<p><strong>Model Registry:</strong> Central catalog of models with stages (Staging → Production → Archived).</p>
+<h3>Q6. What is DVC (Data Version Control)?</h3>
+<pre class="code" data-lang="bash"><code><span class="cmt"># Initialize DVC in a git repo</span>
+dvc init
+
+<span class="cmt"># Track large files (data, models) — stored in remote (S3, GCS), Git stores metadata</span>
+dvc add data/training_data.csv
+git add data/training_data.csv.dvc .gitignore
+git commit -m <span class="str">"Add training data v1"</span>
+
+<span class="cmt"># Push data to remote storage</span>
+dvc remote add -d storage s3://my-bucket/dvc
+dvc push
+
+<span class="cmt"># Switch to different data version</span>
+git checkout v2
+dvc checkout  <span class="cmt"># Downloads the correct data version</span></code></pre>
+<h3>Q7. What is training-serving skew and how do you prevent it?</h3>
+<p>When the model performs differently in production vs training:</p>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Type</th><th>Cause</th><th>Prevention</th></tr></thead><tbody><tr class="g1"><td><strong>Data skew</strong></td><td>Different data distributions</td><td>Monitor input distributions, use same preprocessing</td></tr><tr class="g0"><td><strong>Feature skew</strong></td><td>Different feature computation</td><td>Feature store, shared feature pipelines</td></tr><tr class="g1"><td><strong>Label skew</strong></td><td>Label leakage in training</td><td>Proper temporal splits</td></tr><tr class="g0"><td><strong>Environment skew</strong></td><td>Different library versions</td><td>Docker, pinned dependencies</td></tr></tbody></table></div>
+<h3>Q8. What is model serving and what are the main approaches?</h3>
+<div class="tbl-wrap"><table class="t4"><thead><tr><th>Approach</th><th>Latency</th><th>Throughput</th><th>Use Case</th></tr></thead><tbody><tr class="g1"><td><strong>REST API</strong> (FastAPI/Flask)</td><td>Medium</td><td>Medium</td><td>General purpose</td></tr><tr class="g0"><td><strong><abbr title="Google Remote Procedure Call">gRPC</abbr></strong></td><td>Low</td><td>High</td><td>Internal microservices</td></tr><tr class="g1"><td><strong>Batch inference</strong></td><td>High (offline)</td><td>Very high</td><td>Reports, recommendations</td></tr><tr class="g0"><td><strong>Streaming</strong> (Kafka + model)</td><td>Medium</td><td>High</td><td>Real-time events</td></tr><tr class="g1"><td><strong>Edge</strong> (ONNX Runtime, TFLite)</td><td>Very low</td><td>Low</td><td>Mobile, IoT</td></tr></tbody></table></div>
+<p><strong>Serving frameworks:</strong> Triton Inference Server, TorchServe, BentoML, Ray Serve, Seldon</p>
+<h3>Q9. What is A/B testing for ML models?</h3>
+<div class="diagram"><pre>USER TRAFFIC (100%)
+     ├── 90% → Model A (current production)  ─→ Measure metrics
+     └── 10% → Model B (challenger)          ─→ Measure metrics
+                                                    ↓
+                                             Statistical test
+                                             (t-test, chi-square)
+                                                    ↓
+                                         If B is significantly better
+                                             → Promote B to 100%</pre></div>
+<p><strong>Key considerations:</strong>
+- Minimum sample size for statistical significance
+- Duration (typically 1-4 weeks)
+- Guard rails (stop if B is significantly worse)
+- Metric selection (primary: business metric, secondary: model metric)</p>
+<h3>Q10. What is <abbr title="running a new model alongside the live one on real traffic without serving its output">shadow deployment</abbr> (dark launching)?</h3>
+<div class="diagram"><pre>USER TRAFFIC (100%)
+     └── 100% → Model A (serves response to user)
+     └── 100% → Model B (runs in parallel, response DISCARDED)
+                    ↓
+              Compare predictions offline
+              No risk to users</pre></div>
+<ul>
+<li><strong>Advantage:</strong> Zero risk — users always see current model</li>
+<li><strong>Disadvantage:</strong> Doesn't test user-facing effects, double compute cost</li>
+<li><strong>Use case:</strong> Validate new model before any traffic switch</li>
+</ul>
+<h3>Q11. What is canary deployment?</h3>
+<div class="diagram"><pre>Phase 1: 1% traffic → New model  (monitor for errors)
+Phase 2: 5% traffic → New model  (monitor metrics)
+Phase 3: 25% traffic → New model (compare against old)
+Phase 4: 100% traffic → New model (full rollout)
+
+ROLLBACK: If any phase shows degradation → instant rollback to old model</pre></div>
+<h3>Q12. What is model drift and how do you detect it?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Drift Type</th><th>What Changes</th><th>Detection</th></tr></thead><tbody><tr class="g1"><td><strong><abbr title="the input distribution changing after deployment">Data drift</abbr></strong></td><td>Input feature distributions</td><td>KS test, <abbr title="population stability index">PSI</abbr>, Jensen-Shannon divergence</td></tr><tr class="g0"><td><strong><abbr title="the relationship between inputs and the correct answer changing after deployment">Concept drift</abbr></strong></td><td>Relationship between features and target</td><td>Monitor prediction accuracy, ADWIN</td></tr><tr class="g1"><td><strong>Label drift</strong></td><td>Target distribution</td><td>Chi-square test on predicted labels</td></tr></tbody></table></div>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> scipy.stats <span class="kw">import</span> ks_2samp
+
+<span class="cmt"># Compare training vs production feature distributions</span>
+stat, p_value = <span class="fn">ks_2samp</span>(train_feature, prod_feature)
+<span class="kw">if</span> p_value &lt; <span class="num">0.05</span>:
+    <span class="fn">print</span>(f<span class="str">"Drift detected! p-value: {p_value}"</span>)</code></pre>
+<h3>Q13. What monitoring should you set up for ML models in production?</h3>
+<div class="diagram"><pre>MODEL MONITORING STACK:
+┌─────────────────────────────────────┐
+│ Business Metrics (revenue, CTR)     │  ← Impact
+│ Model Metrics (accuracy, F1, AUC)   │  ← Quality
+│ Data Metrics (drift, missing, dist) │  ← Input health
+│ System Metrics (latency, CPU, mem)  │  ← Infrastructure
+└─────────────────────────────────────┘
+
+TOOLS: Prometheus + Grafana, Evidently, Whylogs, Arize, Fiddler
+ALERTS: PagerDuty/Slack when thresholds crossed</pre></div>
+<h3>Q14. What is CI/CD for ML?</h3>
+<div class="diagram"><pre>CI (Continuous Integration):
+  Push code → Run unit tests → Run data validation → Train model
+  → Run model validation → Integration tests → Build Docker image
+
+CD (Continuous Deployment):
+  Build image → Push to registry → Deploy to staging
+  → Run smoke tests → Shadow/canary deploy → Promote to production
+
+ML-SPECIFIC CI/CD:
+  - Data validation (Great Expectations, Pandera)
+  - Model performance tests (accuracy above threshold)
+  - Bias/fairness checks
+  - Latency benchmarks
+  - Model size checks (fits in serving infra)</pre></div>
+<h3>Q15. What is Great Expectations and how is it used for data validation?</h3>
+<pre class="code" data-lang="python"><code><span class="kw">import</span> great_expectations <span class="kw">as</span> gx
+
+context = gx.<span class="fn">get_context</span>()
+
+<span class="cmt"># Define expectations</span>
+suite = context.<span class="fn">add_expectation_suite</span>(<span class="str">"training_data_suite"</span>)
+suite.<span class="fn">add_expectation</span>(
+    gx.expectations.<span class="fn">ExpectColumnValuesToNotBeNull</span>(column=<span class="str">"age"</span>)
+)
+suite.<span class="fn">add_expectation</span>(
+    gx.expectations.<span class="fn">ExpectColumnValuesToBeBetween</span>(column=<span class="str">"age"</span>, min_value=<span class="num">0</span>, max_value=<span class="num">150</span>)
+)
+suite.<span class="fn">add_expectation</span>(
+    gx.expectations.<span class="fn">ExpectColumnDistinctValuesToBeInSet</span>(
+        column=<span class="str">"gender"</span>, value_set=[<span class="str">"M"</span>, <span class="str">"F"</span>, <span class="str">"Other"</span>]
+    )
+)
+
+<span class="cmt"># Validate</span>
+results = context.<span class="fn">run_checkpoint</span>(checkpoint_name=<span class="str">"my_checkpoint"</span>)
+<span class="kw">assert</span> results.success  <span class="cmt"># Fails pipeline if data doesn't meet expectations</span></code></pre>
+<h3>Q16. What is Airflow and how is it used in ML pipelines?</h3>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> airflow <span class="kw">import</span> DAG
+<span class="kw">from</span> airflow.operators.python <span class="kw">import</span> PythonOperator
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
+<span class="kw">def</span> <span class="fn">extract_data</span>():
+    <span class="cmt"># Pull data from source</span>
+    <span class="kw">pass</span>
+
+<span class="kw">def</span> <span class="fn">train_model</span>():
+    <span class="cmt"># Train and evaluate</span>
+    <span class="kw">pass</span>
+
+<span class="kw">def</span> <span class="fn">deploy_model</span>():
+    <span class="cmt"># Push to model registry, update serving</span>
+    <span class="kw">pass</span>
+
+dag = <span class="fn">DAG</span>(
+    <span class="str">"ml_pipeline"</span>,
+    schedule_interval=<span class="str">"@weekly"</span>,
+    start_date=<span class="fn">datetime</span>(<span class="num">2024</span>, <span class="num">1</span>, <span class="num">1</span>),
+    catchup=<span class="kw">False</span>,
+)
+
+t1 = <span class="fn">PythonOperator</span>(task_id=<span class="str">"extract"</span>, python_callable=extract_data, dag=dag)
+t2 = <span class="fn">PythonOperator</span>(task_id=<span class="str">"train"</span>, python_callable=train_model, dag=dag)
+t3 = <span class="fn">PythonOperator</span>(task_id=<span class="str">"deploy"</span>, python_callable=deploy_model, dag=dag)
+
+t1 &gt;&gt; t2 &gt;&gt; t3  <span class="cmt"># extract → train → deploy</span></code></pre>
+<h3>Q17. What is model compression and when do you use it?</h3>
+<div class="tbl-wrap"><table class="t5"><thead><tr><th>Technique</th><th>How</th><th>Size Reduction</th><th>Speed Gain</th><th>Quality Loss</th></tr></thead><tbody><tr class="g1"><td><strong><abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">Quantization</abbr></strong></td><td>FP32→FP16→INT8→INT4</td><td><span class="mag">2-8×</span></td><td><span class="mag">2-4×</span></td><td><span class="mag">0-2%</span></td></tr><tr class="g0"><td><strong>Pruning</strong></td><td>Remove near-zero weights</td><td><span class="mag">2-10×</span></td><td><span class="mag">1.5-3×</span></td><td><span class="mag">0-3%</span></td></tr><tr class="g1"><td><strong><abbr title="training a smaller model to reproduce a larger model&#x27;s behaviour">Distillation</abbr></strong></td><td>Train small model from large</td><td><span class="mag">3-10×</span></td><td><span class="mag">5-10×</span></td><td><span class="mag">1-5%</span></td></tr><tr class="g0"><td><strong>ONNX conversion</strong></td><td>Optimize graph</td><td><span class="mag">1×</span></td><td><span class="mag">1.5-3×</span></td><td><span class="mag">0%</span></td></tr></tbody></table></div>
+<h3>Q18. What is the difference between online and batch inference?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Aspect</th><th>Online (Real-time)</th><th>Batch</th></tr></thead><tbody><tr class="g1"><td>Latency</td><td><span class="mag">&lt;100ms</span></td><td>Minutes to hours</td></tr><tr class="g0"><td>Input</td><td>Single request</td><td>Dataset</td></tr><tr class="g1"><td>Architecture</td><td>REST API / gRPC</td><td>Spark / Airflow job</td></tr><tr class="g0"><td>Scaling</td><td>Horizontal (replicas)</td><td>Vertical (bigger cluster)</td></tr><tr class="g1"><td>Use case</td><td>Search ranking, fraud</td><td>Recommendations, reports</td></tr><tr class="g0"><td>Cost</td><td>Higher (always running)</td><td>Lower (scheduled)</td></tr></tbody></table></div>
+<h3>Q19. What is Kubeflow and how does it differ from Airflow?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Aspect</th><th>Kubeflow</th><th>Airflow</th></tr></thead><tbody><tr class="g1"><td>Focus</td><td>ML pipelines specifically</td><td>General workflow orchestration</td></tr><tr class="g0"><td>Runtime</td><td>Kubernetes-native</td><td>Any infrastructure</td></tr><tr class="g1"><td>Components</td><td>Training operators, serving, notebooks, Katib (tuning)</td><td>Generic task operators</td></tr><tr class="g0"><td>Scaling</td><td>K8s-level scaling</td><td>Worker-based scaling</td></tr><tr class="g1"><td>Learning curve</td><td>Higher</td><td>Lower</td></tr></tbody></table></div>
+<h3>Q20. What is a model card?</h3>
+<p>Standardized documentation for ML models (Mitchell et al., 2019):</p>
+<pre class="code" data-lang="markdown"><code>## Model Card: Fraud Detection v3.2
+
+**Model Details:** XGBoost, trained on 2M transactions (Jan-Dec 2024)
+**Intended Use:** Real-time fraud scoring for payment processing
+**Metrics:** Precision: 0.94, Recall: 0.87, F1: 0.90, AUC: 0.97
+**Limitations:** Lower recall for transactions &lt; $5, not tested on crypto
+**Ethical Considerations:** May have geographic bias (US-centric training data)
+**Training Data:** 2M transactions, 3.2% fraud rate, PII removed
+**Evaluation Data:** 200K holdout (temporal split, Dec 2024)</code></pre>
+<h3>Q21. What is Weights &amp; Biases (W&amp;B) and how does it compare to MLflow?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Feature</th><th>MLflow</th><th>W&amp;B</th></tr></thead><tbody><tr class="g1"><td>Open source</td><td>Yes</td><td>Partially</td></tr><tr class="g0"><td>Experiment tracking</td><td>✓</td><td>✓ (richer UI)</td></tr><tr class="g1"><td>Model registry</td><td>✓</td><td>✓</td></tr><tr class="g0"><td>Hyperparameter tuning</td><td>No (use Optuna)</td><td>Built-in sweeps</td></tr><tr class="g1"><td>Collaboration</td><td>Basic</td><td>Teams, reports, panels</td></tr><tr class="g0"><td>Artifact tracking</td><td>✓</td><td>✓ (better lineage)</td></tr><tr class="g1"><td>Cost</td><td>Free</td><td>Free tier + paid</td></tr></tbody></table></div>
+<h3>Q22. What is Triton Inference Server?</h3>
+<p>NVIDIA's production model serving framework:
+- <strong>Multi-framework:</strong> PyTorch, TensorFlow, ONNX, TensorRT, Python
+- <strong><abbr title="grouping concurrent requests into one GPU batch at serving time">Dynamic batching</abbr>:</strong> Automatically batches requests for GPU efficiency
+- <strong>Model ensemble:</strong> Chain multiple models in a pipeline
+- <strong>Concurrent model execution:</strong> Run multiple models on same GPU
+- <strong>Metrics:</strong> Prometheus-compatible, latency histograms</p>
+<h3>Q23. What is BentoML?</h3>
+<pre class="code" data-lang="python"><code><span class="kw">import</span> bentoml
+
+<span class="cmt"># Save model</span>
+bentoml.sklearn.<span class="fn">save_model</span>(<span class="str">"fraud_model"</span>, model)
+
+<span class="cmt"># Create service</span>
+@bentoml.service
+<span class="kw">class</span> FraudDetector:
+    model = bentoml.models.<span class="fn">get</span>(<span class="str">"fraud_model:latest"</span>)
+    
+    @bentoml.api
+    <span class="kw">def</span> <span class="fn">predict</span>(<span class="kw">self</span>, features: dict) -&gt; float:
+        <span class="kw">return</span> <span class="kw">self</span>.model.<span class="fn">predict_proba</span>([features])[<span class="num">0</span>][<span class="num">1</span>]
+
+<span class="cmt"># Build &amp; deploy</span>
+<span class="cmt"># bentoml build → bentoml containerize → deploy to K8s/cloud</span></code></pre>
+<h3>Q24. What is model explainability in production?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Tool</th><th>Method</th><th>Use Case</th></tr></thead><tbody><tr class="g1"><td><strong><abbr title="SHapley Additive exPlanations">SHAP</abbr></strong></td><td>Shapley values (game theory)</td><td>Per-prediction explanations</td></tr><tr class="g0"><td><strong><abbr title="Local Interpretable Model-agnostic Explanations">LIME</abbr></strong></td><td>Local linear approximation</td><td>Tabular, text, images</td></tr><tr class="g1"><td><strong>ELI5</strong></td><td>Feature importance, weights</td><td>Quick debugging</td></tr><tr class="g0"><td><strong>Captum</strong></td><td>PyTorch attribution methods</td><td>Deep learning</td></tr><tr class="g1"><td><strong>InterpretML</strong></td><td>Glassbox models (EBM)</td><td>Inherently interpretable</td></tr></tbody></table></div>
+<h3>Q25. What is the ML lifecycle end-to-end?</h3>
+<ol class="steplist"><li>PROBLEM DEFINITION → Business objective, success metrics</li><li>DATA COLLECTION    → Sources, labeling, privacy compliance</li><li><abbr title="exploratory data analysis">EDA</abbr> &amp; CLEANING     → Distributions, missing values, outliers</li><li>FEATURE ENG.       → Transforms, encoding, selection</li><li>MODEL TRAINING     → Algorithm selection, hyperparameter tuning</li><li>EVALUATION         → Offline metrics, bias checks, error analysis</li><li>DEPLOYMENT         → Containerize, serve, A/B test</li><li>MONITORING         → Drift, performance, latency, cost</li><li>RETRAINING         → Scheduled or triggered by drift detection</li></ol></div><div class="parthead"><span>Section 2: Docker &amp; Kubernetes (Q26–Q50)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Q26. What is Docker and why is it essential for ML?</h3>
+<p>Docker packages applications with all dependencies into portable containers:</p>
+<pre class="code" data-lang="dockerfile"><code>FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 8000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]</code></pre>
+<p><strong>Why for ML:</strong> Reproducibility, consistent environments, easy scaling, GPU support (<code>nvidia-docker</code>).</p>
+<h3>Q27. What is the difference between Docker image and container?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Concept</th><th>Image</th><th>Container</th></tr></thead><tbody><tr class="g1"><td>What</td><td>Blueprint (read-only template)</td><td>Running instance of an image</td></tr><tr class="g0"><td>Analogy</td><td>Class</td><td>Object</td></tr><tr class="g1"><td>State</td><td>Immutable</td><td>Has writable layer</td></tr><tr class="g0"><td>Storage</td><td>In registry (DockerHub, ECR)</td><td>On host machine</td></tr><tr class="g1"><td>Create</td><td><code>docker build</code></td><td><code>docker run</code></td></tr></tbody></table></div>
+<h3>Q28. What is multi-stage Docker build and why use it for ML?</h3>
+<pre class="code" data-lang="dockerfile"><code># Stage 1: Build (large, with build tools)
+FROM python:3.11 AS builder
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --user --no-cache-dir -r requirements.txt
+
+# Stage 2: Runtime (small, production-ready)
+FROM python:3.11-slim
+WORKDIR /app
+COPY --from=builder /root/.local /root/.local
+COPY . .
+ENV PATH=/root/.local/bin:$PATH
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0"]</code></pre>
+<ul>
+<li><strong>Result:</strong> <span class="mag">2-5×</span> smaller image (no build tools, compilers in final image)</li>
+<li><strong>ML benefit:</strong> PyTorch build deps are huge, but runtime is much smaller</li>
+</ul>
+<h3>Q29. What is Docker Compose and how is it used for ML?</h3>
+<pre class="code" data-lang="yaml"><code># docker-compose.yml
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_PATH=/models/latest
+    volumes:
+      - ./models:/models
+    depends_on:
+      - redis
+      - postgres
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: mlops
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+volumes:
+  pgdata:</code></pre>
+<h3>Q30. What is Kubernetes and why is it used for ML serving?</h3>
+<p>K8s orchestrates containers across a cluster:</p>
+<div class="diagram"><pre>K8s ARCHITECTURE:
+┌─────── Control Plane ───────┐
+│ API Server, Scheduler,      │
+│ Controller Manager, etcd    │
+└─────────────────────────────┘
+         ↓ manages
+┌─── Worker Node 1 ────┐  ┌─── Worker Node 2 ────┐
+│ Pod (container)       │  │ Pod (container)       │
+│ Pod (container)       │  │ Pod (container)       │
+│ kubelet, kube-proxy   │  │ kubelet, kube-proxy   │
+└───────────────────────┘  └───────────────────────┘</pre></div>
+<p><strong>For ML:</strong> Auto-scaling (HPA), GPU scheduling, rolling updates, health checks, service discovery.</p>
+<h3>Q31. What is a Kubernetes Deployment?</h3>
+<pre class="code" data-lang="yaml"><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-model-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ml-model
+  template:
+    metadata:
+      labels:
+        app: ml-model
+    spec:
+      containers:
+      - name: model-server
+        image: myregistry/ml-model:v2.1
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+            nvidia.com/gpu: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          periodSeconds: 10</code></pre>
+<h3>Q32. What is Horizontal Pod Autoscaler (HPA)?</h3>
+<pre class="code" data-lang="yaml"><code>apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ml-model-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ml-model-api
+  minReplicas: 2
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Pods
+    pods:
+      metric:
+        name: inference_latency_p95
+      target:
+        type: AverageValue
+        averageValue: "100m"  # 100ms</code></pre>
+<h3>Q33. What is Helm and why is it used?</h3>
+<p>Helm is a package manager for Kubernetes — like <code>pip</code> for K8s:
+- <strong>Chart:</strong> Package of K8s YAML templates
+- <strong>Values:</strong> Configurable parameters (model version, replicas, GPU)
+- <strong>Release:</strong> Installed instance of a chart
+- <strong>Use case:</strong> Deploy ML stack (API + Redis + monitoring) with one command</p>
+<pre class="code" data-lang="bash"><code>helm install fraud-detector ./ml-chart \
+  --set model.version=v3.<span class="num">2</span> \
+  --set replicas=<span class="num">5</span> \
+  --set gpu.enabled=true</code></pre>
+<h3>Q34. What is the difference between rolling update and blue-green deployment?</h3>
+<div class="tbl-wrap"><table class="t5"><thead><tr><th>Strategy</th><th>How</th><th>Downtime</th><th>Rollback</th><th>Risk</th></tr></thead><tbody><tr class="g1"><td><strong>Rolling</strong></td><td>Replace pods one by one</td><td>Zero</td><td>Slow (recreate pods)</td><td>Partial new/old mix</td></tr><tr class="g0"><td><strong>Blue-Green</strong></td><td>Two full environments, switch <abbr title="domain name system">DNS</abbr></td><td>Zero</td><td>Instant (switch back)</td><td><span class="mag">2×</span> resources</td></tr><tr class="g1"><td><strong>Canary</strong></td><td>Gradual traffic shift</td><td>Zero</td><td>Fast (route back)</td><td>Controlled</td></tr></tbody></table></div>
+<h3>Q35. What is Terraform and how is it used for ML infrastructure?</h3>
+<pre class="code" data-lang="hcl"><code># main.tf — Provision ML infrastructure
+resource "aws_sagemaker_endpoint" "model" {
+  endpoint_config_name = aws_sagemaker_endpoint_configuration.config.name
+  tags = {
+    Project = "fraud-detection"
+    Version = "v3.2"
+  }
+}
+
+resource "aws_s3_bucket" "model_artifacts" {
+  bucket = "ml-model-artifacts-prod"
+  versioning {
+    enabled = true
+  }
+}
+
+resource "aws_ecr_repository" "model_images" {
+  name = "ml-models"
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}</code></pre>
+<p><strong>IaC benefits for ML:</strong> Reproducible infra, version controlled, audit trail, multi-environment (dev/staging/prod).</p>
+<h3>Q36. What is GitHub Actions CI/CD for ML?</h3>
+<pre class="code" data-lang="yaml"><code># .github/workflows/ml-pipeline.yml
+name: ML Pipeline
+on:
+  push:
+    branches: [main]
+    paths: ['model/**', 'data/**']
+
+jobs:
+  train-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Validate data
+        run: python scripts/validate_data.py
+      
+      - name: Train model
+        run: python scripts/train.py
+      
+      - name: Evaluate model
+        run: |
+          python scripts/evaluate.py
+          # Fail if accuracy &lt; threshold
+          python -c "import json; d=json.load(open('metrics.json')); assert d['accuracy'] &gt; 0.90"
+      
+      - name: Build Docker image
+        run: docker build -t ml-model:${{ github.sha }} .
+      
+      - name: Push to ECR
+        run: |
+          aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_URI
+          docker push $ECR_URI/ml-model:${{ github.sha }}</code></pre>
+<h3>Q37. What is container networking and service discovery in K8s?</h3>
+<div class="diagram"><pre>POD-TO-POD:    ClusterIP service → DNS (model-api.default.svc.cluster.local)
+POD-TO-EXTERNAL: NodePort or LoadBalancer service
+INGRESS:        Route external HTTP to internal services
+
+Example:
+  Client → Ingress (nginx) → Service (model-api) → Pod1, Pod2, Pod3
+
+Service types:
+  ClusterIP:    Internal only (default)
+  NodePort:     Expose on each node's IP (30000-32767)
+  LoadBalancer: Cloud provider LB (AWS ALB, GCP LB)</pre></div>
+<h3>Q38. What are K8s ConfigMaps and Secrets for ML?</h3>
+<pre class="code" data-lang="yaml"><code># ConfigMap for model configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: model-config
+data:
+  MODEL_VERSION: "v3.2"
+  BATCH_SIZE: "32"
+  MAX_TOKENS: "512"
+  LOG_LEVEL: "INFO"
+
+---
+# Secret for API keys
+apiVersion: v1
+kind: Secret
+metadata:
+  name: model-secrets
+type: Opaque
+data:
+  OPENAI_API_KEY: base64-encoded-key
+  DB_PASSWORD: base64-encoded-password</code></pre>
+<h3>Q39. How do you handle GPU scheduling in Kubernetes?</h3>
+<pre class="code" data-lang="yaml"><code># Request GPU in pod spec
+resources:
+  limits:
+    nvidia.com/gpu: 1  # Request 1 GPU
+
+# Node selector for GPU nodes
+nodeSelector:
+  accelerator: nvidia-tesla-t4
+
+# Tolerations for GPU-dedicated nodes
+tolerations:
+- key: nvidia.com/gpu
+  operator: Exists
+  effect: NoSchedule</code></pre>
+<p><strong>GPU sharing:</strong> MIG (Multi-Instance GPU), time-slicing, vGPU. <strong>Cost optimization:</strong> Spot/preemptible instances for training, reserved for serving.</p>
+<h3>Q40. What is ArgoCD and GitOps?</h3>
+<pre class="code"><code>GITOPS WORKFLOW:
+  1. Developer pushes model config to Git
+  2. ArgoCD watches Git repo
+  3. Detects diff between desired (Git) and actual (K8s)
+  4. Automatically syncs — deploys new model version
+  5. K8s state always matches Git
+
+BENEFITS:
+  - Git = single source of truth
+  - Full audit trail (Git history)
+  - Easy rollback (git revert)
+  - PR-based deployments (review before deploy)</code></pre>
+<h3>Q41. What is Prometheus and how do you monitor ML models with it?</h3>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> prometheus_client <span class="kw">import</span> Counter, Histogram, Gauge, start_http_server
+
+<span class="cmt"># Metrics</span>
+PREDICTIONS = <span class="fn">Counter</span>(<span class="str">'model_predictions_total'</span>, <span class="str">'Total predictions'</span>, [<span class="str">'model'</span>, <span class="str">'class'</span>])
+LATENCY = <span class="fn">Histogram</span>(<span class="str">'model_latency_seconds'</span>, <span class="str">'Prediction latency'</span>, 
+                     buckets=[<span class="num">0.01</span>, <span class="num">0.05</span>, <span class="num">0.1</span>, <span class="num">0.25</span>, <span class="num">0.5</span>, <span class="num">1.0</span>])
+ACCURACY = <span class="fn">Gauge</span>(<span class="str">'model_accuracy'</span>, <span class="str">'Rolling accuracy'</span>)
+
+@app.<span class="fn">post</span>(<span class="str">"/predict"</span>)
+<span class="kw">async</span> <span class="kw">def</span> <span class="fn">predict</span>(request: PredictRequest):
+    <span class="kw">with</span> LATENCY.<span class="fn">time</span>():
+        prediction = model.<span class="fn">predict</span>(request.features)
+    
+    PREDICTIONS.<span class="fn">labels</span>(model=<span class="str">"fraud_v3"</span>, class_=<span class="fn">str</span>(prediction)).<span class="fn">inc</span>()
+    <span class="kw">return</span> {<span class="str">"prediction"</span>: prediction}
+
+<span class="fn">start_http_server</span>(<span class="num">9090</span>)  <span class="cmt"># Prometheus scrapes this port</span></code></pre>
+<h3>Q42. What is the ELK stack and how is it used for ML?</h3>
+<div class="diagram"><pre>ELK = Elasticsearch + Logstash + Kibana
+
+ML LOGGING PIPELINE:
+  Model API → Logstash (collect, parse) → Elasticsearch (store, index) → Kibana (visualize)
+
+LOG FORMAT:
+{
+  "timestamp": "2024-01-15T10:30:00Z",
+  "model": "fraud_v3.2",
+  "request_id": "abc-123",
+  "latency_ms": 45,
+  "prediction": 0.87,
+  "features": {"amount": 500, "country": "US"},
+  "status": "success"
+}
+
+USE CASES:
+  - Debug prediction errors (search by request_id)
+  - Analyze latency patterns (Kibana dashboards)
+  - Audit predictions (compliance)</pre></div>
+<h3>Q43. What is OpenTelemetry and distributed tracing?</h3>
+<div class="diagram"><pre>REQUEST FLOW (traced):
+  Client → API Gateway [trace_id: abc, span: 1]
+           → Feature Service [trace_id: abc, span: 2]
+           → Model Service [trace_id: abc, span: 3]
+           → Post-processing [trace_id: abc, span: 4]
+           → Response
+
+Each span records: start_time, end_time, status, metadata
+Full trace shows end-to-end latency breakdown</pre></div>
+<h3>Q44. What are deployment strategies for ML models?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Strategy</th><th>Description</th><th>Best For</th></tr></thead><tbody><tr class="g1"><td><strong>Big Bang</strong></td><td>Replace all at once</td><td>Low-risk internal tools</td></tr><tr class="g0"><td><strong>Rolling</strong></td><td>Gradual pod replacement</td><td>Stateless APIs</td></tr><tr class="g1"><td><strong>Blue/Green</strong></td><td>Two environments, instant switch</td><td>Zero-downtime requirement</td></tr><tr class="g0"><td><strong>Canary</strong></td><td>Progressive traffic shift</td><td>Production ML models</td></tr><tr class="g1"><td><strong>Shadow</strong></td><td>Run in parallel, discard new output</td><td>High-risk models</td></tr><tr class="g0"><td><strong>Multi-armed bandit</strong></td><td>Dynamically allocate traffic based on reward</td><td>Recommendation systems</td></tr></tbody></table></div>
+<h3>Q45. What is the difference between horizontal and <abbr title="making one machine bigger">vertical scaling</abbr> for ML?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Aspect</th><th>Horizontal (scale out)</th><th>Vertical (scale up)</th></tr></thead><tbody><tr class="g1"><td>Method</td><td>Add more instances</td><td>Bigger machine (more CPU/RAM/GPU)</td></tr><tr class="g0"><td>Limit</td><td>Practically unlimited</td><td>Hardware ceiling</td></tr><tr class="g1"><td>Cost</td><td>Linear</td><td>Exponential</td></tr><tr class="g0"><td>Complexity</td><td>Need load balancer</td><td>Simple</td></tr><tr class="g1"><td>ML use</td><td>Serving (many requests)</td><td>Training (large model)</td></tr></tbody></table></div>
+<h3>Q46. How do you handle secrets management in ML pipelines?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Tool</th><th>Best For</th><th>Integration</th></tr></thead><tbody><tr class="g1"><td><strong>AWS Secrets Manager</strong></td><td>AWS ecosystem</td><td>boto3, K8s CSI driver</td></tr><tr class="g0"><td><strong>HashiCorp Vault</strong></td><td>Multi-cloud</td><td>API, K8s sidecar</td></tr><tr class="g1"><td><strong>K8s Secrets</strong></td><td>Simple K8s deployments</td><td>Native</td></tr><tr class="g0"><td><strong>Azure Key Vault</strong></td><td>Azure ecosystem</td><td>Azure SDK</td></tr><tr class="g1"><td><strong>GCP Secret Manager</strong></td><td>GCP ecosystem</td><td>gcloud SDK</td></tr></tbody></table></div>
+<p><strong>Never:</strong> Store secrets in code, Docker images, Git, or environment variables in CI logs.</p>
+<h3>Q47. What is container security best practices for ML?</h3>
+<ol>
+<li><strong>Base image:</strong> Use slim/distroless images (not <code>python:latest</code>)</li>
+<li><strong>Non-root:</strong> Run as non-root user (<code>USER 1000</code>)</li>
+<li><strong>Scan images:</strong> Trivy, Snyk, Docker Scout</li>
+<li><strong>Pin versions:</strong> <code>python:3.11.7-slim</code> not <code>python:3.11</code></li>
+<li><strong>Multi-stage build:</strong> Don't ship build tools</li>
+<li><strong>Read-only filesystem:</strong> Mount as read-only where possible</li>
+<li><strong>Network policies:</strong> Restrict pod-to-pod communication</li>
+<li><strong>SBOM:</strong> Software Bill of Materials for supply chain security</li>
+</ol>
+<h3>Q48. What is the difference between Docker volumes and bind mounts?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Feature</th><th>Volume</th><th>Bind Mount</th></tr></thead><tbody><tr class="g1"><td>Managed by</td><td>Docker</td><td>Host filesystem</td></tr><tr class="g0"><td>Location</td><td>Docker's storage area</td><td>Anywhere on host</td></tr><tr class="g1"><td>Portability</td><td>Yes (named volumes)</td><td>No (host-dependent)</td></tr><tr class="g0"><td>Performance</td><td>Best (Docker-managed)</td><td>Good</td></tr><tr class="g1"><td>ML use case</td><td>Model artifacts, DB data</td><td>Source code (dev), configs</td></tr></tbody></table></div>
+<h3>Q49. How do you optimize Docker images for ML?</h3>
+<pre class="code" data-lang="dockerfile"><code># 1. Use slim base
+FROM python:3.11-slim
+
+# 2. Install only production deps
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+# CPU-only PyTorch: ~200MB vs full: ~2GB
+
+# 3. Remove unnecessary files
+RUN apt-get clean &amp;&amp; rm -rf /var/lib/apt/lists/*
+
+# 4. Use .dockerignore
+# .dockerignore: __pycache__, .git, *.pyc, data/, notebooks/
+
+# 5. Layer caching — put requirements before source code
+COPY requirements.txt .
+RUN pip install -r requirements.txt  # Cached unless requirements change
+COPY . .  # Only this layer rebuilds on code changes</code></pre>
+<h3>Q50. What is Kubernetes namespace and resource quotas for ML teams?</h3>
+<pre class="code" data-lang="yaml"><code># Namespace per team
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ml-team-alpha
+
+---
+# Resource quota
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ml-team-quota
+  namespace: ml-team-alpha
+spec:
+  hard:
+    requests.cpu: "20"
+    requests.memory: 64Gi
+    limits.cpu: "40"
+    limits.memory: 128Gi
+    requests.nvidia.com/gpu: "4"
+    pods: "50"</code></pre></div><div class="parthead"><span>Section 3: FastAPI &amp; APIs (Q51–Q70)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Q51. Why FastAPI for ML model serving?</h3>
+<div class="tbl-wrap"><table class="t4"><thead><tr><th>Feature</th><th>FastAPI</th><th>Flask</th><th>Django</th></tr></thead><tbody><tr class="g1"><td>Async support</td><td>Native</td><td>Extensions</td><td>Limited</td></tr><tr class="g0"><td>Type hints</td><td>Required (Pydantic)</td><td>Optional</td><td>Optional</td></tr><tr class="g1"><td>Auto docs</td><td>Swagger + ReDoc</td><td>No</td><td>No</td></tr><tr class="g0"><td>Performance</td><td>Very high (Starlette)</td><td>Medium</td><td>Lower</td></tr><tr class="g1"><td>Validation</td><td>Automatic (Pydantic)</td><td>Manual</td><td>Forms-based</td></tr><tr class="g0"><td>ML suitability</td><td>Best</td><td>Good</td><td>Overkill</td></tr></tbody></table></div>
+<h3>Q52. How do you build a basic ML prediction API?</h3>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI, HTTPException
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field
+<span class="kw">import</span> joblib
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+app = <span class="fn">FastAPI</span>(title=<span class="str">"ML Model API"</span>, version=<span class="str">"1.0"</span>)
+model = joblib.<span class="fn">load</span>(<span class="str">"model.pkl"</span>)
+
+<span class="kw">class</span> <span class="fn">PredictionRequest</span>(BaseModel):
+    features: list[float] = <span class="fn">Field</span>(..., min_length=<span class="num">10</span>, max_length=<span class="num">10</span>)
+    
+<span class="kw">class</span> <span class="fn">PredictionResponse</span>(BaseModel):
+    prediction: int
+    probability: float
+    model_version: str = <span class="str">"v3.2"</span>
+
+@app.<span class="fn">post</span>(<span class="str">"/predict"</span>, response_model=PredictionResponse)
+<span class="kw">async</span> <span class="kw">def</span> <span class="fn">predict</span>(request: PredictionRequest):
+    <span class="kw">try</span>:
+        X = np.<span class="fn">array</span>(request.features).<span class="fn">reshape</span>(<span class="num">1</span>, -<span class="num">1</span>)
+        pred = model.<span class="fn">predict</span>(X)[<span class="num">0</span>]
+        proba = model.<span class="fn">predict_proba</span>(X)[<span class="num">0</span>].<span class="fn">max</span>()
+        <span class="kw">return</span> <span class="fn">PredictionResponse</span>(prediction=<span class="fn">int</span>(pred), probability=<span class="fn">float</span>(proba))
+    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(status_code=<span class="num">500</span>, detail=<span class="fn">str</span>(e))
+
+@app.<span class="fn">get</span>(<span class="str">"/health"</span>)
+<span class="kw">async</span> <span class="kw">def</span> <span class="fn">health</span>():
+    <span class="kw">return</span> {<span class="str">"status"</span>: <span class="str">"healthy"</span>, <span class="str">"model_loaded"</span>: model <span class="kw">is</span> <span class="kw">not</span> <span class="kw">None</span>}</code></pre>
+<h3>Q53. How do you handle model loading and lifecycle in FastAPI?</h3>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> contextlib <span class="kw">import</span> asynccontextmanager
+<span class="kw">import</span> torch
+
+@asynccontextmanager
+<span class="kw">async</span> <span class="kw">def</span> <span class="fn">lifespan</span>(app: FastAPI):
+    <span class="cmt"># Startup: load model once</span>
+    app.state.model = torch.<span class="fn">load</span>(<span class="str">"model.pt"</span>, map_location=<span class="str">"cpu"</span>)
+    app.state.model.<span class="fn">eval</span>()
+    <span class="fn">print</span>(<span class="str">"Model loaded successfully"</span>)
+    <span class="kw">yield</span>
+    <span class="cmt"># Shutdown: cleanup</span>
+    <span class="kw">del</span> app.state.model
+    torch.cuda.<span class="fn">empty_cache</span>()
+    <span class="fn">print</span>(<span class="str">"Model unloaded"</span>)
+
+app = <span class="fn">FastAPI</span>(lifespan=lifespan)
+
+@app.<span class="fn">post</span>(<span class="str">"/predict"</span>)
+<span class="kw">async</span> <span class="kw">def</span> <span class="fn">predict</span>(request: PredictRequest):
+    model = app.state.model
+    <span class="kw">with</span> torch.<span class="fn">no_grad</span>():
+        output = <span class="fn">model</span>(torch.<span class="fn">tensor</span>(request.features))
+    <span class="kw">return</span> {<span class="str">"prediction"</span>: output.<span class="fn">argmax</span>().<span class="fn">item</span>()}</code></pre>
+<h3>Q54. How do you add rate limiting to a FastAPI ML endpoint?</h3>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> slowapi <span class="kw">import</span> Limiter, _rate_limit_exceeded_handler
+<span class="kw">from</span> slowapi.util <span class="kw">import</span> get_remote_address
+
+limiter = <span class="fn">Limiter</span>(key_func=get_remote_address)
+app.state.limiter = limiter
+app.<span class="fn">add_exception_handler</span>(<span class="num">429</span>, _rate_limit_exceeded_handler)
+
+@app.<span class="fn">post</span>(<span class="str">"/predict"</span>)
+@limiter.<span class="fn">limit</span>(<span class="str">"60/minute"</span>)  <span class="cmt"># 60 requests per minute per IP</span>
+<span class="kw">async</span> <span class="kw">def</span> <span class="fn">predict</span>(request: Request, data: PredictRequest):
+    <span class="kw">return</span> model.<span class="fn">predict</span>(data.features)</code></pre>
+<h3>Q55. How do you implement authentication for ML APIs?</h3>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> fastapi <span class="kw">import</span> Depends, HTTPException
+<span class="kw">from</span> fastapi.security <span class="kw">import</span> HTTPBearer, HTTPAuthorizationCredentials
+<span class="kw">import</span> jwt
+
+security = <span class="fn">HTTPBearer</span>()
+
+<span class="kw">async</span> <span class="kw">def</span> <span class="fn">verify_token</span>(credentials: HTTPAuthorizationCredentials = <span class="fn">Depends</span>(security)):
+    <span class="kw">try</span>:
+        payload = jwt.<span class="fn">decode</span>(credentials.credentials, SECRET_KEY, algorithms=[<span class="str">"HS256"</span>])
+        <span class="kw">return</span> payload
+    <span class="kw">except</span> jwt.ExpiredSignatureError:
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(status_code=<span class="num">401</span>, detail=<span class="str">"Token expired"</span>)
+    <span class="kw">except</span> jwt.InvalidTokenError:
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(status_code=<span class="num">401</span>, detail=<span class="str">"Invalid token"</span>)
+
+@app.<span class="fn">post</span>(<span class="str">"/predict"</span>)
+<span class="kw">async</span> <span class="kw">def</span> <span class="fn">predict</span>(data: PredictRequest, user=<span class="fn">Depends</span>(verify_token)):
+    <span class="cmt"># user is authenticated</span>
+    <span class="kw">return</span> model.<span class="fn">predict</span>(data.features)</code></pre>
+<h3>Q56. How do you handle batch predictions in FastAPI?</h3>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> <span class="fn">BatchRequest</span>(BaseModel):
+    instances: list[list[float]] = <span class="fn">Field</span>(..., max_length=<span class="num">100</span>)
+
+@app.<span class="fn">post</span>(<span class="str">"/predict/batch"</span>)
+<span class="kw">async</span> <span class="kw">def</span> <span class="fn">batch_predict</span>(request: BatchRequest):
+    X = np.<span class="fn">array</span>(request.instances)
+    predictions = model.<span class="fn">predict</span>(X)
+    probabilities = model.<span class="fn">predict_proba</span>(X).<span class="fn">max</span>(axis=<span class="num">1</span>)
+    
+    <span class="kw">return</span> {
+        <span class="str">"predictions"</span>: predictions.<span class="fn">tolist</span>(),
+        <span class="str">"probabilities"</span>: probabilities.<span class="fn">tolist</span>(),
+        <span class="str">"count"</span>: <span class="fn">len</span>(predictions),
+    }</code></pre>
+<h3>Q57. How do you implement async background tasks for ML?</h3>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> fastapi <span class="kw">import</span> BackgroundTasks
+
+<span class="kw">def</span> <span class="fn">retrain_model</span>(data_path: str):
+    <span class="str">"""Long-running retraining task."""</span>
+    <span class="cmt"># Load data, train, evaluate, save model</span>
+    <span class="kw">pass</span>
+
+@app.<span class="fn">post</span>(<span class="str">"/retrain"</span>)
+<span class="kw">async</span> <span class="kw">def</span> <span class="fn">trigger_retrain</span>(data_path: str, background_tasks: BackgroundTasks):
+    background_tasks.<span class="fn">add_task</span>(retrain_model, data_path)
+    <span class="kw">return</span> {<span class="str">"status"</span>: <span class="str">"Retraining started"</span>, <span class="str">"data_path"</span>: data_path}</code></pre>
+<h3>Q58. What is middleware in FastAPI and how is it used for ML?</h3>
+<pre class="code" data-lang="python"><code><span class="kw">import</span> time
+<span class="kw">from</span> starlette.middleware.base <span class="kw">import</span> BaseHTTPMiddleware
+
+<span class="kw">class</span> <span class="fn">LatencyMiddleware</span>(BaseHTTPMiddleware):
+    <span class="kw">async</span> <span class="kw">def</span> <span class="fn">dispatch</span>(<span class="kw">self</span>, request, call_next):
+        start = time.<span class="fn">perf_counter</span>()
+        response = <span class="kw">await</span> <span class="fn">call_next</span>(request)
+        latency = time.<span class="fn">perf_counter</span>() - start
+        response.headers[<span class="str">"X-Latency-Ms"</span>] = <span class="fn">str</span>(<span class="fn">round</span>(latency * <span class="num">1000</span>, <span class="num">2</span>))
+        LATENCY_HISTOGRAM.<span class="fn">observe</span>(latency)  <span class="cmt"># Prometheus metric</span>
+        <span class="kw">return</span> response
+
+app.<span class="fn">add_middleware</span>(LatencyMiddleware)</code></pre>
+<h3>Q59. How do you test ML APIs?</h3>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> fastapi.testclient <span class="kw">import</span> TestClient
+
+client = <span class="fn">TestClient</span>(app)
+
+<span class="kw">def</span> <span class="fn">test_predict</span>():
+    response = client.<span class="fn">post</span>(<span class="str">"/predict"</span>, json={<span class="str">"features"</span>: [<span class="num">1.0</span>] * <span class="num">10</span>})
+    <span class="kw">assert</span> response.status_code == <span class="num">200</span>
+    data = response.<span class="fn">json</span>()
+    <span class="kw">assert</span> <span class="str">"prediction"</span> <span class="kw">in</span> data
+    <span class="kw">assert</span> <span class="num">0</span> &lt;= data[<span class="str">"probability"</span>] &lt;= <span class="num">1</span>
+
+<span class="kw">def</span> <span class="fn">test_predict_invalid_input</span>():
+    response = client.<span class="fn">post</span>(<span class="str">"/predict"</span>, json={<span class="str">"features"</span>: [<span class="num">1.0</span>] * <span class="num">5</span>})  <span class="cmt"># Wrong length</span>
+    <span class="kw">assert</span> response.status_code == <span class="num">422</span>  <span class="cmt"># Validation error</span>
+
+<span class="kw">def</span> <span class="fn">test_health</span>():
+    response = client.<span class="fn">get</span>(<span class="str">"/health"</span>)
+    <span class="kw">assert</span> response.status_code == <span class="num">200</span>
+    <span class="kw">assert</span> response.<span class="fn">json</span>()[<span class="str">"status"</span>] == <span class="str">"healthy"</span></code></pre>
+<h3>Q60. What is <abbr title="Google Remote Procedure Call">gRPC</abbr> and when should you use it over REST?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Aspect</th><th>REST</th><th>gRPC</th></tr></thead><tbody><tr class="g1"><td>Protocol</td><td>HTTP/1.1 (JSON)</td><td>HTTP/2 (Protobuf)</td></tr><tr class="g0"><td>Serialization</td><td>Text (JSON)</td><td>Binary (Protobuf, <span class="mag">10×</span> smaller)</td></tr><tr class="g1"><td>Speed</td><td>Good</td><td><span class="mag">2-10×</span> faster</td></tr><tr class="g0"><td>Streaming</td><td>SSE / WebSocket</td><td>Native bidirectional</td></tr><tr class="g1"><td>Schema</td><td>OpenAPI (optional)</td><td>.proto (required, strict)</td></tr><tr class="g0"><td>Browser</td><td>Native</td><td>Needs grpc-web proxy</td></tr><tr class="g1"><td>Use case</td><td>Public APIs, web clients</td><td>Internal microservices, ML serving</td></tr></tbody></table></div>
+<h3>Q61–Q70: Cloud ML &amp; Linux (Summary)</h3></div><article class="q" id="f10MLOpsIntervi-0"><div class="q-h"><span class="q-n">&bull;</span><h3>Q61. How do you deploy models on AWS SageMaker?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10MLOpsIntervi-0"><span></span></label></div><div class="q-a"><p>Create endpoint configuration → deploy model artifact from S3 → auto-scaling policies → monitor with CloudWatch.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10MLOpsIntervi-1"><div class="q-h"><span class="q-n">&bull;</span><h3>Q62. What is Vertex AI?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10MLOpsIntervi-1"><span></span></label></div><div class="q-a"><p>GCP's unified ML platform: AutoML, custom training, pipelines, <abbr title="the shared service that computes and serves features identically to training and serving">feature store</abbr>, model registry, endpoints, monitoring.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10MLOpsIntervi-2"><div class="q-h"><span class="q-n">&bull;</span><h3>Q63. How do you use spot/preemptible instances for ML training?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10MLOpsIntervi-2"><span></span></label></div><div class="q-a"><p>Use for fault-tolerant training (<abbr title="persisting workflow state so a run can resume from the last good point after a failure">checkpointing</abbr> every N steps). <span class="mag">60-90%</span> cheaper. SageMaker managed spot, GCE preemptible, AWS spot.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10MLOpsIntervi-3"><div class="q-h"><span class="q-n">&bull;</span><h3>Q64. What are the essential Linux commands for MLOps?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10MLOpsIntervi-3"><span></span></label></div><div class="q-a"><p><code>htop</code> (CPU/mem), <code>nvidia-smi</code> (GPU), <code>df -h</code> (disk), <code>du -sh</code> (folder sizes), <code>lsof</code> (open files), <code>netstat</code> (ports), <code>journalctl</code> (logs).</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10MLOpsIntervi-4"><div class="q-h"><span class="q-n">&bull;</span><h3>Q65. How do you use cron jobs for ML?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10MLOpsIntervi-4"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Retrain model every Sunday at 2 AM</span>
+<span class="num">0</span> <span class="num">2</span> * * <span class="num">0</span> /usr/bin/python3 /opt/ml/retrain.py &gt;&gt; /var/log/ml/retrain.log <span class="num">2</span>&gt;&amp;<span class="num">1</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10MLOpsIntervi-5"><div class="q-h"><span class="q-n">&bull;</span><h3>Q66. What is SSH tunneling for remote ML development?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10MLOpsIntervi-5"><span></span></label></div><div class="q-a"><p><code>ssh -L 8888:localhost:8888 gpu-server</code> — Forward Jupyter port from remote GPU server to local machine.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10MLOpsIntervi-6"><div class="q-h"><span class="q-n">&bull;</span><h3>Q67. What are Git hooks useful for in ML?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10MLOpsIntervi-6"><span></span></label></div><div class="q-a"><p>pre-commit: lint, format, check for secrets, validate data schemas. pre-push: run tests, check model size.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10MLOpsIntervi-7"><div class="q-h"><span class="q-n">&bull;</span><h3>Q68. What is the 12-factor app methodology for ML?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10MLOpsIntervi-7"><span></span></label></div><div class="q-a"><p>Config in env vars, stateless processes, port binding, disposability, dev/prod parity, logs as event streams.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10MLOpsIntervi-8"><div class="q-h"><span class="q-n">&bull;</span><h3>Q69. What is serverless ML inference?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10MLOpsIntervi-8"><span></span></label></div><div class="q-a"><p>AWS Lambda, GCP Cloud Functions, Azure Functions — pay per invocation, auto-scale to zero. Limited by cold start (1-10s) and model size (250MB-10GB).</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10MLOpsIntervi-9"><div class="q-h"><span class="q-n">&bull;</span><h3>Q70. What is the difference between model serving on CPU vs GPU?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10MLOpsIntervi-9"><span></span></label></div><div class="q-a"><div class="tbl-wrap"><table class="t3"><thead><tr><th>Aspect</th><th>CPU</th><th>GPU</th></tr></thead><tbody><tr class="g1"><td>Latency</td><td>Higher</td><td>Lower (for large models)</td></tr><tr class="g0"><td>Throughput</td><td>Lower</td><td>Much higher (batching)</td></tr><tr class="g1"><td>Cost</td><td>$0.05-0.5/hr</td><td>$0.5-30/hr</td></tr><tr class="g0"><td>Small models (sklearn, XGBoost)</td><td>Best</td><td>Overkill</td></tr><tr class="g1"><td>Large models (BERT, LLMs)</td><td>Too slow</td><td>Required</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>Section 4: Production &amp; Advanced (Q71–Q100)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Q71. What is the <abbr title="software development life cycle">SDLC</abbr> and how does it apply to ML?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Phase</th><th>Traditional</th><th>ML Addition</th></tr></thead><tbody><tr class="g1"><td><strong>Planning</strong></td><td>Requirements, design</td><td>Data requirements, model selection</td></tr><tr class="g0"><td><strong>Development</strong></td><td>Write code</td><td>Train model, feature engineering</td></tr><tr class="g1"><td><strong>Testing</strong></td><td>Unit/integration/E2E</td><td>Data validation, model validation, bias testing</td></tr><tr class="g0"><td><strong>Deployment</strong></td><td>CI/CD, blue-green</td><td>Model registry, A/B testing, shadow</td></tr><tr class="g1"><td><strong>Operations</strong></td><td>Monitoring, logging</td><td>Drift detection, retraining triggers</td></tr></tbody></table></div>
+<h3>Q72. What is Agile for ML projects?</h3>
+<ul>
+<li><strong>Sprint 0:</strong> Data exploration, feasibility, baseline model</li>
+<li><strong>Sprint 1-N:</strong> Feature engineering iterations, model improvements</li>
+<li><strong>Spike:</strong> Research spike for new algorithm/architecture</li>
+<li><strong>Definition of Done for ML:</strong> Model meets metric threshold + deployed + monitored</li>
+</ul>
+<h3>Q73. What are the key differences between <abbr title="machine-learning operations">MLOps</abbr> and DevOps?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Aspect</th><th>DevOps</th><th>MLOps</th></tr></thead><tbody><tr class="g1"><td>Input</td><td>Code</td><td>Code + Data + Model</td></tr><tr class="g0"><td>Testing</td><td>Unit/integration</td><td>+ Data validation, model validation</td></tr><tr class="g1"><td>Versioning</td><td>Code (Git)</td><td>+ Data (DVC), Model (Registry)</td></tr><tr class="g0"><td>CI/CD</td><td>Build → Test → Deploy</td><td>+ Train → Evaluate → Deploy</td></tr><tr class="g1"><td>Monitoring</td><td>System metrics</td><td>+ Model performance, <abbr title="the input distribution changing after deployment">data drift</abbr></td></tr><tr class="g0"><td>Rollback</td><td>Previous code version</td><td>Previous model + data version</td></tr></tbody></table></div>
+<h3>Q74. How do you implement model rollback?</h3>
+<pre class="code" data-lang="python"><code><span class="cmt"># MLflow model registry rollback</span>
+<span class="kw">import</span> mlflow
+
+<span class="cmt"># Promote previous version back to production</span>
+client = mlflow.tracking.<span class="fn">MlflowClient</span>()
+client.<span class="fn">transition_model_version_stage</span>(
+    name=<span class="str">"fraud-model"</span>,
+    version=<span class="num">5</span>,          <span class="cmt"># Previous good version</span>
+    stage=<span class="str">"Production"</span>,
+)
+client.<span class="fn">transition_model_version_stage</span>(
+    name=<span class="str">"fraud-model"</span>, 
+    version=<span class="num">6</span>,          <span class="cmt"># Bad version</span>
+    stage=<span class="str">"Archived"</span>,
+)</code></pre>
+<h3>Q75. What is the difference between Prefect and Airflow?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Aspect</th><th>Airflow</th><th>Prefect</th></tr></thead><tbody><tr class="g1"><td>Architecture</td><td>Scheduler + workers + DB</td><td>Hybrid (agent-based)</td></tr><tr class="g0"><td><abbr title="directed acyclic graph">DAG</abbr> definition</td><td>Python files in dag folder</td><td>Python decorators</td></tr><tr class="g1"><td>Dynamic tasks</td><td>Limited</td><td>Native</td></tr><tr class="g0"><td>Cloud offering</td><td>MWAA (AWS), Composer (GCP)</td><td>Prefect Cloud</td></tr><tr class="g1"><td>Learning curve</td><td>Steeper</td><td>Easier</td></tr><tr class="g0"><td>UI</td><td>Good</td><td>Better</td></tr></tbody></table></div>
+<h3>Q76. What is data lineage and why does it matter?</h3>
+<div class="diagram"><pre>DATA LINEAGE TRACKS:
+  Raw Data → Cleaning → Feature Engineering → Training Data → Model v3.2 → Predictions
+
+WHY: 
+  - Debug: Which data produced bad predictions?
+  - Compliance: Prove data handling for GDPR/CCPA
+  - Impact analysis: If source data changes, which models are affected?
+  
+TOOLS: Apache Atlas, Marquez, dbt, DataHub</pre></div>
+<h3>Q77. How do you implement feature flags for ML?</h3>
+<pre class="code" data-lang="python"><code><span class="kw">import</span> os
+
+FEATURE_FLAGS = {
+    <span class="str">"use_new_model"</span>: os.<span class="fn">getenv</span>(<span class="str">"FF_NEW_MODEL"</span>, <span class="str">"false"</span>) == <span class="str">"true"</span>,
+    <span class="str">"enable_caching"</span>: os.<span class="fn">getenv</span>(<span class="str">"FF_CACHE"</span>, <span class="str">"true"</span>) == <span class="str">"true"</span>,
+    <span class="str">"max_batch_size"</span>: <span class="fn">int</span>(os.<span class="fn">getenv</span>(<span class="str">"FF_BATCH_SIZE"</span>, <span class="str">"32"</span>)),
+}
+
+@app.<span class="fn">post</span>(<span class="str">"/predict"</span>)
+<span class="kw">async</span> <span class="kw">def</span> <span class="fn">predict</span>(request: PredictRequest):
+    <span class="kw">if</span> FEATURE_FLAGS[<span class="str">"use_new_model"</span>]:
+        model = app.state.new_model
+    <span class="kw">else</span>:
+        model = app.state.current_model
+    <span class="kw">return</span> model.<span class="fn">predict</span>(request.features)</code></pre>
+<h3>Q78. What is chaos engineering for ML systems?</h3>
+<div class="diagram"><pre>EXPERIMENTS:
+  1. Kill a model server pod → Does load balancer reroute?
+  2. Inject 2s latency to feature store → Does circuit breaker trip?
+  3. Corrupt 10% of input data → Does data validation catch it?
+  4. Fill disk on model server → Does alerting fire?
+  5. Return random predictions → Does monitoring detect accuracy drop?
+
+TOOLS: Chaos Monkey, Litmus, Gremlin
+PRINCIPLE: Build confidence in system resilience through controlled failures</pre></div>
+<h3>Q79. How do you handle model A/B testing with statistical rigor?</h3>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> scipy <span class="kw">import</span> stats
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cmt"># Collect conversion data from A and B</span>
+conversions_a = np.<span class="fn">array</span>([<span class="num">1</span>, <span class="num">0</span>, <span class="num">1</span>, <span class="num">1</span>, <span class="num">0</span>, ...])  <span class="cmt"># Control</span>
+conversions_b = np.<span class="fn">array</span>([<span class="num">1</span>, <span class="num">1</span>, <span class="num">1</span>, <span class="num">0</span>, <span class="num">1</span>, ...])  <span class="cmt"># Treatment</span>
+
+<span class="cmt"># Chi-square test for proportions</span>
+rate_a = conversions_a.<span class="fn">mean</span>()
+rate_b = conversions_b.<span class="fn">mean</span>()
+n_a, n_b = <span class="fn">len</span>(conversions_a), <span class="fn">len</span>(conversions_b)
+
+<span class="cmt"># Minimum sample size for 80% power, 5% significance</span>
+min_sample = (<span class="num">1.96</span> + <span class="num">0.84</span>)**<span class="num">2</span> * <span class="num">2</span> * rate_a * (<span class="num">1</span> - rate_a) / (<span class="num">0.01</span>)**<span class="num">2</span>
+
+stat, p_value = stats.<span class="fn">chi2_contingency</span>([[<span class="fn">sum</span>(conversions_a), n_a - <span class="fn">sum</span>(conversions_a)],
+                                         [<span class="fn">sum</span>(conversions_b), n_b - <span class="fn">sum</span>(conversions_b)]])[:<span class="num">2</span>]
+<span class="kw">if</span> p_value &lt; <span class="num">0.05</span>:
+    <span class="fn">print</span>(f<span class="str">"Significant difference: A={rate_a:.4f}, B={rate_b:.4f}, p={p_value:.4f}"</span>)</code></pre>
+<h3>Q80. What is the cost of ML in production?</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Cost Category</th><th>Components</th><th>Optimization</th></tr></thead><tbody><tr class="g1"><td><strong>Compute</strong></td><td>GPU instances, training jobs</td><td>Spot instances, <abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">quantization</abbr>, <abbr title="training a smaller model to reproduce a larger model&#x27;s behaviour">distillation</abbr></td></tr><tr class="g0"><td><strong>Storage</strong></td><td>Model artifacts, data, logs</td><td>Lifecycle policies, compression</td></tr><tr class="g1"><td><strong>API calls</strong></td><td><abbr title="large language model">LLM</abbr> API (per token), embeddings</td><td>Caching, prompt optimization, smaller models</td></tr><tr class="g0"><td><strong>Networking</strong></td><td>Data transfer, <abbr title="content delivery network">CDN</abbr></td><td>Batch requests, edge deployment</td></tr><tr class="g1"><td><strong>Personnel</strong></td><td>ML engineers, data engineers</td><td>Automation, MLOps maturity</td></tr></tbody></table></div>
+<h3>Q81–Q100: Quick Reference</h3>
+<p><strong>Q81.</strong> What is Polars and when to use over Pandas? → Lazy evaluation, Rust backend, <span class="mag">10-100×</span> faster for large datasets.</p>
+<p><strong>Q82.</strong> What is Apache Spark for ML? → Distributed data processing, MLlib, runs on YARN/K8s/standalone.</p>
+<p><strong>Q83.</strong> What is Ray Serve? → Scalable model serving with composition, multi-model, autoscaling.</p>
+<p><strong>Q84.</strong> What is Seldon Core? → K8s-native ML serving, inference graphs, canary, A/B, explainability.</p>
+<p><strong>Q85.</strong> What is MLflow Model Registry stages? → None → Staging → Production → Archived.</p>
+<p><strong>Q86.</strong> What is W&amp;B Sweeps? → Automated hyperparameter search (grid, random, Bayesian).</p>
+<p><strong>Q87.</strong> What is data augmentation pipeline automation? → Albumentations (CV), NLPAug (text), audiomentations (audio) in CI/CD.</p>
+<p><strong>Q88.</strong> What is ONNX Runtime? → Cross-platform inference engine, <span class="mag">2-3×</span> faster than raw PyTorch.</p>
+<p><strong>Q89.</strong> What is TorchServe? → PyTorch-native serving: model archiver, handlers, metrics, batching.</p>
+<p><strong>Q90.</strong> What is the sidecar pattern in ML? → Logging, auth, or preprocessing container alongside model container in same pod.</p>
+<p><strong>Q91.</strong> What is OpenTelemetry for ML? → Standardized observability: traces, metrics, logs across ML microservices.</p>
+<p><strong>Q92.</strong> What is PVC (Persistent Volume Claim) in K8s for ML? → Attach persistent storage for model weights, datasets across pod restarts.</p>
+<p><strong>Q93.</strong> What is Kustomize vs Helm? → Kustomize: overlay-based, no templating. Helm: template-based, packaging. Use Kustomize for simple, Helm for complex.</p>
+<p><strong>Q94.</strong> What is init container in K8s for ML? → Download model weights from S3 before main container starts.</p>
+<p><strong>Q95.</strong> What is the <abbr title="stopping calls to a dependency that is already failing, to prevent cascading failure">circuit breaker</abbr> pattern for ML APIs? → Stop sending requests to failing dependency (DB, <abbr title="the shared service that computes and serves features identically to training and serving">feature store</abbr>) → return fallback/cached response → periodically retry.</p>
+<p><strong>Q96.</strong> What is service mesh (Istio) for ML? → Traffic management (canary, mirroring), <abbr title="mutual transport layer security">mTLS</abbr>, observability between ML microservices.</p>
+<p><strong>Q97.</strong> What is the strangler fig pattern for ML migration? → Gradually replace monolithic model with microservice models, routing traffic progressively.</p>
+<p><strong>Q98.</strong> What is the ambassador pattern for ML? → Proxy container handles model versioning, A/B routing, authentication before reaching model container.</p>
+<p><strong>Q99.</strong> What is Buildpack vs Dockerfile? → Cloud-native build tool (auto-detect language, create OCI image). Less control but simpler. Heroku, GCP Cloud Run use buildpacks.</p>
+<p><strong>Q100.</strong> What is the recommended MLOps stack for a startup?</p>
+<pre class="code"><code>MINIMAL VIABLE MLOPS:
+  Experiment tracking:  W&amp;B (free tier) or MLflow
+  Version control:      Git + DVC
+  CI/CD:                GitHub Actions
+  Containerization:     Docker + Docker Compose
+  Serving:              FastAPI + Uvicorn
+  Monitoring:           Prometheus + Grafana (or Evidently)
+  Cloud:                AWS (SageMaker) or GCP (Vertex AI)
+  Orchestration:        Prefect or simple cron
+  Model registry:       MLflow or W&amp;B</code></pre>
+<hr />
+<p><em>100 questions covering the full MLOps &amp; deployment stack — from experiment tracking through Kubernetes, FastAPI, CI/CD, monitoring, and production operations.</em></p></div></section>
+<div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+</div></main>
+</div>
+<button class="totop" id="totop" title="Back to top">&#8593;</button>
+<script>
+var LS='ai14.done.v2', TH='ai14.theme';
+var done={};try{done=JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){}
+var root=document.documentElement;
+function setTheme(t){root.setAttribute('data-theme',t);try{localStorage.setItem(TH,t)}catch(e){}
+  var b=document.getElementById('themeBtn'); if(b)b.textContent=(t==='dark'?'Light':'Dark');}
+setTheme((function(){try{return localStorage.getItem(TH)}catch(e){return null}})()||
+  (window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'));
+var tb=document.getElementById('themeBtn');
+if(tb)tb.onclick=function(){setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark')};
+
+var boxes=[].slice.call(document.querySelectorAll('.q-done input'));
+function refresh(){
+  var n=0;
+  boxes.forEach(function(b){
+    var q=b.closest('.q'), on=!!done[b.dataset.id];
+    b.checked=on; q.classList.toggle('done',on); if(on)n++;
+    var l=document.querySelector('nav a[data-q="'+q.id+'"]'); if(l)l.classList.toggle('done',on);
+  });
+  var el=document.getElementById('pgCount');
+  if(el)el.textContent=n+' / '+boxes.length;
+}
+boxes.forEach(function(b){b.addEventListener('change',function(){
+  if(b.checked)done[b.dataset.id]=1;else delete done[b.dataset.id];
+  try{localStorage.setItem(LS,JSON.stringify(done))}catch(e){}refresh();});});
+refresh();
+
+var db=document.getElementById('drillBtn');
+if(db)db.onclick=function(){var on=document.body.classList.toggle('drill');db.classList.toggle('on',on);
+  if(!on)[].forEach.call(document.querySelectorAll('.q.open'),function(q){q.classList.remove('open')});};
+[].forEach.call(document.querySelectorAll('.reveal'),function(b){
+  b.onclick=function(){b.closest('.q').classList.add('open')};});
+
+var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementById('search'),
+    noRes=document.getElementById('noRes');
+qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
+function runSearch(){
+  if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
+    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  [].forEach.call(document.querySelectorAll('.parthead'),function(p){
+    if(!v){p.style.display='';return}
+    var vis=false,n=p.nextElementSibling;
+    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
+    p.style.display=vis?'':'none';});
+  if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
+}
+if(inp)inp.addEventListener('input',runSearch);
+
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+var totop=document.getElementById('totop');
+function onScroll(){
+  var sc=document.documentElement.scrollTop;
+  if(totop)totop.classList.toggle('show',sc>600);
+  var cur=null;
+  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
+    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  navLinks.forEach(function(l){l.classList.remove('active')});
+  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
+    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
+      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+}
+window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
+
+var sb=document.getElementById('sidebar'), mb=document.getElementById('menuBtn');
+if(mb)mb.onclick=function(){sb.classList.toggle('open')};
+if(sb)sb.addEventListener('click',function(e){if(e.target.tagName==='A'&&window.innerWidth<=1060)sb.classList.remove('open')});
+
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'){if(e.key==='Escape'){e.target.value='';runSearch();e.target.blur()}return}
+  if(e.key==='/'&&inp){e.preventDefault();inp.focus()}
+  else if(e.key==='d'&&db){db.click()}
+  else if(e.key==='t'&&tb){tb.click()}
+  else if(e.key==='j'||e.key==='k'){
+    var vis=qs.filter(function(q){return q.style.display!=='none'}),idx=-1;
+    for(var i=0;i<vis.length;i++){if(vis[i].getBoundingClientRect().top>64){idx=i;break}}
+    if(e.key==='k')idx=(idx<0?vis.length:idx)-2;
+    var t=vis[Math.max(0,Math.min(vis.length-1,idx<0?0:idx))];
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}
+});
+/* reading progress */
+(function(){
+  var b=document.createElement('div'); b.id='rprog'; document.body.appendChild(b);
+  var t=null;
+  function upd(){
+    var h=document.documentElement, m=(h.scrollHeight-h.clientHeight);
+    b.style.width=(m>0?(h.scrollTop/m)*100:0)+'%';
+  }
+  addEventListener('scroll',function(){ if(t)return; t=requestAnimationFrame(function(){t=null;upd();}); },
+                   {passive:true});
+  addEventListener('resize',upd); upd();
+})();
+
+/* copy button on every code block */
+(function(){
+  document.querySelectorAll('pre.code').forEach(function(pre){
+    var b=document.createElement('button'); b.className='copy'; b.type='button'; b.textContent='Copy';
+    b.addEventListener('click',function(){
+      var code=pre.querySelector('code'); var txt=code?code.innerText:pre.innerText;
+      var done=function(){ b.textContent='Copied'; b.classList.add('ok');
+        setTimeout(function(){ b.textContent='Copy'; b.classList.remove('ok'); },1400); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(done,function(){});
+      } else {
+        var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta);
+        ta.select(); try{document.execCommand('copy');done();}catch(e){} document.body.removeChild(ta);
+      }
+    });
+    pre.appendChild(b);
+  });
+})();
+
+/* deep link on each question card */
+(function(){
+  document.querySelectorAll('.q[id] > .q-h').forEach(function(h){
+    var id=h.parentNode.id, a=document.createElement('a');
+    a.className='q-anchor'; a.href='#'+id; a.textContent='#';
+    a.title='Copy a link to this question';
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      var url=location.href.split('#')[0]+'#'+id;
+      history.replaceState(null,'','#'+id);
+      var done=function(){ a.classList.add('ok'); a.textContent='✓';
+        setTimeout(function(){ a.classList.remove('ok'); a.textContent='#'; },1200); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(done,done);
+      } else { done(); }
+    });
+    var label=h.querySelector('.q-done');
+    if(label){ h.insertBefore(a,label); } else { h.appendChild(a); }
+  });
+})();
+
+</script>
+</body></html>

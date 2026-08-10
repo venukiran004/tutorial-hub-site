@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inference — Agentic AI &amp; RAG</title>
+<meta name="description" content="The key-value (KV) cache, quantization, batching, serving">
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+:root{
+  color-scheme:dark;
+  --bg:#0d1117; --surface:#151b23; --surface-2:#1c232d; --surface-3:#232b36;
+  --border:#2a313c; --border-soft:#21262d;
+  --ink:#e6edf3; --ink-2:#9da7b3; --ink-mut:#6e7681;
+  --accent:#3987e5; --accent-soft:rgba(57,135,229,.14); --accent-bd:rgba(57,135,229,.42);
+  --t-rag:#3987e5; --t-agentic:#d95926; --t-recall:#199e70;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+  --warn-soft:rgba(250,178,25,.12); --good-soft:rgba(12,163,12,.12); --crit-soft:rgba(208,59,59,.12);
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;
+  --r1:#86b6ef;--r2:#5598e7;--r3:#2a78d6;--r4:#1c5cab;
+  --o1:#f0a882;--o2:#e88a5c;--o3:#d95926;--o4:#b8471d;--o5:#8f3716;
+  --code-bg:#0b0f15;
+  --fig-surface:#1c232d; --fig-surface-2:#171d26; --fig-surface-3:#232b36;
+  --fig-border:#39424f; --fig-ink:#e6edf3; --fig-ink-2:#b6c0cc; --fig-mut:#8d97a4;
+  --fig-accent:#3987e5; --fig-rag:#3987e5; --fig-agentic:#e2703a; --fig-recall:#22a97a;
+  --fig-good:#2eb82e; --fig-warn:#f0b429; --fig-crit:#e05252;
+  --mono:"SF Mono",SFMono-Regular,ui-monospace,"Cascadia Code",Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --radius:14px; --radius-sm:9px; --shadow:0 8px 30px rgba(0,0,0,.38); --sbw:302px;
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f6f8fa; --surface:#fff; --surface-2:#fbfcfd; --surface-3:#eff2f6;
+  --border:#d8dee4; --border-soft:#e6eaef;
+  --ink:#1f2328; --ink-2:#57606a; --ink-mut:#8b949e;
+  --accent:#2a78d6; --accent-soft:rgba(42,120,214,.10); --accent-bd:rgba(42,120,214,.34);
+  --t-rag:#2a78d6; --t-agentic:#eb6834; --t-recall:#1baf7a;
+  --warn-soft:rgba(250,178,25,.16); --good-soft:rgba(12,163,12,.10); --crit-soft:rgba(208,59,59,.09);
+  --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;
+  --r1:#86b6ef;--r2:#3987e5;--r3:#256abf;--r4:#184f95;
+  --o1:#f7c4a8;--o2:#f0996b;--o3:#eb6834;--o4:#c14a1f;--o5:#8f3716;
+  --code-bg:#f0f3f6; --shadow:0 6px 24px rgba(140,149,159,.20);
+  --fig-surface:#fff; --fig-surface-2:#f7f9fb; --fig-surface-3:#eef2f6;
+  --fig-border:#c9d1da; --fig-ink:#1f2328; --fig-ink-2:#414a54; --fig-mut:#6b747e;
+  --fig-accent:#2a78d6; --fig-rag:#2a78d6; --fig-agentic:#d1541f; --fig-recall:#12855c;
+  --fig-good:#1a7f1a; --fig-warn:#a97400; --fig-crit:#c62d2d;
+}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+
+.siteswitch{background:var(--surface-3);border-bottom:1px solid var(--border)}
+.siteswitch-in{max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:4px;padding:5px 18px;flex-wrap:wrap}
+.siteswitch a{font-size:11.5px;padding:4px 10px;border-radius:7px;color:var(--ink-mut);text-decoration:none;white-space:nowrap}
+.siteswitch a:hover{background:var(--surface);color:var(--ink)}
+.siteswitch a.on{background:var(--accent);color:#fff;font-weight:700}
+.siteswitch .sw-home{font-weight:800;color:var(--ink-2);margin-right:8px}
+/* ---------- top bar (site nav) ---------- */
+.sitebar{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 93%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.sitebar-in{max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:6px;padding:9px 18px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:14px;letter-spacing:-.3px;margin-right:10px;text-decoration:none;color:var(--ink);white-space:nowrap}
+.logo b{color:var(--accent)}
+.sitebar a.tab{font-size:12.8px;padding:6px 12px;border-radius:8px;color:var(--ink-2);text-decoration:none;border:1px solid transparent;white-space:nowrap}
+.sitebar a.tab:hover{background:var(--surface-2);color:var(--ink)}
+.sitebar a.tab.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-bd);font-weight:700}
+.sitebar .sp{margin-left:auto}
+.btn{background:var(--surface);border:1px solid var(--border);color:var(--ink-2);padding:6px 11px;border-radius:8px;cursor:pointer;font-size:12.3px;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--ink)}
+.btn.on{background:var(--accent-soft);border-color:var(--accent-bd);color:var(--accent);font-weight:700}
+
+.app{display:grid;grid-template-columns:var(--sbw) 1fr;max-width:1560px;margin:0 auto;min-height:100vh}
+aside{position:sticky;top:47px;height:calc(100vh - 47px);overflow-y:auto;overscroll-behavior:contain;border-right:1px solid var(--border);padding:12px 0 40px;background:var(--bg)}
+aside::-webkit-scrollbar{width:8px}aside::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.sb-search{padding:0 14px 8px}
+.sb-search input{width:100%;padding:8px 11px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:13px;font-family:inherit;outline:none}
+.sb-search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.sb-hint{font-size:10.3px;color:var(--ink-mut);padding:2px 15px 10px}
+nav{padding:0 8px;font-size:13px}
+.nav-grp{margin:12px 0 3px;padding:0 10px;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-mut);font-weight:800}
+nav a{display:flex;gap:7px;align-items:flex-start;padding:5px 10px;margin:1px 2px;border-radius:7px;color:var(--ink-2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;font-size:12.5px}
+nav a:hover{background:var(--surface-2);color:var(--ink)}
+nav a.active{background:var(--accent-soft);color:var(--accent);border-left-color:var(--accent);font-weight:650}
+nav a.done .qn{background:var(--good);border-color:var(--good);color:#fff}
+.qn{flex:none;min-width:21px;text-align:center;font-family:var(--mono);font-size:9.5px;padding:1px 4px;border-radius:5px;border:1px solid var(--border);color:var(--ink-mut);height:17px;line-height:15px}
+
+main{min-width:0;padding:0 40px 140px}
+.wrap{max-width:1000px;margin:0 auto}
+
+/* ---------- hero ---------- */
+.hero{padding:36px 0 4px}
+.eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tc,var(--accent));font-weight:800}
+.hero h1{font-size:40px;line-height:1.08;margin:9px 0 12px;letter-spacing:-1px}
+.hero .lede{color:var(--ink-2);font-size:17px;margin:0 0 20px;max-width:70ch}
+.hero .lede b{color:var(--ink)}
+.oneliner{border-left:4px solid var(--tc,var(--accent));background:var(--surface);border-radius:0 var(--radius) var(--radius) 0;padding:14px 18px;margin:18px 0;font-size:16px}
+.oneliner b{color:var(--tc,var(--accent))}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:22px 0}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat-v{font-size:27px;font-weight:750;letter-spacing:-.6px;line-height:1.05;color:var(--tc,var(--accent))}
+.stat-l{font-size:11px;color:var(--ink-mut);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;line-height:1.35}
+
+/* ---------- figures ---------- */
+figure.viz{margin:26px 0;background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--border);border-radius:var(--radius);padding:17px 19px 10px;overflow:hidden;box-shadow:var(--shadow)}
+figure.viz figcaption b::before{content:"";display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--tc,var(--accent));margin-right:9px;vertical-align:middle}
+figure.viz figcaption{margin-bottom:12px}
+figure.viz figcaption b{display:block;font-size:15px;letter-spacing:-.2px}
+figure.viz figcaption span{display:block;font-size:12px;color:var(--ink-mut);margin-top:2px}
+figure.viz figcaption .terms{display:block;font-size:11px;color:var(--ink-mut);margin-top:5px;
+  padding-top:5px;border-top:1px dashed var(--border-soft);line-height:1.65}
+figure.viz figcaption .terms b{display:inline;font-size:11px;letter-spacing:0;color:var(--ink-2);
+  font-weight:700;font-family:var(--mono)}
+figure.viz figcaption .terms b::before{content:none;display:none;margin:0}
+abbr[title]{text-decoration:underline dotted var(--ink-mut);text-underline-offset:3px;cursor:help;border:0;text-decoration-thickness:1px}
+abbr[title]:hover{text-decoration-color:var(--accent)}
+.viz-scroll{overflow-x:auto;padding-bottom:6px}
+.viz-scroll svg{display:block;width:100%;min-width:660px;height:auto}
+
+/* ---------- standard topic panels ---------- */
+.panels{display:grid;gap:13px;margin:18px 0}
+.panel{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--pc,var(--accent));border-radius:var(--radius);padding:15px 18px}
+.panel > h3{margin:0 0 4px;font-size:15.5px;display:flex;align-items:center;gap:9px}
+.panel > h3 .ic{width:23px;height:23px;border-radius:7px;background:var(--pc,var(--accent));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:none}
+.panel > h3 small{margin-left:auto;font-size:10.5px;color:var(--ink-mut);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.p-scale{--pc:var(--t-rag)} .p-prod{--pc:var(--t-recall)} .p-opt{--pc:var(--t-agentic)}
+.p-lat{--pc:var(--warn)} .p-met{--pc:var(--accent)}
+
+/* ---------- per-answer visual furniture ---------- */
+.keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
+.kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
+.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram pre{margin:0;padding-top:12px;background:none;border:none;font-family:var(--mono);font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
+.flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
+.flow .fl{font-size:10px;font-weight:800;letter-spacing:.09em;color:var(--ink-mut);margin-right:10px;text-transform:uppercase}
+.q-a ol{counter-reset:st;list-style:none;padding-left:0;margin:11px 0}
+.q-a ol > li{counter-increment:st;position:relative;padding-left:36px;margin:8px 0}
+.q-a ol > li::before{content:counter(st);position:absolute;left:0;top:1px;width:24px;height:24px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+/* ---------- content ---------- */
+.sec{margin-top:44px;scroll-margin-top:60px}
+.sec > h2{font-size:25px;margin:0 0 4px;letter-spacing:-.5px;padding-bottom:9px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:11px}
+.sec > h2 .hn{font-size:11.5px;font-family:var(--mono);font-weight:800;background:var(--tc,var(--accent));color:#fff;border-radius:7px;padding:3px 8px}
+.parthead{display:flex;align-items:center;gap:12px;margin:30px 0 12px}
+.parthead span{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mut);white-space:nowrap}
+.parthead i{flex:1;height:1px;background:var(--border)}
+.q{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 18px;margin:10px 0;scroll-margin-top:60px}
+.q:target{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.q.done{border-left:3px solid var(--good)}
+.q-h{display:flex;align-items:flex-start;gap:11px}
+.q-n{flex:none;font-family:var(--mono);font-size:11px;font-weight:800;min-width:26px;height:23px;line-height:21px;text-align:center;border-radius:7px;border:1px solid var(--border);color:var(--ink-mut);background:var(--bg)}
+.q.done .q-n{background:var(--good);border-color:var(--good);color:#fff}
+.q-h h3{margin:0;font-size:17px;line-height:1.35;letter-spacing:-.2px;flex:1}
+.q-done{flex:none;cursor:pointer}
+.q-done input{position:absolute;opacity:0;pointer-events:none}
+.q-done span{display:block;width:22px;height:22px;border-radius:7px;border:1px solid var(--border);background:var(--bg);position:relative}
+.q-done span::after{content:"";position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid transparent;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.q-done input:checked+span{background:var(--good);border-color:var(--good)}
+.q-done input:checked+span::after{border-color:#fff}
+.q-a{margin-top:11px}
+.reveal{display:none;margin-top:10px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);padding:7px 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:12.4px;font-weight:700}
+body.drill .q-a{display:none} body.drill .reveal{display:inline-block}
+/* reference cards have no answer to hide - never drill them */
+body.drill .q.q-ref .q-a{display:block}
+body.drill .q.open .q-a{display:block} body.drill .q.open .reveal{display:none}
+
+p{margin:9px 0}
+h3{font-size:17px;margin:20px 0 7px}h4{font-size:14px;margin:15px 0 5px;color:var(--ink-2)}
+ul{margin:9px 0;padding-left:22px}li{margin:4px 0}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+hr{border:none;border-top:1px solid var(--border);margin:20px 0}
+code{font-family:var(--mono);font-size:.855em;background:var(--code-bg);padding:.12em .42em;border-radius:5px;border:1px solid var(--border-soft);color:#ffa657;word-break:break-word}
+html[data-theme="light"] code{color:#953800}
+pre.code{background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 15px;overflow-x:auto;margin:11px 0;line-height:1.55;position:relative}
+pre.code code{background:none;border:none;padding:0;color:var(--ink);font-size:12.4px;white-space:pre}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:0;right:0;font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-mut);background:var(--surface-3);border-left:1px solid var(--border);border-bottom:1px solid var(--border);border-radius:0 var(--radius-sm) 0 7px;padding:2px 8px}
+.cmt{color:var(--ink-mut);font-style:italic}.kw{color:#ff7b72}.str{color:#a5d6ff}.fn{color:#d2a8ff}.num{color:#79c0ff}
+html[data-theme="light"] .kw{color:#cf222e}html[data-theme="light"] .str{color:#0a3069}
+html[data-theme="light"] .fn{color:#8250df}html[data-theme="light"] .num{color:#0550ae}
+.say{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 16px;margin:12px 0}
+.say-h{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.say-h::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.say p{margin:0;font-size:15.2px;line-height:1.68}.say em{font-style:normal;color:var(--ink)}
+.note{border-left:3px solid var(--border);background:var(--surface-2);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 15px;margin:12px 0;font-size:13.8px;color:var(--ink-2)}
+.note p:first-child{margin-top:0}.note p:last-child{margin-bottom:0}.note strong{color:var(--ink)}
+.tbl-wrap{overflow-x:auto;margin:15px 0;border:1px solid var(--border);border-radius:12px;
+  background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.10)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.2px;background:transparent}
+th,td{padding:10px 13px;text-align:left;border-bottom:1px solid var(--border-soft);vertical-align:top;line-height:1.55}
+th{position:sticky;top:0;z-index:2;background:var(--surface-3);font-weight:800;font-size:10.5px;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2);white-space:nowrap;
+  border-bottom:1px solid var(--border);backdrop-filter:blur(6px)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover>td{background:var(--surface-2)}
+tbody tr.g1>td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+tbody tr.g1:hover>td{background:var(--surface-2)}
+
+/* merged category column: the label is stated once, as a vertical band */
+td.c-grp{background:var(--surface-3);border-right:1px solid var(--border);vertical-align:top;
+  width:1%;white-space:nowrap;padding:11px 13px}
+tbody tr:hover>td.c-grp{background:var(--surface-3)}
+td.c-grp .grp-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--tc,var(--accent));background:var(--accent-soft);
+  border:1px solid var(--accent-bd);border-radius:999px;padding:3px 11px;position:sticky;top:44px}
+table.t-grouped td:not(.c-grp):first-of-type{font-weight:600;color:var(--ink)}
+
+/* two-column glossary: term rail on the left */
+table.t-def td.c-term{width:210px;font-weight:700;color:var(--ink);background:var(--surface-2);
+  border-right:2px solid var(--accent-bd)}
+table.t-def td.c-term code{background:none;border:none;padding:0;color:inherit}
+
+/* magnitudes should read as data, not prose */
+.mag{font-family:var(--mono);font-size:.9em;font-weight:700;color:var(--warn);
+  background:var(--warn-soft);border-radius:5px;padding:.05em .38em;white-space:nowrap}
+
+/* term / description list rows */
+li.dl{list-style:none;margin:7px 0;padding:7px 12px;border-radius:9px;background:var(--surface-2);
+  border-left:3px solid var(--border)}
+li.dl:hover{border-left-color:var(--accent)}
+li.dl .dt{display:inline-block;font-weight:800;color:var(--ink);margin-right:8px}
+li.dl .dt::after{content:"—";color:var(--ink-mut);font-weight:400;margin-left:8px}
+li.dl .dd{color:var(--ink-2)}
+ul:has(> li.dl){padding-left:0}
+
+/* typed callouts */
+.note.n-crit{border-left-color:var(--crit);background:var(--crit-soft)}
+.note.n-warn{border-left-color:var(--warn);background:var(--warn-soft)}
+.note.n-good{border-left-color:var(--good);background:var(--good-soft)}
+.note.n-key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.n-crit strong:first-child{color:var(--crit)}
+.note.n-warn strong:first-child{color:var(--warn)}
+.note.n-good strong:first-child{color:var(--good)}
+.note.n-key strong:first-child{color:var(--accent)}
+
+/* headings inside an answer body */
+.q-a h3,.q-a h4{display:flex;align-items:center;gap:9px;letter-spacing:-.2px}
+.q-a h3::before{content:"";width:3px;height:15px;border-radius:2px;background:var(--tc,var(--accent));flex:none}
+.q-a h4{color:var(--ink-2);font-size:13.5px;text-transform:none}
+.q-a h4::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--ink-mut);flex:none}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:13px;margin:20px 0}
+.tcard{display:block;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--tc,var(--accent));border-radius:var(--radius);padding:15px 16px;text-decoration:none;color:inherit}
+.tcard:hover{border-color:var(--accent);box-shadow:var(--shadow);text-decoration:none}
+.tcard h4{margin:0 0 5px;font-size:15px;color:var(--ink)}
+.tcard p{margin:0;font-size:12.2px;color:var(--ink-mut);line-height:1.5}
+.tcard .meta{margin-top:9px;font-size:10.5px;color:var(--tc,var(--accent));font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.no-result{display:none;text-align:center;color:var(--ink-mut);padding:60px 20px}.no-result.show{display:block}
+kbd{font-family:var(--mono);font-size:10px;background:var(--surface-3);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 5px;color:var(--ink-2)}
+.totop{position:fixed;right:20px;bottom:20px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:18px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;z-index:55}
+.totop.show{opacity:1;pointer-events:auto}
+.menu-toggle{display:none}
+@media(max-width:1060px){
+  .app{grid-template-columns:1fr}
+  aside{position:fixed;left:calc(-1 * var(--sbw));top:0;height:100vh;width:var(--sbw);z-index:100;transition:left .25s;box-shadow:var(--shadow);background:var(--surface)}
+  aside.open{left:0}
+  .menu-toggle{display:inline-flex}
+  main{padding:0 15px 110px}
+  .hero h1{font-size:29px}
+}
+@media print{.sitebar,aside,.totop,.reveal,.q-done{display:none}.app{grid-template-columns:1fr}body.drill .q-a{display:block}}
+
+/* =====================================================================
+   DESIGN LAYER  --  loaded last, so these rules win.
+   Depth, type scale, motion, and the components the base sheet lacks.
+   ===================================================================== */
+
+:root{
+  --e1:0 1px 2px rgba(0,0,0,.18);
+  --e2:0 4px 14px rgba(0,0,0,.24);
+  --e3:0 14px 40px rgba(0,0,0,.34);
+  --ring:0 0 0 3px var(--accent-soft);
+  --tight:-.022em;
+  --glass:color-mix(in srgb,var(--bg) 78%,transparent);
+}
+html[data-theme="light"]{
+  --e1:0 1px 2px rgba(16,24,40,.06);
+  --e2:0 6px 18px rgba(16,24,40,.09);
+  --e3:0 18px 44px rgba(16,24,40,.13);
+}
+html[data-theme="dark"],:root{ --bg:#0a0e14; --surface:#12181f; --surface-2:#171e26; --surface-3:#1e2630;
+  --border:#262f3a; --border-soft:#1c242e; }
+
+body{font-size:15.6px;line-height:1.68;letter-spacing:.002em;
+  text-rendering:optimizeLegibility;font-variant-ligatures:common-ligatures}
+::selection{background:var(--accent);color:#fff}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+@media(prefers-reduced-motion:no-preference){
+  a,button,.tcard,.q,.stat,.hub-card,.learn-item,nav a,.tab,.sw{transition:
+    background-color .16s ease,border-color .16s ease,color .16s ease,
+    transform .16s cubic-bezier(.2,.7,.3,1),box-shadow .16s ease}
+}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--border)}
+
+/* ---------- reading progress ---------- */
+#rprog{position:fixed;top:0;left:0;height:2.5px;width:0;z-index:200;
+  background:linear-gradient(90deg,var(--t-rag),var(--t-agentic),var(--t-recall));
+  box-shadow:0 0 12px var(--accent);transition:width .08s linear}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));
+  border-bottom:1px solid var(--border-soft)}
+.siteswitch a{font-weight:600;letter-spacing:.01em}
+.siteswitch a.on{box-shadow:0 2px 10px color-mix(in srgb,var(--accent) 45%,transparent)}
+.sitebar{background:var(--glass);backdrop-filter:blur(14px) saturate(1.5);
+  -webkit-backdrop-filter:blur(14px) saturate(1.5);box-shadow:var(--e1)}
+.sitebar a.tab.on{box-shadow:inset 0 0 0 1px var(--accent-bd)}
+.logo{font-size:14.5px;letter-spacing:var(--tight)}
+.btn{box-shadow:var(--e1);font-weight:600}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--e2)}
+.btn:active{transform:translateY(0)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,var(--bg),color-mix(in srgb,var(--surface) 55%,var(--bg)));
+  border-right:1px solid var(--border-soft)}
+.sb-search input{box-shadow:var(--e1)}
+nav a{border-radius:9px;border-left:0;position:relative;padding-left:12px}
+nav a.active{background:linear-gradient(90deg,var(--accent-soft),transparent);
+  box-shadow:inset 0 0 0 1px var(--accent-bd)}
+nav a.active::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--accent)}
+.nav-grp{margin-top:16px;color:var(--ink-mut);opacity:.85}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:52px 0 8px}
+.hero::before{content:"";position:absolute;left:-56px;right:-56px;top:-140px;height:420px;z-index:-1;
+  pointer-events:none;opacity:.5;
+  background:
+    radial-gradient(58% 62% at 14% 24%,color-mix(in srgb,var(--tc,var(--accent)) 34%,transparent),transparent 70%),
+    radial-gradient(46% 54% at 82% 8%,color-mix(in srgb,var(--t-agentic) 22%,transparent),transparent 72%);
+  filter:blur(26px)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;padding:5px 12px;
+  border-radius:999px;background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 34%,transparent)}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--tc,var(--accent));
+  box-shadow:0 0 9px var(--tc,var(--accent))}
+.hero h1{font-size:clamp(32px,4.4vw,46px);line-height:1.04;letter-spacing:-.032em;
+  margin:16px 0 14px;font-weight:800;
+  background:linear-gradient(175deg,var(--ink) 30%,color-mix(in srgb,var(--ink) 62%,var(--tc,var(--accent))));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lede{font-size:17.5px;line-height:1.62;max-width:86ch}
+.oneliner{background:linear-gradient(100deg,
+    color-mix(in srgb,var(--tc,var(--accent)) 11%,var(--surface)),var(--surface) 62%);
+  border:1px solid var(--border);border-left:4px solid var(--tc,var(--accent));
+  border-radius:var(--radius);box-shadow:var(--e1);line-height:1.6}
+
+/* ---------- stat tiles ---------- */
+.stat{position:relative;overflow:hidden;box-shadow:var(--e1);
+  background:linear-gradient(180deg,var(--surface),var(--surface-2))}
+.stat::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),transparent 78%)}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--e2);border-color:var(--tc,var(--accent))}
+.stat-v{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+
+/* ---------- what you'll learn ---------- */
+.learn{margin:26px 0 10px;padding:20px 22px 18px;border-radius:16px;position:relative;
+  background:linear-gradient(150deg,
+    color-mix(in srgb,var(--tc,var(--accent)) 9%,var(--surface)),var(--surface) 58%);
+  border:1px solid var(--border);box-shadow:var(--e1)}
+.learn-h{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:800;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--tc,var(--accent))}
+.learn-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;background:var(--tc,var(--accent));color:#fff;font-size:11px}
+.learn-lede{margin:10px 0 4px;font-size:15px;color:var(--ink-2);max-width:92ch}
+.learn-grid{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px;
+  grid-template-columns:repeat(auto-fill,minmax(268px,1fr))}
+.learn-item{background:var(--bg);border:1px solid var(--border-soft);border-radius:11px;
+  padding:11px 13px;margin:0}
+.learn-item:hover{border-color:var(--tc,var(--accent));transform:translateY(-1px);box-shadow:var(--e1)}
+.learn-top{display:flex;align-items:baseline;gap:9px}
+.learn-top b{font-size:13.4px;color:var(--ink);letter-spacing:var(--tight)}
+.learn-n{margin-left:auto;font-size:10px;font-family:var(--mono);color:var(--ink-mut);white-space:nowrap}
+.learn-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.learn-tags span{font-size:10px;padding:2px 8px;border-radius:999px;background:var(--surface-3);
+  border:1px solid var(--border-soft);color:var(--ink-mut)}
+
+/* ---------- section + file headers ---------- */
+.sec > h2{letter-spacing:-.028em;border-bottom:1px solid var(--border)}
+.sec > h2 .hn{box-shadow:0 2px 10px color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent)}
+.filehead h2{letter-spacing:-.028em}
+.parthead span{color:var(--tc,var(--accent));opacity:.9}
+.parthead i{background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- question cards ---------- */
+.q{box-shadow:var(--e1);border-radius:14px}
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,var(--border));box-shadow:var(--e2)}
+.q-h h3{letter-spacing:-.02em}
+.q-n{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));font-weight:800}
+.q.done{box-shadow:inset 3px 0 0 var(--good),var(--e1);border-left-color:transparent}
+.q-a{max-width:none}
+.q-a > p:first-child{color:var(--ink)}
+/* block content fills the card; only loose prose keeps a comfortable measure */
+.q-a > p{max-width:96ch}
+.q-a > ul:not(.steplist),.q-a > ol:not(.steplist){max-width:96ch}
+
+/* ---------- cards ---------- */
+.tcard{box-shadow:var(--e1);background:linear-gradient(170deg,var(--surface),var(--surface-2))}
+.tcard:hover{transform:translateY(-3px);box-shadow:var(--e3)}
+.tcard h4{letter-spacing:var(--tight)}
+
+/* ---------- code ---------- */
+pre.code{box-shadow:inset 0 0 0 1px var(--border-soft),var(--e1);border-radius:12px;padding:15px 16px}
+pre.code:hover .copy{opacity:1}
+.copy{position:absolute;top:7px;right:8px;opacity:0;font-family:var(--sans);font-size:10.5px;
+  font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:7px;
+  border:1px solid var(--border);background:var(--surface-3);color:var(--ink-2);cursor:pointer;z-index:3}
+.copy:hover{border-color:var(--accent);color:var(--accent)}
+.copy.ok{border-color:var(--good);color:var(--good)}
+pre.code[data-lang]::before{top:0;right:auto;left:0;border-radius:12px 0 8px 0;border-left:0;
+  border-right:1px solid var(--border)}
+
+/* ---------- figures ---------- */
+figure.viz{border-radius:16px;box-shadow:var(--e2);padding:19px 21px 12px}
+figure.viz figcaption b{font-size:15.5px;letter-spacing:-.024em}
+figure.viz:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,var(--border))}
+
+/* ---------- tables ---------- */
+.tbl-wrap{box-shadow:var(--e1)}
+td.c-grp .grp-tag{box-shadow:var(--e1)}
+.mag{letter-spacing:-.01em}
+
+/* ---------- callouts + say ---------- */
+.say{border-radius:12px;border-left-width:4px;box-shadow:var(--e1);
+  background:linear-gradient(100deg,var(--accent-soft),transparent 70%)}
+.note{border-radius:12px;border-left-width:4px}
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key{box-shadow:var(--e1)}
+
+/* ---------- panels ---------- */
+.panel{box-shadow:var(--e1);border-radius:14px;
+  background:linear-gradient(170deg,color-mix(in srgb,var(--pc,var(--accent)) 7%,var(--surface)),var(--surface) 55%)}
+.panel:hover{box-shadow:var(--e2)}
+.panel > h3 .ic{box-shadow:0 2px 9px color-mix(in srgb,var(--pc,var(--accent)) 50%,transparent)}
+
+/* ---------- keyterms + flow ---------- */
+.kt{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));font-weight:650}
+.kt:hover{border-color:var(--accent);color:var(--accent)}
+.flow{border-radius:12px;box-shadow:var(--e1)}
+.flow .st{box-shadow:var(--e1)}
+.diagram{border-radius:12px}
+
+/* ---------- step lists (a fence that was really a list) ---------- */
+ol.steplist{counter-reset:sl;list-style:none;padding-left:0;margin:14px 0}
+ol.steplist > li{counter-increment:sl;position:relative;padding:9px 14px 9px 44px;margin:7px 0;
+  background:var(--surface-2);border:1px solid var(--border-soft);border-radius:11px;
+  line-height:1.6;font-size:14.4px}
+ol.steplist > li::before{content:counter(sl);position:absolute;left:11px;top:9px;width:24px;height:24px;
+  border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);
+  font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono)}
+ol.steplist > li:hover{border-color:var(--accent-bd)}
+ul.steplist{list-style:none;padding-left:0;margin:14px 0}
+ul.steplist > li{position:relative;padding:8px 14px 8px 30px;margin:6px 0;background:var(--surface-2);
+  border:1px solid var(--border-soft);border-radius:11px;line-height:1.6;font-size:14.4px}
+ul.steplist > li::before{content:"";position:absolute;left:13px;top:17px;width:6px;height:6px;
+  border-radius:50%;background:var(--tc,var(--accent))}
+
+/* a source heading with no body under it: don't render an empty card */
+.q-a:empty{display:none}
+.q-a:empty + .reveal{display:none}
+.q:has(> .q-a:empty){padding:11px 18px;background:var(--surface-2);opacity:.85}
+.q:has(> .q-a:empty) .q-h h3{font-size:14.5px;color:var(--ink-2)}
+
+.q-h h3 code{font-size:.88em;background:var(--code-bg);border:1px solid var(--border-soft);padding:.06em .34em}
+nav a code{font-size:.9em;background:none;border:0;padding:0;color:inherit}
+.parthead code{font-size:.92em;background:none;border:0;padding:0;color:inherit}
+
+/* ---------- hub ---------- */
+.hub-card{box-shadow:var(--e1);background:linear-gradient(170deg,var(--surface),var(--surface-2))}
+.hub-card:hover{transform:translateY(-4px);box-shadow:var(--e3)}
+.hub h1{letter-spacing:-.034em;font-weight:800}
+
+@media(max-width:1060px){
+  .hero{padding:34px 0 4px}
+  .hero::before{display:none}
+  .learn-grid{grid-template-columns:1fr}
+}
+@media print{
+  .sitebar,.siteswitch,aside,.totop,.reveal,.copy,#rprog{display:none!important}
+  .app{grid-template-columns:1fr}
+  .q,.tbl-wrap,figure.viz{break-inside:avoid;box-shadow:none}
+}
+
+/* ---------- long-page ergonomics ---------- */
+/* the group header stays put while you scroll a 200-question list */
+.parthead{position:sticky;top:44px;z-index:12;background:var(--glass);
+  backdrop-filter:blur(10px) saturate(1.4);-webkit-backdrop-filter:blur(10px) saturate(1.4);
+  padding:8px 10px;margin:26px -10px 10px;border-radius:10px}
+.filehead{position:relative;z-index:1}
+
+/* question cards: tint the badge, and offer a deep link on hover */
+.q-n{color:var(--tc,var(--accent));border-color:color-mix(in srgb,var(--tc,var(--accent)) 40%,var(--border))}
+.q-h{position:relative}
+.q-anchor{opacity:0;margin-left:8px;font-size:12px;color:var(--ink-mut);text-decoration:none;
+  cursor:pointer;font-family:var(--mono);flex:none;align-self:center}
+.q:hover .q-anchor{opacity:.7}
+.q-anchor:hover{opacity:1!important;color:var(--accent);text-decoration:none}
+.q-anchor.ok{color:var(--good);opacity:1!important}
+
+/* card affordances */
+.tcard,.hub-card{position:relative}
+.tcard::after,.hub-card::after{content:"92";position:absolute;right:16px;bottom:12px;
+  font-size:15px;color:var(--tc,var(--accent));opacity:0;transform:translateX(-4px)}
+.tcard:hover::after,.hub-card:hover::after{opacity:.9;transform:translateX(0);
+  transition:opacity .16s ease,transform .16s ease}
+
+/* search: dim the page while filtering so hits stand out */
+body.searching .q{opacity:1}
+body.searching .parthead{opacity:.5}
+
+@media(max-width:1060px){ .parthead{top:0} }
+
+</style>
+</head>
+<body>
+<div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
+  <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw" href="../03_Data_Handling/index.html">03 Data</a><a class="sw" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw on" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw" href="../11_System_Design/index.html">11 Sys Design</a>
+</div></div><div class="sitebar-in">
+  <button class="btn menu-toggle" id="menuBtn">&#9776;</button>
+  <a class="logo" href="index.html">GenAI &amp; <b>LLMs</b></a>
+  <a class="tab" href="index.html">Home</a><a class="tab" href="llm.html">LLM Controls</a><a class="tab on" href="inference.html">Inference</a><a class="tab" href="training.html">Training</a><a class="tab" href="rag.html">RAG</a><a class="tab" href="eval.html">Evaluation</a><a class="tab" href="interview.html">Interview</a><a class="tab" href="glassdoor.html">Glassdoor</a><a class="tab" href="scenarios.html">Scenarios</a><a class="tab" href="production.html">Production</a>
+  <span class="sp"></span>
+  <span class="btn" style="cursor:default" title="Questions ticked on this page"><span id="pgCount">0 / 0</span></span>
+  <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
+  <button class="btn" id="themeBtn">Dark</button>
+</div></div>
+<div class="app" style="--tc:var(--t-agentic)">
+<aside id="sidebar">
+  <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
+  <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
+  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><a href="#figs"><span class="qn">&#9635;</span>Diagrams</a><div class="nav-grp">02 &middot; Inference optimization</div><a href="#f02LLMInference-0" data-q="f02LLMInference-0"><span class="qn">&bull;</span>Two Phases of Autoregressive Generation</a><a href="#f02LLMInference-1" data-q="f02LLMInference-1"><span class="qn">&bull;</span>Key Performance Metrics</a><a href="#f02LLMInference-2" data-q="f02LLMInference-2"><span class="qn">&bull;</span>Memory Requirements</a><a href="#f02LLMInference-3" data-q="f02LLMInference-3"><span class="qn">&bull;</span>Bottleneck Analysis</a><a href="#f02LLMInference-4" data-q="f02LLMInference-4"><span class="qn">&bull;</span>How It Works</a><a href="#f02LLMInference-5" data-q="f02LLMInference-5"><span class="qn">&bull;</span>KV Cache Memory Management</a><a href="#f02LLMInference-6" data-q="f02LLMInference-6"><span class="qn">&bull;</span>Prefix Caching</a><a href="#f02LLMInference-7" data-q="f02LLMInference-7"><span class="qn">&bull;</span>Quantization Types</a><a href="#f02LLMInference-8" data-q="f02LLMInference-8"><span class="qn">&bull;</span>GPTQ (Post-Training Quantization)</a><a href="#f02LLMInference-9" data-q="f02LLMInference-9"><span class="qn">&bull;</span>AWQ (Activation-Aware Weight Quantization)</a><a href="#f02LLMInference-10" data-q="f02LLMInference-10"><span class="qn">&bull;</span>GGUF (llama.cpp)</a><a href="#f02LLMInference-11" data-q="f02LLMInference-11"><span class="qn">&bull;</span>Memory Savings</a><a href="#f02LLMInference-12" data-q="f02LLMInference-12"><span class="qn">&bull;</span>Flash Attention</a><a href="#f02LLMInference-13" data-q="f02LLMInference-13"><span class="qn">&bull;</span>Flash Attention 2/3</a><a href="#f02LLMInference-14" data-q="f02LLMInference-14"><span class="qn">&bull;</span>Sliding Window Attention</a><a href="#f02LLMInference-15" data-q="f02LLMInference-15"><span class="qn">&bull;</span>Static Batching</a><a href="#f02LLMInference-16" data-q="f02LLMInference-16"><span class="qn">&bull;</span>Continuous/Dynamic Batching</a><a href="#f02LLMInference-17" data-q="f02LLMInference-17"><span class="qn">&bull;</span>Iteration-Level Scheduling</a><a href="#f02LLMInference-18" data-q="f02LLMInference-18"><span class="qn">&bull;</span>Chunked Prefill</a><a href="#f02LLMInference-19" data-q="f02LLMInference-19"><span class="qn">&bull;</span>Core Idea</a><a href="#f02LLMInference-20" data-q="f02LLMInference-20"><span class="qn">&bull;</span>Implementation</a><a href="#f02LLMInference-21" data-q="f02LLMInference-21"><span class="qn">&bull;</span>Variants</a><a href="#f02LLMInference-22" data-q="f02LLMInference-22"><span class="qn">&bull;</span>vLLM</a><a href="#f02LLMInference-23" data-q="f02LLMInference-23"><span class="qn">&bull;</span>Serving Framework Comparison</a><a href="#f02LLMInference-24" data-q="f02LLMInference-24"><span class="qn">&bull;</span>SGLang</a><a href="#f02LLMInference-25" data-q="f02LLMInference-25"><span class="qn">&bull;</span>TensorRT-LLM</a><a href="#f02LLMInference-26" data-q="f02LLMInference-26"><span class="qn">&bull;</span>Tensor Parallelism (TP)</a><a href="#f02LLMInference-27" data-q="f02LLMInference-27"><span class="qn">&bull;</span>Pipeline Parallelism (PP)</a><a href="#f02LLMInference-28" data-q="f02LLMInference-28"><span class="qn">&bull;</span>Expert Parallelism (EP)</a><a href="#f02LLMInference-29" data-q="f02LLMInference-29"><span class="qn">&bull;</span>Multi-GPU Configuration</a><a href="#f02LLMInference-30" data-q="f02LLMInference-30"><span class="qn">&bull;</span>GPU Selection Guide</a><a href="#f02LLMInference-31" data-q="f02LLMInference-31"><span class="qn">&bull;</span>Knowledge Distillation</a><a href="#f02LLMInference-32" data-q="f02LLMInference-32"><span class="qn">&bull;</span>Pruning</a><a href="#f02LLMInference-33" data-q="f02LLMInference-33"><span class="qn">&bull;</span>Architecture Optimizations</a><a href="#f02LLMInference-34" data-q="f02LLMInference-34"><span class="qn">&bull;</span>Single-Model Serving</a><a href="#f02LLMInference-35" data-q="f02LLMInference-35"><span class="qn">&bull;</span>Router Pattern (Multiple Models)</a><a href="#f02LLMInference-36" data-q="f02LLMInference-36"><span class="qn">&bull;</span>Production Architecture</a><a href="#f02LLMInference-37" data-q="f02LLMInference-37"><span class="qn">&bull;</span>Caching Strategies</a><a href="#f02LLMInference-38" data-q="f02LLMInference-38"><span class="qn">&bull;</span>Key Metrics to Track</a><a href="#f02LLMInference-39" data-q="f02LLMInference-39"><span class="qn">&bull;</span>Load Testing</a><a href="#f02LLMInference-40" data-q="f02LLMInference-40"><span class="qn">&bull;</span>Production Monitoring</a><a href="#f02LLMInference-41" data-q="f02LLMInference-41"><span class="qn">&bull;</span>Strategies</a><a href="#f02LLMInference-42" data-q="f02LLMInference-42"><span class="qn">&bull;</span>Cost Comparison (approximate, 2024-2025)</a><a href="#f02LLMInference-43" data-q="f02LLMInference-43"><span class="qn">&bull;</span>When to Self-Host vs API</a><a href="#f02LLMInference-44" data-q="f02LLMInference-44"><span class="qn">&bull;</span>How It Works</a><a href="#f02LLMInference-45" data-q="f02LLMInference-45"><span class="qn">&bull;</span>Tools &amp; Libraries</a><a href="#f02LLMInference-46" data-q="f02LLMInference-46"><span class="qn">&bull;</span>GBNF Grammar Example</a><a href="#f02LLMInference-47" data-q="f02LLMInference-47"><span class="qn">&bull;</span>Code Example — Outlines with JSON Schema</a><a href="#f02LLMInference-48" data-q="f02LLMInference-48"><span class="qn">&bull;</span>When to Use</a><a href="#f02LLMInference-49" data-q="f02LLMInference-49"><span class="qn">&bull;</span>LMSYS Chatbot Arena</a><a href="#f02LLMInference-50" data-q="f02LLMInference-50"><span class="qn">&bull;</span>Arena Hard Benchmark</a><a href="#f02LLMInference-51" data-q="f02LLMInference-51"><span class="qn">&bull;</span>Complementary Evaluation Strategy</a><a href="#f02LLMInference-52" data-q="f02LLMInference-52"><span class="qn">&bull;</span>Key Insight for Interviews</a><a href="#f02LLMInference-53" data-q="f02LLMInference-53"><span class="qn">&bull;</span>Conceptual</a><a href="#f02LLMInference-54" data-q="f02LLMInference-54"><span class="qn">&bull;</span>Practical</a></nav>
+</aside>
+<main><div class="wrap">
+
+<section class="hero" id="top"><div class="eyebrow">07_GenAI_and_LLMs &middot; Inference</div>
+<h1>Inference</h1><p class="lede">The key-value (KV) cache, quantization, batching, serving</p><div class="oneliner"><b>1 file</b> in this section, <b>55 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
+<div class="stats"><div class="stat"><div class="stat-v">1</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">55</div><div class="stat-l">sections</div></div></div></section>
+<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">The key-value (KV) cache, quantization, batching, serving</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>02 &middot; Inference optimization</b><span class="learn-n">55 sections</span></div><div class="learn-tags"><span>Key Definitions (read first)</span><span>LLM Inference Fundamentals</span><span>KV Cache</span><span>Quantization for Inference</span><span>Attention Optimizations</span></div></li></ul></section>
+<section class="sec" id="figs"><figure class="viz"><figcaption><b>One token through a decoder-only transformer, step by step</b><span>Every step, with the tensor shape it produces. Nothing here is optional and nothing is out of order &mdash; this is the whole forward pass.<span class="terms"><b>B / T / d</b> batch / sequence length / model width (d_model) &middot; <b>h</b> number of attention heads; d_k = d / h is the per-head width &middot; <b>pre-norm</b> normalising before the sublayer rather than after &mdash; what every modern model does, because it trains stably at depth &middot; <b>residual</b> adding the sublayer input back to its output, so gradients have a path that skips the sublayer</span></span></figcaption><div class="viz-scroll"><svg viewBox="0 0 920 1491" role="img" aria-label="One token through a decoder-only transformer, step by step"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-opacity="0.22"/></filter></defs><text x="10" y="22" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">STAGE 1 &mdash; TEXT BECOMES VECTORS</text><rect x="10" y="30" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="30" width="5" height="64" rx="2.5" fill="var(--fig-rag)"/><circle cx="46" cy="62" r="14" fill="var(--fig-rag)"/><text x="46" y="66.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">1</text><text x="72" y="55" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Tokenize</text><text x="72" y="75" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">subword pieces, not words: &ldquo;unhappiness&rdquo; &rarr; un + happi + ness</text><text x="440" y="55" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-rag)" font-family="monospace">text &rarr; ids</text><text x="440" y="75" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, T] integers</text><rect x="10" y="101" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="101" width="5" height="64" rx="2.5" fill="var(--fig-rag)"/><circle cx="46" cy="133" r="14" fill="var(--fig-rag)"/><text x="46" y="137.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">2</text><text x="72" y="126" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Embedding lookup</text><text x="72" y="146" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">one row of the embedding matrix per token id &mdash; a pure table lookup</text><text x="440" y="126" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-rag)" font-family="monospace">E[ids]</text><text x="440" y="146" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, T, d]</text><rect x="10" y="172" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="172" width="5" height="64" rx="2.5" fill="var(--fig-rag)"/><circle cx="46" cy="204" r="14" fill="var(--fig-rag)"/><text x="46" y="208.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">3</text><text x="72" y="197" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Positional information</text><text x="72" y="217" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">attention alone is order-blind; this is what tells it token 3 came after token 2</text><text x="440" y="197" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-rag)" font-family="monospace">RoPE rotates Q,K</text><text x="440" y="217" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, T, d]</text><text x="10" y="267" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-agentic)">STAGE 2 &mdash; ATTENTION: EVERY TOKEN LOOKS AT EVERY EARLIER TOKEN</text><rect x="10" y="275" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="275" width="5" height="64" rx="2.5" fill="var(--fig-agentic)"/><circle cx="46" cy="307" r="14" fill="var(--fig-agentic)"/><text x="46" y="311.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">4</text><text x="72" y="300" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Pre-norm</text><text x="72" y="320" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">normalise first, keep the raw x for the residual at step 11</text><text x="440" y="300" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-agentic)" font-family="monospace">x&#770; = LayerNorm(x)</text><text x="440" y="320" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, T, d]</text><rect x="10" y="346" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="346" width="5" height="64" rx="2.5" fill="var(--fig-agentic)"/><circle cx="46" cy="378" r="14" fill="var(--fig-agentic)"/><text x="46" y="382.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">5</text><text x="72" y="371" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Project to Q, K, V</text><text x="72" y="391" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">three learned linear maps &mdash; the only place the model chooses what to look for</text><text x="440" y="371" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-agentic)" font-family="monospace">Q=x&#770;W&#7524;  K=x&#770;W&#7503;  V=x&#770;W&#7515;</text><text x="440" y="391" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">3 &times; [B, T, d]</text><rect x="10" y="417" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="417" width="5" height="64" rx="2.5" fill="var(--fig-agentic)"/><circle cx="46" cy="449" r="14" fill="var(--fig-agentic)"/><text x="46" y="453.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">6</text><text x="72" y="442" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Split into heads</text><text x="72" y="462" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">h independent attention patterns computed in parallel, each on a slice of the width</text><text x="440" y="442" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-agentic)" font-family="monospace">reshape d &rarr; h &times; d&#8342;</text><text x="440" y="462" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, h, T, d&#8342;]</text><rect x="10" y="488" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="488" width="5" height="64" rx="2.5" fill="var(--fig-agentic)"/><circle cx="46" cy="520" r="14" fill="var(--fig-agentic)"/><text x="46" y="524.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">7</text><text x="72" y="513" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Scores</text><text x="72" y="533" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">every token dotted with every other &mdash; this is the O(T&sup2;) term everyone quotes</text><text x="440" y="513" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-agentic)" font-family="monospace">QK&#7488;</text><text x="440" y="533" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, h, T, T]</text><rect x="10" y="559" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="559" width="5" height="64" rx="2.5" fill="var(--fig-agentic)"/><circle cx="46" cy="591" r="14" fill="var(--fig-agentic)"/><text x="46" y="595.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">8</text><text x="72" y="584" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Scale</text><text x="72" y="604" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">without it the dot products grow with width and softmax saturates to one-hot</text><text x="440" y="584" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-agentic)" font-family="monospace">&divide; &radic;d&#8342;</text><text x="440" y="604" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, h, T, T]</text><rect x="10" y="630" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-crit)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="630" width="5" height="64" rx="2.5" fill="var(--fig-crit)"/><circle cx="46" cy="662" r="14" fill="var(--fig-crit)"/><text x="46" y="666.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">9</text><text x="72" y="655" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Causal mask</text><text x="72" y="675" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">a token may not see its own future. Forget this and the model cheats and never learns</text><text x="440" y="655" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-crit)" font-family="monospace">upper triangle &rarr; &minus;&infin;</text><text x="440" y="675" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, h, T, T]</text><rect x="10" y="701" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="701" width="5" height="64" rx="2.5" fill="var(--fig-agentic)"/><circle cx="46" cy="733" r="14" fill="var(--fig-agentic)"/><text x="46" y="737.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">10</text><text x="72" y="726" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Softmax &rarr; weighted sum</text><text x="72" y="746" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">rows now sum to 1: each token is a weighted blend of the values it attended to</text><text x="440" y="726" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-agentic)" font-family="monospace">softmax(&middot;) V</text><text x="440" y="746" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, h, T, d&#8342;]</text><rect x="10" y="772" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="772" width="5" height="64" rx="2.5" fill="var(--fig-agentic)"/><circle cx="46" cy="804" r="14" fill="var(--fig-agentic)"/><text x="46" y="808.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">11</text><text x="72" y="797" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Concat heads + output projection</text><text x="72" y="817" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">heads are merged back to one vector per token, then mixed by a final linear map</text><text x="440" y="797" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-agentic)" font-family="monospace">concat &rarr; W&#7484;</text><text x="440" y="817" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, T, d]</text><rect x="10" y="843" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="843" width="5" height="64" rx="2.5" fill="var(--fig-good)"/><circle cx="46" cy="875" r="14" fill="var(--fig-good)"/><text x="46" y="879.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">12</text><text x="72" y="868" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Residual add</text><text x="72" y="888" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">the raw input from step 4 comes back &mdash; this is what makes depth trainable</text><text x="440" y="868" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-good)" font-family="monospace">x + attn(x&#770;)</text><text x="440" y="888" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, T, d]</text><text x="10" y="938" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-recall)">STAGE 3 &mdash; THE FEED-FORWARD NETWORK: EACH TOKEN THINKS ALONE</text><rect x="10" y="946" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-recall)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="946" width="5" height="64" rx="2.5" fill="var(--fig-recall)"/><circle cx="46" cy="978" r="14" fill="var(--fig-recall)"/><text x="46" y="982.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">13</text><text x="72" y="971" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Pre-norm again</text><text x="72" y="991" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">same trick, second sublayer</text><text x="440" y="971" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-recall)" font-family="monospace">x&#770; = LayerNorm(x)</text><text x="440" y="991" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, T, d]</text><rect x="10" y="1017" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-recall)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="1017" width="5" height="64" rx="2.5" fill="var(--fig-recall)"/><circle cx="46" cy="1049" r="14" fill="var(--fig-recall)"/><text x="46" y="1053.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">14</text><text x="72" y="1042" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Up-project + activation</text><text x="72" y="1062" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">widen by ~4&times;. Two thirds of the parameters in the whole model live here</text><text x="440" y="1042" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-recall)" font-family="monospace">SwiGLU(x&#770;W&#8321;)</text><text x="440" y="1062" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, T, 4d]</text><rect x="10" y="1088" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-recall)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="1088" width="5" height="64" rx="2.5" fill="var(--fig-recall)"/><circle cx="46" cy="1120" r="14" fill="var(--fig-recall)"/><text x="46" y="1124.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">15</text><text x="72" y="1113" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Down-project</text><text x="72" y="1133" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">back to model width, ready for the next block</text><text x="440" y="1113" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-recall)" font-family="monospace">&middot; W&#8322;</text><text x="440" y="1133" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, T, d]</text><rect x="10" y="1159" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="1159" width="5" height="64" rx="2.5" fill="var(--fig-good)"/><circle cx="46" cy="1191" r="14" fill="var(--fig-good)"/><text x="46" y="1195.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">16</text><text x="72" y="1184" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Residual add</text><text x="72" y="1204" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">one block is done &mdash; now repeat steps 4&ndash;16, typically 32 to 80 times</text><text x="440" y="1184" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-good)" font-family="monospace">x + ffn(x&#770;)</text><text x="440" y="1204" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, T, d]</text><text x="10" y="1254" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-good)">STAGE 4 &mdash; BACK TO TEXT</text><rect x="10" y="1262" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="1262" width="5" height="64" rx="2.5" fill="var(--fig-good)"/><circle cx="46" cy="1294" r="14" fill="var(--fig-good)"/><text x="46" y="1298.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">17</text><text x="72" y="1287" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Final norm + LM head</text><text x="72" y="1307" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">one score per vocabulary entry, for every position</text><text x="440" y="1287" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-good)" font-family="monospace">LayerNorm &rarr; W&#7524;&#7580;&#7580;&#7580;</text><text x="440" y="1307" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">[B, T, vocab]</text><rect x="10" y="1333" width="900" height="64" rx="10" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="1333" width="5" height="64" rx="2.5" fill="var(--fig-good)"/><circle cx="46" cy="1365" r="14" fill="var(--fig-good)"/><text x="46" y="1369.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">18</text><text x="72" y="1358" text-anchor="start" font-size="12.5" font-weight="800" fill="var(--fig-ink)">Take the last position, sample</text><text x="72" y="1378" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">temperature, top-k and top-p all act right here &mdash; nowhere else</text><text x="440" y="1358" text-anchor="start" font-size="10.6" font-weight="700" fill="var(--fig-good)" font-family="monospace">softmax(logits/T)</text><text x="440" y="1378" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-ink-2)" font-family="monospace">1 token</text><rect x="10" y="1414" width="900" height="67" rx="9" fill="var(--fig-surface-2)" stroke="var(--fig-accent)"/><text x="27" y="1435" font-size="11.5" fill="var(--fig-ink-2)"><tspan font-weight="800" fill="var(--fig-accent)">The two facts an interviewer is listening for:</tspan> attention is the <tspan font-weight='700'>only</tspan> place tokens exchange information &mdash; the feed-forward network </text><text x="27" y="1452" font-size="11.5" fill="var(--fig-ink-2)">processes each position independently; and the residual stream carries the same [B, T, d] shape from step 2 all the way to step 17, </text><text x="27" y="1469" font-size="11.5" fill="var(--fig-ink-2)">which is why you can stack blocks at all.</text></svg></div></figure><figure class="viz"><figcaption><b>MHA &rarr; MQA &rarr; GQA &rarr; MLA &mdash; all four are about the KV cache</b><span>Quality vs memory. The KV cache, not the weights, is what limits your batch size</span></figcaption><div class="viz-scroll"><svg viewBox="0 0 920 320" role="img" aria-label="MHA &rarr; MQA &rarr; GQA &rarr; MLA &mdash; all four are about the KV cache"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-opacity="0.22"/></filter></defs><rect x="10" y="10" width="214.5" height="150" rx="12" fill="var(--fig-surface)" stroke="var(--fig-accent)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="10" width="214.5" height="4" rx="2" fill="var(--fig-accent)"/><text x="117.25" y="36" text-anchor="middle" font-size="15" font-weight="800" fill="var(--fig-accent)">MHA</text><text x="117.25" y="50" text-anchor="middle" font-size="10" fill="var(--fig-mut)">Multi-Head</text><rect x="55.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="71.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="87.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="103.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="119.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="135.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="151.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="167.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><text x="117.25" y="88" text-anchor="middle" font-size="8.5" fill="var(--fig-mut)">8 query heads</text><rect x="55.25" y="96" width="12" height="14" rx="3" fill="var(--fig-accent)"/><rect x="71.25" y="96" width="12" height="14" rx="3" fill="var(--fig-accent)"/><rect x="87.25" y="96" width="12" height="14" rx="3" fill="var(--fig-accent)"/><rect x="103.25" y="96" width="12" height="14" rx="3" fill="var(--fig-accent)"/><rect x="119.25" y="96" width="12" height="14" rx="3" fill="var(--fig-accent)"/><rect x="135.25" y="96" width="12" height="14" rx="3" fill="var(--fig-accent)"/><rect x="151.25" y="96" width="12" height="14" rx="3" fill="var(--fig-accent)"/><rect x="167.25" y="96" width="12" height="14" rx="3" fill="var(--fig-accent)"/><text x="117.25" y="122" text-anchor="middle" font-size="8.5" fill="var(--fig-mut)">8 KV heads</text><text x="117.25" y="140" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--fig-good)">best quality</text><text x="117.25" y="153" text-anchor="middle" font-size="9" fill="var(--fig-mut)">biggest cache</text><rect x="238.5" y="10" width="214.5" height="150" rx="12" fill="var(--fig-surface)" stroke="var(--fig-warn)" stroke-width="1.5" filter="url(#sh)"/><rect x="238.5" y="10" width="214.5" height="4" rx="2" fill="var(--fig-warn)"/><text x="345.75" y="36" text-anchor="middle" font-size="15" font-weight="800" fill="var(--fig-warn)">MQA</text><text x="345.75" y="50" text-anchor="middle" font-size="10" fill="var(--fig-mut)">Multi-Query</text><rect x="283.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="299.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="315.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="331.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="347.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="363.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="379.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="395.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><text x="345.75" y="88" text-anchor="middle" font-size="8.5" fill="var(--fig-mut)">8 query heads</text><rect x="339.75" y="96" width="12" height="14" rx="3" fill="var(--fig-warn)"/><text x="345.75" y="122" text-anchor="middle" font-size="8.5" fill="var(--fig-mut)">1 KV head</text><text x="345.75" y="140" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--fig-good)">8&times; smaller cache</text><text x="345.75" y="153" text-anchor="middle" font-size="9" fill="var(--fig-mut)">quality drop</text><rect x="467" y="10" width="214.5" height="150" rx="12" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><rect x="467" y="10" width="214.5" height="4" rx="2" fill="var(--fig-good)"/><text x="574.25" y="36" text-anchor="middle" font-size="15" font-weight="800" fill="var(--fig-good)">GQA</text><text x="574.25" y="50" text-anchor="middle" font-size="10" fill="var(--fig-mut)">Grouped-Query</text><rect x="512.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="528.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="544.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="560.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="576.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="592.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="608.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="624.25" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><text x="574.25" y="88" text-anchor="middle" font-size="8.5" fill="var(--fig-mut)">8 query heads</text><rect x="560.25" y="96" width="12" height="14" rx="3" fill="var(--fig-good)"/><rect x="576.25" y="96" width="12" height="14" rx="3" fill="var(--fig-good)"/><text x="574.25" y="122" text-anchor="middle" font-size="8.5" fill="var(--fig-mut)">2 KV heads</text><text x="574.25" y="140" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--fig-good)">the sweet spot &mdash; today's default</text><text x="574.25" y="153" text-anchor="middle" font-size="9" fill="var(--fig-mut)">&mdash;</text><rect x="695.5" y="10" width="214.5" height="150" rx="12" fill="var(--fig-surface)" stroke="var(--fig-recall)" stroke-width="1.5" filter="url(#sh)"/><rect x="695.5" y="10" width="214.5" height="4" rx="2" fill="var(--fig-recall)"/><text x="802.75" y="36" text-anchor="middle" font-size="15" font-weight="800" fill="var(--fig-recall)">MLA</text><text x="802.75" y="50" text-anchor="middle" font-size="10" fill="var(--fig-mut)">Multi-head Latent</text><rect x="740.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="756.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="772.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="788.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="804.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="820.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="836.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><rect x="852.75" y="62" width="12" height="14" rx="3" fill="var(--fig-accent)" opacity=".85"/><text x="802.75" y="88" text-anchor="middle" font-size="8.5" fill="var(--fig-mut)">8 query heads</text><rect x="796.75" y="96" width="12" height="14" rx="3" fill="var(--fig-recall)"/><text x="802.75" y="122" text-anchor="middle" font-size="8.5" fill="var(--fig-mut)">1 KV head</text><text x="802.75" y="140" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--fig-good)">smallest cache</text><text x="802.75" y="153" text-anchor="middle" font-size="9" fill="var(--fig-mut)">more compute</text><text x="10" y="184" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">WHY IT MATTERS &mdash; THE KV CACHE FORMULA</text><rect x="10" y="194" width="900" height="56" rx="10" fill="var(--fig-surface-2)" stroke="var(--fig-border)"/><text x="28" y="218" font-size="12" font-family="monospace" font-weight="700" fill="var(--fig-ink)">KV bytes = 2 &times; layers &times; kv_heads &times; head_dim &times; seq_len &times; batch &times; dtype_bytes</text><text x="28" y="238" font-size="10.5" fill="var(--fig-mut)">Only <tspan font-weight="700" fill="var(--fig-accent)">kv_heads</tspan> is free to change &mdash; which is exactly what MQA, GQA and MLA shrink. Halving it doubles your batch size.</text><rect x="10" y="260" width="900" height="50" rx="9" fill="var(--fig-surface-2)" stroke="var(--fig-accent)"/><text x="27" y="281" font-size="11.5" fill="var(--fig-ink-2)"><tspan font-weight="800" fill="var(--fig-accent)">The answer that lands:</tspan> &ldquo;GQA, because the KV cache &mdash; not the weights &mdash; is what caps concurrent requests, and grouping recovers almost </text><text x="27" y="298" font-size="11.5" fill="var(--fig-ink-2)">all of MHA's quality at a fraction of the memory.&rdquo;</text></svg></div></figure><figure class="viz"><figcaption><b>An LLM system, stage by stage &mdash; what each does, how it scales, how it breaks</b><span>Top row is the request path; each card below is that stage's whole story</span></figcaption><div class="viz-scroll"><svg viewBox="0 0 920 502" role="img" aria-label="An LLM system, stage by stage &mdash; what each does, how it scales, how it breaks"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-opacity="0.22"/></filter></defs><rect x="10" y="10" width="138" height="40" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><text x="79" y="34.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Ingest &amp; index</text><circle cx="25" cy="30" r="10" fill="var(--fig-rag)"/><text x="25" y="34" text-anchor="middle" font-size="10.5" font-weight="800" fill="#fff">1</text><rect x="162" y="10" width="138" height="40" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><text x="231" y="34.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Retrieve</text><circle cx="177" cy="30" r="10" fill="var(--fig-rag)"/><text x="177" y="34" text-anchor="middle" font-size="10.5" font-weight="800" fill="#fff">2</text><line x1="147" y1="30" x2="160" y2="30" stroke="var(--fig-mut)" stroke-width="2" marker-end="url(#a)"/><rect x="314" y="10" width="138" height="40" rx="10" fill="var(--fig-surface)" stroke="var(--fig-accent)" stroke-width="1.5" filter="url(#sh)"/><text x="383" y="34.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Rerank</text><circle cx="329" cy="30" r="10" fill="var(--fig-accent)"/><text x="329" y="34" text-anchor="middle" font-size="10.5" font-weight="800" fill="#fff">3</text><line x1="299" y1="30" x2="312" y2="30" stroke="var(--fig-mut)" stroke-width="2" marker-end="url(#a)"/><rect x="466" y="10" width="138" height="40" rx="10" fill="var(--fig-surface)" stroke="var(--fig-accent)" stroke-width="1.5" filter="url(#sh)"/><text x="535" y="34.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Assemble</text><circle cx="481" cy="30" r="10" fill="var(--fig-accent)"/><text x="481" y="34" text-anchor="middle" font-size="10.5" font-weight="800" fill="#fff">4</text><line x1="451" y1="30" x2="464" y2="30" stroke="var(--fig-mut)" stroke-width="2" marker-end="url(#a)"/><rect x="618" y="10" width="138" height="40" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><text x="687" y="34.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Generate</text><circle cx="633" cy="30" r="10" fill="var(--fig-agentic)"/><text x="633" y="34" text-anchor="middle" font-size="10.5" font-weight="800" fill="#fff">5</text><line x1="603" y1="30" x2="616" y2="30" stroke="var(--fig-mut)" stroke-width="2" marker-end="url(#a)"/><rect x="770" y="10" width="138" height="40" rx="10" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><text x="839" y="34.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Deliver</text><circle cx="785" cy="30" r="10" fill="var(--fig-good)"/><text x="785" y="34" text-anchor="middle" font-size="10.5" font-weight="800" fill="#fff">6</text><line x1="755" y1="30" x2="768" y2="30" stroke="var(--fig-mut)" stroke-width="2" marker-end="url(#a)"/><rect x="10" y="68" width="442" height="112" rx="12" fill="var(--fig-surface)" stroke="var(--fig-border)" filter="url(#sh)"/><rect x="10" y="68" width="5" height="112" rx="2.5" fill="var(--fig-rag)"/><circle cx="40" cy="93" r="11" fill="var(--fig-rag)"/><text x="40" y="97" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">1</text><text x="60" y="97" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Ingest &amp; index</text><text x="438" y="97" text-anchor="end" font-size="9.5" font-family="monospace" fill="var(--fig-mut)">parse &rarr; chunk &rarr; embed</text><text x="30" y="120" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">SPEED</text><text x="84" y="120" font-size="10.5" fill="var(--fig-ink-2)">batch workers, idempotent by content hash</text><text x="30" y="140" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-recall)">SCALE</text><text x="84" y="140" font-size="10.5" fill="var(--fig-ink-2)">shard for capacity, replicate for QPS</text><text x="30" y="160" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-crit)">BREAKS</text><text x="84" y="160" font-size="10.5" fill="var(--fig-ink-2)">re-embedding everything on every run</text><rect x="468" y="68" width="442" height="112" rx="12" fill="var(--fig-surface)" stroke="var(--fig-border)" filter="url(#sh)"/><rect x="468" y="68" width="5" height="112" rx="2.5" fill="var(--fig-rag)"/><circle cx="498" cy="93" r="11" fill="var(--fig-rag)"/><text x="498" y="97" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">2</text><text x="518" y="97" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Retrieve</text><text x="896" y="97" text-anchor="end" font-size="9.5" font-family="monospace" fill="var(--fig-mut)">hybrid + metadata filter</text><text x="488" y="120" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">SPEED</text><text x="542" y="120" font-size="10.5" fill="var(--fig-ink-2)">keep the index in RAM; pre-filter first</text><text x="488" y="140" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-recall)">SCALE</text><text x="542" y="140" font-size="10.5" fill="var(--fig-ink-2)">read replicas, ANN params per recall target</text><text x="488" y="160" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-crit)">BREAKS</text><text x="542" y="160" font-size="10.5" fill="var(--fig-ink-2)">the 50ms &rarr; 5s cliff when it spills to disk</text><rect x="10" y="192" width="442" height="112" rx="12" fill="var(--fig-surface)" stroke="var(--fig-border)" filter="url(#sh)"/><rect x="10" y="192" width="5" height="112" rx="2.5" fill="var(--fig-accent)"/><circle cx="40" cy="217" r="11" fill="var(--fig-accent)"/><text x="40" y="221" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">3</text><text x="60" y="221" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Rerank</text><text x="438" y="221" text-anchor="end" font-size="9.5" font-family="monospace" fill="var(--fig-mut)">cross-encoder on the shortlist</text><text x="30" y="244" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">SPEED</text><text x="84" y="244" font-size="10.5" fill="var(--fig-ink-2)">batch the pairs; distil or quantize</text><text x="30" y="264" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-recall)">SCALE</text><text x="84" y="264" font-size="10.5" fill="var(--fig-ink-2)">GPU pool autoscaled on queue depth</text><text x="30" y="284" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-crit)">BREAKS</text><text x="84" y="284" font-size="10.5" fill="var(--fig-ink-2)">reranking the corpus instead of the top-50</text><rect x="468" y="192" width="442" height="112" rx="12" fill="var(--fig-surface)" stroke="var(--fig-border)" filter="url(#sh)"/><rect x="468" y="192" width="5" height="112" rx="2.5" fill="var(--fig-accent)"/><circle cx="498" cy="217" r="11" fill="var(--fig-accent)"/><text x="498" y="221" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">4</text><text x="518" y="221" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Assemble</text><text x="896" y="221" text-anchor="end" font-size="9.5" font-family="monospace" fill="var(--fig-mut)">budget the window</text><text x="488" y="244" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">SPEED</text><text x="542" y="244" font-size="10.5" fill="var(--fig-ink-2)">stable prefix first so it caches</text><text x="488" y="264" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-recall)">SCALE</text><text x="542" y="264" font-size="10.5" fill="var(--fig-ink-2)">cheap &mdash; it is string work</text><text x="488" y="284" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-crit)">BREAKS</text><text x="542" y="284" font-size="10.5" fill="var(--fig-ink-2)">silent truncation dropping the answer</text><rect x="10" y="316" width="442" height="112" rx="12" fill="var(--fig-surface)" stroke="var(--fig-border)" filter="url(#sh)"/><rect x="10" y="316" width="5" height="112" rx="2.5" fill="var(--fig-agentic)"/><circle cx="40" cy="341" r="11" fill="var(--fig-agentic)"/><text x="40" y="345" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">5</text><text x="60" y="345" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Generate</text><text x="438" y="345" text-anchor="end" font-size="9.5" font-family="monospace" fill="var(--fig-mut)">the LLM call</text><text x="30" y="368" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">SPEED</text><text x="84" y="368" font-size="10.5" fill="var(--fig-ink-2)">prefix cache, continuous batching, quantize</text><text x="30" y="388" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-recall)">SCALE</text><text x="84" y="388" font-size="10.5" fill="var(--fig-ink-2)">the real bottleneck: replicas + KV memory</text><text x="30" y="408" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-crit)">BREAKS</text><text x="84" y="408" font-size="10.5" fill="var(--fig-ink-2)">unbounded output tokens</text><rect x="468" y="316" width="442" height="112" rx="12" fill="var(--fig-surface)" stroke="var(--fig-border)" filter="url(#sh)"/><rect x="468" y="316" width="5" height="112" rx="2.5" fill="var(--fig-good)"/><circle cx="498" cy="341" r="11" fill="var(--fig-good)"/><text x="498" y="345" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">6</text><text x="518" y="345" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Deliver</text><text x="896" y="345" text-anchor="end" font-size="9.5" font-family="monospace" fill="var(--fig-mut)">stream, cite, guard</text><text x="488" y="368" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">SPEED</text><text x="542" y="368" font-size="10.5" fill="var(--fig-ink-2)">stream &mdash; TTFT is what users feel</text><text x="488" y="388" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-recall)">SCALE</text><text x="542" y="388" font-size="10.5" fill="var(--fig-ink-2)">stateless pods behind a load balancer</text><text x="488" y="408" font-size="8.5" font-weight="800" letter-spacing=".08em" fill="var(--fig-crit)">BREAKS</text><text x="542" y="408" font-size="10.5" fill="var(--fig-ink-2)">guardrails running after the user saw it</text><rect x="10" y="442" width="900" height="50" rx="9" fill="var(--fig-surface-2)" stroke="var(--fig-accent)"/><text x="27" y="463" font-size="11.5" fill="var(--fig-ink-2)"><tspan font-weight="800" fill="var(--fig-accent)">Where the effort actually goes:</tspan> stage 5 is ~87% of latency and most of the bill; stage 2 is where quality is won or lost. The rest are </text><text x="27" y="480" font-size="11.5" fill="var(--fig-ink-2)">cheap to get right and expensive to get wrong <tspan font-weight='700'>silently</tspan>.</text></svg></div></figure></section>
+<section class="filesec" id="f02LLMInference"><header class="filehead"><div class="fh-top"><span class="fh-num">02 &middot; Inference optimization</span><span class="fh-count">55 sections</span><a class="fh-src" href="../../07_GenAI_and_LLMs/02_LLM_Inference_Optimization.md">source .md &#8599;</a></div><h2>LLM Inference Optimization — Serving LLMs at Scale</h2><div class="note">
+<p><strong>Scope:</strong> <abbr title="large language model">LLM</abbr> inference fundamentals, <abbr title="the stored attention keys and values for tokens already generated, so each new token attends without recomputing the sequence">KV cache</abbr>, <abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">quantization</abbr> for inference, attention optimizations, batching strategies, <abbr title="a small draft model proposes several tokens ahead; the large model verifies them in one pass">speculative decoding</abbr>, serving frameworks, distributed inference, model compression, deployment architectures, benchmarking &amp; monitoring, cost optimization, interview Q&amp;A.</p>
+</div></header><div class="parthead"><span>Key Definitions (read first)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="note">
+<div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Term</th><th>Plain-language definition</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>Autoregressive generation</strong></td><td>Produce one token at a time, each conditioned on all previous ones.</td></tr><tr class="g0"><td class="c-term"><strong><abbr title="processing the whole prompt to produce the first output token">Prefill</abbr> vs <abbr title="generating output tokens one at a time after prefill">decode</abbr></strong></td><td>Phase 1: process the whole prompt in parallel (compute-bound). Phase 2: emit tokens one by one (memory-bound).</td></tr><tr class="g1"><td class="c-term"><strong><abbr title="the stored attention keys and values for tokens already generated, so each new token attends without recomputing the sequence">KV cache</abbr></strong></td><td>Stored keys/values for past tokens so each new token doesn't recompute attention over the whole sequence.</td></tr><tr class="g0"><td class="c-term"><strong><abbr title="time to first token — what the user perceives as responsiveness">TTFT</abbr></strong></td><td>Time To First Token — latency until the first output token (dominated by prefill).</td></tr><tr class="g1"><td class="c-term"><strong><abbr title="time per output token">TPOT</abbr> / inter-token latency</strong></td><td>Time per output token after the first (dominated by decode).</td></tr><tr class="g0"><td class="c-term"><strong>Throughput</strong></td><td>Total tokens/sec across all requests — what batching maximizes.</td></tr><tr class="g1"><td class="c-term"><strong><abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">Quantization</abbr> (INT8/INT4)</strong></td><td>Store weights/activations in fewer bits → less memory + faster, slight quality loss.</td></tr><tr class="g0"><td class="c-term"><strong><abbr title="adding and removing sequences from a running GPU batch as requests arrive and finish, instead of waiting for a fixed batch to fill">Continuous batching</abbr></strong></td><td>Add/remove requests from a running batch every step → high GPU utilization (vLLM).</td></tr><tr class="g1"><td class="c-term"><strong><abbr title="a small draft model proposes several tokens ahead; the large model verifies them in one pass">Speculative decoding</abbr></strong></td><td>A small draft model proposes tokens; the big model verifies several at once → faster.</td></tr><tr class="g0"><td class="c-term"><strong><abbr title="holding the KV cache in fixed-size, non-contiguous pages (like OS virtual memory) to remove fragmentation and raise batch size">PagedAttention</abbr></strong></td><td>vLLM's paged KV-cache memory management that eliminates fragmentation.</td></tr><tr class="g1"><td class="c-term"><strong>FlashAttention</strong></td><td>IO-aware exact attention kernel — faster, less memory.</td></tr><tr class="g0"><td class="c-term"><strong>Tensor / <abbr title="splitting a model&#x27;s layers across GPUs, each handling one stage of the forward pass">pipeline parallelism</abbr></strong></td><td>Split one model across GPUs by layer-slices / by stages for models too big for one GPU.</td></tr><tr class="g1"><td class="c-term"><strong>Compute-bound vs memory-bound</strong></td><td>Limited by FLOPs (prefill) vs by weight-loading bandwidth (decode).</td></tr></tbody></table></div>
+</div></div><div class="parthead"><span>1. LLM Inference Fundamentals</span><i></i></div><article class="q" id="f02LLMInference-0"><div class="q-h"><span class="q-n">&bull;</span><h3>Two Phases of Autoregressive Generation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-0"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Phase 1: PREFILL (Prompt Processing)
+├── Process all input tokens in parallel
+├── Compute-bound (matrix multiplications)
+├── Generates KV cache for all input tokens
+└── Time ∝ prompt_length
+
+Phase 2: DECODE (Token Generation)
+├── Generate one token at a time (autoregressive)
+├── Memory-bound (loading model weights for 1 token)
+├── KV cache grows with each new token
+└── Time ∝ output_length × per_token_latency</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-1"><div class="q-h"><span class="q-n">&bull;</span><h3>Key Performance Metrics</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-1"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">TTFT</span><span class="kt">TPOT</span><span class="kt">Throughput</span><span class="kt">Total latency</span><span class="kt">Tokens/dollar</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Metric</th><th>Definition</th><th>Typical Target</th></tr></thead><tbody><tr class="g1"><td><strong><abbr title="time to first token — what the user perceives as responsiveness">TTFT</abbr></strong> (Time to First Token)</td><td>Latency for first output token</td><td>&lt; <span class="mag">500ms</span></td></tr><tr class="g0"><td><strong><abbr title="time per output token">TPOT</abbr></strong> (Time Per Output Token)</td><td>Latency per subsequent token</td><td>&lt; <span class="mag">50ms</span></td></tr><tr class="g1"><td><strong>Throughput</strong></td><td>Tokens/second across all requests</td><td>Maximize</td></tr><tr class="g0"><td><strong>Total latency</strong></td><td>TTFT + (output_tokens × TPOT)</td><td>Minimize</td></tr><tr class="g1"><td><strong>Tokens/dollar</strong></td><td>Cost efficiency</td><td>Maximize</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-2"><div class="q-h"><span class="q-n">&bull;</span><h3>Memory Requirements</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-2"><span></span></label></div><div class="q-a"><pre class="code" data-lang="python"><code><span class="cmt"># Model weights memory (float16)</span>
+memory_weights = num_params × <span class="num">2</span> bytes  <span class="cmt"># float16</span>
+
+<span class="cmt"># KV Cache memory per request</span>
+memory_kv = <span class="num">2</span> × n_layers × n_heads × head_dim × seq_len × <span class="num">2</span> bytes
+<span class="cmt"># 2 for K and V, 2 bytes for float16</span>
+
+<span class="cmt"># Example: LLaMA-2 7B, seq_len=4096</span>
+<span class="cmt"># Weights: 7B × 2 = 14 GB</span>
+<span class="cmt"># KV Cache (per request): 2 × 32 × 32 × 128 × 4096 × 2 = ~1 GB</span>
+<span class="cmt"># Batch of 16: ~16 GB just for KV cache!</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-3"><div class="q-h"><span class="q-n">&bull;</span><h3>Bottleneck Analysis</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-3"><span></span></label></div><div class="q-a"><div class="tbl-wrap"><table class="t3"><thead><tr><th>Phase</th><th>Bottleneck</th><th>Why</th></tr></thead><tbody><tr class="g1"><td><abbr title="processing the whole prompt to produce the first output token">Prefill</abbr></td><td>Compute</td><td>Large batch matrix multiplication</td></tr><tr class="g0"><td><abbr title="generating output tokens one at a time after prefill">Decode</abbr></td><td>Memory bandwidth</td><td>Load entire model weights for 1 token</td></tr></tbody></table></div>
+<div class="diagram"><pre>Arithmetic Intensity = FLOPs / Bytes loaded
+- Prefill: High AI → compute-bound
+- Decode: Low AI → memory-bound
+
+Memory bandwidth utilization:
+  Decode throughput ≈ Model size / Memory bandwidth
+  E.g., 14 GB model / 2 TB/s A100 bandwidth ≈ 7ms/token</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>2. KV Cache</span><i></i></div><article class="q" id="f02LLMInference-4"><div class="q-h"><span class="q-n">&bull;</span><h3>How It Works</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-4"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Without KV Cache: recompute attention for ALL previous tokens at each step
+With KV Cache: store and reuse K, V from previous steps
+
+Step 1: Q₁, K₁, V₁ → store K₁, V₁ in cache
+Step 2: Q₂, K=[K₁,K₂], V=[V₁,V₂] → append K₂, V₂ to cache
+Step 3: Q₃, K=[K₁,K₂,K₃], V=[V₁,V₂,V₃] → append K₃, V₃
+
+Saves: O(n²) → O(n) compute per step (but O(n) memory)</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-5"><div class="q-h"><span class="q-n">&bull;</span><h3>KV Cache Memory Management</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-5"><span></span></label></div><div class="q-a"><h4><abbr title="holding the KV cache in fixed-size, non-contiguous pages (like OS virtual memory) to remove fragmentation and raise batch size">PagedAttention</abbr> (vLLM)</h4>
+<div class="diagram"><pre>Problem: Naive KV cache pre-allocates max_seq_len → wastes memory
+Solution: Allocate KV cache in pages (blocks), like OS virtual memory
+
+Benefits:
+- No pre-allocation waste
+- Memory sharing (prompt prefix caching)
+- Non-contiguous memory → reduced fragmentation
+- ~2-4x more concurrent requests
+
+Block table:
+Request 1: [Block 3, Block 7, Block 1]  (non-contiguous)
+Request 2: [Block 3, Block 5]            (shares Block 3 = prefix cache)</pre></div>
+<h4>Multi-Query Attention (<abbr title="multi-query attention — all query heads share a single key/value head">MQA</abbr>) &amp; Grouped-Query Attention (<abbr title="grouped-query attention — several query heads share one key/value head, shrinking the KV cache">GQA</abbr>)</h4>
+<div class="diagram"><pre>Multi-Head Attention (MHA): n_heads × (K, V)  → full KV cache
+Multi-Query Attention (MQA): 1 × (K, V)       → n_heads share one KV
+Grouped-Query Attention (GQA): n_groups × (K, V)  → groups share KV
+
+KV Cache reduction:
+MHA:  2 × n_layers × n_heads × head_dim × seq_len
+GQA:  2 × n_layers × n_groups × head_dim × seq_len  (n_groups &lt;&lt; n_heads)
+MQA:  2 × n_layers × 1 × head_dim × seq_len
+
+Example: LLaMA-2 70B uses GQA with 8 groups (vs 64 heads)
+→ 8x KV cache reduction</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-6"><div class="q-h"><span class="q-n">&bull;</span><h3>Prefix Caching</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-6"><span></span></label></div><div class="q-a"><div class="diagram"><pre>System prompt + common prefixes → cache and share across requests
+
+Request 1: [System prompt | User query A]
+Request 2: [System prompt | User query B]
+           └── shared ──┘ └── unique ──┘
+
+- Avoid recomputing shared prefix KV cache
+- vLLM, SGLang support automatic prefix caching</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>3. Quantization for Inference</span><i></i></div><article class="q" id="f02LLMInference-7"><div class="q-h"><span class="q-n">&bull;</span><h3>Quantization Types</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-7"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">FP16</span><span class="kt">BF16</span><span class="kt">INT8 (W8A8)</span><span class="kt">W4A16 (GPTQ)</span><span class="kt">AWQ</span><span class="kt">GGUF</span></div><div class="tbl-wrap"><table class="t4"><thead><tr><th>Method</th><th>Bits</th><th>How</th><th>Quality Loss</th></tr></thead><tbody><tr class="g1"><td><strong>FP16</strong></td><td>16</td><td>Standard half-precision</td><td>Baseline</td></tr><tr class="g0"><td><strong>BF16</strong></td><td>16</td><td>bfloat16 (larger range)</td><td>~Same as FP16</td></tr><tr class="g1"><td><strong>INT8 (W8A8)</strong></td><td>8</td><td>Weights + activations 8-bit</td><td>Minimal</td></tr><tr class="g0"><td><strong>W4A16 (GPTQ)</strong></td><td>4</td><td>Weights 4-bit, activations FP16</td><td>Small</td></tr><tr class="g1"><td><strong>AWQ</strong></td><td>4</td><td>Activation-aware weight quant</td><td>Minimal (better than GPTQ)</td></tr><tr class="g0"><td><strong>GGUF</strong></td><td>2-8</td><td>CPU-optimized, mixed precision</td><td>Varies</td></tr><tr class="g1"><td><strong>FP8</strong></td><td>8</td><td>Mixed E4M3/E5M2</td><td>Minimal</td></tr><tr class="g0"><td><strong>SqueezeLLM</strong></td><td>3-4</td><td>Non-uniform <abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">quantization</abbr></td><td>Small</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-8"><div class="q-h"><span class="q-n">&bull;</span><h3>GPTQ (Post-Training Quantization)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-8"><span></span></label></div><div class="q-a"><pre class="code" data-lang="python"><code><span class="cmt"># Calibration-based weight quantization to 4-bit</span>
+<span class="kw">from</span> auto_gptq <span class="kw">import</span> AutoGPTQForCausalLM
+<span class="kw">from</span> transformers <span class="kw">import</span> AutoTokenizer
+
+model_name = <span class="str">"meta-llama/Llama-2-7b-hf"</span>
+quantize_config = <span class="fn">BaseQuantizeConfig</span>(bits=<span class="num">4</span>, group_size=<span class="num">128</span>, desc_act=<span class="kw">False</span>)
+
+model = AutoGPTQForCausalLM.<span class="fn">from_pretrained</span>(model_name, quantize_config)
+tokenizer = AutoTokenizer.<span class="fn">from_pretrained</span>(model_name)
+
+<span class="cmt"># Calibrate with sample data</span>
+model.<span class="fn">quantize</span>(calibration_data)
+model.<span class="fn">save_quantized</span>(<span class="str">"llama-2-7b-gptq-4bit"</span>)</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-9"><div class="q-h"><span class="q-n">&bull;</span><h3>AWQ (Activation-Aware Weight Quantization)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-9"><span></span></label></div><div class="q-a"><pre class="code"><code>Key insight: Not all weights are equally important
+- Protect salient weights (corresponding to large activations)
+- Scale important weight channels before quantization
+- Better quality than GPTQ at same bit width</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-10"><div class="q-h"><span class="q-n">&bull;</span><h3>GGUF (llama.cpp)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-10"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Convert and quantize for CPU inference</span>
+python convert_hf_to_gguf.py model_path --outfile model.gguf
+
+<span class="cmt"># Quantize to different precision levels</span>
+./llama-quantize model.gguf model-Q4_K_M.gguf Q4_K_M
+
+<span class="cmt"># Quantization levels (quality vs size tradeoff):</span>
+<span class="cmt"># Q2_K: 2-bit, ~40% original quality</span>
+<span class="cmt"># Q4_K_M: 4-bit, best quality/size balance (recommended)</span>
+<span class="cmt"># Q5_K_M: 5-bit, near-original quality</span>
+<span class="cmt"># Q8_0: 8-bit, minimal quality loss</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-11"><div class="q-h"><span class="q-n">&bull;</span><h3>Memory Savings</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-11"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Model: 7B parameters
+
+FP32: 7B × 4 = 28 GB
+FP16: 7B × 2 = 14 GB
+INT8: 7B × 1 = 7 GB
+INT4: 7B × 0.5 = 3.5 GB
+
+→ INT4 enables 7B model on consumer GPU (4-6 GB VRAM)</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>4. Attention Optimizations</span><i></i></div><article class="q" id="f02LLMInference-12"><div class="q-h"><span class="q-n">&bull;</span><h3>Flash Attention</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-12"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Problem: Standard attention: Q×Kᵀ creates O(n²) intermediate matrix
+→ Requires O(n²) memory, slow for long sequences
+
+Flash Attention solution:
+- Tile-based computation (process blocks that fit in SRAM)
+- Fused kernel: softmax + matmul in one GPU kernel
+- IO-aware: minimize HBM ↔ SRAM data movement
+- Online softmax trick (compute softmax without materializing full matrix)
+
+Results:
+- 2-4x faster than standard attention
+- O(n) memory instead of O(n²)
+- Exact computation (not approximate)</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-13"><div class="q-h"><span class="q-n">&bull;</span><h3>Flash Attention 2/3</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-13"><span></span></label></div><div class="q-a"><pre class="code"><code>Flash Attention 2:
+- Better parallelism across sequence length
+- Reduced non-matmul FLOPs
+- 2x faster than Flash Attention 1
+
+Flash Attention 3 (Hopper GPUs):
+- WGMMA (Warp Group Matrix Multiply-Accumulate)
+- Asynchronous operations (overlap compute + memory)
+- FP8 support
+- Up to 1.5-2x faster than FA2 on H100</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-14"><div class="q-h"><span class="q-n">&bull;</span><h3>Sliding Window Attention</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-14"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Full attention: O(n²) — every token attends to all others
+Sliding window: Each token attends to only W nearby tokens → O(n × W)
+
+Used in: Mistral, Mixtral
+Benefits: Handles long contexts with bounded memory
+Limitation: Cannot directly attend to distant tokens (but info propagates through layers)</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>5. Batching Strategies</span><i></i></div><article class="q" id="f02LLMInference-15"><div class="q-h"><span class="q-n">&bull;</span><h3>Static Batching</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-15"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Problem: All requests wait for longest request to finish
+
+Request 1: [=====]------   (done early, waits)
+Request 2: [============]  (longest)
+Request 3: [========]---   (done early, waits)
+
+→ Low GPU utilization, high latency for short requests</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-16"><div class="q-h"><span class="q-n">&bull;</span><h3>Continuous/Dynamic Batching</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-16"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Requests enter and leave independently
+
+Time →
+Request 1: [=====]
+Request 2: [============]
+Request 3:    [========]
+Request 4:       [====]
+
+→ No waiting, higher throughput, lower latency</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-17"><div class="q-h"><span class="q-n">&bull;</span><h3>Iteration-Level Scheduling</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-17"><span></span></label></div><div class="q-a"><pre class="code"><code>Each decode step, scheduler decides:
+1. Which requests to include in this iteration
+2. Preempt lower-priority requests if memory full
+3. Insert new arrivals immediately
+
+vLLM/TGI implement this automatically</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-18"><div class="q-h"><span class="q-n">&bull;</span><h3>Chunked Prefill</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-18"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Problem: Long prefill blocks decode for other requests
+Solution: Break prefill into chunks, interleave with decode steps
+
+Without chunking:
+[PREFILL (2000 tokens)............][DECODE][DECODE]...
+
+With chunking:
+[PREFILL chunk 1][DECODE][PREFILL chunk 2][DECODE]...
+
+→ Better TPOT for ongoing requests during new prefills</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>6. Speculative Decoding</span><i></i></div><article class="q" id="f02LLMInference-19"><div class="q-h"><span class="q-n">&bull;</span><h3>Core Idea</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-19"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Problem: Decode is memory-bound → GPU underutilized
+Solution: Use a small "draft" model to generate K tokens speculatively,
+          then verify all K tokens in parallel with the large model
+
+Step 1: Draft model generates K tokens (fast, low quality)
+Step 2: Target model validates all K tokens in one forward pass
+Step 3: Accept matching tokens, reject and resample from divergence point
+
+Speedup: Up to 2-3x (depends on acceptance rate)
+Quality: Mathematically identical to target model (rejection sampling)</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-20"><div class="q-h"><span class="q-n">&bull;</span><h3>Implementation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-20"><span></span></label></div><div class="q-a"><pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">speculative_decode</span>(target_model, draft_model, prompt, K=<span class="num">5</span>):
+    tokens = prompt
+    <span class="kw">while</span> <span class="kw">not</span> done:
+        <span class="cmt"># Draft K tokens</span>
+        draft_tokens = []
+        draft_probs = []
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(K):
+            prob = <span class="fn">draft_model</span>(tokens + draft_tokens)
+            token = <span class="fn">sample</span>(prob)
+            draft_tokens.<span class="fn">append</span>(token)
+            draft_probs.<span class="fn">append</span>(prob[token])
+        
+        <span class="cmt"># Verify all K tokens in one forward pass</span>
+        target_probs = <span class="fn">target_model</span>(tokens, draft_tokens)  <span class="cmt"># parallel</span>
+        
+        <span class="cmt"># Accept/reject</span>
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(K):
+            r = random.<span class="fn">random</span>()
+            <span class="kw">if</span> r &lt; target_probs[i][draft_tokens[i]] / draft_probs[i]:
+                tokens.<span class="fn">append</span>(draft_tokens[i])  <span class="cmt"># accept</span>
+            <span class="kw">else</span>:
+                <span class="cmt"># Reject: resample from adjusted distribution</span>
+                token = <span class="fn">sample</span>(<span class="fn">adjusted_distribution</span>(target_probs[i], draft_probs[i]))
+                tokens.<span class="fn">append</span>(token)
+                <span class="kw">break</span>  <span class="cmt"># discard remaining draft tokens</span>
+    
+    <span class="kw">return</span> tokens</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-21"><div class="q-h"><span class="q-n">&bull;</span><h3>Variants</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-21"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Standard</span><span class="kt">Self-speculative</span><span class="kt">Medusa</span><span class="kt">EAGLE</span><span class="kt">Lookahead</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Variant</th><th>Draft Source</th><th>Description</th></tr></thead><tbody><tr class="g1"><td><strong>Standard</strong></td><td>Small model</td><td>Separate smaller model</td></tr><tr class="g0"><td><strong>Self-speculative</strong></td><td>Same model, fewer layers</td><td>Skip layers for draft</td></tr><tr class="g1"><td><strong>Medusa</strong></td><td>Extra prediction heads</td><td>Multiple head predictions</td></tr><tr class="g0"><td><strong>EAGLE</strong></td><td>Feature-level prediction</td><td>Autoregression on features</td></tr><tr class="g1"><td><strong>Lookahead</strong></td><td>Jacobi iteration</td><td>Parallel token generation</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>7. Serving Frameworks</span><i></i></div><article class="q" id="f02LLMInference-22"><div class="q-h"><span class="q-n">&bull;</span><h3>vLLM</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-22"><span></span></label></div><div class="q-a"><pre class="code" data-lang="python"><code><span class="kw">from</span> vllm <span class="kw">import</span> LLM, SamplingParams
+
+llm = <span class="fn">LLM</span>(
+    model=<span class="str">"meta-llama/Llama-2-7b-chat-hf"</span>,
+    tensor_parallel_size=<span class="num">2</span>,
+    dtype=<span class="str">"float16"</span>,
+    quantization=<span class="str">"awq"</span>,
+    gpu_memory_utilization=<span class="num">0.90</span>,
+    max_model_len=<span class="num">4096</span>,
+    enable_prefix_caching=<span class="kw">True</span>
+)
+
+sampling_params = <span class="fn">SamplingParams</span>(
+    temperature=<span class="num">0.7</span>,
+    top_p=<span class="num">0.9</span>,
+    max_tokens=<span class="num">256</span>
+)
+
+outputs = llm.<span class="fn">generate</span>([<span class="str">"Tell me a story about..."</span>], sampling_params)</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-23"><div class="q-h"><span class="q-n">&bull;</span><h3>Serving Framework Comparison</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-23"><span></span></label></div><div class="q-a"><div class="tbl-wrap"><table class="t6"><thead><tr><th>Feature</th><th>vLLM</th><th>TGI (HuggingFace)</th><th>TensorRT-LLM</th><th>Ollama</th><th>llama.cpp</th></tr></thead><tbody><tr class="g1"><td><abbr title="holding the KV cache in fixed-size, non-contiguous pages (like OS virtual memory) to remove fragmentation and raise batch size">PagedAttention</abbr></td><td>✅</td><td>✅</td><td>✅</td><td>Via llama.cpp</td><td>✅</td></tr><tr class="g0"><td><abbr title="adding and removing sequences from a running GPU batch as requests arrive and finish, instead of waiting for a fixed batch to fill">Continuous batching</abbr></td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr><tr class="g1"><td><abbr title="splitting individual matrix operations across GPUs within a layer, for models too large for one GPU">Tensor parallelism</abbr></td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr><tr class="g0"><td><abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">Quantization</abbr></td><td>GPTQ, AWQ, FP8</td><td>GPTQ, AWQ, EETQ</td><td>INT4/INT8/FP8</td><td>GGUF</td><td>GGUF</td></tr><tr class="g1"><td><abbr title="a small draft model proposes several tokens ahead; the large model verifies them in one pass">Speculative decoding</abbr></td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>✅</td></tr><tr class="g0"><td>OpenAI-compatible API</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr><tr class="g1"><td>CPU inference</td><td>❌</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr><tr class="g0"><td>Best for</td><td>Production GPU</td><td>HF ecosystem</td><td>Max NVIDIA perf</td><td>Local/dev</td><td>CPU/edge</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-24"><div class="q-h"><span class="q-n">&bull;</span><h3>SGLang</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-24"><span></span></label></div><div class="q-a"><pre class="code" data-lang="python"><code><span class="cmt"># Structured Generation Language</span>
+<span class="cmt"># Optimized for complex LLM programs with branching/loops</span>
+<span class="kw">import</span> sglang <span class="kw">as</span> sgl
+
+@sgl.function
+<span class="kw">def</span> <span class="fn">multi_turn_qa</span>(s, questions):
+    <span class="kw">for</span> q <span class="kw">in</span> questions:
+        s += sgl.<span class="fn">user</span>(q)
+        s += sgl.<span class="fn">assistant</span>(sgl.<span class="fn">gen</span>(<span class="str">"answer"</span>, max_tokens=<span class="num">256</span>))
+
+<span class="cmt"># RadixAttention: reuses KV cache across forks/branches</span>
+<span class="cmt"># Up to 5x faster for complex LLM programs</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-25"><div class="q-h"><span class="q-n">&bull;</span><h3>TensorRT-LLM</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-25"><span></span></label></div><div class="q-a"><pre class="code" data-lang="python"><code><span class="cmt"># Maximum performance on NVIDIA GPUs</span>
+<span class="cmt"># Compile model with optimizations</span>
+
+<span class="kw">import</span> tensorrt_llm
+<span class="kw">from</span> tensorrt_llm.quantization <span class="kw">import</span> QuantMode
+
+<span class="cmt"># Build engine with FP8 quantization</span>
+builder = tensorrt_llm.<span class="fn">Builder</span>()
+network = builder.<span class="fn">create_network</span>()
+<span class="cmt"># ... define network ...</span>
+engine = builder.<span class="fn">build_engine</span>(network, builder_config)
+
+<span class="cmt"># Features:</span>
+<span class="cmt"># - Kernel fusion</span>
+<span class="cmt"># - In-flight batching</span>
+<span class="cmt"># - FP8/INT4 with calibration</span>
+<span class="cmt"># - Multi-GPU (tensor/pipeline parallel)</span></code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>8. Distributed Inference</span><i></i></div><article class="q" id="f02LLMInference-26"><div class="q-h"><span class="q-n">&bull;</span><h3>Tensor Parallelism (TP)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-26"><span></span></label></div><div class="q-a"><pre class="code"><code>Split model layers across GPUs (horizontal split)
+
+GPU 0: First half of attention heads + first half of FFN
+GPU 1: Second half of attention heads + second half of FFN
+
+AllReduce after each layer to sync outputs
+
+Pros: Low latency (GPUs work in parallel on same layer)
+Cons: Requires high-bandwidth interconnect (NVLink)
+Best for: Within a single node</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-27"><div class="q-h"><span class="q-n">&bull;</span><h3>Pipeline Parallelism (PP)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-27"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Split model layers across GPUs (vertical split)
+
+GPU 0: Layers 0-15   →
+GPU 1: Layers 16-31  →  Sequential flow
+
++ Micro-batching to fill pipeline bubbles
+
+Pros: Works across nodes (less communication)
+Cons: Pipeline bubbles, higher latency
+Best for: Across nodes</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-28"><div class="q-h"><span class="q-n">&bull;</span><h3>Expert Parallelism (EP)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-28"><span></span></label></div><div class="q-a"><pre class="code"><code>For Mixture-of-Experts (MoE) models like Mixtral
+
+GPU 0: Experts 0-3
+GPU 1: Experts 4-7
+
+Tokens routed to appropriate GPU based on gating
+Reduces per-GPU compute but requires routing communication</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-29"><div class="q-h"><span class="q-n">&bull;</span><h3>Multi-GPU Configuration</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-29"><span></span></label></div><div class="q-a"><pre class="code" data-lang="python"><code><span class="cmt"># vLLM: simple tensor parallelism</span>
+llm = <span class="fn">LLM</span>(model=<span class="str">"meta-llama/Llama-2-70b-chat-hf"</span>,
+           tensor_parallel_size=<span class="num">4</span>)  <span class="cmt"># 4 GPUs</span>
+
+<span class="cmt"># For very large models: combine TP + PP</span>
+<span class="cmt"># 8 GPUs: TP=4 (within node), PP=2 (across nodes)</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-30"><div class="q-h"><span class="q-n">&bull;</span><h3>GPU Selection Guide</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-30"><span></span></label></div><div class="q-a"><div class="tbl-wrap"><table class="t3"><thead><tr><th>Model Size</th><th>Min GPU Memory</th><th>Recommended Setup</th></tr></thead><tbody><tr class="g1"><td>7B (FP16)</td><td><span class="mag">14 GB</span></td><td><span class="mag">1×</span> A100-40GB or <span class="mag">1×</span> L40S</td></tr><tr class="g0"><td>7B (INT4)</td><td><span class="mag">4 GB</span></td><td><span class="mag">1×</span> RTX 4090 or T4</td></tr><tr class="g1"><td>13B (FP16)</td><td><span class="mag">26 GB</span></td><td><span class="mag">1×</span> A100-80GB</td></tr><tr class="g0"><td>70B (FP16)</td><td><span class="mag">140 GB</span></td><td><span class="mag">2×</span> A100-80GB (TP=2)</td></tr><tr class="g1"><td>70B (INT4)</td><td><span class="mag">35 GB</span></td><td><span class="mag">1×</span> A100-80GB</td></tr><tr class="g0"><td>405B (FP16)</td><td><span class="mag">810 GB</span></td><td><span class="mag">8×</span> H100-80GB (TP=8)</td></tr><tr class="g1"><td>405B (FP8)</td><td><span class="mag">405 GB</span></td><td><span class="mag">8×</span> A100-80GB</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>9. Model Compression</span><i></i></div><article class="q" id="f02LLMInference-31"><div class="q-h"><span class="q-n">&bull;</span><h3>Knowledge Distillation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-31"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Teacher (large model) → Student (small model)
+
+Loss = α × L_CE(student, labels) + (1-α) × L_KD(student_logits, teacher_logits)
+L_KD = KL(softmax(teacher_logits/T), softmax(student_logits/T))
+
+T = temperature (higher → softer distributions → more knowledge transfer)</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-32"><div class="q-h"><span class="q-n">&bull;</span><h3>Pruning</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-32"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Unstructured</span><span class="kt">Structured</span><span class="kt">Semi-structured (2:4)</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Type</th><th>What's Removed</th><th>Granularity</th></tr></thead><tbody><tr class="g1"><td><strong>Unstructured</strong></td><td>Individual weights</td><td>Fine (any weight)</td></tr><tr class="g0"><td><strong>Structured</strong></td><td>Entire neurons/heads/layers</td><td>Coarse (hardware-friendly)</td></tr><tr class="g1"><td><strong>Semi-structured (2:4)</strong></td><td>2 of every 4 weights</td><td>NVIDIA Ampere+ optimized</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-33"><div class="q-h"><span class="q-n">&bull;</span><h3>Architecture Optimizations</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-33"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Layer reduction</span><span class="kt">Width reduction</span><span class="kt">Vocabulary pruning</span><span class="kt">Attention head pruning</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Technique</th><th>Description</th><th>Example</th></tr></thead><tbody><tr class="g1"><td><strong>Layer reduction</strong></td><td>Remove redundant layers</td><td>Minitron (NVIDIA)</td></tr><tr class="g0"><td><strong>Width reduction</strong></td><td>Reduce hidden dimensions</td><td>Pruned models</td></tr><tr class="g1"><td><strong>Vocabulary pruning</strong></td><td>Remove unused tokens</td><td>Domain-specific models</td></tr><tr class="g0"><td><strong>Attention head pruning</strong></td><td>Remove unimportant heads</td><td>Based on importance scores</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>10. Deployment Architectures</span><i></i></div><article class="q" id="f02LLMInference-34"><div class="q-h"><span class="q-n">&bull;</span><h3>Single-Model Serving</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-34"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Client → Load Balancer → vLLM/TGI instances → GPU cluster
+                       ↕
+                 Request Queue (priority-based)</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-35"><div class="q-h"><span class="q-n">&bull;</span><h3>Router Pattern (Multiple Models)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-35"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Client → API Gateway → Router
+                        ├── Small model (fast, simple queries)
+                        ├── Medium model (balanced)
+                        └── Large model (complex queries)
+
+Router decides based on: query complexity, latency requirements, cost</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-36"><div class="q-h"><span class="q-n">&bull;</span><h3>Production Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-36"><span></span></label></div><div class="q-a"><pre class="code" data-lang="yaml"><code># Kubernetes deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-inference
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        args:
+        - --model=meta-llama/Llama-2-7b-chat-hf
+        - --tensor-parallel-size=1
+        - --gpu-memory-utilization=0.90
+        - --max-model-len=4096
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+        ports:
+        - containerPort: 8000
+      nodeSelector:
+        gpu-type: a100
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-service
+spec:
+  selector:
+    app: llm-inference
+  ports:
+  - port: 80
+    targetPort: 8000
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: llm-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: llm-inference
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Pods
+    pods:
+      metric:
+        name: gpu_utilization
+      target:
+        type: AverageValue
+        averageValue: "80"</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-37"><div class="q-h"><span class="q-n">&bull;</span><h3>Caching Strategies</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-37"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Semantic cache</span><span class="kt">KV cache (prefix)</span><span class="kt">Prompt cache</span><span class="kt">Response cache</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Level</th><th>What's Cached</th><th>When</th></tr></thead><tbody><tr class="g1"><td><strong><abbr title="reusing a previous answer when a new query is close enough in embedding space">Semantic cache</abbr></strong></td><td>Similar query → cached response</td><td>High query repetition</td></tr><tr class="g0"><td><strong><abbr title="the stored attention keys and values for tokens already generated, so each new token attends without recomputing the sequence">KV cache</abbr> (prefix)</strong></td><td>Shared prompt prefix <abbr title="key-value — the attention keys and values cached for tokens already generated">KV</abbr> states</td><td>Same system prompt</td></tr><tr class="g1"><td><strong>Prompt cache</strong></td><td>Pre-computed system prompts</td><td>Static system prompts</td></tr><tr class="g0"><td><strong>Response cache</strong></td><td>Exact query → exact response</td><td>Deterministic outputs</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>11. Benchmarking &amp; Monitoring</span><i></i></div><article class="q" id="f02LLMInference-38"><div class="q-h"><span class="q-n">&bull;</span><h3>Key Metrics to Track</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-38"><span></span></label></div><div class="q-a"><pre class="code" data-lang="python"><code><span class="cmt"># Throughput test</span>
+<span class="kw">import</span> time
+
+start = time.<span class="fn">time</span>()
+outputs = llm.<span class="fn">generate</span>(prompts, sampling_params)
+elapsed = time.<span class="fn">time</span>() - start
+
+total_tokens = <span class="fn">sum</span>(<span class="fn">len</span>(o.outputs[<span class="num">0</span>].token_ids) <span class="kw">for</span> o <span class="kw">in</span> outputs)
+throughput = total_tokens / elapsed  <span class="cmt"># tokens/sec</span>
+<span class="fn">print</span>(f<span class="str">"Throughput: {throughput:.1f} tokens/sec"</span>)</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-39"><div class="q-h"><span class="q-n">&bull;</span><h3>Load Testing</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-39"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Using benchmarking tools</span>
+<span class="cmt"># vLLM benchmark</span>
+python benchmark_serving.py \
+    --backend vllm \
+    --model meta-llama/Llama-<span class="num">2</span>-7b-chat-hf \
+    --num-prompts <span class="num">1000</span> \
+    --request-rate <span class="num">10</span> \
+    --max-concurrency <span class="num">64</span>
+
+<span class="cmt"># Metrics output:</span>
+<span class="cmt"># - Median TTFT: 45ms</span>
+<span class="cmt"># - Median TPOT: 12ms</span>
+<span class="cmt"># - P99 TTFT: 120ms</span>
+<span class="cmt"># - P99 TPOT: 35ms</span>
+<span class="cmt"># - Throughput: 2500 tokens/sec</span>
+<span class="cmt"># - Request throughput: 45 req/sec</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-40"><div class="q-h"><span class="q-n">&bull;</span><h3>Production Monitoring</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-40"><span></span></label></div><div class="q-a"><div class="tbl-wrap"><table class="t3"><thead><tr><th>Metric</th><th>Alert Threshold</th><th>Action</th></tr></thead><tbody><tr class="g1"><td>GPU utilization</td><td>&lt; <span class="mag">50%</span> sustained</td><td>Scale down / consolidate</td></tr><tr class="g0"><td>GPU memory</td><td>&gt; <span class="mag">95%</span></td><td>Risk of OOM, reduce batch</td></tr><tr class="g1"><td><abbr title="time to first token — what the user perceives as responsiveness">TTFT</abbr> P99</td><td>&gt; <abbr title="service level agreement">SLA</abbr> (e.g., 2s)</td><td>Scale up / optimize prompts</td></tr><tr class="g0"><td>Error rate</td><td>&gt; <span class="mag">1%</span></td><td>Investigate failures</td></tr><tr class="g1"><td>Queue depth</td><td>&gt; 100</td><td>Scale up</td></tr><tr class="g0"><td><abbr title="the stored attention keys and values for tokens already generated, so each new token attends without recomputing the sequence">KV cache</abbr> utilization</td><td>&gt; <span class="mag">90%</span></td><td>Increase memory / reduce max_seq_len</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>12. Cost Optimization</span><i></i></div><article class="q" id="f02LLMInference-41"><div class="q-h"><span class="q-n">&bull;</span><h3>Strategies</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-41"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Quantization (INT4)</span><span class="kt">Smaller model</span><span class="kt">Prompt optimization</span><span class="kt">Caching</span><span class="kt">Spot/preemptible instances</span><span class="kt">Right-sizing GPU</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Strategy</th><th>Savings</th><th>Tradeoff</th></tr></thead><tbody><tr class="g1"><td><strong><abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">Quantization</abbr> (INT4)</strong></td><td>4x memory → more batch</td><td>Slight quality loss</td></tr><tr class="g0"><td><strong>Smaller model</strong></td><td>Direct cost reduction</td><td>Lower capability</td></tr><tr class="g1"><td><strong>Prompt optimization</strong></td><td>Reduce token count</td><td>Development effort</td></tr><tr class="g0"><td><strong>Caching</strong></td><td>Avoid recomputation</td><td>Memory for cache</td></tr><tr class="g1"><td><strong>Spot/preemptible instances</strong></td><td><span class="mag">50-70%</span> cost reduction</td><td>Can be interrupted</td></tr><tr class="g0"><td><strong>Right-sizing GPU</strong></td><td>Match GPU to model size</td><td>Planning effort</td></tr><tr class="g1"><td><strong>Output length limits</strong></td><td>Reduce generation cost</td><td>May truncate responses</td></tr><tr class="g0"><td><strong>Batching</strong></td><td>Higher throughput</td><td>Slightly higher latency</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-42"><div class="q-h"><span class="q-n">&bull;</span><h3>Cost Comparison (approximate, 2024-2025)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-42"><span></span></label></div><div class="q-a"><div class="diagram"><pre>API Providers (per 1M tokens):
+| Provider        | Input   | Output  |
+|----------------|---------|---------|
+| GPT-4o         | $2.50   | $10.00  |
+| GPT-4o-mini    | $0.15   | $0.60   |
+| Claude Opus 4  | $15.00  | $75.00  |
+| Claude Sonnet  | $3.00   | $15.00  |
+| Gemini 2.5 Pro | $1.25   | $10.00  |
+| Llama 3.1 70B  | $0.50   | $0.70   | (via Groq/Together)
+
+Self-hosted (A100-80GB @ $2/hr):
+- LLaMA-2 70B INT4: ~1500 tokens/sec → ~$0.48 per 1M tokens
+- LLaMA-2 7B FP16: ~3000 tokens/sec → ~$0.24 per 1M tokens</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-43"><div class="q-h"><span class="q-n">&bull;</span><h3>When to Self-Host vs API</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-43"><span></span></label></div><div class="q-a"><div class="tbl-wrap"><table class="t3"><thead><tr><th>Factor</th><th>Self-Host</th><th>API</th></tr></thead><tbody><tr class="g1"><td>Volume</td><td>&gt; 10M tokens/day</td><td>&lt; 10M tokens/day</td></tr><tr class="g0"><td>Latency control</td><td>Full control</td><td>Provider-dependent</td></tr><tr class="g1"><td>Data privacy</td><td>On-premise</td><td>Data leaves org</td></tr><tr class="g0"><td>Customization</td><td>Fine-tuned models</td><td>Limited</td></tr><tr class="g1"><td>Ops overhead</td><td>High (GPUs, infra)</td><td>Zero</td></tr><tr class="g0"><td>Time to deploy</td><td>Weeks</td><td>Hours</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>13. Grammar-Constrained Decoding</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Grammar-constrained decoding forces <abbr title="large language model">LLM</abbr> outputs to conform to a <strong>formal grammar</strong>, eliminating malformed JSON, invalid code syntax, or off-schema responses at the token-sampling level.</p></div><article class="q" id="f02LLMInference-44"><div class="q-h"><span class="q-n">&bull;</span><h3>How It Works</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-44"><span></span></label></div><div class="q-a"><p>At each decoding step, the grammar defines which tokens are <strong>valid continuations</strong>. Invalid tokens are masked (logits set to $-\infty$) before sampling, guaranteeing structurally correct output.</p>
+<div class="diagram"><pre>Standard Decoding:          Grammar-Constrained Decoding:
+
+Logits → Softmax → Sample   Logits → Grammar Mask → Softmax → Sample
+                                       ↑
+                              Only tokens valid per
+                              grammar state are kept</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-45"><div class="q-h"><span class="q-n">&bull;</span><h3>Tools &amp; Libraries</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-45"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Outlines</span><span class="kt">guidance</span><span class="kt">llama.cpp GBNF</span><span class="kt">Instructor</span><span class="kt">SGLang</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Tool</th><th>Approach</th><th>Key Features</th></tr></thead><tbody><tr class="g1"><td><strong>Outlines</strong></td><td>Token-level regex/JSON/CFG masking</td><td>HuggingFace + vLLM integration, fastest</td></tr><tr class="g0"><td><strong>guidance</strong></td><td>Template-based structured generation</td><td>Interleaves text + generation + control flow</td></tr><tr class="g1"><td><strong>llama.cpp GBNF</strong></td><td>GBNF grammar files</td><td>Native C++ integration, local models</td></tr><tr class="g0"><td><strong>Instructor</strong></td><td>Pydantic model → structured output</td><td>Works with OpenAI/Anthropic APIs via retries</td></tr><tr class="g1"><td><strong>SGLang</strong></td><td>Constrained decoding in serving</td><td>Built into the serving framework</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-46"><div class="q-h"><span class="q-n">&bull;</span><h3>GBNF Grammar Example</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-46"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bnf"><code># Force JSON output with specific schema
+root   ::= "{" ws '"name"' ws ":" ws string "," ws '"age"' ws ":" ws number "}"
+string ::= '"' [a-zA-Z ]+ '"'
+number ::= [0-9]+
+ws     ::= [ \t\n]*</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-47"><div class="q-h"><span class="q-n">&bull;</span><h3>Code Example — Outlines with JSON Schema</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-47"><span></span></label></div><div class="q-a"><pre class="code" data-lang="python"><code><span class="kw">import</span> outlines
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+
+<span class="kw">class</span> <span class="fn">Person</span>(BaseModel):
+    name: str
+    age: int
+    occupation: str
+
+model = outlines.models.<span class="fn">transformers</span>(<span class="str">"mistralai/Mistral-7B-v0.1"</span>)
+generator = outlines.generate.<span class="fn">json</span>(model, Person)
+
+result = <span class="fn">generator</span>(<span class="str">"Extract person info: John is a 30-year-old engineer."</span>)
+<span class="cmt"># result is GUARANTEED to be valid Person: Person(name='John', age=30, occupation='engineer')</span>
+<span class="cmt"># No retries, no parsing errors — structurally correct by construction</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-48"><div class="q-h"><span class="q-n">&bull;</span><h3>When to Use</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-48"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">API responses</span><span class="kt">Code generation</span><span class="kt">Tool calling</span><span class="kt">Data extraction</span><span class="kt">Limitations</span></div><ul>
+<li class="dl"><b class="dt">API responses</b><span class="dd">Guarantee valid JSON matching your schema — no try/except parsing loops.</span></li>
+<li class="dl"><b class="dt">Code generation</b><span class="dd">Constrain output to valid syntax via language grammars.</span></li>
+<li class="dl"><b class="dt"><abbr title="the model emitting a structured request for a function the application then executes">Tool calling</abbr></b><span class="dd">Force function call format with correct argument types.</span></li>
+<li class="dl"><b class="dt">Data extraction</b><span class="dd">Ensure extracted entities match expected structure.</span></li>
+<li class="dl"><b class="dt">Limitations</b><span class="dd">Slight latency overhead for grammar checking; complex grammars can reduce output diversity.</span></li>
+</ul></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>14. LMSYS Chatbot Arena &amp; LLM Evaluation</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Evaluating LLMs requires multiple complementary approaches — static benchmarks alone don't capture real-world quality. The <strong>LMSYS Chatbot Arena</strong> provides a crowd-sourced, preference-based evaluation.</p></div><article class="q" id="f02LLMInference-49"><div class="q-h"><span class="q-n">&bull;</span><h3>LMSYS Chatbot Arena</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-49"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">What</span><span class="kt">anonymous</span><span class="kt">Scale</span><span class="kt">Rating system</span><span class="kt">Bradley-Terry model</span><span class="kt">Why it matters</span></div><ul>
+<li class="dl"><b class="dt">What</b><span class="dd">A live platform where users chat with two <strong>anonymous</strong> LLMs side-by-side and vote for the better response.</span></li>
+<li class="dl"><b class="dt">Scale</b><span class="dd">1M+ human preference votes across 100+ models.</span></li>
+<li class="dl"><b class="dt">Rating system</b><span class="dd">Uses <strong>Bradley-Terry model</strong> (evolved from Elo) — each model gets a score reflecting its probability of being preferred over other models.</span></li>
+<li class="dl"><b class="dt">Why it matters</b><span class="dd">Captures open-ended quality, instruction following, creativity, and helpfulness — aspects static benchmarks miss.</span></li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-50"><div class="q-h"><span class="q-n">&bull;</span><h3>Arena Hard Benchmark</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-50"><span></span></label></div><div class="q-a"><ul>
+<li>Automated version using GPT-4 as judge on 500 challenging Arena prompts.</li>
+<li>Highly correlated with human Arena rankings ($r &gt; 0.95$).</li>
+<li>Cheaper and faster than live Arena; useful for rapid model iteration.</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-51"><div class="q-h"><span class="q-n">&bull;</span><h3>Complementary Evaluation Strategy</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-51"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">MMLU</span><span class="kt">HumanEval / MBPP</span><span class="kt">MT-Bench</span><span class="kt">Chatbot Arena</span><span class="kt">Arena Hard</span><span class="kt">GPQA</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Benchmark</th><th>What It Measures</th><th>Limitation</th></tr></thead><tbody><tr class="g1"><td><strong>MMLU</strong></td><td>Knowledge &amp; reasoning (multiple choice)</td><td>Doesn't test generation quality</td></tr><tr class="g0"><td><strong>HumanEval / MBPP</strong></td><td>Code generation correctness</td><td>Only code, not general tasks</td></tr><tr class="g1"><td><strong>MT-Bench</strong></td><td>Multi-turn conversation quality (<abbr title="large language model">LLM</abbr> judge)</td><td>Judge model bias</td></tr><tr class="g0"><td><strong>Chatbot Arena</strong></td><td>Overall human preference</td><td>Expensive, slow, user-population bias</td></tr><tr class="g1"><td><strong>Arena Hard</strong></td><td>Automated Arena proxy</td><td>Still depends on GPT-4 judge</td></tr><tr class="g0"><td><strong>GPQA</strong></td><td>PhD-level reasoning</td><td>Very narrow domain</td></tr></tbody></table></div>
+<p><strong>Best practice</strong>: Combine <strong>MMLU</strong> (knowledge) + <strong>HumanEval</strong> (code) + <strong>Arena/MT-Bench</strong> (human preference) + <strong>domain-specific evals</strong> for a complete picture. No single benchmark is sufficient.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-52"><div class="q-h"><span class="q-n">&bull;</span><h3>Key Insight for Interviews</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-52"><span></span></label></div><div class="q-a"><div class="note">
+<p>"A model that tops MMLU but ranks poorly on Arena may be good at test-taking but poor at following instructions. Conversely, a model that's great in Arena but weak on MMLU may be fluent but factually unreliable. You need both."</p>
+</div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>15. Interview Questions</span><i></i></div><article class="q" id="f02LLMInference-53"><div class="q-h"><span class="q-n">&bull;</span><h3>Conceptual</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-53"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Explain PagedAttention</span><span class="kt">MHA vs GQA vs MQA?</span><span class="kt">How does Flash Attention work?</span><span class="kt">What is speculative decoding?</span><span class="kt">GPTQ vs AWQ vs GGUF?</span><span class="kt">How to reduce TTFT?</span></div><ol>
+<li>
+<p><strong>What are the two phases of <abbr title="large language model">LLM</abbr> inference?</strong> <abbr title="processing the whole prompt to produce the first output token">Prefill</abbr> (process prompt in parallel, compute-bound) and <abbr title="generating output tokens one at a time after prefill">Decode</abbr> (generate tokens one-by-one, memory-bound).</p>
+</li>
+<li>
+<p><strong>Explain <abbr title="holding the KV cache in fixed-size, non-contiguous pages (like OS virtual memory) to remove fragmentation and raise batch size">PagedAttention</abbr>.</strong> Manages <abbr title="the stored attention keys and values for tokens already generated, so each new token attends without recomputing the sequence">KV cache</abbr> like OS virtual memory — allocates in pages/blocks, avoids pre-allocation waste, enables memory sharing across requests with common prefixes. Used in vLLM.</p>
+</li>
+<li>
+<p><strong><abbr title="multi-head attention">MHA</abbr> vs <abbr title="grouped-query attention — several query heads share one key/value head, shrinking the KV cache">GQA</abbr> vs <abbr title="multi-query attention — all query heads share a single key/value head">MQA</abbr>?</strong> MHA: each head has own K,V. GQA: groups of heads share K,V (LLaMA-2 70B). MQA: all heads share one K,V. GQA/MQA reduce <abbr title="key-value — the attention keys and values cached for tokens already generated">KV</abbr> cache memory.</p>
+</li>
+<li>
+<p><strong>How does <abbr title="a fused attention kernel that never materialises the full attention matrix, cutting memory traffic">Flash Attention</abbr> work?</strong> Tiles attention computation into blocks that fit in GPU SRAM, avoids materializing O(n²) attention matrix in HBM. IO-aware algorithm that minimizes memory transfers.</p>
+</li>
+<li>
+<p><strong>What is <abbr title="a small draft model proposes several tokens ahead; the large model verifies them in one pass">speculative decoding</abbr>?</strong> Draft model generates K tokens cheaply, target model verifies all K in one forward pass. Accepted tokens are mathematically identical to target model output. ~2-3x speedup.</p>
+</li>
+<li>
+<p><strong><abbr title="adding and removing sequences from a running GPU batch as requests arrive and finish, instead of waiting for a fixed batch to fill">Continuous batching</abbr> vs static batching?</strong> Static: all requests wait for longest one. Continuous: requests enter/leave batch independently per decode step. Much higher throughput.</p>
+</li>
+<li>
+<p><strong>GPTQ vs AWQ vs GGUF?</strong> GPTQ: calibration-based weight <abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">quantization</abbr> (GPU). AWQ: activation-aware, preserves salient weights (GPU, better quality). GGUF: CPU-optimized, mixed precision (llama.cpp).</p>
+</li>
+<li>
+<p><strong>How to estimate GPU memory for serving?</strong> Weights memory + KV cache per request × max batch size + overhead. KV cache = <span class="mag">2 ×</span> layers × heads × head_dim × seq_len × dtype_bytes.</p>
+</li>
+<li>
+<p><strong>When to use tensor parallel vs pipeline parallel?</strong> TP: within node, splits layers horizontally, needs NVLink. PP: across nodes, splits layers vertically, tolerates lower bandwidth. Often combined for large models.</p>
+</li>
+<li>
+<p><strong>How to reduce <abbr title="time to first token — what the user perceives as responsiveness">TTFT</abbr>?</strong> <abbr title="reusing the computed KV cache of a shared prompt prefix across requests, so prefill is not repeated">Prefix caching</abbr>, <abbr title="splitting a long prompt&#x27;s prefill into chunks interleaved with other requests&#x27; decode steps">chunked prefill</abbr>, Flash Attention, FP8 compute, <abbr title="splitting individual matrix operations across GPUs within a layer, for models too large for one GPU">tensor parallelism</abbr>, smaller context windows, prompt compression.</p>
+</li>
+</ol></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-54"><div class="q-h"><span class="q-n">&bull;</span><h3>Practical</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-54"><span></span></label></div><div class="q-a"><ol start="11">
+<li>
+<p><strong>Design a serving architecture for a 70B model serving <span class="mag">1000 <abbr title="queries per second">QPS</abbr></span>.</strong> Multiple vLLM instances with TP=2 behind load balancer, INT4 <abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">quantization</abbr>, <abbr title="reusing the computed KV cache of a shared prompt prefix across requests, so prefill is not repeated">prefix caching</abbr> for system prompts, auto-scaling based on queue depth, semantic caching layer.</p>
+</li>
+<li>
+<p><strong>How to handle long contexts (100K+ tokens)?</strong> Ring Attention for distributed context, sliding window attention, context compression, <abbr title="retrieval-augmented generation">RAG</abbr> to reduce context, streaming <abbr title="processing the whole prompt to produce the first output token">prefill</abbr> with chunking.</p>
+</li>
+<li>
+<p><strong>Your <abbr title="large language model">LLM</abbr> API has high P99 latency. Debug steps?</strong> Check queue depth, GPU utilization, <abbr title="the stored attention keys and values for tokens already generated, so each new token attends without recomputing the sequence">KV cache</abbr> pressure, long prefills blocking <abbr title="generating output tokens one at a time after prefill">decode</abbr>, garbage collection pauses, network latency, individual request token counts.</p>
+</li>
+<li>
+<p><strong>Compare self-hosting vs API for a startup.</strong> Depends on volume, privacy needs, and ops capability. Start with API (fast, no ops), migrate to self-hosted when volume justifies cost and you have GPU/ML infra expertise.</p>
+</li>
+<li>
+<p><strong>How to serve multiple <abbr title="low-rank adaptation">LoRA</abbr> adapters efficiently?</strong> S-LoRA or vLLM multi-LoRA: load base model once, swap LoRA weights per request. Batch requests with same adapter together. <abbr title="key-value — the attention keys and values cached for tokens already generated">KV</abbr> cache shared across adapters.</p>
+</li>
+</ol>
+<hr />
+<p><em>Previous: <a href="llm.html#f01LLMParameter">01_LLM_Parameters.md</a> | Next: <a href="training.html#f03FineTuningLL">03_Fine_Tuning_LLM.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section>
+<div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+</div></main>
+</div>
+<button class="totop" id="totop" title="Back to top">&#8593;</button>
+<script>
+var LS='ai14.done.v2', TH='ai14.theme';
+var done={};try{done=JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){}
+var root=document.documentElement;
+function setTheme(t){root.setAttribute('data-theme',t);try{localStorage.setItem(TH,t)}catch(e){}
+  var b=document.getElementById('themeBtn'); if(b)b.textContent=(t==='dark'?'Light':'Dark');}
+setTheme((function(){try{return localStorage.getItem(TH)}catch(e){return null}})()||
+  (window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'));
+var tb=document.getElementById('themeBtn');
+if(tb)tb.onclick=function(){setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark')};
+
+var boxes=[].slice.call(document.querySelectorAll('.q-done input'));
+function refresh(){
+  var n=0;
+  boxes.forEach(function(b){
+    var q=b.closest('.q'), on=!!done[b.dataset.id];
+    b.checked=on; q.classList.toggle('done',on); if(on)n++;
+    var l=document.querySelector('nav a[data-q="'+q.id+'"]'); if(l)l.classList.toggle('done',on);
+  });
+  var el=document.getElementById('pgCount');
+  if(el)el.textContent=n+' / '+boxes.length;
+}
+boxes.forEach(function(b){b.addEventListener('change',function(){
+  if(b.checked)done[b.dataset.id]=1;else delete done[b.dataset.id];
+  try{localStorage.setItem(LS,JSON.stringify(done))}catch(e){}refresh();});});
+refresh();
+
+var db=document.getElementById('drillBtn');
+if(db)db.onclick=function(){var on=document.body.classList.toggle('drill');db.classList.toggle('on',on);
+  if(!on)[].forEach.call(document.querySelectorAll('.q.open'),function(q){q.classList.remove('open')});};
+[].forEach.call(document.querySelectorAll('.reveal'),function(b){
+  b.onclick=function(){b.closest('.q').classList.add('open')};});
+
+var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementById('search'),
+    noRes=document.getElementById('noRes');
+qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
+function runSearch(){
+  if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
+    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  [].forEach.call(document.querySelectorAll('.parthead'),function(p){
+    if(!v){p.style.display='';return}
+    var vis=false,n=p.nextElementSibling;
+    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
+    p.style.display=vis?'':'none';});
+  if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
+}
+if(inp)inp.addEventListener('input',runSearch);
+
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+var totop=document.getElementById('totop');
+function onScroll(){
+  var sc=document.documentElement.scrollTop;
+  if(totop)totop.classList.toggle('show',sc>600);
+  var cur=null;
+  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
+    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  navLinks.forEach(function(l){l.classList.remove('active')});
+  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
+    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
+      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+}
+window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
+
+var sb=document.getElementById('sidebar'), mb=document.getElementById('menuBtn');
+if(mb)mb.onclick=function(){sb.classList.toggle('open')};
+if(sb)sb.addEventListener('click',function(e){if(e.target.tagName==='A'&&window.innerWidth<=1060)sb.classList.remove('open')});
+
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'){if(e.key==='Escape'){e.target.value='';runSearch();e.target.blur()}return}
+  if(e.key==='/'&&inp){e.preventDefault();inp.focus()}
+  else if(e.key==='d'&&db){db.click()}
+  else if(e.key==='t'&&tb){tb.click()}
+  else if(e.key==='j'||e.key==='k'){
+    var vis=qs.filter(function(q){return q.style.display!=='none'}),idx=-1;
+    for(var i=0;i<vis.length;i++){if(vis[i].getBoundingClientRect().top>64){idx=i;break}}
+    if(e.key==='k')idx=(idx<0?vis.length:idx)-2;
+    var t=vis[Math.max(0,Math.min(vis.length-1,idx<0?0:idx))];
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}
+});
+/* reading progress */
+(function(){
+  var b=document.createElement('div'); b.id='rprog'; document.body.appendChild(b);
+  var t=null;
+  function upd(){
+    var h=document.documentElement, m=(h.scrollHeight-h.clientHeight);
+    b.style.width=(m>0?(h.scrollTop/m)*100:0)+'%';
+  }
+  addEventListener('scroll',function(){ if(t)return; t=requestAnimationFrame(function(){t=null;upd();}); },
+                   {passive:true});
+  addEventListener('resize',upd); upd();
+})();
+
+/* copy button on every code block */
+(function(){
+  document.querySelectorAll('pre.code').forEach(function(pre){
+    var b=document.createElement('button'); b.className='copy'; b.type='button'; b.textContent='Copy';
+    b.addEventListener('click',function(){
+      var code=pre.querySelector('code'); var txt=code?code.innerText:pre.innerText;
+      var done=function(){ b.textContent='Copied'; b.classList.add('ok');
+        setTimeout(function(){ b.textContent='Copy'; b.classList.remove('ok'); },1400); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(done,function(){});
+      } else {
+        var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta);
+        ta.select(); try{document.execCommand('copy');done();}catch(e){} document.body.removeChild(ta);
+      }
+    });
+    pre.appendChild(b);
+  });
+})();
+
+/* deep link on each question card */
+(function(){
+  document.querySelectorAll('.q[id] > .q-h').forEach(function(h){
+    var id=h.parentNode.id, a=document.createElement('a');
+    a.className='q-anchor'; a.href='#'+id; a.textContent='#';
+    a.title='Copy a link to this question';
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      var url=location.href.split('#')[0]+'#'+id;
+      history.replaceState(null,'','#'+id);
+      var done=function(){ a.classList.add('ok'); a.textContent='✓';
+        setTimeout(function(){ a.classList.remove('ok'); a.textContent='#'; },1200); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(done,done);
+      } else { done(); }
+    });
+    var label=h.querySelector('.q-done');
+    if(label){ h.insertBefore(a,label); } else { h.appendChild(a); }
+  });
+})();
+
+</script>
+</body></html>

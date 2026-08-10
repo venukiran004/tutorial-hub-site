@@ -1,0 +1,2186 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Foundations — Agentic AI &amp; RAG</title>
+<meta name="description" content="Principles and the core design vocabulary">
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+:root{
+  color-scheme:dark;
+  --bg:#0d1117; --surface:#151b23; --surface-2:#1c232d; --surface-3:#232b36;
+  --border:#2a313c; --border-soft:#21262d;
+  --ink:#e6edf3; --ink-2:#9da7b3; --ink-mut:#6e7681;
+  --accent:#3987e5; --accent-soft:rgba(57,135,229,.14); --accent-bd:rgba(57,135,229,.42);
+  --t-rag:#3987e5; --t-agentic:#d95926; --t-recall:#199e70;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+  --warn-soft:rgba(250,178,25,.12); --good-soft:rgba(12,163,12,.12); --crit-soft:rgba(208,59,59,.12);
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;
+  --r1:#86b6ef;--r2:#5598e7;--r3:#2a78d6;--r4:#1c5cab;
+  --o1:#f0a882;--o2:#e88a5c;--o3:#d95926;--o4:#b8471d;--o5:#8f3716;
+  --code-bg:#0b0f15;
+  --fig-surface:#1c232d; --fig-surface-2:#171d26; --fig-surface-3:#232b36;
+  --fig-border:#39424f; --fig-ink:#e6edf3; --fig-ink-2:#b6c0cc; --fig-mut:#8d97a4;
+  --fig-accent:#3987e5; --fig-rag:#3987e5; --fig-agentic:#e2703a; --fig-recall:#22a97a;
+  --fig-good:#2eb82e; --fig-warn:#f0b429; --fig-crit:#e05252;
+  --mono:"SF Mono",SFMono-Regular,ui-monospace,"Cascadia Code",Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --radius:14px; --radius-sm:9px; --shadow:0 8px 30px rgba(0,0,0,.38); --sbw:302px;
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f6f8fa; --surface:#fff; --surface-2:#fbfcfd; --surface-3:#eff2f6;
+  --border:#d8dee4; --border-soft:#e6eaef;
+  --ink:#1f2328; --ink-2:#57606a; --ink-mut:#8b949e;
+  --accent:#2a78d6; --accent-soft:rgba(42,120,214,.10); --accent-bd:rgba(42,120,214,.34);
+  --t-rag:#2a78d6; --t-agentic:#eb6834; --t-recall:#1baf7a;
+  --warn-soft:rgba(250,178,25,.16); --good-soft:rgba(12,163,12,.10); --crit-soft:rgba(208,59,59,.09);
+  --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;
+  --r1:#86b6ef;--r2:#3987e5;--r3:#256abf;--r4:#184f95;
+  --o1:#f7c4a8;--o2:#f0996b;--o3:#eb6834;--o4:#c14a1f;--o5:#8f3716;
+  --code-bg:#f0f3f6; --shadow:0 6px 24px rgba(140,149,159,.20);
+  --fig-surface:#fff; --fig-surface-2:#f7f9fb; --fig-surface-3:#eef2f6;
+  --fig-border:#c9d1da; --fig-ink:#1f2328; --fig-ink-2:#414a54; --fig-mut:#6b747e;
+  --fig-accent:#2a78d6; --fig-rag:#2a78d6; --fig-agentic:#d1541f; --fig-recall:#12855c;
+  --fig-good:#1a7f1a; --fig-warn:#a97400; --fig-crit:#c62d2d;
+}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+
+.siteswitch{background:var(--surface-3);border-bottom:1px solid var(--border)}
+.siteswitch-in{max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:4px;padding:5px 18px;flex-wrap:wrap}
+.siteswitch a{font-size:11.5px;padding:4px 10px;border-radius:7px;color:var(--ink-mut);text-decoration:none;white-space:nowrap}
+.siteswitch a:hover{background:var(--surface);color:var(--ink)}
+.siteswitch a.on{background:var(--accent);color:#fff;font-weight:700}
+.siteswitch .sw-home{font-weight:800;color:var(--ink-2);margin-right:8px}
+/* ---------- top bar (site nav) ---------- */
+.sitebar{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 93%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.sitebar-in{max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:6px;padding:9px 18px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:14px;letter-spacing:-.3px;margin-right:10px;text-decoration:none;color:var(--ink);white-space:nowrap}
+.logo b{color:var(--accent)}
+.sitebar a.tab{font-size:12.8px;padding:6px 12px;border-radius:8px;color:var(--ink-2);text-decoration:none;border:1px solid transparent;white-space:nowrap}
+.sitebar a.tab:hover{background:var(--surface-2);color:var(--ink)}
+.sitebar a.tab.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-bd);font-weight:700}
+.sitebar .sp{margin-left:auto}
+.btn{background:var(--surface);border:1px solid var(--border);color:var(--ink-2);padding:6px 11px;border-radius:8px;cursor:pointer;font-size:12.3px;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--ink)}
+.btn.on{background:var(--accent-soft);border-color:var(--accent-bd);color:var(--accent);font-weight:700}
+
+.app{display:grid;grid-template-columns:var(--sbw) 1fr;max-width:1560px;margin:0 auto;min-height:100vh}
+aside{position:sticky;top:47px;height:calc(100vh - 47px);overflow-y:auto;overscroll-behavior:contain;border-right:1px solid var(--border);padding:12px 0 40px;background:var(--bg)}
+aside::-webkit-scrollbar{width:8px}aside::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.sb-search{padding:0 14px 8px}
+.sb-search input{width:100%;padding:8px 11px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:13px;font-family:inherit;outline:none}
+.sb-search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.sb-hint{font-size:10.3px;color:var(--ink-mut);padding:2px 15px 10px}
+nav{padding:0 8px;font-size:13px}
+.nav-grp{margin:12px 0 3px;padding:0 10px;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-mut);font-weight:800}
+nav a{display:flex;gap:7px;align-items:flex-start;padding:5px 10px;margin:1px 2px;border-radius:7px;color:var(--ink-2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;font-size:12.5px}
+nav a:hover{background:var(--surface-2);color:var(--ink)}
+nav a.active{background:var(--accent-soft);color:var(--accent);border-left-color:var(--accent);font-weight:650}
+nav a.done .qn{background:var(--good);border-color:var(--good);color:#fff}
+.qn{flex:none;min-width:21px;text-align:center;font-family:var(--mono);font-size:9.5px;padding:1px 4px;border-radius:5px;border:1px solid var(--border);color:var(--ink-mut);height:17px;line-height:15px}
+
+main{min-width:0;padding:0 40px 140px}
+.wrap{max-width:1000px;margin:0 auto}
+
+/* ---------- hero ---------- */
+.hero{padding:36px 0 4px}
+.eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tc,var(--accent));font-weight:800}
+.hero h1{font-size:40px;line-height:1.08;margin:9px 0 12px;letter-spacing:-1px}
+.hero .lede{color:var(--ink-2);font-size:17px;margin:0 0 20px;max-width:70ch}
+.hero .lede b{color:var(--ink)}
+.oneliner{border-left:4px solid var(--tc,var(--accent));background:var(--surface);border-radius:0 var(--radius) var(--radius) 0;padding:14px 18px;margin:18px 0;font-size:16px}
+.oneliner b{color:var(--tc,var(--accent))}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:22px 0}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat-v{font-size:27px;font-weight:750;letter-spacing:-.6px;line-height:1.05;color:var(--tc,var(--accent))}
+.stat-l{font-size:11px;color:var(--ink-mut);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;line-height:1.35}
+
+/* ---------- figures ---------- */
+figure.viz{margin:26px 0;background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--border);border-radius:var(--radius);padding:17px 19px 10px;overflow:hidden;box-shadow:var(--shadow)}
+figure.viz figcaption b::before{content:"";display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--tc,var(--accent));margin-right:9px;vertical-align:middle}
+figure.viz figcaption{margin-bottom:12px}
+figure.viz figcaption b{display:block;font-size:15px;letter-spacing:-.2px}
+figure.viz figcaption span{display:block;font-size:12px;color:var(--ink-mut);margin-top:2px}
+figure.viz figcaption .terms{display:block;font-size:11px;color:var(--ink-mut);margin-top:5px;
+  padding-top:5px;border-top:1px dashed var(--border-soft);line-height:1.65}
+figure.viz figcaption .terms b{display:inline;font-size:11px;letter-spacing:0;color:var(--ink-2);
+  font-weight:700;font-family:var(--mono)}
+figure.viz figcaption .terms b::before{content:none;display:none;margin:0}
+abbr[title]{text-decoration:underline dotted var(--ink-mut);text-underline-offset:3px;cursor:help;border:0;text-decoration-thickness:1px}
+abbr[title]:hover{text-decoration-color:var(--accent)}
+.viz-scroll{overflow-x:auto;padding-bottom:6px}
+.viz-scroll svg{display:block;width:100%;min-width:660px;height:auto}
+
+/* ---------- standard topic panels ---------- */
+.panels{display:grid;gap:13px;margin:18px 0}
+.panel{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--pc,var(--accent));border-radius:var(--radius);padding:15px 18px}
+.panel > h3{margin:0 0 4px;font-size:15.5px;display:flex;align-items:center;gap:9px}
+.panel > h3 .ic{width:23px;height:23px;border-radius:7px;background:var(--pc,var(--accent));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:none}
+.panel > h3 small{margin-left:auto;font-size:10.5px;color:var(--ink-mut);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.p-scale{--pc:var(--t-rag)} .p-prod{--pc:var(--t-recall)} .p-opt{--pc:var(--t-agentic)}
+.p-lat{--pc:var(--warn)} .p-met{--pc:var(--accent)}
+
+/* ---------- per-answer visual furniture ---------- */
+.keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
+.kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
+.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram pre{margin:0;padding-top:12px;background:none;border:none;font-family:var(--mono);font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
+.flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
+.flow .fl{font-size:10px;font-weight:800;letter-spacing:.09em;color:var(--ink-mut);margin-right:10px;text-transform:uppercase}
+.q-a ol{counter-reset:st;list-style:none;padding-left:0;margin:11px 0}
+.q-a ol > li{counter-increment:st;position:relative;padding-left:36px;margin:8px 0}
+.q-a ol > li::before{content:counter(st);position:absolute;left:0;top:1px;width:24px;height:24px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+/* ---------- content ---------- */
+.sec{margin-top:44px;scroll-margin-top:60px}
+.sec > h2{font-size:25px;margin:0 0 4px;letter-spacing:-.5px;padding-bottom:9px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:11px}
+.sec > h2 .hn{font-size:11.5px;font-family:var(--mono);font-weight:800;background:var(--tc,var(--accent));color:#fff;border-radius:7px;padding:3px 8px}
+.parthead{display:flex;align-items:center;gap:12px;margin:30px 0 12px}
+.parthead span{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mut);white-space:nowrap}
+.parthead i{flex:1;height:1px;background:var(--border)}
+.q{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 18px;margin:10px 0;scroll-margin-top:60px}
+.q:target{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.q.done{border-left:3px solid var(--good)}
+.q-h{display:flex;align-items:flex-start;gap:11px}
+.q-n{flex:none;font-family:var(--mono);font-size:11px;font-weight:800;min-width:26px;height:23px;line-height:21px;text-align:center;border-radius:7px;border:1px solid var(--border);color:var(--ink-mut);background:var(--bg)}
+.q.done .q-n{background:var(--good);border-color:var(--good);color:#fff}
+.q-h h3{margin:0;font-size:17px;line-height:1.35;letter-spacing:-.2px;flex:1}
+.q-done{flex:none;cursor:pointer}
+.q-done input{position:absolute;opacity:0;pointer-events:none}
+.q-done span{display:block;width:22px;height:22px;border-radius:7px;border:1px solid var(--border);background:var(--bg);position:relative}
+.q-done span::after{content:"";position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid transparent;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.q-done input:checked+span{background:var(--good);border-color:var(--good)}
+.q-done input:checked+span::after{border-color:#fff}
+.q-a{margin-top:11px}
+.reveal{display:none;margin-top:10px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);padding:7px 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:12.4px;font-weight:700}
+body.drill .q-a{display:none} body.drill .reveal{display:inline-block}
+/* reference cards have no answer to hide - never drill them */
+body.drill .q.q-ref .q-a{display:block}
+body.drill .q.open .q-a{display:block} body.drill .q.open .reveal{display:none}
+
+p{margin:9px 0}
+h3{font-size:17px;margin:20px 0 7px}h4{font-size:14px;margin:15px 0 5px;color:var(--ink-2)}
+ul{margin:9px 0;padding-left:22px}li{margin:4px 0}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+hr{border:none;border-top:1px solid var(--border);margin:20px 0}
+code{font-family:var(--mono);font-size:.855em;background:var(--code-bg);padding:.12em .42em;border-radius:5px;border:1px solid var(--border-soft);color:#ffa657;word-break:break-word}
+html[data-theme="light"] code{color:#953800}
+pre.code{background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 15px;overflow-x:auto;margin:11px 0;line-height:1.55;position:relative}
+pre.code code{background:none;border:none;padding:0;color:var(--ink);font-size:12.4px;white-space:pre}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:0;right:0;font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-mut);background:var(--surface-3);border-left:1px solid var(--border);border-bottom:1px solid var(--border);border-radius:0 var(--radius-sm) 0 7px;padding:2px 8px}
+.cmt{color:var(--ink-mut);font-style:italic}.kw{color:#ff7b72}.str{color:#a5d6ff}.fn{color:#d2a8ff}.num{color:#79c0ff}
+html[data-theme="light"] .kw{color:#cf222e}html[data-theme="light"] .str{color:#0a3069}
+html[data-theme="light"] .fn{color:#8250df}html[data-theme="light"] .num{color:#0550ae}
+.say{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 16px;margin:12px 0}
+.say-h{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.say-h::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.say p{margin:0;font-size:15.2px;line-height:1.68}.say em{font-style:normal;color:var(--ink)}
+.note{border-left:3px solid var(--border);background:var(--surface-2);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 15px;margin:12px 0;font-size:13.8px;color:var(--ink-2)}
+.note p:first-child{margin-top:0}.note p:last-child{margin-bottom:0}.note strong{color:var(--ink)}
+.tbl-wrap{overflow-x:auto;margin:15px 0;border:1px solid var(--border);border-radius:12px;
+  background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.10)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.2px;background:transparent}
+th,td{padding:10px 13px;text-align:left;border-bottom:1px solid var(--border-soft);vertical-align:top;line-height:1.55}
+th{position:sticky;top:0;z-index:2;background:var(--surface-3);font-weight:800;font-size:10.5px;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2);white-space:nowrap;
+  border-bottom:1px solid var(--border);backdrop-filter:blur(6px)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover>td{background:var(--surface-2)}
+tbody tr.g1>td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+tbody tr.g1:hover>td{background:var(--surface-2)}
+
+/* merged category column: the label is stated once, as a vertical band */
+td.c-grp{background:var(--surface-3);border-right:1px solid var(--border);vertical-align:top;
+  width:1%;white-space:nowrap;padding:11px 13px}
+tbody tr:hover>td.c-grp{background:var(--surface-3)}
+td.c-grp .grp-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--tc,var(--accent));background:var(--accent-soft);
+  border:1px solid var(--accent-bd);border-radius:999px;padding:3px 11px;position:sticky;top:44px}
+table.t-grouped td:not(.c-grp):first-of-type{font-weight:600;color:var(--ink)}
+
+/* two-column glossary: term rail on the left */
+table.t-def td.c-term{width:210px;font-weight:700;color:var(--ink);background:var(--surface-2);
+  border-right:2px solid var(--accent-bd)}
+table.t-def td.c-term code{background:none;border:none;padding:0;color:inherit}
+
+/* magnitudes should read as data, not prose */
+.mag{font-family:var(--mono);font-size:.9em;font-weight:700;color:var(--warn);
+  background:var(--warn-soft);border-radius:5px;padding:.05em .38em;white-space:nowrap}
+
+/* term / description list rows */
+li.dl{list-style:none;margin:7px 0;padding:7px 12px;border-radius:9px;background:var(--surface-2);
+  border-left:3px solid var(--border)}
+li.dl:hover{border-left-color:var(--accent)}
+li.dl .dt{display:inline-block;font-weight:800;color:var(--ink);margin-right:8px}
+li.dl .dt::after{content:"—";color:var(--ink-mut);font-weight:400;margin-left:8px}
+li.dl .dd{color:var(--ink-2)}
+ul:has(> li.dl){padding-left:0}
+
+/* typed callouts */
+.note.n-crit{border-left-color:var(--crit);background:var(--crit-soft)}
+.note.n-warn{border-left-color:var(--warn);background:var(--warn-soft)}
+.note.n-good{border-left-color:var(--good);background:var(--good-soft)}
+.note.n-key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.n-crit strong:first-child{color:var(--crit)}
+.note.n-warn strong:first-child{color:var(--warn)}
+.note.n-good strong:first-child{color:var(--good)}
+.note.n-key strong:first-child{color:var(--accent)}
+
+/* headings inside an answer body */
+.q-a h3,.q-a h4{display:flex;align-items:center;gap:9px;letter-spacing:-.2px}
+.q-a h3::before{content:"";width:3px;height:15px;border-radius:2px;background:var(--tc,var(--accent));flex:none}
+.q-a h4{color:var(--ink-2);font-size:13.5px;text-transform:none}
+.q-a h4::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--ink-mut);flex:none}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:13px;margin:20px 0}
+.tcard{display:block;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--tc,var(--accent));border-radius:var(--radius);padding:15px 16px;text-decoration:none;color:inherit}
+.tcard:hover{border-color:var(--accent);box-shadow:var(--shadow);text-decoration:none}
+.tcard h4{margin:0 0 5px;font-size:15px;color:var(--ink)}
+.tcard p{margin:0;font-size:12.2px;color:var(--ink-mut);line-height:1.5}
+.tcard .meta{margin-top:9px;font-size:10.5px;color:var(--tc,var(--accent));font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.no-result{display:none;text-align:center;color:var(--ink-mut);padding:60px 20px}.no-result.show{display:block}
+kbd{font-family:var(--mono);font-size:10px;background:var(--surface-3);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 5px;color:var(--ink-2)}
+.totop{position:fixed;right:20px;bottom:20px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:18px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;z-index:55}
+.totop.show{opacity:1;pointer-events:auto}
+.menu-toggle{display:none}
+@media(max-width:1060px){
+  .app{grid-template-columns:1fr}
+  aside{position:fixed;left:calc(-1 * var(--sbw));top:0;height:100vh;width:var(--sbw);z-index:100;transition:left .25s;box-shadow:var(--shadow);background:var(--surface)}
+  aside.open{left:0}
+  .menu-toggle{display:inline-flex}
+  main{padding:0 15px 110px}
+  .hero h1{font-size:29px}
+}
+@media print{.sitebar,aside,.totop,.reveal,.q-done{display:none}.app{grid-template-columns:1fr}body.drill .q-a{display:block}}
+
+/* =====================================================================
+   DESIGN LAYER  --  loaded last, so these rules win.
+   Depth, type scale, motion, and the components the base sheet lacks.
+   ===================================================================== */
+
+:root{
+  --e1:0 1px 2px rgba(0,0,0,.18);
+  --e2:0 4px 14px rgba(0,0,0,.24);
+  --e3:0 14px 40px rgba(0,0,0,.34);
+  --ring:0 0 0 3px var(--accent-soft);
+  --tight:-.022em;
+  --glass:color-mix(in srgb,var(--bg) 78%,transparent);
+}
+html[data-theme="light"]{
+  --e1:0 1px 2px rgba(16,24,40,.06);
+  --e2:0 6px 18px rgba(16,24,40,.09);
+  --e3:0 18px 44px rgba(16,24,40,.13);
+}
+html[data-theme="dark"],:root{ --bg:#0a0e14; --surface:#12181f; --surface-2:#171e26; --surface-3:#1e2630;
+  --border:#262f3a; --border-soft:#1c242e; }
+
+body{font-size:15.6px;line-height:1.68;letter-spacing:.002em;
+  text-rendering:optimizeLegibility;font-variant-ligatures:common-ligatures}
+::selection{background:var(--accent);color:#fff}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+@media(prefers-reduced-motion:no-preference){
+  a,button,.tcard,.q,.stat,.hub-card,.learn-item,nav a,.tab,.sw{transition:
+    background-color .16s ease,border-color .16s ease,color .16s ease,
+    transform .16s cubic-bezier(.2,.7,.3,1),box-shadow .16s ease}
+}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--border)}
+
+/* ---------- reading progress ---------- */
+#rprog{position:fixed;top:0;left:0;height:2.5px;width:0;z-index:200;
+  background:linear-gradient(90deg,var(--t-rag),var(--t-agentic),var(--t-recall));
+  box-shadow:0 0 12px var(--accent);transition:width .08s linear}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));
+  border-bottom:1px solid var(--border-soft)}
+.siteswitch a{font-weight:600;letter-spacing:.01em}
+.siteswitch a.on{box-shadow:0 2px 10px color-mix(in srgb,var(--accent) 45%,transparent)}
+.sitebar{background:var(--glass);backdrop-filter:blur(14px) saturate(1.5);
+  -webkit-backdrop-filter:blur(14px) saturate(1.5);box-shadow:var(--e1)}
+.sitebar a.tab.on{box-shadow:inset 0 0 0 1px var(--accent-bd)}
+.logo{font-size:14.5px;letter-spacing:var(--tight)}
+.btn{box-shadow:var(--e1);font-weight:600}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--e2)}
+.btn:active{transform:translateY(0)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,var(--bg),color-mix(in srgb,var(--surface) 55%,var(--bg)));
+  border-right:1px solid var(--border-soft)}
+.sb-search input{box-shadow:var(--e1)}
+nav a{border-radius:9px;border-left:0;position:relative;padding-left:12px}
+nav a.active{background:linear-gradient(90deg,var(--accent-soft),transparent);
+  box-shadow:inset 0 0 0 1px var(--accent-bd)}
+nav a.active::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--accent)}
+.nav-grp{margin-top:16px;color:var(--ink-mut);opacity:.85}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:52px 0 8px}
+.hero::before{content:"";position:absolute;left:-56px;right:-56px;top:-140px;height:420px;z-index:-1;
+  pointer-events:none;opacity:.5;
+  background:
+    radial-gradient(58% 62% at 14% 24%,color-mix(in srgb,var(--tc,var(--accent)) 34%,transparent),transparent 70%),
+    radial-gradient(46% 54% at 82% 8%,color-mix(in srgb,var(--t-agentic) 22%,transparent),transparent 72%);
+  filter:blur(26px)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;padding:5px 12px;
+  border-radius:999px;background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 34%,transparent)}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--tc,var(--accent));
+  box-shadow:0 0 9px var(--tc,var(--accent))}
+.hero h1{font-size:clamp(32px,4.4vw,46px);line-height:1.04;letter-spacing:-.032em;
+  margin:16px 0 14px;font-weight:800;
+  background:linear-gradient(175deg,var(--ink) 30%,color-mix(in srgb,var(--ink) 62%,var(--tc,var(--accent))));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lede{font-size:17.5px;line-height:1.62;max-width:86ch}
+.oneliner{background:linear-gradient(100deg,
+    color-mix(in srgb,var(--tc,var(--accent)) 11%,var(--surface)),var(--surface) 62%);
+  border:1px solid var(--border);border-left:4px solid var(--tc,var(--accent));
+  border-radius:var(--radius);box-shadow:var(--e1);line-height:1.6}
+
+/* ---------- stat tiles ---------- */
+.stat{position:relative;overflow:hidden;box-shadow:var(--e1);
+  background:linear-gradient(180deg,var(--surface),var(--surface-2))}
+.stat::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),transparent 78%)}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--e2);border-color:var(--tc,var(--accent))}
+.stat-v{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+
+/* ---------- what you'll learn ---------- */
+.learn{margin:26px 0 10px;padding:20px 22px 18px;border-radius:16px;position:relative;
+  background:linear-gradient(150deg,
+    color-mix(in srgb,var(--tc,var(--accent)) 9%,var(--surface)),var(--surface) 58%);
+  border:1px solid var(--border);box-shadow:var(--e1)}
+.learn-h{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:800;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--tc,var(--accent))}
+.learn-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;background:var(--tc,var(--accent));color:#fff;font-size:11px}
+.learn-lede{margin:10px 0 4px;font-size:15px;color:var(--ink-2);max-width:92ch}
+.learn-grid{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px;
+  grid-template-columns:repeat(auto-fill,minmax(268px,1fr))}
+.learn-item{background:var(--bg);border:1px solid var(--border-soft);border-radius:11px;
+  padding:11px 13px;margin:0}
+.learn-item:hover{border-color:var(--tc,var(--accent));transform:translateY(-1px);box-shadow:var(--e1)}
+.learn-top{display:flex;align-items:baseline;gap:9px}
+.learn-top b{font-size:13.4px;color:var(--ink);letter-spacing:var(--tight)}
+.learn-n{margin-left:auto;font-size:10px;font-family:var(--mono);color:var(--ink-mut);white-space:nowrap}
+.learn-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.learn-tags span{font-size:10px;padding:2px 8px;border-radius:999px;background:var(--surface-3);
+  border:1px solid var(--border-soft);color:var(--ink-mut)}
+
+/* ---------- section + file headers ---------- */
+.sec > h2{letter-spacing:-.028em;border-bottom:1px solid var(--border)}
+.sec > h2 .hn{box-shadow:0 2px 10px color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent)}
+.filehead h2{letter-spacing:-.028em}
+.parthead span{color:var(--tc,var(--accent));opacity:.9}
+.parthead i{background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- question cards ---------- */
+.q{box-shadow:var(--e1);border-radius:14px}
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,var(--border));box-shadow:var(--e2)}
+.q-h h3{letter-spacing:-.02em}
+.q-n{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));font-weight:800}
+.q.done{box-shadow:inset 3px 0 0 var(--good),var(--e1);border-left-color:transparent}
+.q-a{max-width:none}
+.q-a > p:first-child{color:var(--ink)}
+/* block content fills the card; only loose prose keeps a comfortable measure */
+.q-a > p{max-width:96ch}
+.q-a > ul:not(.steplist),.q-a > ol:not(.steplist){max-width:96ch}
+
+/* ---------- cards ---------- */
+.tcard{box-shadow:var(--e1);background:linear-gradient(170deg,var(--surface),var(--surface-2))}
+.tcard:hover{transform:translateY(-3px);box-shadow:var(--e3)}
+.tcard h4{letter-spacing:var(--tight)}
+
+/* ---------- code ---------- */
+pre.code{box-shadow:inset 0 0 0 1px var(--border-soft),var(--e1);border-radius:12px;padding:15px 16px}
+pre.code:hover .copy{opacity:1}
+.copy{position:absolute;top:7px;right:8px;opacity:0;font-family:var(--sans);font-size:10.5px;
+  font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:7px;
+  border:1px solid var(--border);background:var(--surface-3);color:var(--ink-2);cursor:pointer;z-index:3}
+.copy:hover{border-color:var(--accent);color:var(--accent)}
+.copy.ok{border-color:var(--good);color:var(--good)}
+pre.code[data-lang]::before{top:0;right:auto;left:0;border-radius:12px 0 8px 0;border-left:0;
+  border-right:1px solid var(--border)}
+
+/* ---------- figures ---------- */
+figure.viz{border-radius:16px;box-shadow:var(--e2);padding:19px 21px 12px}
+figure.viz figcaption b{font-size:15.5px;letter-spacing:-.024em}
+figure.viz:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,var(--border))}
+
+/* ---------- tables ---------- */
+.tbl-wrap{box-shadow:var(--e1)}
+td.c-grp .grp-tag{box-shadow:var(--e1)}
+.mag{letter-spacing:-.01em}
+
+/* ---------- callouts + say ---------- */
+.say{border-radius:12px;border-left-width:4px;box-shadow:var(--e1);
+  background:linear-gradient(100deg,var(--accent-soft),transparent 70%)}
+.note{border-radius:12px;border-left-width:4px}
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key{box-shadow:var(--e1)}
+
+/* ---------- panels ---------- */
+.panel{box-shadow:var(--e1);border-radius:14px;
+  background:linear-gradient(170deg,color-mix(in srgb,var(--pc,var(--accent)) 7%,var(--surface)),var(--surface) 55%)}
+.panel:hover{box-shadow:var(--e2)}
+.panel > h3 .ic{box-shadow:0 2px 9px color-mix(in srgb,var(--pc,var(--accent)) 50%,transparent)}
+
+/* ---------- keyterms + flow ---------- */
+.kt{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));font-weight:650}
+.kt:hover{border-color:var(--accent);color:var(--accent)}
+.flow{border-radius:12px;box-shadow:var(--e1)}
+.flow .st{box-shadow:var(--e1)}
+.diagram{border-radius:12px}
+
+/* ---------- step lists (a fence that was really a list) ---------- */
+ol.steplist{counter-reset:sl;list-style:none;padding-left:0;margin:14px 0}
+ol.steplist > li{counter-increment:sl;position:relative;padding:9px 14px 9px 44px;margin:7px 0;
+  background:var(--surface-2);border:1px solid var(--border-soft);border-radius:11px;
+  line-height:1.6;font-size:14.4px}
+ol.steplist > li::before{content:counter(sl);position:absolute;left:11px;top:9px;width:24px;height:24px;
+  border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);
+  font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono)}
+ol.steplist > li:hover{border-color:var(--accent-bd)}
+ul.steplist{list-style:none;padding-left:0;margin:14px 0}
+ul.steplist > li{position:relative;padding:8px 14px 8px 30px;margin:6px 0;background:var(--surface-2);
+  border:1px solid var(--border-soft);border-radius:11px;line-height:1.6;font-size:14.4px}
+ul.steplist > li::before{content:"";position:absolute;left:13px;top:17px;width:6px;height:6px;
+  border-radius:50%;background:var(--tc,var(--accent))}
+
+/* a source heading with no body under it: don't render an empty card */
+.q-a:empty{display:none}
+.q-a:empty + .reveal{display:none}
+.q:has(> .q-a:empty){padding:11px 18px;background:var(--surface-2);opacity:.85}
+.q:has(> .q-a:empty) .q-h h3{font-size:14.5px;color:var(--ink-2)}
+
+.q-h h3 code{font-size:.88em;background:var(--code-bg);border:1px solid var(--border-soft);padding:.06em .34em}
+nav a code{font-size:.9em;background:none;border:0;padding:0;color:inherit}
+.parthead code{font-size:.92em;background:none;border:0;padding:0;color:inherit}
+
+/* ---------- hub ---------- */
+.hub-card{box-shadow:var(--e1);background:linear-gradient(170deg,var(--surface),var(--surface-2))}
+.hub-card:hover{transform:translateY(-4px);box-shadow:var(--e3)}
+.hub h1{letter-spacing:-.034em;font-weight:800}
+
+@media(max-width:1060px){
+  .hero{padding:34px 0 4px}
+  .hero::before{display:none}
+  .learn-grid{grid-template-columns:1fr}
+}
+@media print{
+  .sitebar,.siteswitch,aside,.totop,.reveal,.copy,#rprog{display:none!important}
+  .app{grid-template-columns:1fr}
+  .q,.tbl-wrap,figure.viz{break-inside:avoid;box-shadow:none}
+}
+
+/* ---------- long-page ergonomics ---------- */
+/* the group header stays put while you scroll a 200-question list */
+.parthead{position:sticky;top:44px;z-index:12;background:var(--glass);
+  backdrop-filter:blur(10px) saturate(1.4);-webkit-backdrop-filter:blur(10px) saturate(1.4);
+  padding:8px 10px;margin:26px -10px 10px;border-radius:10px}
+.filehead{position:relative;z-index:1}
+
+/* question cards: tint the badge, and offer a deep link on hover */
+.q-n{color:var(--tc,var(--accent));border-color:color-mix(in srgb,var(--tc,var(--accent)) 40%,var(--border))}
+.q-h{position:relative}
+.q-anchor{opacity:0;margin-left:8px;font-size:12px;color:var(--ink-mut);text-decoration:none;
+  cursor:pointer;font-family:var(--mono);flex:none;align-self:center}
+.q:hover .q-anchor{opacity:.7}
+.q-anchor:hover{opacity:1!important;color:var(--accent);text-decoration:none}
+.q-anchor.ok{color:var(--good);opacity:1!important}
+
+/* card affordances */
+.tcard,.hub-card{position:relative}
+.tcard::after,.hub-card::after{content:"92";position:absolute;right:16px;bottom:12px;
+  font-size:15px;color:var(--tc,var(--accent));opacity:0;transform:translateX(-4px)}
+.tcard:hover::after,.hub-card:hover::after{opacity:.9;transform:translateX(0);
+  transition:opacity .16s ease,transform .16s ease}
+
+/* search: dim the page while filtering so hits stand out */
+body.searching .q{opacity:1}
+body.searching .parthead{opacity:.5}
+
+@media(max-width:1060px){ .parthead{top:0} }
+
+</style>
+</head>
+<body>
+<div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
+  <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw" href="../03_Data_Handling/index.html">03 Data</a><a class="sw" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw on" href="../11_System_Design/index.html">11 Sys Design</a>
+</div></div><div class="sitebar-in">
+  <button class="btn menu-toggle" id="menuBtn">&#9776;</button>
+  <a class="logo" href="index.html">System <b>Design</b></a>
+  <a class="tab" href="index.html">Home</a><a class="tab on" href="foundations.html">Foundations</a><a class="tab" href="scaling.html">Scaling</a><a class="tab" href="patterns.html">Patterns</a><a class="tab" href="distributed.html">Distributed</a><a class="tab" href="ml.html">ML Systems</a><a class="tab" href="security.html">Security</a><a class="tab" href="interview.html">Interview</a><a class="tab" href="scenarios.html">Scenarios</a>
+  <span class="sp"></span>
+  <span class="btn" style="cursor:default" title="Questions ticked on this page"><span id="pgCount">0 / 0</span></span>
+  <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
+  <button class="btn" id="themeBtn">Dark</button>
+</div></div>
+<div class="app" style="--tc:var(--t-rag)">
+<aside id="sidebar">
+  <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
+  <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
+  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><a href="#figs"><span class="qn">&#9635;</span>Diagrams</a><div class="nav-grp">02 &middot; Design principles</div><a href="#f02DesignPrinci-0" data-q="f02DesignPrinci-0"><span class="qn">&bull;</span>Key Definitions (read first)</a><a href="#f02DesignPrinci-1" data-q="f02DesignPrinci-1"><span class="qn">&bull;</span>1. Why Design Principles Matter</a><a href="#f02DesignPrinci-2" data-q="f02DesignPrinci-2"><span class="qn">&bull;</span>2. SOLID Principles</a><a href="#f02DesignPrinci-3" data-q="f02DesignPrinci-3"><span class="qn">&bull;</span>3. DRY — Don't Repeat Yourself</a><a href="#f02DesignPrinci-4" data-q="f02DesignPrinci-4"><span class="qn">&bull;</span>4. KISS — Keep It Simple, Stupid</a><a href="#f02DesignPrinci-5" data-q="f02DesignPrinci-5"><span class="qn">&bull;</span>5. YAGNI — You Aren't Gonna Need It</a><a href="#f02DesignPrinci-6" data-q="f02DesignPrinci-6"><span class="qn">&bull;</span>6. Separation of Concerns (SoC)</a><a href="#f02DesignPrinci-7" data-q="f02DesignPrinci-7"><span class="qn">&bull;</span>7. Composition Over Inheritance</a><a href="#f02DesignPrinci-8" data-q="f02DesignPrinci-8"><span class="qn">&bull;</span>8. Law of Demeter (LoD)</a><a href="#f02DesignPrinci-9" data-q="f02DesignPrinci-9"><span class="qn">&bull;</span>9. Encapsulation</a><a href="#f02DesignPrinci-10" data-q="f02DesignPrinci-10"><span class="qn">&bull;</span>10. Abstraction</a><a href="#f02DesignPrinci-11" data-q="f02DesignPrinci-11"><span class="qn">&bull;</span>11. Coupling &amp; Cohesion</a><a href="#f02DesignPrinci-12" data-q="f02DesignPrinci-12"><span class="qn">&bull;</span>12. Inversion of Control (IoC) &amp; Dependency Injection (DI)</a><a href="#f02DesignPrinci-13" data-q="f02DesignPrinci-13"><span class="qn">&bull;</span>13. Fail Fast Principle</a><a href="#f02DesignPrinci-14" data-q="f02DesignPrinci-14"><span class="qn">&bull;</span>14. Convention Over Configuration</a><a href="#f02DesignPrinci-15" data-q="f02DesignPrinci-15"><span class="qn">&bull;</span>15. Design Patterns Overview</a><a href="#f02DesignPrinci-16" data-q="f02DesignPrinci-16"><span class="qn">&bull;</span>16. Creational Patterns</a><a href="#f02DesignPrinci-17" data-q="f02DesignPrinci-17"><span class="qn">&bull;</span>17. Structural Patterns</a><a href="#f02DesignPrinci-18" data-q="f02DesignPrinci-18"><span class="qn">&bull;</span>18. Behavioral Patterns</a><a href="#f02DesignPrinci-19" data-q="f02DesignPrinci-19"><span class="qn">&bull;</span>19. Architecture Principles</a><a href="#f02DesignPrinci-20" data-q="f02DesignPrinci-20"><span class="qn">&bull;</span>20. API Design Principles</a><a href="#f02DesignPrinci-21" data-q="f02DesignPrinci-21"><span class="qn">&bull;</span>21. Interview Questions &amp; Answers</a><div class="nav-grp">03 &middot; System design</div><a href="#f03SystemDesign-22" data-q="f03SystemDesign-22"><span class="qn">&bull;</span>Key Definitions (read first)</a><a href="#f03SystemDesign-23" data-q="f03SystemDesign-23"><span class="qn">&bull;</span>1. System Design Fundamentals</a><a href="#f03SystemDesign-24" data-q="f03SystemDesign-24"><span class="qn">&bull;</span>2. Scalability</a><a href="#f03SystemDesign-25" data-q="f03SystemDesign-25"><span class="qn">&bull;</span>3. Load Balancing</a><a href="#f03SystemDesign-26" data-q="f03SystemDesign-26"><span class="qn">&bull;</span>4. Caching</a><a href="#f03SystemDesign-27" data-q="f03SystemDesign-27"><span class="qn">&bull;</span>5. Database Design</a><a href="#f03SystemDesign-28" data-q="f03SystemDesign-28"><span class="qn">&bull;</span>6. Database Scaling</a><a href="#f03SystemDesign-29" data-q="f03SystemDesign-29"><span class="qn">&bull;</span>7. CAP, ACID, BASE</a><a href="#f03SystemDesign-30" data-q="f03SystemDesign-30"><span class="qn">&bull;</span>8. Consistent Hashing</a><a href="#f03SystemDesign-31" data-q="f03SystemDesign-31"><span class="qn">&bull;</span>9. Message Queues</a><a href="#f03SystemDesign-32" data-q="f03SystemDesign-32"><span class="qn">&bull;</span>10. API Design</a><a href="#f03SystemDesign-33" data-q="f03SystemDesign-33"><span class="qn">&bull;</span>11. Microservices</a><a href="#f03SystemDesign-34" data-q="f03SystemDesign-34"><span class="qn">&bull;</span>12. Rate Limiting</a><a href="#f03SystemDesign-35" data-q="f03SystemDesign-35"><span class="qn">&bull;</span>13. Distributed Patterns</a><a href="#f03SystemDesign-36" data-q="f03SystemDesign-36"><span class="qn">&bull;</span>14. Observability</a><a href="#f03SystemDesign-37" data-q="f03SystemDesign-37"><span class="qn">&bull;</span>15. Common Design Problems</a><a href="#f03SystemDesign-38" data-q="f03SystemDesign-38"><span class="qn">&bull;</span>16. Interview Framework</a><a href="#f03SystemDesign-39" data-q="f03SystemDesign-39"><span class="qn">&bull;</span>17. Interview Deep Dive</a></nav>
+</aside>
+<main><div class="wrap">
+
+<section class="hero" id="top"><div class="eyebrow">11_System_Design &middot; Foundations</div>
+<h1>Foundations</h1><p class="lede">Principles and the core design vocabulary</p><div class="oneliner"><b>2 files</b> in this section, <b>40 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
+<div class="stats"><div class="stat"><div class="stat-v">2</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">40</div><div class="stat-l">sections</div></div></div></section>
+<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">Principles and the core design vocabulary</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>02 &middot; Design principles</b><span class="learn-n">22 sections</span></div><div class="learn-tags"><span>Key Definitions (read first)</span><span>Why Design Principles Matter</span><span>SOLID Principles</span><span>DRY — Don't Repeat Yourself</span><span>KISS — Keep It Simple, Stupid</span></div></li><li class="learn-item"><div class="learn-top"><b>03 &middot; System design</b><span class="learn-n">18 sections</span></div><div class="learn-tags"><span>Key Definitions (read first)</span><span>System Design Fundamentals</span><span>Scalability</span><span>Load Balancing</span><span>Caching</span></div></li></ul></section>
+<section class="sec" id="figs"><figure class="viz"><figcaption><b>Latency numbers every engineer is expected to know &mdash; on a log scale</b><span>Each gridline is 10&times;. The gaps, not the digits, are what you reason with.<span class="terms"><b>L1 / L2</b> first- and second-level processor caches &middot; <b>SSD</b> solid-state drive &middot; <b>ns / &micro;s / ms</b> nanosecond / microsecond / millisecond &middot; <b>KB / MB</b> kilobyte / megabyte &middot; <b>Gbps</b> gigabits per second</span></span></figcaption><div class="viz-scroll"><svg viewBox="0 0 920 466" role="img" aria-label="Latency numbers every engineer is expected to know &mdash; on a log scale"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-opacity="0.22"/></filter></defs><line x1="296.253" y1="22" x2="296.253" y2="400" stroke="var(--fig-border)" stroke-width="1" stroke-dasharray="2 5"/><line x1="356.886" y1="22" x2="356.886" y2="400" stroke="var(--fig-border)" stroke-width="1" stroke-dasharray="2 5"/><line x1="417.52" y1="22" x2="417.52" y2="400" stroke="var(--fig-border)" stroke-width="1" stroke-dasharray="2 5"/><line x1="478.154" y1="22" x2="478.154" y2="400" stroke="var(--fig-border)" stroke-width="1" stroke-dasharray="2 5"/><line x1="538.788" y1="22" x2="538.788" y2="400" stroke="var(--fig-border)" stroke-width="1" stroke-dasharray="2 5"/><line x1="599.422" y1="22" x2="599.422" y2="400" stroke="var(--fig-border)" stroke-width="1" stroke-dasharray="2 5"/><line x1="660.055" y1="22" x2="660.055" y2="400" stroke="var(--fig-border)" stroke-width="1" stroke-dasharray="2 5"/><line x1="720.689" y1="22" x2="720.689" y2="400" stroke="var(--fig-border)" stroke-width="1" stroke-dasharray="2 5"/><line x1="781.323" y1="22" x2="781.323" y2="400" stroke="var(--fig-border)" stroke-width="1" stroke-dasharray="2 5"/><text x="266" y="40" text-anchor="end" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">L1 cache reference</text><rect x="278" y="31" width="3" height="11" rx="5.5" fill="var(--fig-good)" opacity=".9"/><text x="288" y="40" text-anchor="start" font-size="10.2" font-weight="700" fill="var(--fig-good)" font-family="monospace">0.5 ns</text><text x="266" y="66" text-anchor="end" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">Branch mispredict</text><rect x="278" y="57" width="60.6338" height="11" rx="5.5" fill="var(--fig-good)" opacity=".9"/><text x="348.634" y="66" text-anchor="start" font-size="10.2" font-weight="700" fill="var(--fig-good)" font-family="monospace">5 ns</text><text x="266" y="92" text-anchor="end" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">L2 cache reference</text><rect x="278" y="83" width="69.4941" height="11" rx="5.5" fill="var(--fig-good)" opacity=".9"/><text x="357.494" y="92" text-anchor="start" font-size="10.2" font-weight="700" fill="var(--fig-good)" font-family="monospace">7 ns</text><text x="266" y="118" text-anchor="end" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">Mutex lock / unlock</text><rect x="278" y="109" width="103.015" height="11" rx="5.5" fill="var(--fig-good)" opacity=".9"/><text x="391.015" y="118" text-anchor="start" font-size="10.2" font-weight="700" fill="var(--fig-good)" font-family="monospace">25 ns</text><text x="266" y="144" text-anchor="end" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">Main memory reference</text><rect x="278" y="135" width="139.52" height="11" rx="5.5" fill="var(--fig-rag)" opacity=".9"/><text x="427.52" y="144" text-anchor="start" font-size="10.2" font-weight="700" fill="var(--fig-rag)" font-family="monospace">100 ns</text><text x="266" y="170" text-anchor="end" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">Compress 1 KB (Zippy)</text><rect x="278" y="161" width="229.084" height="11" rx="5.5" fill="var(--fig-rag)" opacity=".9"/><text x="517.084" y="170" text-anchor="start" font-size="10.2" font-weight="700" fill="var(--fig-rag)" font-family="monospace">3 &micro;s</text><text x="266" y="196" text-anchor="end" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">Send 1 KB over 1 Gbps</text><rect x="278" y="187" width="260.788" height="11" rx="5.5" fill="var(--fig-rag)" opacity=".9"/><text x="548.788" y="196" text-anchor="start" font-size="10.2" font-weight="700" fill="var(--fig-rag)" font-family="monospace">10 &micro;s</text><text x="266" y="222" text-anchor="end" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">SSD random read</text><rect x="278" y="213" width="332.099" height="11" rx="5.5" fill="var(--fig-warn)" opacity=".9"/><text x="620.099" y="222" text-anchor="start" font-size="10.2" font-weight="700" fill="var(--fig-warn)" font-family="monospace">150 &micro;s</text><text x="266" y="248" text-anchor="end" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">Read 1 MB from memory</text><rect x="278" y="239" width="345.55" height="11" rx="5.5" fill="var(--fig-warn)" opacity=".9"/><text x="633.55" y="248" text-anchor="start" font-size="10.2" font-weight="700" fill="var(--fig-warn)" font-family="monospace">250 &micro;s</text><text x="266" y="274" text-anchor="end" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">Round trip in same datacenter</text><rect x="278" y="265" width="363.803" height="11" rx="5.5" fill="var(--fig-warn)" opacity=".9"/><text x="651.803" y="274" text-anchor="start" font-size="10.2" font-weight="700" fill="var(--fig-warn)" font-family="monospace">500 &micro;s</text><text x="266" y="300" text-anchor="end" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">Read 1 MB from SSD</text><rect x="278" y="291" width="382.055" height="11" rx="5.5" fill="var(--fig-agentic)" opacity=".9"/><text x="670.055" y="300" text-anchor="start" font-size="10.2" font-weight="700" fill="var(--fig-agentic)" font-family="monospace">1 ms</text><text x="266" y="326" text-anchor="end" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">Disk seek</text><rect x="278" y="317" width="442.689" height="11" rx="5.5" fill="var(--fig-agentic)" opacity=".9"/><text x="730.689" y="326" text-anchor="start" font-size="10.2" font-weight="700" fill="var(--fig-agentic)" font-family="monospace">10 ms</text><text x="266" y="352" text-anchor="end" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">Read 1 MB from spinning disk</text><rect x="278" y="343" width="460.942" height="11" rx="5.5" fill="var(--fig-crit)" opacity=".9"/><text x="748.942" y="352" text-anchor="start" font-size="10.2" font-weight="700" fill="var(--fig-crit)" font-family="monospace">20 ms</text><text x="266" y="378" text-anchor="end" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">Packet California &rarr; Netherlands &rarr; California</text><rect x="278" y="369" width="514" height="11" rx="5.5" fill="var(--fig-crit)" opacity=".9"/><text x="802" y="378" text-anchor="start" font-size="10.2" font-weight="700" fill="var(--fig-crit)" font-family="monospace">150 ms</text><rect x="10" y="406" width="900" height="50" rx="9" fill="var(--fig-surface-2)" stroke="var(--fig-accent)"/><text x="27" y="427" font-size="11.5" fill="var(--fig-ink-2)"><tspan font-weight="800" fill="var(--fig-accent)">The two ratios worth memorising:</tspan> memory is ~100&times; faster than SSD, and SSD is ~20&times; faster than a spinning disk &mdash; but a cross-continent </text><text x="27" y="444" font-size="11.5" fill="var(--fig-ink-2)">round trip costs more than <tspan font-weight='700'>a million</tspan> memory reads. Geography beats hardware, which is why the CDN exists.</text></svg></div></figure><figure class="viz"><figcaption><b>Four levers, and what each one actually trades away</b><span>Every performance answer is one of these &mdash; name the lever and the price in the same breath</span></figcaption><div class="viz-scroll"><svg viewBox="0 0 920 326" role="img" aria-label="Four levers, and what each one actually trades away"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-opacity="0.22"/></filter></defs><text x="10" y="22" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">THERE ARE ONLY FOUR &mdash; EVERYTHING ELSE IS A SPECIAL CASE</text><rect x="10" y="32" width="444" height="104" rx="10" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="32" width="5" height="104" rx="2.5" fill="var(--fig-good)"/><text x="25" y="51" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-good)">CACHE IT</text><text x="25" y="68" text-anchor="start" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">Serve it from memory instead</text><text x="25" y="83" text-anchor="start" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">of computing or fetching it.</text><rect x="25" y="94" width="176" height="22" rx="11" fill="var(--fig-surface-3)" stroke="var(--fig-good)"/><text x="113" y="108.6" text-anchor="middle" font-size="10" font-weight="700" fill="var(--fig-good)">you trade freshness</text><text x="25" y="130" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">stale reads, invalidation bugs, stampede on cold start</text><rect x="466" y="32" width="444" height="104" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><rect x="466" y="32" width="5" height="104" rx="2.5" fill="var(--fig-rag)"/><text x="481" y="51" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-rag)">MOVE IT OFF THE PATH</text><text x="481" y="68" text-anchor="start" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">Queue the work and answer</text><text x="481" y="83" text-anchor="start" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">the user immediately.</text><rect x="481" y="94" width="176" height="22" rx="11" fill="var(--fig-surface-3)" stroke="var(--fig-rag)"/><text x="569" y="108.6" text-anchor="middle" font-size="10" font-weight="700" fill="var(--fig-rag)">you trade immediacy</text><text x="481" y="130" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">the user sees 'processing', and you own a worker fleet</text><rect x="10" y="148" width="444" height="104" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="148" width="5" height="104" rx="2.5" fill="var(--fig-agentic)"/><text x="25" y="167" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-agentic)">SPREAD IT</text><text x="25" y="184" text-anchor="start" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">Shard, partition, or replicate</text><text x="25" y="199" text-anchor="start" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">across more machines.</text><rect x="25" y="210" width="176" height="22" rx="11" fill="var(--fig-surface-3)" stroke="var(--fig-agentic)"/><text x="113" y="224.6" text-anchor="middle" font-size="10" font-weight="700" fill="var(--fig-agentic)">you trade simplicity</text><text x="25" y="246" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">hot keys, cross-shard queries, rebalancing</text><rect x="466" y="148" width="444" height="104" rx="10" fill="var(--fig-surface)" stroke="var(--fig-warn)" stroke-width="1.5" filter="url(#sh)"/><rect x="466" y="148" width="5" height="104" rx="2.5" fill="var(--fig-warn)"/><text x="481" y="167" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-warn)">DO LESS OF IT</text><text x="481" y="184" text-anchor="start" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">Batch, paginate, compress,</text><text x="481" y="199" text-anchor="start" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">denormalise, drop a feature.</text><rect x="481" y="210" width="176" height="22" rx="11" fill="var(--fig-surface-3)" stroke="var(--fig-warn)"/><text x="569" y="224.6" text-anchor="middle" font-size="10" font-weight="700" fill="var(--fig-warn)">you trade flexibility</text><text x="481" y="246" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">denormalised data has to be kept in sync somewhere</text><rect x="10" y="266" width="900" height="50" rx="9" fill="var(--fig-surface-2)" stroke="var(--fig-accent)"/><text x="27" y="287" font-size="11.5" fill="var(--fig-ink-2)"><tspan font-weight="800" fill="var(--fig-accent)">How to use it live:</tspan> when asked to make something faster, say which lever you are pulling and what it costs before you describe the </text><text x="27" y="304" font-size="11.5" fill="var(--fig-ink-2)">mechanism. That ordering is the whole difference between an engineer and a candidate reciting Redis.</text></svg></div></figure></section>
+<section class="filesec" id="f02DesignPrinci"><header class="filehead"><div class="fh-top"><span class="fh-num">02 &middot; Design principles</span><span class="fh-count">22 sections</span><a class="fh-src" href="../../11_System_Design/02_Design_Principles_Zero_to_Hero.md">source .md &#8599;</a></div><h2>Software Design Principles — Zero to Hero</h2></header><article class="q" id="f02DesignPrinci-0"><div class="q-h"><span class="q-n">&bull;</span><h3>Key Definitions (read first)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-0"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">SOLID</span><span class="kt">SRP</span><span class="kt">OCP</span><span class="kt">LSP</span><span class="kt">DIP</span><span class="kt">DRY</span></div><div class="note">
+<div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Term</th><th>Plain-language definition</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong><abbr title="single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion">SOLID</abbr></strong></td><td>Five OO principles: <strong>S</strong>ingle-responsibility, <strong>O</strong>pen-closed, <strong>L</strong>iskov-substitution, <strong>I</strong>nterface-segregation, <strong>D</strong>ependency-inversion.</td></tr><tr class="g0"><td class="c-term"><strong>SRP</strong></td><td>A class should have one reason to change (one responsibility).</td></tr><tr class="g1"><td class="c-term"><strong>OCP</strong></td><td>Open for extension, closed for modification — add behavior without editing existing code.</td></tr><tr class="g0"><td class="c-term"><strong>LSP</strong></td><td>A subtype must be usable anywhere its base type is, without surprises.</td></tr><tr class="g1"><td class="c-term"><strong>DIP</strong></td><td>Depend on abstractions (interfaces), not concrete implementations.</td></tr><tr class="g0"><td class="c-term"><strong>DRY</strong></td><td>Don't Repeat Yourself — one authoritative place for each piece of knowledge.</td></tr><tr class="g1"><td class="c-term"><strong>KISS</strong></td><td>Keep It Simple — prefer the simplest design that works.</td></tr><tr class="g0"><td class="c-term"><strong>YAGNI</strong></td><td>You Aren't Gonna Need It — don't build for imagined future needs.</td></tr><tr class="g1"><td class="c-term"><strong>Separation of concerns</strong></td><td>Each module handles one aspect (UI / logic / data).</td></tr><tr class="g0"><td class="c-term"><strong>Composition over inheritance</strong></td><td>Build behavior by combining objects rather than deep class hierarchies.</td></tr><tr class="g1"><td class="c-term"><strong>Law of Demeter</strong></td><td>"Talk to friends, not strangers" — don't reach through objects (<code>a.b.c.d</code>).</td></tr><tr class="g0"><td class="c-term"><strong>Encapsulation / abstraction</strong></td><td>Hide internal state behind an interface / expose only the essential idea.</td></tr><tr class="g1"><td class="c-term"><strong>Coupling vs cohesion</strong></td><td>How dependent modules are (want low) vs how focused one module is (want high).</td></tr><tr class="g0"><td class="c-term"><strong>IoC / Dependency Injection</strong></td><td>Framework/caller supplies a component's dependencies instead of it creating them.</td></tr><tr class="g1"><td class="c-term"><strong>Fail fast</strong></td><td>Surface errors immediately at the source rather than limping on.</td></tr></tbody></table></div>
+</div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-1"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Why Design Principles Matter</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-1"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Without principles:                  With principles:
+─────────────────                    ────────────────
+Spaghetti code                      Clean, readable code
+"It works, don't touch it"          Easy to modify &amp; extend
+Bug fix → 3 new bugs                Bug fix → just that fix
+Onboarding takes months             New devs productive in days
+Rewrite every 2 years               Evolves over decades</pre></div>
+<h3>The Cost of Bad Design</h3>
+<div class="diagram"><pre>                    Cost to Fix
+                    ↑
+                    │                          ★ Production
+                    │                     ★
+                    │                ★
+                    │           ★
+                    │      ★
+                    │  ★
+                    │★
+                    └──────────────────────→ Time
+                    Design  Code  Test  Deploy  Production
+
+                    1x      5x    10x   50x     100x</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-2"><div class="q-h"><span class="q-n">&bull;</span><h3>2. SOLID Principles</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-2"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Problem</span><span class="kt">Real-world analogy</span></div><p><abbr title="single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion">SOLID</abbr> is the most important set of <abbr title="object-oriented programming">OOP</abbr> design principles, coined by Robert C. Martin (Uncle Bob).</p>
+<h3>S — Single Responsibility Principle (SRP)</h3>
+<div class="note">
+<p><strong>A class should have only one reason to change.</strong></p>
+</div>
+<h4>Bad Example ❌</h4>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> Employee:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, name, salary):
+        <span class="kw">self</span>.name = name
+        <span class="kw">self</span>.salary = salary
+    
+    <span class="kw">def</span> <span class="fn">calculate_pay</span>(<span class="kw">self</span>):
+        <span class="str">"""Business logic — HR department"""</span>
+        <span class="kw">return</span> <span class="kw">self</span>.salary * <span class="num">12</span>
+    
+    <span class="kw">def</span> <span class="fn">save_to_database</span>(<span class="kw">self</span>):
+        <span class="str">"""Persistence — DBA department"""</span>
+        db.<span class="fn">execute</span>(f<span class="str">"INSERT INTO employees VALUES ('{self.name}', {self.salary})"</span>)
+    
+    <span class="kw">def</span> <span class="fn">generate_report</span>(<span class="kw">self</span>):
+        <span class="str">"""Reporting — Management department"""</span>
+        <span class="kw">return</span> f<span class="str">"Employee Report: {self.name} earns {self.salary}/month"</span></code></pre>
+<p><strong>Problem:</strong> Three reasons to change (pay rules, DB schema, report format). Three different departments could request changes.</p>
+<h4>Good Example ✅</h4>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> Employee:
+    <span class="str">"""Only holds employee data"""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, name: str, salary: float):
+        <span class="kw">self</span>.name = name
+        <span class="kw">self</span>.salary = salary
+
+<span class="kw">class</span> PayCalculator:
+    <span class="str">"""Handles pay calculations — HR"""</span>
+    <span class="kw">def</span> <span class="fn">calculate_annual_pay</span>(<span class="kw">self</span>, employee: Employee) -&gt; float:
+        <span class="kw">return</span> employee.salary * <span class="num">12</span>
+
+<span class="kw">class</span> EmployeeRepository:
+    <span class="str">"""Handles persistence — DBA"""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, db):
+        <span class="kw">self</span>.db = db
+    
+    <span class="kw">def</span> <span class="fn">save</span>(<span class="kw">self</span>, employee: Employee):
+        <span class="kw">self</span>.db.<span class="fn">execute</span>(
+            <span class="str">"INSERT INTO employees (name, salary) VALUES (?, ?)"</span>,
+            (employee.name, employee.salary)
+        )
+
+<span class="kw">class</span> ReportGenerator:
+    <span class="str">"""Handles reporting — Management"""</span>
+    <span class="kw">def</span> <span class="fn">generate</span>(<span class="kw">self</span>, employee: Employee) -&gt; str:
+        <span class="kw">return</span> f<span class="str">"Employee Report: {employee.name} earns {employee.salary}/month"</span></code></pre>
+<p><strong>Real-world analogy:</strong> A chef should cook. A waiter should serve. A cashier should bill. One person doing all three = chaos.</p>
+<hr />
+<h3>O — Open/Closed Principle (OCP)</h3>
+<div class="note">
+<p><strong>Open for extension, closed for modification.</strong></p>
+</div>
+<h4>Bad Example ❌</h4>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> DiscountCalculator:
+    <span class="kw">def</span> <span class="fn">calculate</span>(<span class="kw">self</span>, customer_type: str, amount: float) -&gt; float:
+        <span class="kw">if</span> customer_type == <span class="str">"regular"</span>:
+            <span class="kw">return</span> amount * <span class="num">0.1</span>
+        <span class="kw">elif</span> customer_type == <span class="str">"premium"</span>:
+            <span class="kw">return</span> amount * <span class="num">0.2</span>
+        <span class="kw">elif</span> customer_type == <span class="str">"vip"</span>:
+            <span class="kw">return</span> amount * <span class="num">0.3</span>
+        <span class="cmt"># Adding new type? Must modify this class!</span>
+        <span class="cmt"># What if someone breaks existing logic?</span></code></pre>
+<h4>Good Example ✅</h4>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">DiscountStrategy</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">calculate</span>(<span class="kw">self</span>, amount: float) -&gt; float:
+        <span class="kw">pass</span>
+
+<span class="kw">class</span> <span class="fn">RegularDiscount</span>(DiscountStrategy):
+    <span class="kw">def</span> <span class="fn">calculate</span>(<span class="kw">self</span>, amount: float) -&gt; float:
+        <span class="kw">return</span> amount * <span class="num">0.1</span>
+
+<span class="kw">class</span> <span class="fn">PremiumDiscount</span>(DiscountStrategy):
+    <span class="kw">def</span> <span class="fn">calculate</span>(<span class="kw">self</span>, amount: float) -&gt; float:
+        <span class="kw">return</span> amount * <span class="num">0.2</span>
+
+<span class="kw">class</span> <span class="fn">VIPDiscount</span>(DiscountStrategy):
+    <span class="kw">def</span> <span class="fn">calculate</span>(<span class="kw">self</span>, amount: float) -&gt; float:
+        <span class="kw">return</span> amount * <span class="num">0.3</span>
+
+<span class="cmt"># Adding new type? Just create a new class — no existing code modified!</span>
+<span class="kw">class</span> <span class="fn">EmployeeDiscount</span>(DiscountStrategy):
+    <span class="kw">def</span> <span class="fn">calculate</span>(<span class="kw">self</span>, amount: float) -&gt; float:
+        <span class="kw">return</span> amount * <span class="num">0.4</span>
+
+<span class="kw">class</span> DiscountCalculator:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, strategy: DiscountStrategy):
+        <span class="kw">self</span>.strategy = strategy
+    
+    <span class="kw">def</span> <span class="fn">apply_discount</span>(<span class="kw">self</span>, amount: float) -&gt; float:
+        <span class="kw">return</span> <span class="kw">self</span>.strategy.<span class="fn">calculate</span>(amount)
+
+<span class="cmt"># Usage</span>
+calc = <span class="fn">DiscountCalculator</span>(<span class="fn">VIPDiscount</span>())
+<span class="fn">print</span>(calc.<span class="fn">apply_discount</span>(<span class="num">1000</span>))  <span class="cmt"># 300.0</span></code></pre>
+<hr />
+<h3>L — Liskov Substitution Principle (LSP)</h3>
+<div class="note">
+<p><strong>Subtypes must be substitutable for their base types without breaking the program.</strong></p>
+</div>
+<h4>Bad Example ❌ (Classic: Rectangle/Square)</h4>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> Rectangle:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, width, height):
+        <span class="kw">self</span>._width = width
+        <span class="kw">self</span>._height = height
+    
+    @property
+    <span class="kw">def</span> <span class="fn">width</span>(<span class="kw">self</span>):
+        <span class="kw">return</span> <span class="kw">self</span>._width
+    
+    @width.setter
+    <span class="kw">def</span> <span class="fn">width</span>(<span class="kw">self</span>, value):
+        <span class="kw">self</span>._width = value
+    
+    @property
+    <span class="kw">def</span> <span class="fn">height</span>(<span class="kw">self</span>):
+        <span class="kw">return</span> <span class="kw">self</span>._height
+    
+    @height.setter
+    <span class="kw">def</span> <span class="fn">height</span>(<span class="kw">self</span>, value):
+        <span class="kw">self</span>._height = value
+    
+    <span class="kw">def</span> <span class="fn">area</span>(<span class="kw">self</span>):
+        <span class="kw">return</span> <span class="kw">self</span>._width * <span class="kw">self</span>._height
+
+<span class="kw">class</span> <span class="fn">Square</span>(Rectangle):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, side):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(side, side)
+    
+    @Rectangle.width.setter
+    <span class="kw">def</span> <span class="fn">width</span>(<span class="kw">self</span>, value):
+        <span class="kw">self</span>._width = value
+        <span class="kw">self</span>._height = value  <span class="cmt"># Breaks LSP! Changing width also changes height</span>
+    
+    @Rectangle.height.setter
+    <span class="kw">def</span> <span class="fn">height</span>(<span class="kw">self</span>, value):
+        <span class="kw">self</span>._width = value
+        <span class="kw">self</span>._height = value
+
+<span class="cmt"># This function works with Rectangle but BREAKS with Square</span>
+<span class="kw">def</span> <span class="fn">double_width</span>(rect: Rectangle):
+    rect.width = rect.width * <span class="num">2</span>
+    <span class="cmt"># For Rectangle(3,4): area should be 6*4=24 ✓</span>
+    <span class="cmt"># For Square(3):      area becomes 6*6=36 ✗ (unexpected!)</span></code></pre>
+<h4>Good Example ✅</h4>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">Shape</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">area</span>(<span class="kw">self</span>) -&gt; float:
+        <span class="kw">pass</span>
+
+<span class="kw">class</span> <span class="fn">Rectangle</span>(Shape):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, width: float, height: float):
+        <span class="kw">self</span>.width = width
+        <span class="kw">self</span>.height = height
+    
+    <span class="kw">def</span> <span class="fn">area</span>(<span class="kw">self</span>) -&gt; float:
+        <span class="kw">return</span> <span class="kw">self</span>.width * <span class="kw">self</span>.height
+
+<span class="kw">class</span> <span class="fn">Square</span>(Shape):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, side: float):
+        <span class="kw">self</span>.side = side
+    
+    <span class="kw">def</span> <span class="fn">area</span>(<span class="kw">self</span>) -&gt; float:
+        <span class="kw">return</span> <span class="kw">self</span>.side ** <span class="num">2</span>
+
+<span class="cmt"># Both can be used wherever Shape is expected</span>
+<span class="kw">def</span> <span class="fn">print_area</span>(shape: Shape):
+    <span class="fn">print</span>(f<span class="str">"Area: {shape.area()}"</span>)  <span class="cmt"># Works correctly for all shapes</span>
+
+<span class="fn">print_area</span>(<span class="fn">Rectangle</span>(<span class="num">3</span>, <span class="num">4</span>))  <span class="cmt"># Area: 12</span>
+<span class="fn">print_area</span>(<span class="fn">Square</span>(<span class="num">5</span>))        <span class="cmt"># Area: 25</span></code></pre>
+<hr />
+<h3>I — Interface Segregation Principle (ISP)</h3>
+<div class="note">
+<p><strong>Clients should not be forced to depend on interfaces they don't use.</strong></p>
+</div>
+<h4>Bad Example ❌</h4>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">Worker</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">work</span>(<span class="kw">self</span>): <span class="kw">pass</span>
+    
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">eat</span>(<span class="kw">self</span>): <span class="kw">pass</span>
+    
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">sleep</span>(<span class="kw">self</span>): <span class="kw">pass</span>
+
+<span class="kw">class</span> <span class="fn">Robot</span>(Worker):
+    <span class="kw">def</span> <span class="fn">work</span>(<span class="kw">self</span>):
+        <span class="fn">print</span>(<span class="str">"Robot working"</span>)
+    
+    <span class="kw">def</span> <span class="fn">eat</span>(<span class="kw">self</span>):
+        <span class="kw">pass</span>  <span class="cmt"># Robots don't eat! Forced to implement useless method</span>
+    
+    <span class="kw">def</span> <span class="fn">sleep</span>(<span class="kw">self</span>):
+        <span class="kw">pass</span>  <span class="cmt"># Robots don't sleep! Forced to implement useless method</span></code></pre>
+<h4>Good Example ✅</h4>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">Workable</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">work</span>(<span class="kw">self</span>): <span class="kw">pass</span>
+
+<span class="kw">class</span> <span class="fn">Eatable</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">eat</span>(<span class="kw">self</span>): <span class="kw">pass</span>
+
+<span class="kw">class</span> <span class="fn">Sleepable</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">sleep</span>(<span class="kw">self</span>): <span class="kw">pass</span>
+
+<span class="kw">class</span> <span class="fn">Human</span>(Workable, Eatable, Sleepable):
+    <span class="kw">def</span> <span class="fn">work</span>(<span class="kw">self</span>):
+        <span class="fn">print</span>(<span class="str">"Human working"</span>)
+    <span class="kw">def</span> <span class="fn">eat</span>(<span class="kw">self</span>):
+        <span class="fn">print</span>(<span class="str">"Human eating"</span>)
+    <span class="kw">def</span> <span class="fn">sleep</span>(<span class="kw">self</span>):
+        <span class="fn">print</span>(<span class="str">"Human sleeping"</span>)
+
+<span class="kw">class</span> <span class="fn">Robot</span>(Workable):  <span class="cmt"># Only implements what it needs</span>
+    <span class="kw">def</span> <span class="fn">work</span>(<span class="kw">self</span>):
+        <span class="fn">print</span>(<span class="str">"Robot working"</span>)</code></pre>
+<hr />
+<h3>D — Dependency Inversion Principle (DIP)</h3>
+<div class="note">
+<p><strong>High-level modules should not depend on low-level modules. Both should depend on abstractions.</strong></p>
+</div>
+<h4>Bad Example ❌</h4>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> MySQLDatabase:
+    <span class="kw">def</span> <span class="fn">connect</span>(<span class="kw">self</span>):
+        <span class="kw">return</span> <span class="str">"Connected to MySQL"</span>
+    <span class="kw">def</span> <span class="fn">query</span>(<span class="kw">self</span>, sql):
+        <span class="kw">return</span> f<span class="str">"MySQL result for: {sql}"</span>
+
+<span class="kw">class</span> UserService:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>.db = <span class="fn">MySQLDatabase</span>()  <span class="cmt"># Tightly coupled to MySQL!</span>
+    
+    <span class="kw">def</span> <span class="fn">get_user</span>(<span class="kw">self</span>, user_id):
+        <span class="kw">return</span> <span class="kw">self</span>.db.<span class="fn">query</span>(f<span class="str">"SELECT * FROM users WHERE id={user_id}"</span>)
+
+<span class="cmt"># What if we want PostgreSQL? Must modify UserService!</span></code></pre>
+<h4>Good Example ✅</h4>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">Database</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">connect</span>(<span class="kw">self</span>): <span class="kw">pass</span>
+    
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">query</span>(<span class="kw">self</span>, sql: str): <span class="kw">pass</span>
+
+<span class="kw">class</span> <span class="fn">MySQLDatabase</span>(Database):
+    <span class="kw">def</span> <span class="fn">connect</span>(<span class="kw">self</span>):
+        <span class="kw">return</span> <span class="str">"Connected to MySQL"</span>
+    <span class="kw">def</span> <span class="fn">query</span>(<span class="kw">self</span>, sql):
+        <span class="kw">return</span> f<span class="str">"MySQL: {sql}"</span>
+
+<span class="kw">class</span> <span class="fn">PostgreSQLDatabase</span>(Database):
+    <span class="kw">def</span> <span class="fn">connect</span>(<span class="kw">self</span>):
+        <span class="kw">return</span> <span class="str">"Connected to PostgreSQL"</span>
+    <span class="kw">def</span> <span class="fn">query</span>(<span class="kw">self</span>, sql):
+        <span class="kw">return</span> f<span class="str">"PostgreSQL: {sql}"</span>
+
+<span class="kw">class</span> UserService:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, db: Database):  <span class="cmt"># Depends on abstraction!</span>
+        <span class="kw">self</span>.db = db
+    
+    <span class="kw">def</span> <span class="fn">get_user</span>(<span class="kw">self</span>, user_id):
+        <span class="kw">return</span> <span class="kw">self</span>.db.<span class="fn">query</span>(f<span class="str">"SELECT * FROM users WHERE id={user_id}"</span>)
+
+<span class="cmt"># Easy to swap!</span>
+service_mysql = <span class="fn">UserService</span>(<span class="fn">MySQLDatabase</span>())
+service_pg = <span class="fn">UserService</span>(<span class="fn">PostgreSQLDatabase</span>())</code></pre>
+<h3>SOLID Summary Table</h3>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Principle</th><th>One-liner</th><th>Violation Smell</th></tr></thead><tbody><tr class="g1"><td><strong>S</strong>RP</td><td>One class = one job</td><td>Class with 500+ lines, multiple <code>import</code> sections</td></tr><tr class="g0"><td><strong>O</strong>CP</td><td>Extend, don't modify</td><td><code>if/elif</code> chains for types</td></tr><tr class="g1"><td><strong>L</strong>SP</td><td>Subtypes = drop-in replacements</td><td>Overridden methods that raise <code>NotImplementedError</code></td></tr><tr class="g0"><td><strong>I</strong>SP</td><td>Small, focused interfaces</td><td>Empty method implementations</td></tr><tr class="g1"><td><strong>D</strong>IP</td><td>Depend on abstractions</td><td><code>new</code> / direct instantiation in business logic</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-3"><div class="q-h"><span class="q-n">&bull;</span><h3>3. DRY — Don't Repeat Yourself</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-3"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Important</span><span class="kt">knowledge duplication</span></div><div class="note">
+<p><strong>Every piece of knowledge must have a single, unambiguous representation in the system.</strong></p>
+</div>
+<h3>DRY in practice</h3>
+<h4>Bad Example ❌</h4>
+<pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">calculate_employee_tax</span>(salary):
+    <span class="kw">if</span> salary &lt;= <span class="num">50000</span>:
+        <span class="kw">return</span> salary * <span class="num">0.1</span>
+    <span class="kw">elif</span> salary &lt;= <span class="num">100000</span>:
+        <span class="kw">return</span> salary * <span class="num">0.2</span>
+    <span class="kw">else</span>:
+        <span class="kw">return</span> salary * <span class="num">0.3</span>
+
+<span class="kw">def</span> <span class="fn">calculate_contractor_tax</span>(payment):
+    <span class="kw">if</span> payment &lt;= <span class="num">50000</span>:
+        <span class="kw">return</span> payment * <span class="num">0.1</span>    <span class="cmt"># Same logic duplicated!</span>
+    <span class="kw">elif</span> payment &lt;= <span class="num">100000</span>:
+        <span class="kw">return</span> payment * <span class="num">0.2</span>
+    <span class="kw">else</span>:
+        <span class="kw">return</span> payment * <span class="num">0.3</span></code></pre>
+<h4>Good Example ✅</h4>
+<pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">calculate_tax</span>(income: float) -&gt; float:
+    <span class="str">"""Single source of truth for tax calculation"""</span>
+    TAX_BRACKETS = [
+        (50_000, <span class="num">0.1</span>),
+        (100_000, <span class="num">0.2</span>),
+        (<span class="fn">float</span>(<span class="str">'inf'</span>), <span class="num">0.3</span>),
+    ]
+    <span class="kw">for</span> threshold, rate <span class="kw">in</span> TAX_BRACKETS:
+        <span class="kw">if</span> income &lt;= threshold:
+            <span class="kw">return</span> income * rate
+
+<span class="cmt"># Reused everywhere</span>
+employee_tax = <span class="fn">calculate_tax</span>(salary=<span class="num">75000</span>)
+contractor_tax = <span class="fn">calculate_tax</span>(income=<span class="num">75000</span>)</code></pre>
+<h3>DRY ≠ No Duplication</h3>
+<p><strong>Important:</strong> DRY is about <strong>knowledge duplication</strong>, not code duplication. Two functions may look the same but represent different business concepts — that's OK!</p>
+<pre class="code" data-lang="python"><code><span class="cmt"># These LOOK similar but are DIFFERENT concepts — NOT a DRY violation</span>
+<span class="kw">def</span> <span class="fn">validate_username</span>(name: str) -&gt; bool:
+    <span class="kw">return</span> <span class="num">3</span> &lt;= <span class="fn">len</span>(name) &lt;= <span class="num">20</span>  <span class="cmt"># Business rule: usernames</span>
+
+<span class="kw">def</span> <span class="fn">validate_product_name</span>(name: str) -&gt; bool:
+    <span class="kw">return</span> <span class="num">3</span> &lt;= <span class="fn">len</span>(name) &lt;= <span class="num">20</span>  <span class="cmt"># Business rule: product names</span>
+    <span class="cmt"># These rules may diverge later!</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-4"><div class="q-h"><span class="q-n">&bull;</span><h3>4. KISS — Keep It Simple, Stupid</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-4"><span></span></label></div><div class="q-a"><div class="note">
+<p><strong>Simplicity is the ultimate sophistication.</strong></p>
+</div>
+<h3>KISS in practice</h3>
+<h4>Bad Example ❌</h4>
+<pre class="code" data-lang="python"><code><span class="cmt"># Over-engineered</span>
+<span class="kw">def</span> <span class="fn">is_even</span>(n):
+    <span class="kw">return</span> <span class="kw">not</span> <span class="fn">bool</span>(n &amp; <span class="num">1</span>) <span class="kw">if</span> <span class="fn">isinstance</span>(n, int) <span class="kw">else</span> (
+        <span class="kw">True</span> <span class="kw">if</span> <span class="fn">float</span>(n) == <span class="fn">int</span>(<span class="fn">float</span>(n)) <span class="kw">and</span> <span class="kw">not</span> <span class="fn">bool</span>(<span class="fn">int</span>(<span class="fn">float</span>(n)) &amp; <span class="num">1</span>) 
+        <span class="kw">else</span> <span class="kw">False</span>
+    )</code></pre>
+<h4>Good Example ✅</h4>
+<pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">is_even</span>(n: int) -&gt; bool:
+    <span class="kw">return</span> n % <span class="num">2</span> == <span class="num">0</span></code></pre>
+<h4>Bad Example ❌ (Over-abstraction)</h4>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> NumberCheckerFactory:
+    @staticmethod
+    <span class="kw">def</span> <span class="fn">create_checker</span>(check_type):
+        <span class="kw">if</span> check_type == <span class="str">"even"</span>:
+            <span class="kw">return</span> <span class="fn">EvenChecker</span>()
+        <span class="kw">elif</span> check_type == <span class="str">"odd"</span>:
+            <span class="kw">return</span> <span class="fn">OddChecker</span>()
+
+<span class="kw">class</span> EvenChecker:
+    <span class="kw">def</span> <span class="fn">check</span>(<span class="kw">self</span>, n):
+        <span class="kw">return</span> n % <span class="num">2</span> == <span class="num">0</span>
+
+<span class="kw">class</span> OddChecker:
+    <span class="kw">def</span> <span class="fn">check</span>(<span class="kw">self</span>, n):
+        <span class="kw">return</span> n % <span class="num">2</span> != <span class="num">0</span>
+
+<span class="cmt"># Usage (way too complex for the task)</span>
+checker = NumberCheckerFactory.<span class="fn">create_checker</span>(<span class="str">"even"</span>)
+result = checker.<span class="fn">check</span>(<span class="num">42</span>)</code></pre>
+<h4>Good Example ✅</h4>
+<pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">is_even</span>(n: int) -&gt; bool:
+    <span class="kw">return</span> n % <span class="num">2</span> == <span class="num">0</span>
+
+<span class="kw">def</span> <span class="fn">is_odd</span>(n: int) -&gt; bool:
+    <span class="kw">return</span> n % <span class="num">2</span> != <span class="num">0</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-5"><div class="q-h"><span class="q-n">&bull;</span><h3>5. YAGNI — You Aren't Gonna Need It</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-5"><span></span></label></div><div class="q-a"><div class="note">
+<p><strong>Don't implement something until it is actually needed.</strong></p>
+</div>
+<h3>YAGNI in practice</h3>
+<h4>Bad Example ❌</h4>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> UserService:
+    <span class="kw">def</span> <span class="fn">create_user</span>(<span class="kw">self</span>, data):
+        <span class="kw">pass</span>
+    
+    <span class="kw">def</span> <span class="fn">delete_user</span>(<span class="kw">self</span>, user_id):
+        <span class="kw">pass</span>
+    
+    <span class="cmt"># "We might need these later..."</span>
+    <span class="kw">def</span> <span class="fn">export_users_to_csv</span>(<span class="kw">self</span>):
+        <span class="kw">pass</span>  <span class="cmt"># Not in any requirement</span>
+    
+    <span class="kw">def</span> <span class="fn">import_users_from_xml</span>(<span class="kw">self</span>):
+        <span class="kw">pass</span>  <span class="cmt"># No one asked for this</span>
+    
+    <span class="kw">def</span> <span class="fn">merge_duplicate_users</span>(<span class="kw">self</span>):
+        <span class="kw">pass</span>  <span class="cmt"># Maybe someday...</span>
+    
+    <span class="kw">def</span> <span class="fn">predict_user_churn</span>(<span class="kw">self</span>):
+        <span class="kw">pass</span>  <span class="cmt"># Definitely not now</span></code></pre>
+<h4>Good Example ✅</h4>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> UserService:
+    <span class="str">"""Only implements what's needed NOW"""</span>
+    <span class="kw">def</span> <span class="fn">create_user</span>(<span class="kw">self</span>, data: dict) -&gt; User:
+        ...
+    
+    <span class="kw">def</span> <span class="fn">delete_user</span>(<span class="kw">self</span>, user_id: int) -&gt; bool:
+        ...
+    
+    <span class="cmt"># Add new methods when requirements arrive,</span>
+    <span class="cmt"># not when you imagine they might be needed</span></code></pre>
+<h3>YAGNI vs Planning Ahead</h3>
+<div class="diagram"><pre>YAGNI says:              Planning says:
+──────────               ──────────────
+Don't build features     DO design for extensibility
+you don't need yet       (OCP, DIP)
+
+Don't write code         DO write clean interfaces
+for imaginary use cases  that allow future extension
+
+Don't optimize           DO choose the right
+prematurely              data structures</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-6"><div class="q-h"><span class="q-n">&bull;</span><h3>6. Separation of Concerns (SoC)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-6"><span></span></label></div><div class="q-a"><div class="note">
+<p><strong>Each module/function/class should address a separate concern.</strong></p>
+</div>
+<h3>SoC in practice</h3>
+<h4>Web Application Example</h4>
+<div class="diagram"><pre>┌─────────────────────────────────────────────────────────┐
+│                     PRESENTATION                         │
+│  (HTML, CSS, JavaScript, Templates)                      │
+│  Concern: How things LOOK                                │
+├─────────────────────────────────────────────────────────┤
+│                     BUSINESS LOGIC                        │
+│  (Services, Use Cases, Domain Models)                    │
+│  Concern: WHAT the app does                              │
+├─────────────────────────────────────────────────────────┤
+│                     DATA ACCESS                           │
+│  (Repositories, ORM, SQL)                                │
+│  Concern: WHERE/HOW data is stored                       │
+└─────────────────────────────────────────────────────────┘</pre></div>
+<h4>Bad Example ❌</h4>
+<pre class="code" data-lang="python"><code>@app.<span class="fn">post</span>(<span class="str">"/register"</span>)
+<span class="kw">def</span> <span class="fn">register</span>(request):
+    <span class="cmt"># Validation (concern 1)</span>
+    <span class="kw">if</span> <span class="kw">not</span> request.email <span class="kw">or</span> <span class="str">"@"</span> <span class="kw">not</span> <span class="kw">in</span> request.email:
+        <span class="kw">return</span> {<span class="str">"error"</span>: <span class="str">"Invalid email"</span>}
+    
+    <span class="cmt"># Business logic (concern 2)</span>
+    hashed_password = bcrypt.<span class="fn">hash</span>(request.password)
+    
+    <span class="cmt"># Database (concern 3)</span>
+    db.<span class="fn">execute</span>(<span class="str">"INSERT INTO users ..."</span>, (request.email, hashed_password))
+    
+    <span class="cmt"># Email (concern 4)</span>
+    smtp.<span class="fn">send_mail</span>(request.email, <span class="str">"Welcome!"</span>, <span class="str">"Thanks for registering"</span>)
+    
+    <span class="cmt"># Logging (concern 5)</span>
+    logger.<span class="fn">info</span>(f<span class="str">"New user: {request.email}"</span>)
+    
+    <span class="kw">return</span> {<span class="str">"message"</span>: <span class="str">"Registered"</span>}</code></pre>
+<h4>Good Example ✅</h4>
+<pre class="code" data-lang="python"><code><span class="cmt"># validators.py</span>
+<span class="kw">class</span> UserValidator:
+    <span class="kw">def</span> <span class="fn">validate_registration</span>(<span class="kw">self</span>, data: dict) -&gt; bool:
+        <span class="kw">if</span> <span class="kw">not</span> data.<span class="fn">get</span>(<span class="str">"email"</span>) <span class="kw">or</span> <span class="str">"@"</span> <span class="kw">not</span> <span class="kw">in</span> data[<span class="str">"email"</span>]:
+            <span class="kw">raise</span> <span class="fn">ValidationError</span>(<span class="str">"Invalid email"</span>)
+
+<span class="cmt"># services.py</span>
+<span class="kw">class</span> UserService:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, repo, email_service, logger):
+        <span class="kw">self</span>.repo = repo
+        <span class="kw">self</span>.email_service = email_service
+        <span class="kw">self</span>.logger = logger
+    
+    <span class="kw">def</span> <span class="fn">register</span>(<span class="kw">self</span>, data: dict) -&gt; User:
+        user = <span class="fn">User</span>(email=data[<span class="str">"email"</span>], password=<span class="fn">hash_password</span>(data[<span class="str">"password"</span>]))
+        <span class="kw">self</span>.repo.<span class="fn">save</span>(user)
+        <span class="kw">self</span>.email_service.<span class="fn">send_welcome</span>(user.email)
+        <span class="kw">self</span>.logger.<span class="fn">info</span>(f<span class="str">"New user: {user.email}"</span>)
+        <span class="kw">return</span> user
+
+<span class="cmt"># routes.py</span>
+@app.<span class="fn">post</span>(<span class="str">"/register"</span>)
+<span class="kw">def</span> <span class="fn">register</span>(request, service: UserService = <span class="fn">Depends</span>()):
+    validator.<span class="fn">validate_registration</span>(request.<span class="fn">dict</span>())
+    user = service.<span class="fn">register</span>(request.<span class="fn">dict</span>())
+    <span class="kw">return</span> {<span class="str">"message"</span>: <span class="str">"Registered"</span>, <span class="str">"id"</span>: user.id}</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-7"><div class="q-h"><span class="q-n">&bull;</span><h3>7. Composition Over Inheritance</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-7"><span></span></label></div><div class="q-a"><div class="note">
+<p><strong>Favor composing objects over inheriting from a base class.</strong></p>
+</div>
+<h3>Composition in practice</h3>
+<h4>Bad Example ❌ (Deep Inheritance)</h4>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> Animal:
+    <span class="kw">def</span> <span class="fn">eat</span>(<span class="kw">self</span>): <span class="fn">print</span>(<span class="str">"Eating"</span>)
+
+<span class="kw">class</span> <span class="fn">Bird</span>(Animal):
+    <span class="kw">def</span> <span class="fn">fly</span>(<span class="kw">self</span>): <span class="fn">print</span>(<span class="str">"Flying"</span>)
+
+<span class="kw">class</span> <span class="fn">Duck</span>(Bird):
+    <span class="kw">def</span> <span class="fn">swim</span>(<span class="kw">self</span>): <span class="fn">print</span>(<span class="str">"Swimming"</span>)
+
+<span class="kw">class</span> <span class="fn">RubberDuck</span>(Duck):  <span class="cmt"># Inherits fly(), eat() — rubber ducks don't fly or eat!</span>
+    <span class="kw">def</span> <span class="fn">squeak</span>(<span class="kw">self</span>): <span class="fn">print</span>(<span class="str">"Squeak!"</span>)</code></pre>
+<h4>Good Example ✅ (Composition)</h4>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> EatAbility:
+    <span class="kw">def</span> <span class="fn">eat</span>(<span class="kw">self</span>): <span class="fn">print</span>(<span class="str">"Eating"</span>)
+
+<span class="kw">class</span> FlyAbility:
+    <span class="kw">def</span> <span class="fn">fly</span>(<span class="kw">self</span>): <span class="fn">print</span>(<span class="str">"Flying"</span>)
+
+<span class="kw">class</span> SwimAbility:
+    <span class="kw">def</span> <span class="fn">swim</span>(<span class="kw">self</span>): <span class="fn">print</span>(<span class="str">"Swimming"</span>)
+
+<span class="kw">class</span> SqueakAbility:
+    <span class="kw">def</span> <span class="fn">squeak</span>(<span class="kw">self</span>): <span class="fn">print</span>(<span class="str">"Squeak!"</span>)
+
+<span class="kw">class</span> Duck:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>.eating = <span class="fn">EatAbility</span>()
+        <span class="kw">self</span>.flying = <span class="fn">FlyAbility</span>()
+        <span class="kw">self</span>.swimming = <span class="fn">SwimAbility</span>()
+
+<span class="kw">class</span> RubberDuck:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>.swimming = <span class="fn">SwimAbility</span>()
+        <span class="kw">self</span>.squeaking = <span class="fn">SqueakAbility</span>()
+        <span class="cmt"># No eating, no flying — makes sense!</span>
+
+duck = <span class="fn">Duck</span>()
+duck.eating.<span class="fn">eat</span>()       <span class="cmt"># Eating</span>
+duck.flying.<span class="fn">fly</span>()       <span class="cmt"># Flying</span>
+
+rubber = <span class="fn">RubberDuck</span>()
+rubber.squeaking.<span class="fn">squeak</span>()  <span class="cmt"># Squeak!</span>
+<span class="cmt"># rubber.flying → AttributeError (correct behavior!)</span></code></pre>
+<h3>When to Use Inheritance vs Composition</h3>
+<div class="diagram"><pre>Use INHERITANCE when:              Use COMPOSITION when:
+─────────────────────              ──────────────────────
+True "is-a" relationship           "has-a" relationship
+Dog IS an Animal                   Car HAS an Engine
+Shared behavior won't diverge      Behaviors vary independently
+Shallow hierarchy (2-3 levels)     Would create deep hierarchies</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-8"><div class="q-h"><span class="q-n">&bull;</span><h3>8. Law of Demeter (LoD)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-8"><span></span></label></div><div class="q-a"><div class="note">
+<p><strong>"Don't talk to strangers." — An object should only call methods on: itself, its parameters, objects it creates, its direct components.</strong></p>
+</div>
+<h3>LoD in practice</h3>
+<h4>Bad Example ❌</h4>
+<pre class="code" data-lang="python"><code><span class="cmt"># Chain of method calls — reaching deep into object graph</span>
+customer.<span class="fn">get_wallet</span>().<span class="fn">get_credit_card</span>().<span class="fn">charge</span>(amount)
+order.<span class="fn">get_customer</span>().<span class="fn">get_address</span>().<span class="fn">get_city</span>()</code></pre>
+<h4>Good Example ✅</h4>
+<pre class="code" data-lang="python"><code><span class="cmt"># Tell, don't ask</span>
+customer.<span class="fn">charge</span>(amount)  <span class="cmt"># Customer handles the details internally</span>
+
+<span class="kw">class</span> Customer:
+    <span class="kw">def</span> <span class="fn">charge</span>(<span class="kw">self</span>, amount: float):
+        <span class="kw">self</span>.wallet.<span class="fn">charge</span>(amount)
+
+<span class="kw">class</span> Wallet:
+    <span class="kw">def</span> <span class="fn">charge</span>(<span class="kw">self</span>, amount: float):
+        <span class="kw">self</span>.credit_card.<span class="fn">charge</span>(amount)</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-9"><div class="q-h"><span class="q-n">&bull;</span><h3>9. Encapsulation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-9"><span></span></label></div><div class="q-a"><div class="note">
+<p><strong>Hide internal state and require all interaction through public methods.</strong></p>
+</div>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> BankAccount:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, owner: str, balance: float = <span class="num">0</span>):
+        <span class="kw">self</span>._owner = owner
+        <span class="kw">self</span>.__balance = balance  <span class="cmt"># Private</span>
+    
+    @property
+    <span class="kw">def</span> <span class="fn">balance</span>(<span class="kw">self</span>) -&gt; float:
+        <span class="kw">return</span> <span class="kw">self</span>.__balance
+    
+    <span class="kw">def</span> <span class="fn">deposit</span>(<span class="kw">self</span>, amount: float):
+        <span class="kw">if</span> amount &lt;= <span class="num">0</span>:
+            <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="str">"Deposit must be positive"</span>)
+        <span class="kw">self</span>.__balance += amount
+    
+    <span class="kw">def</span> <span class="fn">withdraw</span>(<span class="kw">self</span>, amount: float):
+        <span class="kw">if</span> amount &gt; <span class="kw">self</span>.__balance:
+            <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="str">"Insufficient funds"</span>)
+        <span class="kw">if</span> amount &lt;= <span class="num">0</span>:
+            <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="str">"Withdrawal must be positive"</span>)
+        <span class="kw">self</span>.__balance -= amount
+
+<span class="cmt"># Usage</span>
+account = <span class="fn">BankAccount</span>(<span class="str">"Alice"</span>, <span class="num">1000</span>)
+account.<span class="fn">deposit</span>(<span class="num">500</span>)
+account.<span class="fn">withdraw</span>(<span class="num">200</span>)
+<span class="fn">print</span>(account.balance)  <span class="cmt"># 1300</span>
+<span class="cmt"># account.__balance = -9999  # Won't work! (name mangling)</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-10"><div class="q-h"><span class="q-n">&bull;</span><h3>10. Abstraction</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-10"><span></span></label></div><div class="q-a"><div class="note">
+<p><strong>Expose only what's necessary, hide complexity.</strong></p>
+</div>
+<pre class="code" data-lang="python"><code><span class="cmt"># User sees this simple interface:</span>
+<span class="kw">class</span> EmailService:
+    <span class="kw">def</span> <span class="fn">send</span>(<span class="kw">self</span>, to: str, subject: str, body: str) -&gt; bool:
+        <span class="str">"""Simple API — hides SMTP complexity"""</span>
+        ...
+
+<span class="cmt"># Internally:</span>
+<span class="kw">class</span> EmailService:
+    <span class="kw">def</span> <span class="fn">send</span>(<span class="kw">self</span>, to: str, subject: str, body: str) -&gt; bool:
+        connection = <span class="kw">self</span>.<span class="fn">_connect_to_smtp</span>()        <span class="cmt"># Hidden</span>
+        message = <span class="kw">self</span>.<span class="fn">_build_mime_message</span>(...)      <span class="cmt"># Hidden</span>
+        <span class="kw">self</span>.<span class="fn">_authenticate</span>(connection)               <span class="cmt"># Hidden</span>
+        <span class="kw">self</span>.<span class="fn">_send_raw</span>(connection, message)          <span class="cmt"># Hidden</span>
+        <span class="kw">self</span>.<span class="fn">_close_connection</span>(connection)           <span class="cmt"># Hidden</span>
+        <span class="kw">return</span> <span class="kw">True</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-11"><div class="q-h"><span class="q-n">&bull;</span><h3>11. Coupling &amp; Cohesion</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-11"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Coupling</span><span class="kt">Cohesion</span></div><h3>Coupling (Low is better)</h3>
+<p><strong>Coupling</strong> = degree of interdependence between modules.</p>
+<div class="diagram"><pre>Tight Coupling (Bad):              Loose Coupling (Good):
+─────────────────────              ──────────────────────
+Module A ←──────→ Module B         Module A ←→ Interface ←→ Module B
+Change A → must change B           Change A → B unaffected
+Hard to test in isolation          Easy to mock and test</pre></div>
+<h3>Cohesion (High is better)</h3>
+<p><strong>Cohesion</strong> = degree to which elements within a module belong together.</p>
+<div class="diagram"><pre>Low Cohesion (Bad):                High Cohesion (Good):
+───────────────────                ────────────────────
+class Utils:                       class FileHandler:
+    send_email()                       read_file()
+    parse_json()                       write_file()
+    validate_user()                    delete_file()
+    resize_image()                     list_files()
+    (unrelated methods)                (all related to files)</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-12"><div class="q-h"><span class="q-n">&bull;</span><h3>12. Inversion of Control (IoC) &amp; Dependency Injection (DI)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-12"><span></span></label></div><div class="q-a"><pre class="code" data-lang="python"><code><span class="cmt"># WITHOUT DI — class creates its own dependencies</span>
+<span class="kw">class</span> OrderService:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>.db = <span class="fn">PostgresDatabase</span>()     <span class="cmt"># Creates dependency</span>
+        <span class="kw">self</span>.emailer = <span class="fn">SMTPEmailer</span>()     <span class="cmt"># Creates dependency</span>
+        <span class="kw">self</span>.logger = <span class="fn">FileLogger</span>()       <span class="cmt"># Creates dependency</span>
+
+<span class="cmt"># WITH DI — dependencies are injected from outside</span>
+<span class="kw">class</span> OrderService:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, db: Database, emailer: Emailer, logger: Logger):
+        <span class="kw">self</span>.db = db
+        <span class="kw">self</span>.emailer = emailer
+        <span class="kw">self</span>.logger = logger
+
+<span class="cmt"># Now we can inject anything!</span>
+<span class="cmt"># Production:</span>
+service = <span class="fn">OrderService</span>(<span class="fn">PostgresDatabase</span>(), <span class="fn">SMTPEmailer</span>(), <span class="fn">FileLogger</span>())
+
+<span class="cmt"># Testing:</span>
+service = <span class="fn">OrderService</span>(<span class="fn">MockDatabase</span>(), <span class="fn">MockEmailer</span>(), <span class="fn">MockLogger</span>())</code></pre>
+<h3>FastAPI DI Example</h3>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> fastapi <span class="kw">import</span> Depends
+
+<span class="kw">def</span> <span class="fn">get_db</span>():
+    db = <span class="fn">SessionLocal</span>()
+    <span class="kw">try</span>:
+        <span class="kw">yield</span> db
+    <span class="kw">finally</span>:
+        db.<span class="fn">close</span>()
+
+@app.<span class="fn">get</span>(<span class="str">"/users"</span>)
+<span class="kw">def</span> <span class="fn">list_users</span>(db: Session = <span class="fn">Depends</span>(get_db)):
+    <span class="kw">return</span> db.<span class="fn">query</span>(User).<span class="fn">all</span>()</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-13"><div class="q-h"><span class="q-n">&bull;</span><h3>13. Fail Fast Principle</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-13"><span></span></label></div><div class="q-a"><div class="note">
+<p><strong>If something is going to fail, fail immediately and clearly.</strong></p>
+</div>
+<pre class="code" data-lang="python"><code><span class="cmt"># BAD: Fails silently, causes problems later</span>
+<span class="kw">def</span> <span class="fn">process_order</span>(order):
+    <span class="kw">if</span> order.total &lt; <span class="num">0</span>:
+        order.total = <span class="num">0</span>  <span class="cmt"># Silently "fixing" bad data</span>
+    <span class="cmt"># ... continues processing with wrong data</span>
+
+<span class="cmt"># GOOD: Fails fast with clear error</span>
+<span class="kw">def</span> <span class="fn">process_order</span>(order):
+    <span class="kw">if</span> order.total &lt; <span class="num">0</span>:
+        <span class="kw">raise</span> <span class="fn">ValueError</span>(f<span class="str">"Invalid order total: {order.total}"</span>)
+    <span class="kw">if</span> <span class="kw">not</span> order.customer:
+        <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="str">"Order must have a customer"</span>)
+    <span class="cmt"># ... continues only with valid data</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-14"><div class="q-h"><span class="q-n">&bull;</span><h3>14. Convention Over Configuration</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-14"><span></span></label></div><div class="q-a"><div class="note">
+<p><strong>Provide sensible defaults; only require configuration for the unconventional.</strong></p>
+</div>
+<pre class="code" data-lang="python"><code><span class="cmt"># Django: Convention — models.py, views.py, urls.py</span>
+<span class="cmt"># FastAPI: Convention — response_model auto-generates docs</span>
+<span class="cmt"># SQLAlchemy: Convention — table name = class name (lowercase)</span>
+
+<span class="kw">class</span> <span class="fn">User</span>(Base):
+    __tablename__ = <span class="str">"user"</span>  <span class="cmt"># Convention: auto-derived from class name</span>
+    id = <span class="fn">Column</span>(Integer, primary_key=<span class="kw">True</span>)
+    name = <span class="fn">Column</span>(String)  <span class="cmt"># Column name = attribute name by convention</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-15"><div class="q-h"><span class="q-n">&bull;</span><h3>15. Design Patterns Overview</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-15"><span></span></label></div><div class="q-a"><div class="diagram"><pre>                    Design Patterns
+                    ───────────────
+        ┌──────────────┼──────────────┐
+   CREATIONAL      STRUCTURAL     BEHAVIORAL
+   (Object         (Object         (Object
+    creation)       composition)    communication)
+        │               │               │
+   ├─ Singleton    ├─ Adapter      ├─ Strategy
+   ├─ Factory      ├─ Decorator    ├─ Observer
+   ├─ Builder      ├─ Facade       ├─ Command
+   ├─ Prototype    ├─ Proxy        ├─ State
+   └─ Abstract     ├─ Bridge       ├─ Template Method
+      Factory      └─ Composite    ├─ Iterator
+                                   └─ Chain of Resp.</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-16"><div class="q-h"><span class="q-n">&bull;</span><h3>16. Creational Patterns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-16"><span></span></label></div><div class="q-a"><h3>16.1 Singleton — One instance only</h3>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> DatabaseConnection:
+    _instance = <span class="kw">None</span>
+    
+    <span class="kw">def</span> <span class="fn">__new__</span>(cls):
+        <span class="kw">if</span> cls._instance <span class="kw">is</span> <span class="kw">None</span>:
+            cls._instance = <span class="fn">super</span>().<span class="fn">__new__</span>(cls)
+            cls._instance.connection = cls.<span class="fn">_create_connection</span>()
+        <span class="kw">return</span> cls._instance
+    
+    @staticmethod
+    <span class="kw">def</span> <span class="fn">_create_connection</span>():
+        <span class="kw">return</span> <span class="str">"Connected to DB"</span>
+
+<span class="cmt"># Usage</span>
+db1 = <span class="fn">DatabaseConnection</span>()
+db2 = <span class="fn">DatabaseConnection</span>()
+<span class="fn">print</span>(db1 <span class="kw">is</span> db2)  <span class="cmt"># True — same instance</span>
+
+<span class="cmt"># Pythonic Singleton (using module)</span>
+<span class="cmt"># db.py</span>
+connection = <span class="fn">create_connection</span>()  <span class="cmt"># Module-level = singleton by default</span></code></pre>
+<h3>16.2 Factory — Create objects without specifying exact class</h3>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">Notification</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">send</span>(<span class="kw">self</span>, message: str): <span class="kw">pass</span>
+
+<span class="kw">class</span> <span class="fn">EmailNotification</span>(Notification):
+    <span class="kw">def</span> <span class="fn">send</span>(<span class="kw">self</span>, message):
+        <span class="fn">print</span>(f<span class="str">"📧 Email: {message}"</span>)
+
+<span class="kw">class</span> <span class="fn">SMSNotification</span>(Notification):
+    <span class="kw">def</span> <span class="fn">send</span>(<span class="kw">self</span>, message):
+        <span class="fn">print</span>(f<span class="str">"📱 SMS: {message}"</span>)
+
+<span class="kw">class</span> <span class="fn">PushNotification</span>(Notification):
+    <span class="kw">def</span> <span class="fn">send</span>(<span class="kw">self</span>, message):
+        <span class="fn">print</span>(f<span class="str">"🔔 Push: {message}"</span>)
+
+<span class="kw">class</span> NotificationFactory:
+    @staticmethod
+    <span class="kw">def</span> <span class="fn">create</span>(channel: str) -&gt; Notification:
+        factories = {
+            <span class="str">"email"</span>: EmailNotification,
+            <span class="str">"sms"</span>: SMSNotification,
+            <span class="str">"push"</span>: PushNotification,
+        }
+        <span class="kw">if</span> channel <span class="kw">not</span> <span class="kw">in</span> factories:
+            <span class="kw">raise</span> <span class="fn">ValueError</span>(f<span class="str">"Unknown channel: {channel}"</span>)
+        <span class="kw">return</span> factories[channel]()
+
+<span class="cmt"># Usage</span>
+notif = NotificationFactory.<span class="fn">create</span>(<span class="str">"email"</span>)
+notif.<span class="fn">send</span>(<span class="str">"Hello!"</span>)  <span class="cmt"># 📧 Email: Hello!</span></code></pre>
+<h3>16.3 Builder — Construct complex objects step by step</h3>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> QueryBuilder:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>._table = <span class="str">""</span>
+        <span class="kw">self</span>._conditions = []
+        <span class="kw">self</span>._order = <span class="str">""</span>
+        <span class="kw">self</span>._limit = <span class="kw">None</span>
+    
+    <span class="kw">def</span> <span class="fn">table</span>(<span class="kw">self</span>, name: str):
+        <span class="kw">self</span>._table = name
+        <span class="kw">return</span> <span class="kw">self</span>  <span class="cmt"># Enable chaining</span>
+    
+    <span class="kw">def</span> <span class="fn">where</span>(<span class="kw">self</span>, condition: str):
+        <span class="kw">self</span>._conditions.<span class="fn">append</span>(condition)
+        <span class="kw">return</span> <span class="kw">self</span>
+    
+    <span class="kw">def</span> <span class="fn">order_by</span>(<span class="kw">self</span>, field: str):
+        <span class="kw">self</span>._order = field
+        <span class="kw">return</span> <span class="kw">self</span>
+    
+    <span class="kw">def</span> <span class="fn">limit</span>(<span class="kw">self</span>, n: int):
+        <span class="kw">self</span>._limit = n
+        <span class="kw">return</span> <span class="kw">self</span>
+    
+    <span class="kw">def</span> <span class="fn">build</span>(<span class="kw">self</span>) -&gt; str:
+        query = f<span class="str">"SELECT * FROM {self._table}"</span>
+        <span class="kw">if</span> <span class="kw">self</span>._conditions:
+            query += <span class="str">" WHERE "</span> + <span class="str">" AND "</span>.<span class="fn">join</span>(<span class="kw">self</span>._conditions)
+        <span class="kw">if</span> <span class="kw">self</span>._order:
+            query += f<span class="str">" ORDER BY {self._order}"</span>
+        <span class="kw">if</span> <span class="kw">self</span>._limit:
+            query += f<span class="str">" LIMIT {self._limit}"</span>
+        <span class="kw">return</span> query
+
+<span class="cmt"># Usage</span>
+query = (
+    <span class="fn">QueryBuilder</span>()
+    .<span class="fn">table</span>(<span class="str">"users"</span>)
+    .<span class="fn">where</span>(<span class="str">"age &gt; 18"</span>)
+    .<span class="fn">where</span>(<span class="str">"active = true"</span>)
+    .<span class="fn">order_by</span>(<span class="str">"name"</span>)
+    .<span class="fn">limit</span>(<span class="num">10</span>)
+    .<span class="fn">build</span>()
+)
+<span class="fn">print</span>(query)
+<span class="cmt"># SELECT * FROM users WHERE age &gt; 18 AND active = true ORDER BY name LIMIT 10</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-17"><div class="q-h"><span class="q-n">&bull;</span><h3>17. Structural Patterns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-17"><span></span></label></div><div class="q-a"><h3>17.1 Adapter — Make incompatible interfaces compatible</h3>
+<pre class="code" data-lang="python"><code><span class="cmt"># Old XML payment system</span>
+<span class="kw">class</span> OldPaymentGateway:
+    <span class="kw">def</span> <span class="fn">make_payment_xml</span>(<span class="kw">self</span>, xml_data: str) -&gt; str:
+        <span class="kw">return</span> f<span class="str">"Payment processed via XML: {xml_data}"</span>
+
+<span class="cmt"># New JSON-based application</span>
+<span class="kw">class</span> PaymentAdapter:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>.old_gateway = <span class="fn">OldPaymentGateway</span>()
+    
+    <span class="kw">def</span> <span class="fn">pay</span>(<span class="kw">self</span>, amount: float, currency: str) -&gt; str:
+        <span class="cmt"># Convert JSON-style call to XML format</span>
+        xml_data = f<span class="str">"&lt;payment&gt;&lt;amount&gt;{amount}&lt;/amount&gt;&lt;currency&gt;{currency}&lt;/currency&gt;&lt;/payment&gt;"</span>
+        <span class="kw">return</span> <span class="kw">self</span>.old_gateway.<span class="fn">make_payment_xml</span>(xml_data)
+
+<span class="cmt"># Usage — new code uses clean interface</span>
+adapter = <span class="fn">PaymentAdapter</span>()
+result = adapter.<span class="fn">pay</span>(<span class="num">99.99</span>, <span class="str">"USD"</span>)</code></pre>
+<h3>17.2 Decorator — Add behavior dynamically</h3>
+<pre class="code" data-lang="python"><code><span class="cmt"># Python's built-in decorator pattern</span>
+<span class="kw">import</span> functools
+<span class="kw">import</span> time
+
+<span class="kw">def</span> <span class="fn">timer</span>(func):
+    @functools.<span class="fn">wraps</span>(func)
+    <span class="kw">def</span> <span class="fn">wrapper</span>(*args, **kwargs):
+        start = time.<span class="fn">time</span>()
+        result = <span class="fn">func</span>(*args, **kwargs)
+        elapsed = time.<span class="fn">time</span>() - start
+        <span class="fn">print</span>(f<span class="str">"{func.__name__} took {elapsed:.4f}s"</span>)
+        <span class="kw">return</span> result
+    <span class="kw">return</span> wrapper
+
+<span class="kw">def</span> <span class="fn">retry</span>(max_attempts=<span class="num">3</span>):
+    <span class="kw">def</span> <span class="fn">decorator</span>(func):
+        @functools.<span class="fn">wraps</span>(func)
+        <span class="kw">def</span> <span class="fn">wrapper</span>(*args, **kwargs):
+            <span class="kw">for</span> attempt <span class="kw">in</span> <span class="fn">range</span>(max_attempts):
+                <span class="kw">try</span>:
+                    <span class="kw">return</span> <span class="fn">func</span>(*args, **kwargs)
+                <span class="kw">except</span> Exception <span class="kw">as</span> e:
+                    <span class="kw">if</span> attempt == max_attempts - <span class="num">1</span>:
+                        <span class="kw">raise</span>
+                    <span class="fn">print</span>(f<span class="str">"Retry {attempt + 1}/{max_attempts}: {e}"</span>)
+        <span class="kw">return</span> wrapper
+    <span class="kw">return</span> decorator
+
+@timer
+@<span class="fn">retry</span>(max_attempts=<span class="num">3</span>)
+<span class="kw">def</span> <span class="fn">fetch_data</span>(url: str):
+    <span class="cmt"># Simulate API call</span>
+    <span class="kw">return</span> {<span class="str">"data"</span>: <span class="str">"result"</span>}</code></pre>
+<h3>17.3 Facade — Simplify complex subsystem</h3>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> CPU:
+    <span class="kw">def</span> <span class="fn">freeze</span>(<span class="kw">self</span>): <span class="fn">print</span>(<span class="str">"CPU freeze"</span>)
+    <span class="kw">def</span> <span class="fn">jump</span>(<span class="kw">self</span>, addr): <span class="fn">print</span>(f<span class="str">"CPU jump to {addr}"</span>)
+    <span class="kw">def</span> <span class="fn">execute</span>(<span class="kw">self</span>): <span class="fn">print</span>(<span class="str">"CPU executing"</span>)
+
+<span class="kw">class</span> Memory:
+    <span class="kw">def</span> <span class="fn">load</span>(<span class="kw">self</span>, addr, data): <span class="fn">print</span>(f<span class="str">"Memory load at {addr}"</span>)
+
+<span class="kw">class</span> HardDrive:
+    <span class="kw">def</span> <span class="fn">read</span>(<span class="kw">self</span>, sector, size): <span class="kw">return</span> f<span class="str">"data from sector {sector}"</span>
+
+<span class="kw">class</span> ComputerFacade:
+    <span class="str">"""Simple interface to complex boot process"""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>.cpu = <span class="fn">CPU</span>()
+        <span class="kw">self</span>.memory = <span class="fn">Memory</span>()
+        <span class="kw">self</span>.hard_drive = <span class="fn">HardDrive</span>()
+    
+    <span class="kw">def</span> <span class="fn">start</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>.cpu.<span class="fn">freeze</span>()
+        data = <span class="kw">self</span>.hard_drive.<span class="fn">read</span>(sector=<span class="num">0</span>, size=<span class="num">1024</span>)
+        <span class="kw">self</span>.memory.<span class="fn">load</span>(addr=<span class="num">0</span>, data=data)
+        <span class="kw">self</span>.cpu.<span class="fn">jump</span>(addr=<span class="num">0</span>)
+        <span class="kw">self</span>.cpu.<span class="fn">execute</span>()
+
+<span class="cmt"># Usage — one simple call</span>
+computer = <span class="fn">ComputerFacade</span>()
+computer.<span class="fn">start</span>()</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-18"><div class="q-h"><span class="q-n">&bull;</span><h3>18. Behavioral Patterns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-18"><span></span></label></div><div class="q-a"><h3>18.1 Strategy — Swap algorithms at runtime</h3>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">SortStrategy</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">sort</span>(<span class="kw">self</span>, data: list) -&gt; list: <span class="kw">pass</span>
+
+<span class="kw">class</span> <span class="fn">BubbleSort</span>(SortStrategy):
+    <span class="kw">def</span> <span class="fn">sort</span>(<span class="kw">self</span>, data):
+        <span class="fn">print</span>(<span class="str">"Bubble sort (small datasets)"</span>)
+        <span class="kw">return</span> <span class="fn">sorted</span>(data)
+
+<span class="kw">class</span> <span class="fn">QuickSort</span>(SortStrategy):
+    <span class="kw">def</span> <span class="fn">sort</span>(<span class="kw">self</span>, data):
+        <span class="fn">print</span>(<span class="str">"Quick sort (large datasets)"</span>)
+        <span class="kw">return</span> <span class="fn">sorted</span>(data)
+
+<span class="kw">class</span> Sorter:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, strategy: SortStrategy):
+        <span class="kw">self</span>._strategy = strategy
+    
+    <span class="kw">def</span> <span class="fn">set_strategy</span>(<span class="kw">self</span>, strategy: SortStrategy):
+        <span class="kw">self</span>._strategy = strategy
+    
+    <span class="kw">def</span> <span class="fn">sort</span>(<span class="kw">self</span>, data: list) -&gt; list:
+        <span class="kw">return</span> <span class="kw">self</span>._strategy.<span class="fn">sort</span>(data)
+
+<span class="cmt"># Usage</span>
+sorter = <span class="fn">Sorter</span>(<span class="fn">BubbleSort</span>())
+sorter.<span class="fn">sort</span>([<span class="num">3</span>, <span class="num">1</span>, <span class="num">2</span>])            <span class="cmt"># Bubble sort</span>
+
+sorter.<span class="fn">set_strategy</span>(<span class="fn">QuickSort</span>())
+sorter.<span class="fn">sort</span>([<span class="num">3</span>, <span class="num">1</span>, <span class="num">2</span>])            <span class="cmt"># Quick sort</span></code></pre>
+<h3>18.2 Observer — Publish-Subscribe</h3>
+<pre class="code" data-lang="python"><code><span class="kw">class</span> EventManager:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>._subscribers: dict[str, list] = {}
+    
+    <span class="kw">def</span> <span class="fn">subscribe</span>(<span class="kw">self</span>, event: str, callback):
+        <span class="kw">self</span>._subscribers.<span class="fn">setdefault</span>(event, []).<span class="fn">append</span>(callback)
+    
+    <span class="kw">def</span> <span class="fn">unsubscribe</span>(<span class="kw">self</span>, event: str, callback):
+        <span class="kw">self</span>._subscribers.<span class="fn">get</span>(event, []).<span class="fn">remove</span>(callback)
+    
+    <span class="kw">def</span> <span class="fn">notify</span>(<span class="kw">self</span>, event: str, data=<span class="kw">None</span>):
+        <span class="kw">for</span> callback <span class="kw">in</span> <span class="kw">self</span>._subscribers.<span class="fn">get</span>(event, []):
+            <span class="fn">callback</span>(data)
+
+<span class="cmt"># Usage</span>
+events = <span class="fn">EventManager</span>()
+
+<span class="kw">def</span> <span class="fn">send_welcome_email</span>(user):
+    <span class="fn">print</span>(f<span class="str">"📧 Welcome email to {user}"</span>)
+
+<span class="kw">def</span> <span class="fn">log_registration</span>(user):
+    <span class="fn">print</span>(f<span class="str">"📝 Logged: {user} registered"</span>)
+
+<span class="kw">def</span> <span class="fn">award_bonus</span>(user):
+    <span class="fn">print</span>(f<span class="str">"🎁 Bonus awarded to {user}"</span>)
+
+events.<span class="fn">subscribe</span>(<span class="str">"user_registered"</span>, send_welcome_email)
+events.<span class="fn">subscribe</span>(<span class="str">"user_registered"</span>, log_registration)
+events.<span class="fn">subscribe</span>(<span class="str">"user_registered"</span>, award_bonus)
+
+events.<span class="fn">notify</span>(<span class="str">"user_registered"</span>, <span class="str">"Alice"</span>)
+<span class="cmt"># 📧 Welcome email to Alice</span>
+<span class="cmt"># 📝 Logged: Alice registered</span>
+<span class="cmt"># 🎁 Bonus awarded to Alice</span></code></pre>
+<h3>18.3 Chain of Responsibility</h3>
+<pre class="code" data-lang="python"><code><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">Handler</span>(ABC):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>._next: Handler = <span class="kw">None</span>
+    
+    <span class="kw">def</span> <span class="fn">set_next</span>(<span class="kw">self</span>, handler: <span class="str">"Handler"</span>) -&gt; <span class="str">"Handler"</span>:
+        <span class="kw">self</span>._next = handler
+        <span class="kw">return</span> handler
+    
+    <span class="kw">def</span> <span class="fn">handle</span>(<span class="kw">self</span>, request: dict):
+        <span class="kw">if</span> <span class="kw">self</span>._next:
+            <span class="kw">return</span> <span class="kw">self</span>._next.<span class="fn">handle</span>(request)
+        <span class="kw">return</span> <span class="kw">None</span>
+
+<span class="kw">class</span> <span class="fn">AuthHandler</span>(Handler):
+    <span class="kw">def</span> <span class="fn">handle</span>(<span class="kw">self</span>, request):
+        <span class="kw">if</span> <span class="kw">not</span> request.<span class="fn">get</span>(<span class="str">"token"</span>):
+            <span class="kw">return</span> <span class="str">"❌ Authentication failed"</span>
+        <span class="fn">print</span>(<span class="str">"✅ Authenticated"</span>)
+        <span class="kw">return</span> <span class="fn">super</span>().<span class="fn">handle</span>(request)
+
+<span class="kw">class</span> <span class="fn">RateLimitHandler</span>(Handler):
+    <span class="kw">def</span> <span class="fn">handle</span>(<span class="kw">self</span>, request):
+        <span class="kw">if</span> request.<span class="fn">get</span>(<span class="str">"requests_count"</span>, <span class="num">0</span>) &gt; <span class="num">100</span>:
+            <span class="kw">return</span> <span class="str">"❌ Rate limit exceeded"</span>
+        <span class="fn">print</span>(<span class="str">"✅ Rate limit OK"</span>)
+        <span class="kw">return</span> <span class="fn">super</span>().<span class="fn">handle</span>(request)
+
+<span class="kw">class</span> <span class="fn">ValidationHandler</span>(Handler):
+    <span class="kw">def</span> <span class="fn">handle</span>(<span class="kw">self</span>, request):
+        <span class="kw">if</span> <span class="kw">not</span> request.<span class="fn">get</span>(<span class="str">"data"</span>):
+            <span class="kw">return</span> <span class="str">"❌ Validation failed"</span>
+        <span class="fn">print</span>(<span class="str">"✅ Validated"</span>)
+        <span class="kw">return</span> <span class="fn">super</span>().<span class="fn">handle</span>(request)
+
+<span class="cmt"># Build chain</span>
+auth = <span class="fn">AuthHandler</span>()
+rate_limit = <span class="fn">RateLimitHandler</span>()
+validation = <span class="fn">ValidationHandler</span>()
+auth.<span class="fn">set_next</span>(rate_limit).<span class="fn">set_next</span>(validation)
+
+<span class="cmt"># Process request</span>
+result = auth.<span class="fn">handle</span>({<span class="str">"token"</span>: <span class="str">"abc123"</span>, <span class="str">"requests_count"</span>: <span class="num">5</span>, <span class="str">"data"</span>: <span class="str">"hello"</span>})
+<span class="cmt"># ✅ Authenticated</span>
+<span class="cmt"># ✅ Rate limit OK</span>
+<span class="cmt"># ✅ Validated</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-19"><div class="q-h"><span class="q-n">&bull;</span><h3>19. Architecture Principles</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-19"><span></span></label></div><div class="q-a"><h3>19.1 Layered Architecture</h3>
+<div class="diagram"><pre>┌─────────────────────────┐
+│   Presentation Layer    │  ← Controllers, Views, API endpoints
+├─────────────────────────┤
+│   Application Layer     │  ← Use cases, orchestration
+├─────────────────────────┤
+│   Domain Layer          │  ← Business logic, entities
+├─────────────────────────┤
+│   Infrastructure Layer  │  ← DB, external APIs, file system
+└─────────────────────────┘
+
+Rule: Each layer only depends on the layer BELOW it.</pre></div>
+<h3>19.2 Clean Architecture</h3>
+<div class="diagram"><pre>                    ┌─────────────────────┐
+                    │   Frameworks &amp;      │  ← Web, DB, UI
+                    │   Drivers           │
+                    │  ┌───────────────┐  │
+                    │  │  Interface    │  │  ← Controllers, Gateways
+                    │  │  Adapters     │  │
+                    │  │  ┌─────────┐  │  │
+                    │  │  │ Use     │  │  │  ← Application logic
+                    │  │  │ Cases   │  │  │
+                    │  │  │ ┌─────┐ │  │  │
+                    │  │  │ │ E   │ │  │  │  ← Entities (core domain)
+                    │  │  │ └─────┘ │  │  │
+                    │  │  └─────────┘  │  │
+                    │  └───────────────┘  │
+                    └─────────────────────┘
+
+Dependencies point INWARD. Inner layers know nothing about outer layers.</pre></div>
+<h3>19.3 Microservices Principles</h3>
+<ol class="steplist"><li>Single Responsibility       — Each service does one thing</li><li>Independence               — Deploy, scale, fail independently</li><li>Decentralized Data         — Each service owns its database</li><li>Smart Endpoints, Dumb Pipes — HTTP/<abbr title="Google Remote Procedure Call">gRPC</abbr>, not ESB</li><li>Design for Failure         — Circuit breakers, retries, fallbacks</li><li>Infrastructure Automation  — CI/CD, containers, orchestration</li></ol></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-20"><div class="q-h"><span class="q-n">&bull;</span><h3>20. API Design Principles</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-20"><span></span></label></div><div class="q-a"><h3>RESTful API Design</h3>
+<pre class="code"><code>✅ Good:                          ❌ Bad:
+GET    /users                     GET    /getUsers
+GET    /users/123                 GET    /getUser?id=123
+POST   /users                    POST   /createUser
+PUT    /users/123                POST   /updateUser
+DELETE /users/123                POST   /deleteUser
+GET    /users/123/orders         GET    /getUserOrders?userId=123</code></pre>
+<h3>API Naming Conventions</h3>
+<div class="tbl-wrap"><table class="t2"><thead><tr><th>Rule</th><th>Example</th></tr></thead><tbody><tr class="g1"><td>Use nouns, not verbs</td><td><code>/users</code> not <code>/getUsers</code></td></tr><tr class="g0"><td>Plural for collections</td><td><code>/users</code> not <code>/user</code></td></tr><tr class="g1"><td>Nested resources</td><td><code>/users/123/posts</code></td></tr><tr class="g0"><td>Use query params for filtering</td><td><code>/users?role=admin&amp;active=true</code></td></tr><tr class="g1"><td>Use kebab-case for URLs</td><td><code>/user-profiles</code></td></tr><tr class="g0"><td>Use camelCase for JSON</td><td><code>{"firstName": "John"}</code></td></tr><tr class="g1"><td>Version your API</td><td><code>/api/v1/users</code></td></tr></tbody></table></div>
+<h3>HTTP Status Codes</h3>
+<pre class="code"><code>2xx Success:     200 OK, 201 Created, 204 No Content
+3xx Redirect:    301 Moved, 304 Not Modified
+4xx Client Error: 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 429 Too Many Requests
+5xx Server Error: 500 Internal Error, 502 Bad Gateway, 503 Service Unavailable</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02DesignPrinci-21"><div class="q-h"><span class="q-n">&bull;</span><h3>21. Interview Questions &amp; Answers</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DesignPrinci-21"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Factory</span><span class="kt">Abstract Factory</span><span class="kt">multiple related families</span><span class="kt">Q7: Singleton — pros and cons?</span><span class="kt">module-level instances</span><span class="kt">Q8: Decorator vs Proxy pattern?</span></div><h3><abbr title="single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion">SOLID</abbr></h3>
+<p><strong>Q1: Explain SOLID principles in one sentence each.</strong></p>
+<ul>
+<li><strong>S</strong>RP: One class = one responsibility = one reason to change.</li>
+<li><strong>O</strong>CP: Open for extension (new classes), closed for modification (existing code).</li>
+<li><strong>L</strong>SP: Subclasses must be drop-in replacements for their parent class.</li>
+<li><strong>I</strong>SP: Many small interfaces are better than one large interface.</li>
+<li><strong>D</strong>IP: Depend on abstractions (interfaces), not concrete implementations.</li>
+</ul>
+<hr />
+<p><strong>Q2: Give a real-world violation of SRP.</strong></p>
+<p>A <code>UserController</code> class that handles HTTP request parsing, business logic validation, database queries, email sending, and logging. It has 5 reasons to change. Should be split into Controller, Validator, Service, Repository, EmailService, and Logger.</p>
+<hr />
+<p><strong>Q3: How does OCP relate to the Strategy pattern?</strong></p>
+<p>Instead of <code>if/elif</code> chains for different behaviors, you define a strategy interface and create concrete strategies. To add new behavior, you create a new class (extension) without modifying existing ones (closed for modification).</p>
+<hr />
+<p><strong>Q4: Why is Liskov Substitution important for polymorphism?</strong></p>
+<p>If subclasses can't fully replace their parent, polymorphism breaks. Code expecting a base type may crash or behave incorrectly with a subtype, defeating the purpose of inheritance.</p>
+<hr />
+<h3>Design Patterns</h3>
+<p><strong>Q5: What's the difference between Factory and Abstract Factory?</strong></p>
+<ul>
+<li class="dl"><b class="dt">Factory</b><span class="dd">Creates objects of a single family (e.g., <code>NotificationFactory</code> → Email, SMS, Push).</span></li>
+<li class="dl"><b class="dt">Abstract Factory</b><span class="dd">Creates objects of <strong>multiple related families</strong> (e.g., <code>UIFactory</code> → creates Button + Checkbox + Menu for Windows or Mac).</span></li>
+</ul>
+<hr />
+<p><strong>Q6: When would you use the Builder pattern?</strong></p>
+<p>When constructing objects with many optional parameters (avoid telescoping constructors), when construction has multiple steps, or when the same construction process should create different representations (e.g., SQL query builder, HTML builder, meal builder).</p>
+<hr />
+<p><strong>Q7: Singleton — pros and cons?</strong></p>
+<div class="tbl-wrap"><table class="t2"><thead><tr><th>Pros</th><th>Cons</th></tr></thead><tbody><tr class="g1"><td>Single instance guaranteed</td><td>Hard to test (global state)</td></tr><tr class="g0"><td>Lazy initialization</td><td>Hides dependencies</td></tr><tr class="g1"><td>Global access point</td><td>Violates SRP (controls its own lifecycle + business logic)</td></tr><tr class="g0"><td></td><td>Thread-safety concerns</td></tr></tbody></table></div>
+<p>In Python, prefer <strong>module-level instances</strong> over Singleton classes.</p>
+<hr />
+<p><strong>Q8: Decorator vs Proxy pattern?</strong></p>
+<ul>
+<li class="dl"><b class="dt">Decorator</b><span class="dd">Adds <strong>new behavior</strong> to an object dynamically (logging, caching, timing).</span></li>
+<li class="dl"><b class="dt">Proxy</b><span class="dd">Controls <strong>access</strong> to an object (lazy loading, permission checks, remote proxy).</span></li>
+</ul>
+<p>Both wrap an object, but the intent differs.</p>
+<hr />
+<p><strong>Q9: Observer vs Pub-Sub?</strong></p>
+<ul>
+<li class="dl"><b class="dt">Observer</b><span class="dd">Subjects directly notify observers. Tight coupling — observer knows the subject.</span></li>
+<li class="dl"><b class="dt">Pub-Sub</b><span class="dd">Publishers and subscribers communicate via a <strong>message broker/event bus</strong>. No direct knowledge of each other. More scalable.</span></li>
+</ul>
+<hr />
+<p><strong>Q10: Explain the Chain of Responsibility with a real example.</strong></p>
+<p>HTTP middleware pipeline:</p>
+<div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px"><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">Request</span><span class="ar">&rarr;</span><span class="st">Auth</span><span class="ar">&rarr;</span><span class="st">RateLimit</span><span class="ar">&rarr;</span><span class="st">Validation</span><span class="ar">&rarr;</span><span class="st">CORS</span><span class="ar">&rarr;</span><span class="st">Handler</span></div></div>
+<p>Each middleware decides to process and pass along, or short-circuit with an error. New middleware can be added without changing existing ones.</p>
+<hr />
+<h3>Architecture</h3>
+<p><strong>Q11: What is the difference between Coupling and Cohesion?</strong></p>
+<ul>
+<li class="dl"><b class="dt">Coupling</b><span class="dd">How much modules depend on <strong>each other</strong> (low = better).</span></li>
+<li class="dl"><b class="dt">Cohesion</b><span class="dd">How related elements within a module are to <strong>each other</strong> (high = better).</span></li>
+</ul>
+<p>Goal: <strong>Low coupling, high cohesion</strong> — independent modules with focused responsibilities.</p>
+<hr />
+<p><strong>Q12: Explain Dependency Injection with a testing example.</strong></p>
+<pre class="code" data-lang="python"><code><span class="cmt"># Production: inject real DB</span>
+service = <span class="fn">UserService</span>(db=<span class="fn">PostgresDB</span>())
+
+<span class="cmt"># Testing: inject mock DB</span>
+service = <span class="fn">UserService</span>(db=<span class="fn">MockDB</span>())  <span class="cmt"># No real DB needed for tests!</span></code></pre>
+<p>DI makes code testable by allowing you to replace dependencies with mocks/stubs.</p>
+<hr />
+<p><strong>Q13: When would you use composition over inheritance?</strong></p>
+<ul>
+<li>When the relationship is "has-a" rather than "is-a"</li>
+<li>When behaviors can be mixed and matched (e.g., logging + caching + retry)</li>
+<li>When inheritance hierarchies become too deep (&gt; 3 levels)</li>
+<li>When multiple inheritance causes the "diamond problem"</li>
+<li class="dl"><b class="dt">Rule of thumb</b><span class="dd">Always start with composition. Use inheritance only for true "is-a" + shared behavior.</span></li>
+</ul>
+<hr />
+<p><strong>Q14: What is the Facade pattern and where is it used in real life?</strong></p>
+<p>A Facade provides a simplified interface to a complex subsystem. Examples:
+- <code>requests.get(url)</code> — hides socket, HTTP parsing, SSL, redirects
+- <code>ORM.save(obj)</code> — hides SQL generation, connection pooling, transactions
+- Starting a car — one key turn hides ignition, fuel injection, starter motor</p>
+<hr />
+<p><strong>Q15: Explain DRY vs WET vs AHA.</strong></p>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Principle</th><th>Meaning</th><th>Rule</th></tr></thead><tbody><tr class="g1"><td><strong>DRY</strong></td><td>Don't Repeat Yourself</td><td>Single source of truth</td></tr><tr class="g0"><td><strong>WET</strong></td><td>Write Everything Twice</td><td>Allow duplication until you see a pattern</td></tr><tr class="g1"><td><strong>AHA</strong></td><td>Avoid Hasty Abstractions</td><td>Wait until you have 3+ duplicates before abstracting</td></tr></tbody></table></div>
+<p>Modern recommendation: Start WET, refactor to DRY when patterns emerge (AHA approach).</p>
+<hr />
+<p><strong>Q16: What is the difference between Abstraction and Encapsulation?</strong></p>
+<ul>
+<li class="dl"><b class="dt">Abstraction</b><span class="dd">Hiding <strong>complexity</strong> — showing "what" not "how" (e.g., <code>car.drive()</code> hides engine mechanics).</span></li>
+<li class="dl"><b class="dt">Encapsulation</b><span class="dd">Hiding <strong>data</strong> — restricting direct access to internal state (e.g., <code>__balance</code> in a <code>BankAccount</code>).</span></li>
+</ul>
+<p>Abstraction is about the interface; Encapsulation is about the implementation.</p>
+<hr />
+<p><strong>Q17: How do you decide between Monolith and Microservices?</strong></p>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Factor</th><th>Monolith</th><th>Microservices</th></tr></thead><tbody><tr class="g1"><td>Team size</td><td>Small (&lt; 10)</td><td>Large (multiple teams)</td></tr><tr class="g0"><td>Domain complexity</td><td>Simple-moderate</td><td>Complex, many bounded contexts</td></tr><tr class="g1"><td>Deployment needs</td><td>Infrequent</td><td>Independent, frequent</td></tr><tr class="g0"><td>Scaling needs</td><td>Uniform</td><td>Different services scale differently</td></tr><tr class="g1"><td>Startup stage</td><td>Start here!</td><td>Evolve into this</td></tr></tbody></table></div>
+<p><strong>Start monolith, extract microservices when needed</strong> — avoid premature distribution.</p>
+<hr />
+<p><strong>Q18: What is <abbr title="command query responsibility segregation">CQRS</abbr>?</strong></p>
+<p><strong>Command Query Responsibility Segregation</strong> — separate the read model (queries) from the write model (commands):</p>
+<div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px"><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="fl">Writes</span><span class="st">CreateOrder</span><span class="ar">&rarr;</span><span class="st">Command</span><span class="ar">&rarr;</span><span class="st">Write DB</span><span class="fl" style="margin:0 0 0 10px">normalized</span></div><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="fl">Reads</span><span class="st">GetOrders</span><span class="ar">&rarr;</span><span class="st">Query</span><span class="ar">&rarr;</span><span class="st">Read DB</span><span class="fl" style="margin:0 0 0 10px">denormalized, optimized</span></div></div>
+<p>Benefits: Optimize reads and writes independently, better scalability.</p>
+<hr />
+<p><strong>Q19: What makes a good API design?</strong></p>
+<ol>
+<li><strong>Consistent</strong> naming and conventions</li>
+<li class="dl"><b class="dt">Predictable</b><span class="dd">follows standards (REST, HTTP methods)</span></li>
+<li class="dl"><b class="dt">Versioned</b><span class="dd"><code>/api/v1/...</code></span></li>
+<li class="dl"><b class="dt">Paginated</b><span class="dd">never return unbounded lists</span></li>
+<li class="dl"><b class="dt">Documented</b><span class="dd">OpenAPI/Swagger</span></li>
+<li class="dl"><b class="dt">Secure</b><span class="dd">authentication, authorization, rate limiting</span></li>
+<li class="dl"><b class="dt">Error-friendly</b><span class="dd">clear error messages with codes</span></li>
+</ol>
+<hr />
+<p><strong>Q20: Explain the principle "Program to an interface, not an implementation."</strong></p>
+<p>Write code that depends on abstract types (interfaces/protocols), not concrete classes. This allows:
+- Swapping implementations without changing dependent code
+- Testing with mocks
+- Following OCP and DIP</p>
+<pre class="code" data-lang="python"><code><span class="cmt"># Bad:  def notify(emailer: GmailEmailer)</span>
+<span class="cmt"># Good: def notify(emailer: EmailService)   # Any emailer works</span></code></pre>
+<hr />
+<div class="note">
+<p><strong>End of Design Principles Guide</strong> — From SOLID to Architecture, with real-world examples.</p>
+</div></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f03SystemDesign"><header class="filehead"><div class="fh-top"><span class="fh-num">03 &middot; System design</span><span class="fh-count">18 sections</span><a class="fh-src" href="../../11_System_Design/03_System_Design.md">source .md &#8599;</a></div><h2>System Design — Complete Engineering Reference</h2><div class="note">
+<p><strong>Scope:</strong> System design fundamentals, scalability (horizontal/vertical), load balancing, caching (Redis, <abbr title="content delivery network">CDN</abbr>, strategies), database design (SQL vs NoSQL, indexing, <abbr title="splitting one dataset across machines by a partition key">sharding</abbr>, replication), <abbr title="consistency, availability, partition tolerance">CAP</abbr>/ACID/BASE, consistent hashing, message queues (Kafka, RabbitMQ, SQS), API design (REST, GraphQL, <abbr title="Google Remote Procedure Call">gRPC</abbr>), microservices, rate limiting, proxies &amp; CDN, storage (object, block, file), distributed consensus (Raft), event sourcing &amp; <abbr title="command query responsibility segregation">CQRS</abbr>, distributed transactions (Saga), <abbr title="stopping calls to a dependency that is already failing, to prevent cascading failure">circuit breaker</abbr>, service discovery, observability, common system design problems, interview framework, interview Q&amp;A.</p>
+</div></header><article class="q" id="f03SystemDesign-22"><div class="q-h"><span class="q-n">&bull;</span><h3>Key Definitions (read first)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-22"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Vertical vs horizontal scaling</span><span class="kt">Load balancer</span><span class="kt">Stateless service</span><span class="kt">Caching / CDN</span><span class="kt">Latency vs throughput</span><span class="kt">SQL vs NoSQL</span></div><div class="note">
+<div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Term</th><th>Plain-language definition</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>Vertical vs <abbr title="adding more machines behind a load balancer">horizontal scaling</abbr></strong></td><td>Bigger machine (scale up) vs more machines (scale out).</td></tr><tr class="g0"><td class="c-term"><strong>Load balancer</strong></td><td>Spreads requests across identical backends; removes unhealthy ones.</td></tr><tr class="g1"><td class="c-term"><strong>Stateless service</strong></td><td>Holds no per-user state locally → any node can serve any request (prerequisite for scaling out).</td></tr><tr class="g0"><td class="c-term"><strong>Caching / <abbr title="content delivery network">CDN</abbr></strong></td><td>Keep hot data close (memory/edge) to cut latency and DB load.</td></tr><tr class="g1"><td class="c-term"><strong>Latency vs throughput</strong></td><td>Time per request vs requests handled per second.</td></tr><tr class="g0"><td class="c-term"><strong>SQL vs NoSQL</strong></td><td>Relational + ACID joins vs flexible schema + horizontal scale.</td></tr><tr class="g1"><td class="c-term"><strong><abbr title="splitting one dataset across machines by a partition key">Sharding</abbr></strong></td><td>Split data across DBs by a <strong>shard key</strong>; scales writes.</td></tr><tr class="g0"><td class="c-term"><strong>Replication</strong></td><td>Copy data to replicas for read scaling + failover.</td></tr><tr class="g1"><td class="c-term"><strong><abbr title="consistency, availability, partition tolerance">CAP</abbr> theorem</strong></td><td>Under a network partition you must choose Consistency <em>or</em> Availability.</td></tr><tr class="g0"><td class="c-term"><strong>ACID vs BASE</strong></td><td>Strict transactional guarantees vs eventually-consistent, available-first.</td></tr><tr class="g1"><td class="c-term"><strong>Consistent hashing</strong></td><td>Map keys→nodes so adding/removing a node moves minimal data.</td></tr><tr class="g0"><td class="c-term"><strong>Message queue</strong></td><td>Async buffer decoupling producers from consumers (Kafka, SQS, RabbitMQ).</td></tr><tr class="g1"><td class="c-term"><strong>Idempotency</strong></td><td>Same request applied twice = same result (safe retries).</td></tr><tr class="g0"><td class="c-term"><strong>Rate limiting</strong></td><td>Cap requests per client (token bucket / sliding window) to protect the system.</td></tr><tr class="g1"><td class="c-term"><strong>Microservices</strong></td><td>Independently deployable services split by business capability.</td></tr></tbody></table></div>
+</div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-23"><div class="q-h"><span class="q-n">&bull;</span><h3>1. System Design Fundamentals</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-23"><span></span></label></div><div class="q-a"><p>System design is the process of architecting large-scale distributed systems that balance reliability, scalability, and maintainability. Understanding these fundamentals—including back-of-the-envelope estimations—is essential for making informed infrastructure decisions during interviews and real-world engineering.</p>
+<pre class="code"><code>SYSTEM DESIGN = Designing large-scale distributed systems that are:
+  Reliable:   Works correctly despite failures
+  Scalable:   Handles growing load efficiently
+  Maintainable: Easy to operate and evolve
+
+BACK-OF-THE-ENVELOPE NUMBERS:
+  L1 cache ref:              0.5 ns
+  Main memory ref:           100 ns
+  SSD random read:           150 μs
+  HDD seek:                  10 ms
+  Network round-trip (same DC): 0.5 ms
+  Network round-trip (cross-DC): 50-150 ms
+
+  1 server can handle:       ~10K-100K concurrent connections
+  1 web server (API):        ~1K-10K QPS
+  1 DB server (SQL):         ~1K-10K QPS
+  1 Redis server:            ~100K QPS
+  1 Kafka broker:            ~100K-1M messages/sec</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-24"><div class="q-h"><span class="q-n">&bull;</span><h3>2. Scalability</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-24"><span></span></label></div><div class="q-a"><p>Scalability is a system's ability to handle increasing workload by adding resources, either vertically (bigger machines) or horizontally (more machines). Choosing the right scaling strategy is critical because it directly impacts cost, fault tolerance, and operational complexity.</p>
+<div class="diagram"><pre>VERTICAL SCALING (Scale Up):
+  Bigger machine: more CPU, RAM, SSD
+  Pros: Simple, no code changes
+  Cons: Hardware limits, single point of failure
+  
+HORIZONTAL SCALING (Scale Out):
+  More machines behind a load balancer
+  Pros: Virtually unlimited, fault-tolerant
+  Cons: Distributed systems complexity, data consistency
+  
+  SCALING DIMENSIONS:
+  ┌─────────────────────────────────────────────┐
+  │  Stateless services: Scale horizontally     │
+  │  (API servers, web servers)                 │
+  ├─────────────────────────────────────────────┤
+  │  Databases: Replicas (read) + Sharding      │
+  ├─────────────────────────────────────────────┤
+  │  Caching: Redis cluster, CDN                │
+  ├─────────────────────────────────────────────┤
+  │  Async work: Message queues + workers       │
+  └─────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-25"><div class="q-h"><span class="q-n">&bull;</span><h3>3. Load Balancing</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-25"><span></span></label></div><div class="q-a"><p>A load balancer distributes incoming network traffic across multiple servers to ensure no single server becomes a bottleneck. It improves availability and fault tolerance by routing requests only to healthy backend instances.</p>
+<div class="diagram"><pre>ALGORITHMS:
+  Round Robin:       Equal distribution (default)
+  Weighted RR:       Based on server capacity
+  Least Connections: Route to server with fewest active connections
+  IP Hash:           Sticky sessions (same client → same server)
+  
+LAYERS:
+  L4 (Transport):  TCP/UDP level, fast, no content inspection
+  L7 (Application): HTTP level, can route by path/header, SSL termination
+  
+TOOLS:
+  Nginx, HAProxy, AWS ALB/NLB, Envoy
+  
+HEALTH CHECKS:
+  Active: LB pings /health endpoint periodically
+  Passive: LB detects failures from actual traffic
+  
+  Unhealthy server → removed from pool → health check recovers → added back</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-26"><div class="q-h"><span class="q-n">&bull;</span><h3>4. Caching</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-26"><span></span></label></div><div class="q-a"><p>Caching stores frequently accessed data in a fast-access layer (such as memory) to reduce latency and backend load. Selecting the right caching strategy and eviction policy is crucial for maintaining data consistency while maximizing performance gains.</p>
+<div class="diagram"><pre>CACHE STRATEGIES:
+  Cache-Aside (Lazy):     App checks cache → miss → read DB → write cache
+  Write-Through:          App writes cache + DB simultaneously
+  Write-Behind:           App writes cache → async write to DB (risky)
+  Read-Through:           Cache transparently fetches from DB on miss
+
+CACHE EVICTION:
+  LRU (Least Recently Used): Most common
+  LFU (Least Frequently Used): For stable hotspots  
+  TTL (Time-To-Live): Expire after duration
+
+CACHING LAYERS:
+  Browser cache → CDN → API gateway cache → App cache (Redis) → DB cache
+
+REDIS PATTERNS:
+  Strings:      Simple key-value, counters
+  Hashes:       User profiles, session data
+  Lists:        Recent activity feed, message queues
+  Sets:         Tags, unique visitors
+  Sorted Sets:  Leaderboards, rate limiting
+  
+CACHE PROBLEMS:
+  Thundering herd: Many requests hit DB when cache expires
+    → Solution: Lock + single-flight (one request populates cache)
+  Cache penetration: Query for non-existent data always misses
+    → Solution: Cache null values, Bloom filter
+  Cache avalanche: Many keys expire simultaneously
+    → Solution: Random TTL jitter</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-27"><div class="q-h"><span class="q-n">&bull;</span><h3>5. Database Design</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-27"><span></span></label></div><div class="q-a"><p>Database design involves choosing the appropriate data model (SQL vs NoSQL) and indexing strategy based on the application's query patterns, consistency requirements, and scalability needs. Sound database design decisions are foundational to building performant and reliable systems.</p>
+<pre class="code"><code>SQL vs NoSQL:
+  SQL (PostgreSQL, MySQL):
+    Structured data, ACID, joins, complex queries
+    Best for: Transactions, relational data, consistency-critical
+
+  NoSQL:
+    Document (MongoDB):   Flexible schema, nested data
+    Key-Value (Redis, DynamoDB): Simple lookups, sessions, caching
+    Wide-Column (Cassandra): Time-series, IoT, write-heavy
+    Graph (Neo4j):        Relationships, social networks
+
+INDEXING:
+  B-Tree:      Default, good for range queries, O(log n)
+  Hash:        Equality lookups only, O(1)
+  GIN:         Full-text search, array containment
+  Composite:   Multi-column (order matters: leftmost prefix)
+  
+  RULE: Index columns in WHERE, JOIN, ORDER BY clauses
+  COST: Faster reads, slower writes, more storage</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-28"><div class="q-h"><span class="q-n">&bull;</span><h3>6. Database Scaling</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-28"><span></span></label></div><div class="q-a"><p>Database scaling extends a single database's capacity through read replicas, <abbr title="splitting one dataset across machines by a partition key">sharding</abbr>, or vertical partitioning to handle growing data volumes and query loads. Each strategy introduces trade-offs between consistency, query complexity, and operational overhead.</p>
+<div class="diagram"><pre>READ REPLICAS:
+  Primary (writes) → Replica 1 (reads)
+                   → Replica 2 (reads)
+  Replication lag: Eventual consistency (0.1-1s)
+
+SHARDING (Horizontal Partitioning):
+  Split data across multiple DB instances by a shard key
+  
+  Range-based:  user_id 1-1M → Shard 1, 1M-2M → Shard 2
+    Pros: Range queries easy  Cons: Hotspots
+  Hash-based:   hash(user_id) % N → Shard N
+    Pros: Even distribution  Cons: Range queries across shards
+  
+  CHALLENGES:
+  - Cross-shard joins (avoid — denormalize instead)
+  - Rebalancing when adding/removing shards
+  - Auto-increment IDs (use UUIDs or Snowflake IDs)
+
+VERTICAL PARTITIONING:
+  Split columns: users table → users_core + users_profile
+  Useful when some columns queried much more than others</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-29"><div class="q-h"><span class="q-n">&bull;</span><h3>7. CAP, ACID, BASE</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-29"><span></span></label></div><div class="q-a"><p>The <abbr title="consistency, availability, partition tolerance">CAP</abbr> theorem, ACID properties, and BASE semantics define the fundamental consistency and availability trade-offs in distributed data systems. Understanding these theoretical foundations is essential for choosing the right database architecture for a given use case.</p>
+<div class="diagram"><pre>CAP THEOREM:
+  In a distributed system, you can only guarantee 2 of 3:
+  Consistency:    Every read returns the most recent write
+  Availability:   Every request gets a response
+  Partition Tolerance: System works despite network failures
+  
+  In real systems, P is unavoidable → choose CP or AP
+  CP: PostgreSQL, MongoDB (strong consistency, may reject requests)
+  AP: Cassandra, DynamoDB (always available, eventual consistency)
+
+ACID (traditional SQL):
+  Atomicity:   All or nothing
+  Consistency:  Valid state to valid state
+  Isolation:    Transactions don't interfere
+  Durability:   Committed data survives crashes
+
+BASE (NoSQL trade-off):
+  Basically Available: System always responds
+  Soft state: State may change without input (eventual propagation)
+  Eventual consistency: Will become consistent eventually</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-30"><div class="q-h"><span class="q-n">&bull;</span><h3>8. Consistent Hashing</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-30"><span></span></label></div><div class="q-a"><p>Consistent hashing is a technique that distributes data across a dynamic set of servers while minimizing key redistribution when nodes are added or removed. It is widely used in distributed caches, databases, and CDNs to achieve even load distribution.</p>
+<div class="diagram"><pre>PROBLEM: hash(key) % N → Adding/removing a server reshuffles ALL keys
+
+CONSISTENT HASHING:
+  Place servers on a hash ring (0 to 2³²)
+  hash("server1") → position on ring
+  hash(key) → find next server clockwise
+  
+  Adding server: Only keys between new server and its predecessor move
+  Removing server: Only that server's keys move to the next server
+  
+  VIRTUAL NODES: Each physical server gets multiple positions on ring
+    → More even distribution, smoother rebalancing
+  
+  USED BY: DynamoDB, Cassandra, Redis Cluster, CDN routing</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-31"><div class="q-h"><span class="q-n">&bull;</span><h3>9. Message Queues</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-31"><span></span></label></div><div class="q-a"><p>Message queues decouple producers from consumers by buffering messages asynchronously, enabling resilient and scalable inter-service communication. They are essential for handling burst traffic, event-driven architectures, and maintaining system reliability under load.</p>
+<div class="diagram"><pre>PATTERNS:
+  Point-to-Point: 1 producer → Queue → 1 consumer (task queue)
+  Pub/Sub: 1 producer → Topic → Multiple consumers (event streaming)
+
+COMPARISON:
+  Queue         │ Type    │ Ordering │ Persistence │ Throughput
+  ──────────────┼─────────┼──────────┼─────────────┼──────────
+  Kafka         │ Log     │ Per-part │ Disk (days)  │ Very High
+  RabbitMQ      │ Queue   │ FIFO     │ Optional    │ Medium
+  Redis Streams │ Log     │ Per-key  │ Memory+disk │ High
+  SQS           │ Queue   │ Best-eff │ 14 days     │ High
+  
+  Kafka: Event streaming, high throughput, replay capability
+  RabbitMQ: Task queues, routing, lower latency
+  SQS: Serverless, managed, simple queue
+
+USE CASES:
+  Decoupling:     Service A → Queue → Service B (async)
+  Load leveling:  Burst traffic → Queue → Steady processing
+  Event sourcing: All events in Kafka → replay to rebuild state</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-32"><div class="q-h"><span class="q-n">&bull;</span><h3>10. API Design</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-32"><span></span></label></div><div class="q-a"><p>API design defines the contract between clients and servers, determining how data is requested, structured, and transmitted. Choosing between REST, GraphQL, and <abbr title="Google Remote Procedure Call">gRPC</abbr> involves trade-offs in flexibility, performance, and developer experience.</p>
+<div class="diagram"><pre>REST:
+  GET /users/123         → Read user 123
+  POST /users            → Create user
+  PUT /users/123         → Update user 123 (full)
+  PATCH /users/123       → Update user 123 (partial)
+  DELETE /users/123      → Delete user 123
+  
+  Pagination: GET /users?page=2&amp;limit=20
+  Filtering:  GET /users?status=active&amp;role=admin
+  Versioning: /v1/users or Accept: application/vnd.api.v1+json
+
+GraphQL:
+  Single endpoint, client specifies exact fields needed
+  query { user(id: 123) { name, email, posts { title } } }
+  Pros: No over/under-fetching, typed schema
+  Cons: Complexity, caching harder, N+1 queries
+
+gRPC:
+  Binary protocol (Protocol Buffers), HTTP/2
+  Pros: Very fast, streaming, code generation
+  Cons: Not browser-friendly, harder to debug
+  Best for: Internal microservice communication</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-33"><div class="q-h"><span class="q-n">&bull;</span><h3>11. Microservices</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-33"><span></span></label></div><div class="q-a"><p>Microservices is an architectural pattern where an application is decomposed into small, independently deployable services, each owning its own data store. While enabling independent scaling and deployment, it introduces challenges around distributed transactions and operational complexity.</p>
+<div class="diagram"><pre>MICROSERVICES vs MONOLITH:
+  Monolith:      Single deployable unit
+    Pros: Simple, easy debugging, ACID transactions
+    Cons: Scaling is all-or-nothing, deployment risk
+    
+  Microservices:  Independent services, own DB each
+    Pros: Independent scaling, deployment, technology choice
+    Cons: Distributed complexity, eventual consistency, debugging
+    
+  RULE: Start monolith → extract microservices when needed
+  
+SERVICE COMMUNICATION:
+  Synchronous:  REST, gRPC (request-response)
+  Asynchronous: Message queues (event-driven)
+  
+  Prefer async for: non-blocking operations, eventual consistency OK
+  Use sync for: immediate response needed, strong consistency</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-34"><div class="q-h"><span class="q-n">&bull;</span><h3>12. Rate Limiting</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-34"><span></span></label></div><div class="q-a"><p>Rate limiting controls the number of requests a client can make to an API within a given time window, protecting services from abuse and ensuring fair resource allocation. Common algorithms include token bucket and sliding window, typically implemented via Redis or API gateways.</p>
+<div class="diagram"><pre>ALGORITHMS:
+  Token Bucket:     Tokens added at fixed rate, request consumes token
+  Sliding Window:   Count requests in rolling time window
+  Fixed Window:     Count requests per fixed time interval
+  Leaky Bucket:     Requests processed at fixed rate, excess queued
+  
+  Token Bucket: Most flexible, allows bursts up to bucket capacity
+  Sliding Window: Most accurate, more memory
+  
+IMPLEMENTATION:
+  Redis + Lua script (atomic operations)
+  API Gateway level (Kong, AWS API Gateway)
+  Application level (middleware)
+  
+  Response headers:
+    X-RateLimit-Limit: 100
+    X-RateLimit-Remaining: 42
+    X-RateLimit-Reset: 1640995200
+    
+  Exceeded → HTTP 429 Too Many Requests</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-35"><div class="q-h"><span class="q-n">&bull;</span><h3>13. Distributed Patterns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-35"><span></span></label></div><div class="q-a"><p>Distributed patterns are reusable architectural solutions—such as circuit breakers, event sourcing, <abbr title="command query responsibility segregation">CQRS</abbr>, and sagas—that address common challenges in distributed systems. These patterns help manage failures, maintain data consistency, and coordinate transactions across services.</p>
+<div class="diagram"><pre>CIRCUIT BREAKER:
+  Closed (normal) → calls succeed
+  → Failures exceed threshold → Open (all calls fail fast)
+  → After timeout → Half-Open (allow one test call)
+  → Success → Closed  |  Failure → Open
+  
+  Prevents cascading failures when downstream service is down
+
+EVENT SOURCING:
+  Store all state changes as immutable events (not just current state)
+  Events: UserCreated, OrderPlaced, PaymentProcessed
+  Rebuild current state by replaying events
+  Benefits: Full audit trail, time travel, event replay
+
+CQRS (Command Query Responsibility Segregation):
+  Separate write model (commands) from read model (queries)
+  Write → normalized DB | Read → denormalized/materialized views
+  Often combined with Event Sourcing
+
+SAGA PATTERN (Distributed Transactions):
+  Choreography: Each service publishes events → next service reacts
+  Orchestration: Central coordinator manages the transaction steps
+  Compensation: If step 3 fails → undo steps 2 and 1
+
+IDEMPOTENCY:
+  Same request sent multiple times → same result
+  Use idempotency key (client-generated UUID)
+  Critical for: payment processing, order creation, retries</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-36"><div class="q-h"><span class="q-n">&bull;</span><h3>14. Observability</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-36"><span></span></label></div><div class="q-a"><p>Observability is the ability to understand a system's internal state through its external outputs—metrics, logs, and distributed traces. It is essential for debugging, performance tuning, and ensuring reliability in microservice architectures.</p>
+<div class="diagram"><pre>THREE PILLARS:
+  Metrics:   Quantitative measurements (QPS, latency, error rate)
+             Tools: Prometheus, Datadog, CloudWatch
+  Logs:      Event records with context
+             Tools: ELK, Loki, CloudWatch Logs
+  Traces:    Request path across services (distributed tracing)
+             Tools: Jaeger, Zipkin, OpenTelemetry
+
+TRACING:
+  Request → Service A (trace_id: abc, span: 1)
+         → Service B (trace_id: abc, span: 2)
+         → Service C (trace_id: abc, span: 3)
+  
+  Trace ID propagated through all services → end-to-end visibility</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-37"><div class="q-h"><span class="q-n">&bull;</span><h3>15. Common Design Problems</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-37"><span></span></label></div><div class="q-a"><p>Common design problems are frequently asked system design interview scenarios—such as URL shorteners, chat systems, and news feeds—that test a candidate's ability to apply fundamental concepts under constraints. Mastering estimation shortcuts and standard solution patterns accelerates both interview performance and real-world architecture work.</p>
+<div class="diagram"><pre>DESIGN PATTERNS FOR COMMON SYSTEMS:
+  URL Shortener:     Hash → base62 encode → redirect
+  Rate Limiter:      Token bucket + Redis
+  Chat System:       WebSockets + message queue + fan-out
+  News Feed:         Fan-out on write (push) vs fan-out on read (pull)
+  Notification:      Queue per channel (email, SMS, push)
+  Search Engine:     Inverted index + ranking (TF-IDF, BM25)
+  Video Streaming:   CDN + adaptive bitrate + transcoding pipeline
+  Payment System:    Idempotency + ACID + event sourcing + reconciliation
+  
+ESTIMATION SHORTCUTS:
+  1 million = 10⁶
+  1 billion = 10⁹
+  QPS from DAU: DAU × avg_requests / 86400
+  Storage: records × avg_size × retention_period
+  Bandwidth: QPS × avg_response_size</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-38"><div class="q-h"><span class="q-n">&bull;</span><h3>16. Interview Framework</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-38"><span></span></label></div><div class="q-a"><p>The interview framework provides a structured approach for tackling system design interviews within a 45–60 minute window. Following this step-by-step process—requirements, estimation, high-level design, deep dive, and scaling—ensures comprehensive coverage and clear communication of trade-offs.</p>
+<pre class="code"><code>SYSTEM DESIGN INTERVIEW (45-60 min):
+  1. REQUIREMENTS (5 min):
+     Functional: What does the system do?
+     Non-functional: Scale, latency, availability, consistency
+     
+  2. ESTIMATION (5 min):
+     Users, QPS, storage, bandwidth
+     
+  3. HIGH-LEVEL DESIGN (10 min):
+     Draw components: clients, LB, API servers, DB, cache, queue
+     
+  4. DEEP DIVE (20 min):
+     Pick 2-3 components to detail
+     Discuss trade-offs for each decision
+     
+  5. SCALING &amp; TRADE-OFFS (10 min):
+     Bottlenecks, single points of failure
+     How to scale each component
+     
+  KEY: Drive the conversation, state trade-offs explicitly,
+  ask clarifying questions, don't jump to solutions</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03SystemDesign-39"><div class="q-h"><span class="q-n">&bull;</span><h3>17. Interview Deep Dive</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03SystemDesign-39"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Requirements</span><span class="kt">API</span><span class="kt">Key decisions</span><span class="kt">Numbers</span><span class="kt">Algorithm</span><span class="kt">Implementation</span></div><h3>Q1: Design a URL shortener.</h3>
+<p><strong>A:</strong> <strong>Requirements</strong>: Shorten long URLs, redirect, analytics, high availability. <strong>API</strong>: <code>POST /shorten {url}</code> → <code>{short_url}</code>, <code>GET /{code}</code> → 301 redirect. <strong>Key decisions</strong>: (1) Generate 7-char code: base62(auto_increment_id) or hash(url)[:7] with collision handling. (2) Storage: SQL (PostgreSQL) for strong consistency, index on short_code. (3) Scale reads: Redis cache (code → URL), <span class="mag">80%</span>+ cache hit rate. (4) Scale writes: Range-based ID assignment to avoid contention. (5) Analytics: Async event logging to Kafka → batch processing. <strong>Numbers</strong>: 100M URLs/month = <span class="mag">~40 <abbr title="queries per second">QPS</abbr></span> writes, <span class="mag">4000 QPS</span> reads → single server + Redis handles it.</p>
+<h3>Q2: How would you design a rate limiter?</h3>
+<p><strong>A:</strong> <strong>Algorithm</strong>: Token bucket (allows bursts, simple). <strong>Implementation</strong>: Redis with Lua script for atomicity. Per key (user_id or IP): store <code>{tokens, last_refill_time}</code>. On request: calculate tokens to add since last refill, subtract 1 if available, reject if 0. <strong>Distributed</strong>: Use Redis cluster (shared state). <strong>Levels</strong>: Per-user, per-IP, per-API-key, global. Response: 429 with <code>Retry-After</code> header. <strong>Edge cases</strong>: Clock skew across servers (use Redis time), race conditions (Lua script is atomic), sliding window for bursty traffic.</p>
+<h3>Q3: Explain <abbr title="consistency, availability, partition tolerance">CAP</abbr> theorem with examples.</h3>
+<p><strong>A:</strong> In a distributed system during a network partition (P), you must choose Consistency (C) or Availability (A). <strong>CP</strong> (PostgreSQL, MongoDB): During partition, reject writes to maintain consistency. Bank transactions — wrong balance is worse than downtime. <strong>AP</strong> (Cassandra, DynamoDB): During partition, accept writes with <abbr title="replicas converging on the same value once writes stop">eventual consistency</abbr>. Social media — showing a slightly stale post is better than being unavailable. In practice: P is rare. Most systems are CA during normal operation. CAP is about behavior DURING partitions.</p>
+<h3>Q4: When would you use a message queue?</h3>
+<p><strong>A:</strong> (1) <strong>Decoupling</strong>: Service A doesn't need to know about Service B. (2) <strong>Load leveling</strong>: Absorb traffic spikes (producers add faster than consumers process). (3) <strong>Async processing</strong>: User gets instant response, heavy work happens later (email, report generation). (4) <strong>Fan-out</strong>: One event → multiple consumers (order placed → notify, ship, bill). (5) <strong>Retry/resilience</strong>: Failed processing → re-queue. Choose Kafka for: high throughput, event streaming, replay. Choose RabbitMQ for: task queues, complex routing. Choose SQS for: serverless, simple queuing.</p>
+<h3>Q5: Design a notification system.</h3>
+<p><strong>A:</strong> <strong>Components</strong>: API Gateway → Notification Service → Channel-specific queues (email, SMS, push) → Delivery services → Status tracker. <strong>Key decisions</strong>: (1) Use message queue per channel (Kafka/SQS) for decoupling and retry. (2) Template service for message formatting. (3) Priority queue for urgent notifications. (4) Rate limiting per user (don't spam). (5) Idempotency (notification_id as dedup key). (6) Status tracking: pending → sent → delivered → read. (7) User preferences (channels, quiet hours, opt-out). Scale: async processing, independent channel scaling.</p>
+<h3>Q6: How do you handle distributed transactions?</h3>
+<p><strong>A:</strong> Don't use distributed transactions when possible — design for eventual consistency. When needed: <strong>Saga Pattern</strong>: Chain of local transactions with compensating actions. Two types: (1) <strong>Choreography</strong>: Services publish events, next service reacts. Simple but hard to debug. (2) <strong>Orchestration</strong>: Central coordinator manages steps. Easier to reason about. Example (order): Create Order → Reserve Inventory → Process Payment. If payment fails → compensate: Release Inventory → Cancel Order. Key: Each step must be <abbr title="safe to run more than once with the same result">idempotent</abbr>, each has a compensation action.</p>
+<h3>Q7: Explain consistent hashing.</h3>
+<p><strong>A:</strong> Regular hashing: <code>hash(key) % N</code> — adding/removing a server remaps ALL keys. Consistent hashing: Place servers on a hash ring (0 to 2³²). Each key is assigned to the next server clockwise on the ring. Adding server S: only keys between S and its predecessor move to S. Removing S: its keys go to the next server. With virtual nodes (each server has 100-200 positions): more even distribution. Used by: DynamoDB, Cassandra, <abbr title="content delivery network">CDN</abbr> routing, load balancers.</p>
+<h3>Q8: What is the <abbr title="stopping calls to a dependency that is already failing, to prevent cascading failure">circuit breaker</abbr> pattern?</h3>
+<p><strong>A:</strong> Prevents cascading failures when a downstream service is failing. Three states: <strong>Closed</strong> (normal, calls pass through, track failures). <strong>Open</strong> (failures exceeded threshold, all calls fail immediately without reaching the service — fast failure). <strong>Half-Open</strong> (after timeout, allow ONE test call — success → Closed, failure → Open). Implementation: Track failure count/rate in a sliding window. Threshold example: 5 failures in 60 seconds → open for 30 seconds. Tools: resilience4j (Java), Polly (.NET), tenacity (Python). Essential for microservices.</p>
+<hr />
+<p><em>Previous: <a href="../../10_MLOps_and_Deployment/06_SDLC.md">../10_MLOps_and_Deployment/06_SDLC.md</a> | Next: <a href="ml.html#f05MLSystemDesi">05_ML_System_Design.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section>
+<div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+</div></main>
+</div>
+<button class="totop" id="totop" title="Back to top">&#8593;</button>
+<script>
+var LS='ai14.done.v2', TH='ai14.theme';
+var done={};try{done=JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){}
+var root=document.documentElement;
+function setTheme(t){root.setAttribute('data-theme',t);try{localStorage.setItem(TH,t)}catch(e){}
+  var b=document.getElementById('themeBtn'); if(b)b.textContent=(t==='dark'?'Light':'Dark');}
+setTheme((function(){try{return localStorage.getItem(TH)}catch(e){return null}})()||
+  (window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'));
+var tb=document.getElementById('themeBtn');
+if(tb)tb.onclick=function(){setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark')};
+
+var boxes=[].slice.call(document.querySelectorAll('.q-done input'));
+function refresh(){
+  var n=0;
+  boxes.forEach(function(b){
+    var q=b.closest('.q'), on=!!done[b.dataset.id];
+    b.checked=on; q.classList.toggle('done',on); if(on)n++;
+    var l=document.querySelector('nav a[data-q="'+q.id+'"]'); if(l)l.classList.toggle('done',on);
+  });
+  var el=document.getElementById('pgCount');
+  if(el)el.textContent=n+' / '+boxes.length;
+}
+boxes.forEach(function(b){b.addEventListener('change',function(){
+  if(b.checked)done[b.dataset.id]=1;else delete done[b.dataset.id];
+  try{localStorage.setItem(LS,JSON.stringify(done))}catch(e){}refresh();});});
+refresh();
+
+var db=document.getElementById('drillBtn');
+if(db)db.onclick=function(){var on=document.body.classList.toggle('drill');db.classList.toggle('on',on);
+  if(!on)[].forEach.call(document.querySelectorAll('.q.open'),function(q){q.classList.remove('open')});};
+[].forEach.call(document.querySelectorAll('.reveal'),function(b){
+  b.onclick=function(){b.closest('.q').classList.add('open')};});
+
+var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementById('search'),
+    noRes=document.getElementById('noRes');
+qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
+function runSearch(){
+  if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
+    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  [].forEach.call(document.querySelectorAll('.parthead'),function(p){
+    if(!v){p.style.display='';return}
+    var vis=false,n=p.nextElementSibling;
+    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
+    p.style.display=vis?'':'none';});
+  if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
+}
+if(inp)inp.addEventListener('input',runSearch);
+
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+var totop=document.getElementById('totop');
+function onScroll(){
+  var sc=document.documentElement.scrollTop;
+  if(totop)totop.classList.toggle('show',sc>600);
+  var cur=null;
+  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
+    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  navLinks.forEach(function(l){l.classList.remove('active')});
+  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
+    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
+      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+}
+window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
+
+var sb=document.getElementById('sidebar'), mb=document.getElementById('menuBtn');
+if(mb)mb.onclick=function(){sb.classList.toggle('open')};
+if(sb)sb.addEventListener('click',function(e){if(e.target.tagName==='A'&&window.innerWidth<=1060)sb.classList.remove('open')});
+
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'){if(e.key==='Escape'){e.target.value='';runSearch();e.target.blur()}return}
+  if(e.key==='/'&&inp){e.preventDefault();inp.focus()}
+  else if(e.key==='d'&&db){db.click()}
+  else if(e.key==='t'&&tb){tb.click()}
+  else if(e.key==='j'||e.key==='k'){
+    var vis=qs.filter(function(q){return q.style.display!=='none'}),idx=-1;
+    for(var i=0;i<vis.length;i++){if(vis[i].getBoundingClientRect().top>64){idx=i;break}}
+    if(e.key==='k')idx=(idx<0?vis.length:idx)-2;
+    var t=vis[Math.max(0,Math.min(vis.length-1,idx<0?0:idx))];
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}
+});
+/* reading progress */
+(function(){
+  var b=document.createElement('div'); b.id='rprog'; document.body.appendChild(b);
+  var t=null;
+  function upd(){
+    var h=document.documentElement, m=(h.scrollHeight-h.clientHeight);
+    b.style.width=(m>0?(h.scrollTop/m)*100:0)+'%';
+  }
+  addEventListener('scroll',function(){ if(t)return; t=requestAnimationFrame(function(){t=null;upd();}); },
+                   {passive:true});
+  addEventListener('resize',upd); upd();
+})();
+
+/* copy button on every code block */
+(function(){
+  document.querySelectorAll('pre.code').forEach(function(pre){
+    var b=document.createElement('button'); b.className='copy'; b.type='button'; b.textContent='Copy';
+    b.addEventListener('click',function(){
+      var code=pre.querySelector('code'); var txt=code?code.innerText:pre.innerText;
+      var done=function(){ b.textContent='Copied'; b.classList.add('ok');
+        setTimeout(function(){ b.textContent='Copy'; b.classList.remove('ok'); },1400); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(done,function(){});
+      } else {
+        var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta);
+        ta.select(); try{document.execCommand('copy');done();}catch(e){} document.body.removeChild(ta);
+      }
+    });
+    pre.appendChild(b);
+  });
+})();
+
+/* deep link on each question card */
+(function(){
+  document.querySelectorAll('.q[id] > .q-h').forEach(function(h){
+    var id=h.parentNode.id, a=document.createElement('a');
+    a.className='q-anchor'; a.href='#'+id; a.textContent='#';
+    a.title='Copy a link to this question';
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      var url=location.href.split('#')[0]+'#'+id;
+      history.replaceState(null,'','#'+id);
+      var done=function(){ a.classList.add('ok'); a.textContent='✓';
+        setTimeout(function(){ a.classList.remove('ok'); a.textContent='#'; },1200); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(done,done);
+      } else { done(); }
+    });
+    var label=h.querySelector('.q-done');
+    if(label){ h.insertBefore(a,label); } else { h.appendChild(a); }
+  });
+})();
+
+</script>
+</body></html>

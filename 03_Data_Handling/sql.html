@@ -1,0 +1,1935 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL &amp; Features — Agentic AI &amp; RAG</title>
+<meta name="description" content="SQL for machine learning, and the feature-engineering master reference">
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+:root{
+  color-scheme:dark;
+  --bg:#0d1117; --surface:#151b23; --surface-2:#1c232d; --surface-3:#232b36;
+  --border:#2a313c; --border-soft:#21262d;
+  --ink:#e6edf3; --ink-2:#9da7b3; --ink-mut:#6e7681;
+  --accent:#3987e5; --accent-soft:rgba(57,135,229,.14); --accent-bd:rgba(57,135,229,.42);
+  --t-rag:#3987e5; --t-agentic:#d95926; --t-recall:#199e70;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+  --warn-soft:rgba(250,178,25,.12); --good-soft:rgba(12,163,12,.12); --crit-soft:rgba(208,59,59,.12);
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;
+  --r1:#86b6ef;--r2:#5598e7;--r3:#2a78d6;--r4:#1c5cab;
+  --o1:#f0a882;--o2:#e88a5c;--o3:#d95926;--o4:#b8471d;--o5:#8f3716;
+  --code-bg:#0b0f15;
+  --fig-surface:#1c232d; --fig-surface-2:#171d26; --fig-surface-3:#232b36;
+  --fig-border:#39424f; --fig-ink:#e6edf3; --fig-ink-2:#b6c0cc; --fig-mut:#8d97a4;
+  --fig-accent:#3987e5; --fig-rag:#3987e5; --fig-agentic:#e2703a; --fig-recall:#22a97a;
+  --fig-good:#2eb82e; --fig-warn:#f0b429; --fig-crit:#e05252;
+  --mono:"SF Mono",SFMono-Regular,ui-monospace,"Cascadia Code",Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --radius:14px; --radius-sm:9px; --shadow:0 8px 30px rgba(0,0,0,.38); --sbw:302px;
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f6f8fa; --surface:#fff; --surface-2:#fbfcfd; --surface-3:#eff2f6;
+  --border:#d8dee4; --border-soft:#e6eaef;
+  --ink:#1f2328; --ink-2:#57606a; --ink-mut:#8b949e;
+  --accent:#2a78d6; --accent-soft:rgba(42,120,214,.10); --accent-bd:rgba(42,120,214,.34);
+  --t-rag:#2a78d6; --t-agentic:#eb6834; --t-recall:#1baf7a;
+  --warn-soft:rgba(250,178,25,.16); --good-soft:rgba(12,163,12,.10); --crit-soft:rgba(208,59,59,.09);
+  --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;
+  --r1:#86b6ef;--r2:#3987e5;--r3:#256abf;--r4:#184f95;
+  --o1:#f7c4a8;--o2:#f0996b;--o3:#eb6834;--o4:#c14a1f;--o5:#8f3716;
+  --code-bg:#f0f3f6; --shadow:0 6px 24px rgba(140,149,159,.20);
+  --fig-surface:#fff; --fig-surface-2:#f7f9fb; --fig-surface-3:#eef2f6;
+  --fig-border:#c9d1da; --fig-ink:#1f2328; --fig-ink-2:#414a54; --fig-mut:#6b747e;
+  --fig-accent:#2a78d6; --fig-rag:#2a78d6; --fig-agentic:#d1541f; --fig-recall:#12855c;
+  --fig-good:#1a7f1a; --fig-warn:#a97400; --fig-crit:#c62d2d;
+}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+
+.siteswitch{background:var(--surface-3);border-bottom:1px solid var(--border)}
+.siteswitch-in{max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:4px;padding:5px 18px;flex-wrap:wrap}
+.siteswitch a{font-size:11.5px;padding:4px 10px;border-radius:7px;color:var(--ink-mut);text-decoration:none;white-space:nowrap}
+.siteswitch a:hover{background:var(--surface);color:var(--ink)}
+.siteswitch a.on{background:var(--accent);color:#fff;font-weight:700}
+.siteswitch .sw-home{font-weight:800;color:var(--ink-2);margin-right:8px}
+/* ---------- top bar (site nav) ---------- */
+.sitebar{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 93%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.sitebar-in{max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:6px;padding:9px 18px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:14px;letter-spacing:-.3px;margin-right:10px;text-decoration:none;color:var(--ink);white-space:nowrap}
+.logo b{color:var(--accent)}
+.sitebar a.tab{font-size:12.8px;padding:6px 12px;border-radius:8px;color:var(--ink-2);text-decoration:none;border:1px solid transparent;white-space:nowrap}
+.sitebar a.tab:hover{background:var(--surface-2);color:var(--ink)}
+.sitebar a.tab.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-bd);font-weight:700}
+.sitebar .sp{margin-left:auto}
+.btn{background:var(--surface);border:1px solid var(--border);color:var(--ink-2);padding:6px 11px;border-radius:8px;cursor:pointer;font-size:12.3px;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--ink)}
+.btn.on{background:var(--accent-soft);border-color:var(--accent-bd);color:var(--accent);font-weight:700}
+
+.app{display:grid;grid-template-columns:var(--sbw) 1fr;max-width:1560px;margin:0 auto;min-height:100vh}
+aside{position:sticky;top:47px;height:calc(100vh - 47px);overflow-y:auto;overscroll-behavior:contain;border-right:1px solid var(--border);padding:12px 0 40px;background:var(--bg)}
+aside::-webkit-scrollbar{width:8px}aside::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.sb-search{padding:0 14px 8px}
+.sb-search input{width:100%;padding:8px 11px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:13px;font-family:inherit;outline:none}
+.sb-search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.sb-hint{font-size:10.3px;color:var(--ink-mut);padding:2px 15px 10px}
+nav{padding:0 8px;font-size:13px}
+.nav-grp{margin:12px 0 3px;padding:0 10px;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-mut);font-weight:800}
+nav a{display:flex;gap:7px;align-items:flex-start;padding:5px 10px;margin:1px 2px;border-radius:7px;color:var(--ink-2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;font-size:12.5px}
+nav a:hover{background:var(--surface-2);color:var(--ink)}
+nav a.active{background:var(--accent-soft);color:var(--accent);border-left-color:var(--accent);font-weight:650}
+nav a.done .qn{background:var(--good);border-color:var(--good);color:#fff}
+.qn{flex:none;min-width:21px;text-align:center;font-family:var(--mono);font-size:9.5px;padding:1px 4px;border-radius:5px;border:1px solid var(--border);color:var(--ink-mut);height:17px;line-height:15px}
+
+main{min-width:0;padding:0 40px 140px}
+.wrap{max-width:1000px;margin:0 auto}
+
+/* ---------- hero ---------- */
+.hero{padding:36px 0 4px}
+.eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tc,var(--accent));font-weight:800}
+.hero h1{font-size:40px;line-height:1.08;margin:9px 0 12px;letter-spacing:-1px}
+.hero .lede{color:var(--ink-2);font-size:17px;margin:0 0 20px;max-width:70ch}
+.hero .lede b{color:var(--ink)}
+.oneliner{border-left:4px solid var(--tc,var(--accent));background:var(--surface);border-radius:0 var(--radius) var(--radius) 0;padding:14px 18px;margin:18px 0;font-size:16px}
+.oneliner b{color:var(--tc,var(--accent))}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:22px 0}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat-v{font-size:27px;font-weight:750;letter-spacing:-.6px;line-height:1.05;color:var(--tc,var(--accent))}
+.stat-l{font-size:11px;color:var(--ink-mut);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;line-height:1.35}
+
+/* ---------- figures ---------- */
+figure.viz{margin:26px 0;background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--border);border-radius:var(--radius);padding:17px 19px 10px;overflow:hidden;box-shadow:var(--shadow)}
+figure.viz figcaption b::before{content:"";display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--tc,var(--accent));margin-right:9px;vertical-align:middle}
+figure.viz figcaption{margin-bottom:12px}
+figure.viz figcaption b{display:block;font-size:15px;letter-spacing:-.2px}
+figure.viz figcaption span{display:block;font-size:12px;color:var(--ink-mut);margin-top:2px}
+figure.viz figcaption .terms{display:block;font-size:11px;color:var(--ink-mut);margin-top:5px;
+  padding-top:5px;border-top:1px dashed var(--border-soft);line-height:1.65}
+figure.viz figcaption .terms b{display:inline;font-size:11px;letter-spacing:0;color:var(--ink-2);
+  font-weight:700;font-family:var(--mono)}
+figure.viz figcaption .terms b::before{content:none;display:none;margin:0}
+abbr[title]{text-decoration:underline dotted var(--ink-mut);text-underline-offset:3px;cursor:help;border:0;text-decoration-thickness:1px}
+abbr[title]:hover{text-decoration-color:var(--accent)}
+.viz-scroll{overflow-x:auto;padding-bottom:6px}
+.viz-scroll svg{display:block;width:100%;min-width:660px;height:auto}
+
+/* ---------- standard topic panels ---------- */
+.panels{display:grid;gap:13px;margin:18px 0}
+.panel{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--pc,var(--accent));border-radius:var(--radius);padding:15px 18px}
+.panel > h3{margin:0 0 4px;font-size:15.5px;display:flex;align-items:center;gap:9px}
+.panel > h3 .ic{width:23px;height:23px;border-radius:7px;background:var(--pc,var(--accent));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:none}
+.panel > h3 small{margin-left:auto;font-size:10.5px;color:var(--ink-mut);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.p-scale{--pc:var(--t-rag)} .p-prod{--pc:var(--t-recall)} .p-opt{--pc:var(--t-agentic)}
+.p-lat{--pc:var(--warn)} .p-met{--pc:var(--accent)}
+
+/* ---------- per-answer visual furniture ---------- */
+.keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
+.kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
+.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram pre{margin:0;padding-top:12px;background:none;border:none;font-family:var(--mono);font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
+.flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
+.flow .fl{font-size:10px;font-weight:800;letter-spacing:.09em;color:var(--ink-mut);margin-right:10px;text-transform:uppercase}
+.q-a ol{counter-reset:st;list-style:none;padding-left:0;margin:11px 0}
+.q-a ol > li{counter-increment:st;position:relative;padding-left:36px;margin:8px 0}
+.q-a ol > li::before{content:counter(st);position:absolute;left:0;top:1px;width:24px;height:24px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+/* ---------- content ---------- */
+.sec{margin-top:44px;scroll-margin-top:60px}
+.sec > h2{font-size:25px;margin:0 0 4px;letter-spacing:-.5px;padding-bottom:9px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:11px}
+.sec > h2 .hn{font-size:11.5px;font-family:var(--mono);font-weight:800;background:var(--tc,var(--accent));color:#fff;border-radius:7px;padding:3px 8px}
+.parthead{display:flex;align-items:center;gap:12px;margin:30px 0 12px}
+.parthead span{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mut);white-space:nowrap}
+.parthead i{flex:1;height:1px;background:var(--border)}
+.q{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 18px;margin:10px 0;scroll-margin-top:60px}
+.q:target{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.q.done{border-left:3px solid var(--good)}
+.q-h{display:flex;align-items:flex-start;gap:11px}
+.q-n{flex:none;font-family:var(--mono);font-size:11px;font-weight:800;min-width:26px;height:23px;line-height:21px;text-align:center;border-radius:7px;border:1px solid var(--border);color:var(--ink-mut);background:var(--bg)}
+.q.done .q-n{background:var(--good);border-color:var(--good);color:#fff}
+.q-h h3{margin:0;font-size:17px;line-height:1.35;letter-spacing:-.2px;flex:1}
+.q-done{flex:none;cursor:pointer}
+.q-done input{position:absolute;opacity:0;pointer-events:none}
+.q-done span{display:block;width:22px;height:22px;border-radius:7px;border:1px solid var(--border);background:var(--bg);position:relative}
+.q-done span::after{content:"";position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid transparent;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.q-done input:checked+span{background:var(--good);border-color:var(--good)}
+.q-done input:checked+span::after{border-color:#fff}
+.q-a{margin-top:11px}
+.reveal{display:none;margin-top:10px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);padding:7px 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:12.4px;font-weight:700}
+body.drill .q-a{display:none} body.drill .reveal{display:inline-block}
+/* reference cards have no answer to hide - never drill them */
+body.drill .q.q-ref .q-a{display:block}
+body.drill .q.open .q-a{display:block} body.drill .q.open .reveal{display:none}
+
+p{margin:9px 0}
+h3{font-size:17px;margin:20px 0 7px}h4{font-size:14px;margin:15px 0 5px;color:var(--ink-2)}
+ul{margin:9px 0;padding-left:22px}li{margin:4px 0}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+hr{border:none;border-top:1px solid var(--border);margin:20px 0}
+code{font-family:var(--mono);font-size:.855em;background:var(--code-bg);padding:.12em .42em;border-radius:5px;border:1px solid var(--border-soft);color:#ffa657;word-break:break-word}
+html[data-theme="light"] code{color:#953800}
+pre.code{background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 15px;overflow-x:auto;margin:11px 0;line-height:1.55;position:relative}
+pre.code code{background:none;border:none;padding:0;color:var(--ink);font-size:12.4px;white-space:pre}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:0;right:0;font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-mut);background:var(--surface-3);border-left:1px solid var(--border);border-bottom:1px solid var(--border);border-radius:0 var(--radius-sm) 0 7px;padding:2px 8px}
+.cmt{color:var(--ink-mut);font-style:italic}.kw{color:#ff7b72}.str{color:#a5d6ff}.fn{color:#d2a8ff}.num{color:#79c0ff}
+html[data-theme="light"] .kw{color:#cf222e}html[data-theme="light"] .str{color:#0a3069}
+html[data-theme="light"] .fn{color:#8250df}html[data-theme="light"] .num{color:#0550ae}
+.say{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 16px;margin:12px 0}
+.say-h{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.say-h::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.say p{margin:0;font-size:15.2px;line-height:1.68}.say em{font-style:normal;color:var(--ink)}
+.note{border-left:3px solid var(--border);background:var(--surface-2);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 15px;margin:12px 0;font-size:13.8px;color:var(--ink-2)}
+.note p:first-child{margin-top:0}.note p:last-child{margin-bottom:0}.note strong{color:var(--ink)}
+.tbl-wrap{overflow-x:auto;margin:15px 0;border:1px solid var(--border);border-radius:12px;
+  background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.10)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.2px;background:transparent}
+th,td{padding:10px 13px;text-align:left;border-bottom:1px solid var(--border-soft);vertical-align:top;line-height:1.55}
+th{position:sticky;top:0;z-index:2;background:var(--surface-3);font-weight:800;font-size:10.5px;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2);white-space:nowrap;
+  border-bottom:1px solid var(--border);backdrop-filter:blur(6px)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover>td{background:var(--surface-2)}
+tbody tr.g1>td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+tbody tr.g1:hover>td{background:var(--surface-2)}
+
+/* merged category column: the label is stated once, as a vertical band */
+td.c-grp{background:var(--surface-3);border-right:1px solid var(--border);vertical-align:top;
+  width:1%;white-space:nowrap;padding:11px 13px}
+tbody tr:hover>td.c-grp{background:var(--surface-3)}
+td.c-grp .grp-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--tc,var(--accent));background:var(--accent-soft);
+  border:1px solid var(--accent-bd);border-radius:999px;padding:3px 11px;position:sticky;top:44px}
+table.t-grouped td:not(.c-grp):first-of-type{font-weight:600;color:var(--ink)}
+
+/* two-column glossary: term rail on the left */
+table.t-def td.c-term{width:210px;font-weight:700;color:var(--ink);background:var(--surface-2);
+  border-right:2px solid var(--accent-bd)}
+table.t-def td.c-term code{background:none;border:none;padding:0;color:inherit}
+
+/* magnitudes should read as data, not prose */
+.mag{font-family:var(--mono);font-size:.9em;font-weight:700;color:var(--warn);
+  background:var(--warn-soft);border-radius:5px;padding:.05em .38em;white-space:nowrap}
+
+/* term / description list rows */
+li.dl{list-style:none;margin:7px 0;padding:7px 12px;border-radius:9px;background:var(--surface-2);
+  border-left:3px solid var(--border)}
+li.dl:hover{border-left-color:var(--accent)}
+li.dl .dt{display:inline-block;font-weight:800;color:var(--ink);margin-right:8px}
+li.dl .dt::after{content:"—";color:var(--ink-mut);font-weight:400;margin-left:8px}
+li.dl .dd{color:var(--ink-2)}
+ul:has(> li.dl){padding-left:0}
+
+/* typed callouts */
+.note.n-crit{border-left-color:var(--crit);background:var(--crit-soft)}
+.note.n-warn{border-left-color:var(--warn);background:var(--warn-soft)}
+.note.n-good{border-left-color:var(--good);background:var(--good-soft)}
+.note.n-key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.n-crit strong:first-child{color:var(--crit)}
+.note.n-warn strong:first-child{color:var(--warn)}
+.note.n-good strong:first-child{color:var(--good)}
+.note.n-key strong:first-child{color:var(--accent)}
+
+/* headings inside an answer body */
+.q-a h3,.q-a h4{display:flex;align-items:center;gap:9px;letter-spacing:-.2px}
+.q-a h3::before{content:"";width:3px;height:15px;border-radius:2px;background:var(--tc,var(--accent));flex:none}
+.q-a h4{color:var(--ink-2);font-size:13.5px;text-transform:none}
+.q-a h4::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--ink-mut);flex:none}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:13px;margin:20px 0}
+.tcard{display:block;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--tc,var(--accent));border-radius:var(--radius);padding:15px 16px;text-decoration:none;color:inherit}
+.tcard:hover{border-color:var(--accent);box-shadow:var(--shadow);text-decoration:none}
+.tcard h4{margin:0 0 5px;font-size:15px;color:var(--ink)}
+.tcard p{margin:0;font-size:12.2px;color:var(--ink-mut);line-height:1.5}
+.tcard .meta{margin-top:9px;font-size:10.5px;color:var(--tc,var(--accent));font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.no-result{display:none;text-align:center;color:var(--ink-mut);padding:60px 20px}.no-result.show{display:block}
+kbd{font-family:var(--mono);font-size:10px;background:var(--surface-3);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 5px;color:var(--ink-2)}
+.totop{position:fixed;right:20px;bottom:20px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:18px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;z-index:55}
+.totop.show{opacity:1;pointer-events:auto}
+.menu-toggle{display:none}
+@media(max-width:1060px){
+  .app{grid-template-columns:1fr}
+  aside{position:fixed;left:calc(-1 * var(--sbw));top:0;height:100vh;width:var(--sbw);z-index:100;transition:left .25s;box-shadow:var(--shadow);background:var(--surface)}
+  aside.open{left:0}
+  .menu-toggle{display:inline-flex}
+  main{padding:0 15px 110px}
+  .hero h1{font-size:29px}
+}
+@media print{.sitebar,aside,.totop,.reveal,.q-done{display:none}.app{grid-template-columns:1fr}body.drill .q-a{display:block}}
+
+/* =====================================================================
+   DESIGN LAYER  --  loaded last, so these rules win.
+   Depth, type scale, motion, and the components the base sheet lacks.
+   ===================================================================== */
+
+:root{
+  --e1:0 1px 2px rgba(0,0,0,.18);
+  --e2:0 4px 14px rgba(0,0,0,.24);
+  --e3:0 14px 40px rgba(0,0,0,.34);
+  --ring:0 0 0 3px var(--accent-soft);
+  --tight:-.022em;
+  --glass:color-mix(in srgb,var(--bg) 78%,transparent);
+}
+html[data-theme="light"]{
+  --e1:0 1px 2px rgba(16,24,40,.06);
+  --e2:0 6px 18px rgba(16,24,40,.09);
+  --e3:0 18px 44px rgba(16,24,40,.13);
+}
+html[data-theme="dark"],:root{ --bg:#0a0e14; --surface:#12181f; --surface-2:#171e26; --surface-3:#1e2630;
+  --border:#262f3a; --border-soft:#1c242e; }
+
+body{font-size:15.6px;line-height:1.68;letter-spacing:.002em;
+  text-rendering:optimizeLegibility;font-variant-ligatures:common-ligatures}
+::selection{background:var(--accent);color:#fff}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+@media(prefers-reduced-motion:no-preference){
+  a,button,.tcard,.q,.stat,.hub-card,.learn-item,nav a,.tab,.sw{transition:
+    background-color .16s ease,border-color .16s ease,color .16s ease,
+    transform .16s cubic-bezier(.2,.7,.3,1),box-shadow .16s ease}
+}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--border)}
+
+/* ---------- reading progress ---------- */
+#rprog{position:fixed;top:0;left:0;height:2.5px;width:0;z-index:200;
+  background:linear-gradient(90deg,var(--t-rag),var(--t-agentic),var(--t-recall));
+  box-shadow:0 0 12px var(--accent);transition:width .08s linear}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));
+  border-bottom:1px solid var(--border-soft)}
+.siteswitch a{font-weight:600;letter-spacing:.01em}
+.siteswitch a.on{box-shadow:0 2px 10px color-mix(in srgb,var(--accent) 45%,transparent)}
+.sitebar{background:var(--glass);backdrop-filter:blur(14px) saturate(1.5);
+  -webkit-backdrop-filter:blur(14px) saturate(1.5);box-shadow:var(--e1)}
+.sitebar a.tab.on{box-shadow:inset 0 0 0 1px var(--accent-bd)}
+.logo{font-size:14.5px;letter-spacing:var(--tight)}
+.btn{box-shadow:var(--e1);font-weight:600}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--e2)}
+.btn:active{transform:translateY(0)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,var(--bg),color-mix(in srgb,var(--surface) 55%,var(--bg)));
+  border-right:1px solid var(--border-soft)}
+.sb-search input{box-shadow:var(--e1)}
+nav a{border-radius:9px;border-left:0;position:relative;padding-left:12px}
+nav a.active{background:linear-gradient(90deg,var(--accent-soft),transparent);
+  box-shadow:inset 0 0 0 1px var(--accent-bd)}
+nav a.active::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--accent)}
+.nav-grp{margin-top:16px;color:var(--ink-mut);opacity:.85}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:52px 0 8px}
+.hero::before{content:"";position:absolute;left:-56px;right:-56px;top:-140px;height:420px;z-index:-1;
+  pointer-events:none;opacity:.5;
+  background:
+    radial-gradient(58% 62% at 14% 24%,color-mix(in srgb,var(--tc,var(--accent)) 34%,transparent),transparent 70%),
+    radial-gradient(46% 54% at 82% 8%,color-mix(in srgb,var(--t-agentic) 22%,transparent),transparent 72%);
+  filter:blur(26px)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;padding:5px 12px;
+  border-radius:999px;background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 34%,transparent)}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--tc,var(--accent));
+  box-shadow:0 0 9px var(--tc,var(--accent))}
+.hero h1{font-size:clamp(32px,4.4vw,46px);line-height:1.04;letter-spacing:-.032em;
+  margin:16px 0 14px;font-weight:800;
+  background:linear-gradient(175deg,var(--ink) 30%,color-mix(in srgb,var(--ink) 62%,var(--tc,var(--accent))));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lede{font-size:17.5px;line-height:1.62;max-width:86ch}
+.oneliner{background:linear-gradient(100deg,
+    color-mix(in srgb,var(--tc,var(--accent)) 11%,var(--surface)),var(--surface) 62%);
+  border:1px solid var(--border);border-left:4px solid var(--tc,var(--accent));
+  border-radius:var(--radius);box-shadow:var(--e1);line-height:1.6}
+
+/* ---------- stat tiles ---------- */
+.stat{position:relative;overflow:hidden;box-shadow:var(--e1);
+  background:linear-gradient(180deg,var(--surface),var(--surface-2))}
+.stat::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),transparent 78%)}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--e2);border-color:var(--tc,var(--accent))}
+.stat-v{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+
+/* ---------- what you'll learn ---------- */
+.learn{margin:26px 0 10px;padding:20px 22px 18px;border-radius:16px;position:relative;
+  background:linear-gradient(150deg,
+    color-mix(in srgb,var(--tc,var(--accent)) 9%,var(--surface)),var(--surface) 58%);
+  border:1px solid var(--border);box-shadow:var(--e1)}
+.learn-h{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:800;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--tc,var(--accent))}
+.learn-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;background:var(--tc,var(--accent));color:#fff;font-size:11px}
+.learn-lede{margin:10px 0 4px;font-size:15px;color:var(--ink-2);max-width:92ch}
+.learn-grid{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px;
+  grid-template-columns:repeat(auto-fill,minmax(268px,1fr))}
+.learn-item{background:var(--bg);border:1px solid var(--border-soft);border-radius:11px;
+  padding:11px 13px;margin:0}
+.learn-item:hover{border-color:var(--tc,var(--accent));transform:translateY(-1px);box-shadow:var(--e1)}
+.learn-top{display:flex;align-items:baseline;gap:9px}
+.learn-top b{font-size:13.4px;color:var(--ink);letter-spacing:var(--tight)}
+.learn-n{margin-left:auto;font-size:10px;font-family:var(--mono);color:var(--ink-mut);white-space:nowrap}
+.learn-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.learn-tags span{font-size:10px;padding:2px 8px;border-radius:999px;background:var(--surface-3);
+  border:1px solid var(--border-soft);color:var(--ink-mut)}
+
+/* ---------- section + file headers ---------- */
+.sec > h2{letter-spacing:-.028em;border-bottom:1px solid var(--border)}
+.sec > h2 .hn{box-shadow:0 2px 10px color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent)}
+.filehead h2{letter-spacing:-.028em}
+.parthead span{color:var(--tc,var(--accent));opacity:.9}
+.parthead i{background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- question cards ---------- */
+.q{box-shadow:var(--e1);border-radius:14px}
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,var(--border));box-shadow:var(--e2)}
+.q-h h3{letter-spacing:-.02em}
+.q-n{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));font-weight:800}
+.q.done{box-shadow:inset 3px 0 0 var(--good),var(--e1);border-left-color:transparent}
+.q-a{max-width:none}
+.q-a > p:first-child{color:var(--ink)}
+/* block content fills the card; only loose prose keeps a comfortable measure */
+.q-a > p{max-width:96ch}
+.q-a > ul:not(.steplist),.q-a > ol:not(.steplist){max-width:96ch}
+
+/* ---------- cards ---------- */
+.tcard{box-shadow:var(--e1);background:linear-gradient(170deg,var(--surface),var(--surface-2))}
+.tcard:hover{transform:translateY(-3px);box-shadow:var(--e3)}
+.tcard h4{letter-spacing:var(--tight)}
+
+/* ---------- code ---------- */
+pre.code{box-shadow:inset 0 0 0 1px var(--border-soft),var(--e1);border-radius:12px;padding:15px 16px}
+pre.code:hover .copy{opacity:1}
+.copy{position:absolute;top:7px;right:8px;opacity:0;font-family:var(--sans);font-size:10.5px;
+  font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:7px;
+  border:1px solid var(--border);background:var(--surface-3);color:var(--ink-2);cursor:pointer;z-index:3}
+.copy:hover{border-color:var(--accent);color:var(--accent)}
+.copy.ok{border-color:var(--good);color:var(--good)}
+pre.code[data-lang]::before{top:0;right:auto;left:0;border-radius:12px 0 8px 0;border-left:0;
+  border-right:1px solid var(--border)}
+
+/* ---------- figures ---------- */
+figure.viz{border-radius:16px;box-shadow:var(--e2);padding:19px 21px 12px}
+figure.viz figcaption b{font-size:15.5px;letter-spacing:-.024em}
+figure.viz:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,var(--border))}
+
+/* ---------- tables ---------- */
+.tbl-wrap{box-shadow:var(--e1)}
+td.c-grp .grp-tag{box-shadow:var(--e1)}
+.mag{letter-spacing:-.01em}
+
+/* ---------- callouts + say ---------- */
+.say{border-radius:12px;border-left-width:4px;box-shadow:var(--e1);
+  background:linear-gradient(100deg,var(--accent-soft),transparent 70%)}
+.note{border-radius:12px;border-left-width:4px}
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key{box-shadow:var(--e1)}
+
+/* ---------- panels ---------- */
+.panel{box-shadow:var(--e1);border-radius:14px;
+  background:linear-gradient(170deg,color-mix(in srgb,var(--pc,var(--accent)) 7%,var(--surface)),var(--surface) 55%)}
+.panel:hover{box-shadow:var(--e2)}
+.panel > h3 .ic{box-shadow:0 2px 9px color-mix(in srgb,var(--pc,var(--accent)) 50%,transparent)}
+
+/* ---------- keyterms + flow ---------- */
+.kt{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));font-weight:650}
+.kt:hover{border-color:var(--accent);color:var(--accent)}
+.flow{border-radius:12px;box-shadow:var(--e1)}
+.flow .st{box-shadow:var(--e1)}
+.diagram{border-radius:12px}
+
+/* ---------- step lists (a fence that was really a list) ---------- */
+ol.steplist{counter-reset:sl;list-style:none;padding-left:0;margin:14px 0}
+ol.steplist > li{counter-increment:sl;position:relative;padding:9px 14px 9px 44px;margin:7px 0;
+  background:var(--surface-2);border:1px solid var(--border-soft);border-radius:11px;
+  line-height:1.6;font-size:14.4px}
+ol.steplist > li::before{content:counter(sl);position:absolute;left:11px;top:9px;width:24px;height:24px;
+  border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);
+  font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono)}
+ol.steplist > li:hover{border-color:var(--accent-bd)}
+ul.steplist{list-style:none;padding-left:0;margin:14px 0}
+ul.steplist > li{position:relative;padding:8px 14px 8px 30px;margin:6px 0;background:var(--surface-2);
+  border:1px solid var(--border-soft);border-radius:11px;line-height:1.6;font-size:14.4px}
+ul.steplist > li::before{content:"";position:absolute;left:13px;top:17px;width:6px;height:6px;
+  border-radius:50%;background:var(--tc,var(--accent))}
+
+/* a source heading with no body under it: don't render an empty card */
+.q-a:empty{display:none}
+.q-a:empty + .reveal{display:none}
+.q:has(> .q-a:empty){padding:11px 18px;background:var(--surface-2);opacity:.85}
+.q:has(> .q-a:empty) .q-h h3{font-size:14.5px;color:var(--ink-2)}
+
+.q-h h3 code{font-size:.88em;background:var(--code-bg);border:1px solid var(--border-soft);padding:.06em .34em}
+nav a code{font-size:.9em;background:none;border:0;padding:0;color:inherit}
+.parthead code{font-size:.92em;background:none;border:0;padding:0;color:inherit}
+
+/* ---------- hub ---------- */
+.hub-card{box-shadow:var(--e1);background:linear-gradient(170deg,var(--surface),var(--surface-2))}
+.hub-card:hover{transform:translateY(-4px);box-shadow:var(--e3)}
+.hub h1{letter-spacing:-.034em;font-weight:800}
+
+@media(max-width:1060px){
+  .hero{padding:34px 0 4px}
+  .hero::before{display:none}
+  .learn-grid{grid-template-columns:1fr}
+}
+@media print{
+  .sitebar,.siteswitch,aside,.totop,.reveal,.copy,#rprog{display:none!important}
+  .app{grid-template-columns:1fr}
+  .q,.tbl-wrap,figure.viz{break-inside:avoid;box-shadow:none}
+}
+
+/* ---------- long-page ergonomics ---------- */
+/* the group header stays put while you scroll a 200-question list */
+.parthead{position:sticky;top:44px;z-index:12;background:var(--glass);
+  backdrop-filter:blur(10px) saturate(1.4);-webkit-backdrop-filter:blur(10px) saturate(1.4);
+  padding:8px 10px;margin:26px -10px 10px;border-radius:10px}
+.filehead{position:relative;z-index:1}
+
+/* question cards: tint the badge, and offer a deep link on hover */
+.q-n{color:var(--tc,var(--accent));border-color:color-mix(in srgb,var(--tc,var(--accent)) 40%,var(--border))}
+.q-h{position:relative}
+.q-anchor{opacity:0;margin-left:8px;font-size:12px;color:var(--ink-mut);text-decoration:none;
+  cursor:pointer;font-family:var(--mono);flex:none;align-self:center}
+.q:hover .q-anchor{opacity:.7}
+.q-anchor:hover{opacity:1!important;color:var(--accent);text-decoration:none}
+.q-anchor.ok{color:var(--good);opacity:1!important}
+
+/* card affordances */
+.tcard,.hub-card{position:relative}
+.tcard::after,.hub-card::after{content:"92";position:absolute;right:16px;bottom:12px;
+  font-size:15px;color:var(--tc,var(--accent));opacity:0;transform:translateX(-4px)}
+.tcard:hover::after,.hub-card:hover::after{opacity:.9;transform:translateX(0);
+  transition:opacity .16s ease,transform .16s ease}
+
+/* search: dim the page while filtering so hits stand out */
+body.searching .q{opacity:1}
+body.searching .parthead{opacity:.5}
+
+@media(max-width:1060px){ .parthead{top:0} }
+
+</style>
+</head>
+<body>
+<div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
+  <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw on" href="../03_Data_Handling/index.html">03 Data</a><a class="sw" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw" href="../11_System_Design/index.html">11 Sys Design</a>
+</div></div><div class="sitebar-in">
+  <button class="btn menu-toggle" id="menuBtn">&#9776;</button>
+  <a class="logo" href="index.html">Data <b>Handling</b></a>
+  <a class="tab" href="index.html">Home</a><a class="tab on" href="sql.html">SQL &amp; Features</a><a class="tab" href="practice.html">Practice</a><a class="tab" href="interview.html">Interview</a>
+  <span class="sp"></span>
+  <span class="btn" style="cursor:default" title="Questions ticked on this page"><span id="pgCount">0 / 0</span></span>
+  <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
+  <button class="btn" id="themeBtn">Dark</button>
+</div></div>
+<div class="app" style="--tc:var(--t-rag)">
+<aside id="sidebar">
+  <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
+  <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
+  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><div class="nav-grp">SQL for ML</div><a href="#f01SQLforMLmd-0" data-q="f01SQLforMLmd-0"><span class="qn">&bull;</span>1. Fundamentals</a><a href="#f01SQLforMLmd-1" data-q="f01SQLforMLmd-1"><span class="qn">&bull;</span>2. JOINs Deep Dive</a><a href="#f01SQLforMLmd-2" data-q="f01SQLforMLmd-2"><span class="qn">&bull;</span>3. GROUP BY, HAVING &amp; Aggregations</a><a href="#f01SQLforMLmd-3" data-q="f01SQLforMLmd-3"><span class="qn">&bull;</span>4. Window Functions</a><a href="#f01SQLforMLmd-4" data-q="f01SQLforMLmd-4"><span class="qn">&bull;</span>5. Subqueries &amp; CTEs</a><a href="#f01SQLforMLmd-5" data-q="f01SQLforMLmd-5"><span class="qn">&bull;</span>6. Recursive CTEs</a><a href="#f01SQLforMLmd-6" data-q="f01SQLforMLmd-6"><span class="qn">&bull;</span>7. Advanced Aggregation</a><a href="#f01SQLforMLmd-7" data-q="f01SQLforMLmd-7"><span class="qn">&bull;</span>8. Set Operations</a><a href="#f01SQLforMLmd-8" data-q="f01SQLforMLmd-8"><span class="qn">&bull;</span>9. CASE, COALESCE, NULLIF</a><a href="#f01SQLforMLmd-9" data-q="f01SQLforMLmd-9"><span class="qn">&bull;</span>10. EXISTS vs IN</a><a href="#f01SQLforMLmd-10" data-q="f01SQLforMLmd-10"><span class="qn">&bull;</span>11. String &amp; Date Functions</a><a href="#f01SQLforMLmd-11" data-q="f01SQLforMLmd-11"><span class="qn">&bull;</span>12. Indexes &amp; Query Optimization</a><a href="#f01SQLforMLmd-12" data-q="f01SQLforMLmd-12"><span class="qn">&bull;</span>13. Transactions &amp; ACID</a><a href="#f01SQLforMLmd-13" data-q="f01SQLforMLmd-13"><span class="qn">&bull;</span>14. PIVOT, UNPIVOT</a><a href="#f01SQLforMLmd-14" data-q="f01SQLforMLmd-14"><span class="qn">&bull;</span>15. SQL + Python Integration</a><a href="#f01SQLforMLmd-15" data-q="f01SQLforMLmd-15"><span class="qn">&bull;</span>16. ML-Specific Query Patterns</a><a href="#f01SQLforMLmd-16" data-q="f01SQLforMLmd-16"><span class="qn">&bull;</span>17. JSON Handling in SQL</a><a href="#f01SQLforMLmd-17" data-q="f01SQLforMLmd-17"><span class="qn">&bull;</span>18. Interview Deep Dive</a><div class="nav-grp">Feature Engineering Master</div><a href="#fFeatureEnginee-18" data-q="fFeatureEnginee-18"><span class="qn">&bull;</span>The 4 Pillars (the mental map for this whole file)</a><a href="#fFeatureEnginee-19" data-q="fFeatureEnginee-19"><span class="qn">&bull;</span>The Workflow</a><a href="#fFeatureEnginee-20" data-q="fFeatureEnginee-20"><span class="qn">&bull;</span>2.1 Univariate Analysis (one variable at a time)</a><a href="#fFeatureEnginee-21" data-q="fFeatureEnginee-21"><span class="qn">&bull;</span>2.2 Bivariate Analysis (two variables / feature ↔ target)</a><a href="#fFeatureEnginee-22" data-q="fFeatureEnginee-22"><span class="qn">&bull;</span>2.3 Multivariate Analysis (the whole picture)</a><a href="#fFeatureEnginee-23" data-q="fFeatureEnginee-23"><span class="qn">&bull;</span>2.4 Automated Profiling</a><a href="#fFeatureEnginee-24" data-q="fFeatureEnginee-24"><span class="qn">&bull;</span>3.1 Data Quality Dimensions</a><a href="#fFeatureEnginee-25" data-q="fFeatureEnginee-25"><span class="qn">&bull;</span>3.2 Data Types</a><a href="#fFeatureEnginee-26" data-q="fFeatureEnginee-26"><span class="qn">&bull;</span>3.3 Duplicates</a><a href="#fFeatureEnginee-27" data-q="fFeatureEnginee-27"><span class="qn">&bull;</span>3.4 String &amp; Category Standardization</a><a href="#fFeatureEnginee-28" data-q="fFeatureEnginee-28"><span class="qn">&bull;</span>4.1 The Three Mechanisms (learn these — common interview question)</a><a href="#fFeatureEnginee-29" data-q="fFeatureEnginee-29"><span class="qn">&bull;</span>4.2 Imputation Methods — With a Tiny Example</a><a href="#fFeatureEnginee-30" data-q="fFeatureEnginee-30"><span class="qn">&bull;</span>4.3 Decision Guide</a><a href="#fFeatureEnginee-31" data-q="fFeatureEnginee-31"><span class="qn">&bull;</span>5.1 Detection — Univariate</a><a href="#fFeatureEnginee-32" data-q="fFeatureEnginee-32"><span class="qn">&bull;</span>5.2 Detection — Multivariate (Mahalanobis Distance)</a><a href="#fFeatureEnginee-33" data-q="fFeatureEnginee-33"><span class="qn">&bull;</span>5.3 Treatment</a><a href="#fFeatureEnginee-34" data-q="fFeatureEnginee-34"><span class="qn">&bull;</span>The Running Example (used for every method below)</a><a href="#fFeatureEnginee-35" data-q="fFeatureEnginee-35"><span class="qn">&bull;</span>6.1 Label / Ordinal Encoding — *one integer per category</a><a href="#fFeatureEnginee-36" data-q="fFeatureEnginee-36"><span class="qn">&bull;</span>6.2 One-Hot / Dummy Encoding — *one column per category</a><a href="#fFeatureEnginee-37" data-q="fFeatureEnginee-37"><span class="qn">&bull;</span>6.3 Count &amp; Frequency Encoding — *replace with how often it appears</a><a href="#fFeatureEnginee-38" data-q="fFeatureEnginee-38"><span class="qn">&bull;</span>6.4 Target / Mean Encoding — *replace with the category's average target</a><a href="#fFeatureEnginee-39" data-q="fFeatureEnginee-39"><span class="qn">&bull;</span>6.5 Leave-One-Out &amp; Ordered (CatBoost) Encoding — *target encoding without cheating</a><a href="#fFeatureEnginee-40" data-q="fFeatureEnginee-40"><span class="qn">&bull;</span>6.6 Weight of Evidence (WoE) &amp; Information Value (IV) — *credit-scoring favorite</a><a href="#fFeatureEnginee-41" data-q="fFeatureEnginee-41"><span class="qn">&bull;</span>6.7 Binary &amp; Hashing Encoding — *squeeze huge cardinality into few columns</a><a href="#fFeatureEnginee-42" data-q="fFeatureEnginee-42"><span class="qn">&bull;</span>6.8 Rare-Label Encoding — *bucket the long tail</a><a href="#fFeatureEnginee-43" data-q="fFeatureEnginee-43"><span class="qn">&bull;</span>6.9 Entity Embeddings — *let a neural net learn the encoding</a><a href="#fFeatureEnginee-44" data-q="fFeatureEnginee-44"><span class="qn">&bull;</span>Side-by-Side Summary (the <code>city</code> column, every method)</a><a href="#fFeatureEnginee-45" data-q="fFeatureEnginee-45"><span class="qn">&bull;</span>Encoding Decision Guide</a><a href="#fFeatureEnginee-46" data-q="fFeatureEnginee-46"><span class="qn">&bull;</span>The Methods — Same Data, Different Results</a><a href="#fFeatureEnginee-47" data-q="fFeatureEnginee-47"><span class="qn">&bull;</span>The Toolkit</a><a href="#fFeatureEnginee-48" data-q="fFeatureEnginee-48"><span class="qn">&bull;</span>Worked Example — Killing Skew</a><a href="#fFeatureEnginee-49" data-q="fFeatureEnginee-49"><span class="qn">&bull;</span>Binning Strategies</a><a href="#fFeatureEnginee-50" data-q="fFeatureEnginee-50"><span class="qn">&bull;</span>Binarization</a><a href="#fFeatureEnginee-51" data-q="fFeatureEnginee-51"><span class="qn">&bull;</span>When (and When Not) to Bin</a><a href="#fFeatureEnginee-52" data-q="fFeatureEnginee-52"><span class="qn">&bull;</span>11.1 Component Extraction</a><a href="#fFeatureEnginee-53" data-q="fFeatureEnginee-53"><span class="qn">&bull;</span>11.2 Elapsed-Time Features (often the strongest)</a><a href="#fFeatureEnginee-54" data-q="fFeatureEnginee-54"><span class="qn">&bull;</span>11.3 Cyclical Encoding (the must-know trick)</a><a href="#fFeatureEnginee-55" data-q="fFeatureEnginee-55"><span class="qn">&bull;</span>Ratios, Products, Differences</a><a href="#fFeatureEnginee-56" data-q="fFeatureEnginee-56"><span class="qn">&bull;</span>Polynomial &amp; Interaction Features</a><a href="#fFeatureEnginee-57" data-q="fFeatureEnginee-57"><span class="qn">&bull;</span>Aggregation Features (group-level summaries)</a><a href="#fFeatureEnginee-58" data-q="fFeatureEnginee-58"><span class="qn">&bull;</span>Domain Cookbook</a><a href="#fFeatureEnginee-59" data-q="fFeatureEnginee-59"><span class="qn">&bull;</span>The Three Families</a><a href="#fFeatureEnginee-60" data-q="fFeatureEnginee-60"><span class="qn">&bull;</span>Filter Methods</a><a href="#fFeatureEnginee-61" data-q="fFeatureEnginee-61"><span class="qn">&bull;</span>Wrapper Methods</a><a href="#fFeatureEnginee-62" data-q="fFeatureEnginee-62"><span class="qn">&bull;</span>Embedded Methods</a><a href="#fFeatureEnginee-63" data-q="fFeatureEnginee-63"><span class="qn">&bull;</span>Strategy</a><a href="#fFeatureEnginee-64" data-q="fFeatureEnginee-64"><span class="qn">&bull;</span>The Three Kinds</a><a href="#fFeatureEnginee-65" data-q="fFeatureEnginee-65"><span class="qn">&bull;</span>Detection &amp; Prevention</a><a href="#fFeatureEnginee-66" data-q="fFeatureEnginee-66"><span class="qn">&bull;</span>Pick the Right Tool</a><a href="#fFeatureEnginee-67" data-q="fFeatureEnginee-67"><span class="qn">&bull;</span>Common Mistakes</a><a href="#fFeatureEnginee-68" data-q="fFeatureEnginee-68"><span class="qn">&bull;</span>Model-by-Model: What You Actually Need</a></nav>
+</aside>
+<main><div class="wrap">
+
+<section class="hero" id="top"><div class="eyebrow">03_Data_Handling &middot; SQL &amp; Features</div>
+<h1>SQL &amp; Features</h1><p class="lede">SQL for machine learning, and the feature-engineering master reference</p><div class="oneliner"><b>2 files</b> in this section, <b>69 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
+<div class="stats"><div class="stat"><div class="stat-v">2</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">69</div><div class="stat-l">sections</div></div></div></section>
+<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">SQL for machine learning, and the feature-engineering master reference</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>SQL for ML</b><span class="learn-n">18 sections</span></div><div class="learn-tags"><span>Fundamentals</span><span>JOINs Deep Dive</span><span>GROUP BY, HAVING &amp; Aggregations</span><span>Window Functions</span><span>Subqueries &amp; CTEs</span></div></li><li class="learn-item"><div class="learn-top"><b>Feature Engineering Master</b><span class="learn-n">51 sections</span></div><div class="learn-tags"><span>What Feature Engineering Is — The 4 P…</span><span>Exploratory Data Analysis (EDA)</span><span>Data Cleaning Foundations</span><span>Missing Data</span><span>Outliers</span></div></li></ul></section>
+
+<section class="filesec" id="f01SQLforMLmd"><header class="filehead"><div class="fh-top"><span class="fh-num">SQL for ML</span><span class="fh-count">18 sections</span><a class="fh-src" href="../../03_Data_Handling/01_SQL_for_ML.md">source .md &#8599;</a></div><h2>SQL for ML Engineers — Complete Reference</h2><div class="note">
+<p><strong>Scope:</strong> SELECT/WHERE/ORDER BY, JOINs (INNER/LEFT/RIGHT/FULL/CROSS/SELF), GROUP BY/HAVING, window functions (ROW_NUMBER/RANK/LAG/LEAD/NTILE), subqueries &amp; CTEs, recursive CTEs, aggregation (GROUPING SETS/ROLLUP/CUBE), set operations (UNION/INTERSECT/EXCEPT), CASE/COALESCE/NULLIF, EXISTS vs IN, string/date functions, EXPLAIN ANALYZE, indexes, transactions &amp; ACID, PIVOT/UNPIVOT, QUALIFY, SQL+Python integration, ML-specific query patterns, interview Q&amp;A.</p>
+</div></header><article class="q" id="f01SQLforMLmd-0"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Fundamentals</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-0"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">SQL (Structured Query Language)</span><span class="kt">tables</span></div><p><strong>SQL (Structured Query Language)</strong> is the standard language for querying and manipulating relational databases. Data is organized into <strong>tables</strong> (rows × columns), and SQL operations follow a logical execution order: <code>FROM</code> → <code>WHERE</code> → <code>GROUP BY</code> → <code>HAVING</code> → <code>SELECT</code> → <code>ORDER BY</code> → <code>LIMIT</code>. Understanding this order is crucial for debugging queries and writing efficient filters. SQL is essential for ML engineers because most production data lives in databases — feature extraction, data validation, and pipeline queries all require strong SQL skills.</p>
+<pre class="code" data-lang="sql"><code>-- Basic SELECT with filtering, sorting, limiting
+SELECT
+    employee_id,
+    first_name,
+    department,
+    salary,
+    hire_date
+FROM employees
+WHERE department = 'Engineering'
+  AND salary &gt; 80000
+  AND hire_date &gt;= '2020-01-01'
+ORDER BY salary DESC
+LIMIT 10;
+
+-- DISTINCT
+SELECT DISTINCT department FROM employees;
+SELECT COUNT(DISTINCT department) FROM employees;
+
+-- BETWEEN, IN, LIKE, IS NULL
+WHERE salary BETWEEN 50000 AND 100000    -- Inclusive
+WHERE department IN ('Engineering', 'Data Science', 'Product')
+WHERE name LIKE 'A%'                      -- Starts with A
+WHERE name LIKE '%son'                    -- Ends with son
+WHERE name LIKE '_a%'                     -- Second char is 'a'
+WHERE manager_id IS NULL                  -- Check for NULL (NOT = NULL!)
+WHERE manager_id IS NOT NULL
+
+-- Aliases
+SELECT
+    e.first_name AS name,
+    e.salary * 12 AS annual_salary
+FROM employees e;</code></pre>
+<div class="diagram"><pre>SQL EXECUTION ORDER (critical for interviews):
+  1. FROM / JOIN     ← Tables are assembled
+  2. WHERE           ← Rows filtered
+  3. GROUP BY        ← Rows grouped
+  4. HAVING          ← Groups filtered
+  5. SELECT          ← Columns chosen + expressions evaluated
+  6. DISTINCT        ← Duplicates removed
+  7. ORDER BY        ← Results sorted
+  8. LIMIT / OFFSET  ← Results trimmed
+  
+  WHY IT MATTERS:
+  - Can't use column alias in WHERE (SELECT runs after WHERE)
+  - CAN use column alias in ORDER BY (runs after SELECT)
+  - HAVING can filter on aggregates; WHERE cannot</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-1"><div class="q-h"><span class="q-n">&bull;</span><h3>2. JOINs Deep Dive</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-1"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">JOINs</span><span class="kt">INNER JOIN</span><span class="kt">LEFT JOIN</span><span class="kt">RIGHT JOIN</span><span class="kt">FULL OUTER JOIN</span><span class="kt">CROSS JOIN</span></div><p><strong>JOINs</strong> combine rows from two or more tables based on a related column. Types: <strong>INNER JOIN</strong> (only matching rows), <strong>LEFT JOIN</strong> (all left rows + matching right), <strong>RIGHT JOIN</strong> (all right rows + matching left), <strong>FULL OUTER JOIN</strong> (all rows from both), <strong>CROSS JOIN</strong> (Cartesian product), and <strong>SELF JOIN</strong> (table joined with itself). JOINs are the backbone of relational data — understanding which join type to use and how to handle NULLs from outer joins is critical for correct data extraction.</p>
+<pre class="code" data-lang="sql"><code>-- INNER JOIN: Only matching rows from both tables
+SELECT e.name, d.department_name
+FROM employees e
+INNER JOIN departments d ON e.dept_id = d.dept_id;
+
+-- LEFT JOIN: All rows from left table + matching from right (NULL if no match)
+SELECT e.name, d.department_name
+FROM employees e
+LEFT JOIN departments d ON e.dept_id = d.dept_id;
+
+-- RIGHT JOIN: Matching from left + all rows from right
+-- (Rarely used — rewrite as LEFT JOIN with tables swapped)
+
+-- FULL OUTER JOIN: All rows from both (NULL where no match)
+SELECT e.name, d.department_name
+FROM employees e
+FULL OUTER JOIN departments d ON e.dept_id = d.dept_id;
+
+-- CROSS JOIN: Cartesian product (every row × every row)
+SELECT e.name, p.project_name
+FROM employees e
+CROSS JOIN projects p;
+
+-- SELF JOIN: Table joined with itself
+-- Find employees earning more than their manager
+SELECT e.name AS employee, m.name AS manager, e.salary, m.salary
+FROM employees e
+JOIN employees m ON e.manager_id = m.employee_id
+WHERE e.salary &gt; m.salary;
+
+-- Anti-join (LEFT JOIN + NULL check): Find rows with NO match
+SELECT e.name
+FROM employees e
+LEFT JOIN departments d ON e.dept_id = d.dept_id
+WHERE d.dept_id IS NULL;  -- Employees with invalid department</code></pre>
+<div class="diagram"><pre>JOIN VISUALIZATION:
+  INNER:   ∩  (intersection)
+  LEFT:    ○─  (all left + matching right)
+  RIGHT:   ─○  (matching left + all right)
+  FULL:    ○─○  (all of both)
+  CROSS:   × (every combination)
+  
+  COMMON MISTAKE:
+  Filtering in WHERE vs ON for LEFT JOIN:
+    ON: Condition applied DURING join (keeps all left rows)
+    WHERE: Condition applied AFTER join (removes unmatched left rows → becomes INNER)</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-2"><div class="q-h"><span class="q-n">&bull;</span><h3>3. GROUP BY, HAVING &amp; Aggregations</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-2"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">GROUP BY</span><span class="kt">aggregate functions</span><span class="kt">HAVING</span></div><p><strong>GROUP BY</strong> partitions rows into groups based on one or more columns, then applies <strong>aggregate functions</strong> (<code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code>) to each group. <strong>HAVING</strong> filters groups <em>after</em> aggregation (unlike <code>WHERE</code>, which filters rows <em>before</em> grouping). Think of it as: <code>WHERE</code> = row-level filter, <code>HAVING</code> = group-level filter. This is used constantly for summarizing data: calculating average order value per customer, counting events per day, finding top-N categories, etc.</p>
+<pre class="code" data-lang="sql"><code>-- Basic aggregation
+SELECT
+    department,
+    COUNT(*) AS employee_count,
+    AVG(salary) AS avg_salary,
+    MIN(salary) AS min_salary,
+    MAX(salary) AS max_salary,
+    SUM(salary) AS total_salary,
+    ROUND(STDDEV(salary), 2) AS std_salary
+FROM employees
+GROUP BY department
+HAVING COUNT(*) &gt;= 5           -- Filter GROUPS (not rows)
+ORDER BY avg_salary DESC;
+
+-- COUNT variations
+COUNT(*)           -- Count all rows (including NULLs)
+COUNT(column)      -- Count non-NULL values
+COUNT(DISTINCT col)-- Count distinct non-NULL values
+
+-- GROUP BY with expressions
+SELECT
+    EXTRACT(YEAR FROM hire_date) AS hire_year,
+    EXTRACT(MONTH FROM hire_date) AS hire_month,
+    COUNT(*) AS hires
+FROM employees
+GROUP BY EXTRACT(YEAR FROM hire_date), EXTRACT(MONTH FROM hire_date);
+
+-- Multiple aggregations with CASE
+SELECT
+    department,
+    COUNT(CASE WHEN gender = 'M' THEN 1 END) AS male_count,
+    COUNT(CASE WHEN gender = 'F' THEN 1 END) AS female_count,
+    ROUND(AVG(CASE WHEN tenure &gt; 5 THEN salary END), 2) AS avg_salary_senior
+FROM employees
+GROUP BY department;</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-3"><div class="q-h"><span class="q-n">&bull;</span><h3>4. Window Functions</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-3"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Window functions</span><span class="kt">related to the current row</span><span class="kt">ROWNUMBER()</span><span class="kt">RANK()</span><span class="kt">DENSERANK()</span><span class="kt">LAG()</span></div><p><strong>Window functions</strong> perform calculations across a set of rows that are <strong>related to the current row</strong> — without collapsing groups like <code>GROUP BY</code>. They use the <code>OVER()</code> clause to define the window (partition and ordering). Key functions: <strong><code>ROW_NUMBER()</code></strong> (unique sequential number), <strong><code>RANK()</code></strong> / <strong><code>DENSE_RANK()</code></strong> (ranking with ties), <strong><code>LAG()</code></strong> / <strong><code>LEAD()</code></strong> (access previous/next row), <strong><code>SUM() OVER</code></strong> / <strong><code>AVG() OVER</code></strong> (running totals/averages), <strong><code>NTILE()</code></strong> (bucket distribution). Window functions are the most powerful SQL feature for analytics and ML feature engineering.</p>
+<pre class="code" data-lang="sql"><code>-- Window functions perform calculations ACROSS rows without collapsing them.
+-- Syntax: function() OVER (PARTITION BY ... ORDER BY ... ROWS/RANGE ...)
+
+-- ── Ranking functions ────────────────────────────────────
+SELECT
+    name, department, salary,
+    ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) AS row_num,
+    RANK()       OVER (PARTITION BY department ORDER BY salary DESC) AS rank,
+    DENSE_RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS dense_rank,
+    NTILE(4)     OVER (ORDER BY salary) AS quartile
+FROM employees;
+
+-- ROW_NUMBER: 1, 2, 3, 4 (always unique)
+-- RANK:       1, 2, 2, 4 (ties get same rank, next skipped)
+-- DENSE_RANK: 1, 2, 2, 3 (ties get same rank, next NOT skipped)
+-- NTILE(n):   Divides into n equal buckets
+
+-- ── LAG / LEAD (previous/next row) ──────────────────────
+SELECT
+    date,
+    revenue,
+    LAG(revenue, 1) OVER (ORDER BY date) AS prev_revenue,
+    LEAD(revenue, 1) OVER (ORDER BY date) AS next_revenue,
+    revenue - LAG(revenue, 1) OVER (ORDER BY date) AS daily_change,
+    ROUND(
+        (revenue - LAG(revenue, 1) OVER (ORDER BY date)) * 100.0 /
+        LAG(revenue, 1) OVER (ORDER BY date), 2
+    ) AS pct_change
+FROM daily_sales;
+
+-- ── Running totals / moving averages ────────────────────
+SELECT
+    date,
+    revenue,
+    SUM(revenue) OVER (ORDER BY date) AS running_total,
+    AVG(revenue) OVER (ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ma_7,
+    SUM(revenue) OVER (PARTITION BY EXTRACT(YEAR FROM date) ORDER BY date) AS ytd_revenue
+FROM daily_sales;
+
+-- ── FIRST_VALUE / LAST_VALUE ────────────────────────────
+SELECT
+    name, department, salary,
+    FIRST_VALUE(name) OVER (PARTITION BY department ORDER BY salary DESC) AS top_earner,
+    salary - FIRST_VALUE(salary) OVER (PARTITION BY department ORDER BY salary DESC) AS diff_from_top
+FROM employees;
+
+-- ── PERCENT_RANK / CUME_DIST ────────────────────────────
+SELECT
+    name, salary,
+    PERCENT_RANK() OVER (ORDER BY salary) AS percentile,
+    CUME_DIST() OVER (ORDER BY salary) AS cumulative_dist
+FROM employees;
+
+-- ── Top N per group (common interview pattern) ──────────
+SELECT * FROM (
+    SELECT
+        name, department, salary,
+        ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) AS rn
+    FROM employees
+) ranked
+WHERE rn &lt;= 3;
+
+-- QUALIFY (WHERE for window functions — BigQuery, Snowflake, Databricks)
+SELECT name, department, salary
+FROM employees
+QUALIFY ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) &lt;= 3;</code></pre>
+<div class="diagram"><pre>WINDOW FRAME TYPES:
+  ROWS BETWEEN:  Physical rows (1 row = 1 unit)
+  RANGE BETWEEN: Logical range on ORDER BY column value
+  
+  Common frames:
+    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW     → running total
+    ROWS BETWEEN 6 PRECEDING AND CURRENT ROW             → 7-day moving avg
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING → entire partition
+    ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING              → smoothing (prev + curr + next)</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-4"><div class="q-h"><span class="q-n">&bull;</span><h3>5. Subqueries &amp; CTEs</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-4"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">subquery</span><span class="kt">CTE (Common Table Expression)</span></div><p>A <strong>subquery</strong> is a query nested inside another query — it can appear in <code>SELECT</code> (scalar subquery), <code>FROM</code> (derived table), or <code>WHERE</code> (correlated subquery). A <strong>CTE (Common Table Expression)</strong> is a named temporary result set defined with <code>WITH ... AS (...)</code> that makes complex queries readable and reusable within the same statement. CTEs are preferred over subqueries for readability and can reference themselves (recursive CTEs). Both break complex logic into manageable steps.</p>
+<pre class="code" data-lang="sql"><code>-- ── Subquery in WHERE ───────────────────────────────────
+SELECT name, salary
+FROM employees
+WHERE salary &gt; (SELECT AVG(salary) FROM employees);
+
+-- Correlated subquery (references outer query)
+SELECT name, salary, department
+FROM employees e
+WHERE salary &gt; (
+    SELECT AVG(salary) FROM employees WHERE department = e.department
+);
+
+-- ── Subquery in FROM (derived table) ────────────────────
+SELECT department, avg_salary
+FROM (
+    SELECT department, AVG(salary) AS avg_salary
+    FROM employees
+    GROUP BY department
+) dept_stats
+WHERE avg_salary &gt; 80000;
+
+-- ── CTE (Common Table Expression) — cleaner than subqueries ──
+WITH dept_stats AS (
+    SELECT
+        department,
+        AVG(salary) AS avg_salary,
+        COUNT(*) AS headcount
+    FROM employees
+    GROUP BY department
+),
+company_avg AS (
+    SELECT AVG(salary) AS overall_avg FROM employees
+)
+SELECT
+    d.department,
+    d.avg_salary,
+    d.headcount,
+    c.overall_avg,
+    d.avg_salary - c.overall_avg AS diff_from_company
+FROM dept_stats d
+CROSS JOIN company_avg c
+ORDER BY diff_from_company DESC;
+
+-- Multiple CTEs build on each other — very powerful</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-5"><div class="q-h"><span class="q-n">&bull;</span><h3>6. Recursive CTEs</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-5"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Recursive CTEs</span><span class="kt">base case</span><span class="kt">recursive step</span></div><p><strong>Recursive CTEs</strong> are CTEs that reference themselves, enabling queries over hierarchical or graph-structured data. The structure: a <strong>base case</strong> (anchor member) + a <strong>recursive step</strong> that references the CTE itself, combined with <code>UNION ALL</code>. The recursion continues until no new rows are produced. Use cases: organizational charts (manager → reports), bill of materials, path finding, date series generation, and tree traversal. Always include a termination condition to prevent infinite loops.</p>
+<pre class="code" data-lang="sql"><code>-- ── Hierarchical data (org chart, category trees) ───────
+WITH RECURSIVE org_chart AS (
+    -- Base case: top-level (no manager)
+    SELECT
+        employee_id, name, manager_id, 1 AS level,
+        name AS path
+    FROM employees
+    WHERE manager_id IS NULL
+    
+    UNION ALL
+    
+    -- Recursive step: employees who report to someone in the CTE
+    SELECT
+        e.employee_id, e.name, e.manager_id, oc.level + 1,
+        oc.path || ' &gt; ' || e.name
+    FROM employees e
+    JOIN org_chart oc ON e.manager_id = oc.employee_id
+)
+SELECT * FROM org_chart ORDER BY path;
+
+-- ── Generate a date series ──────────────────────────────
+WITH RECURSIVE dates AS (
+    SELECT DATE '2024-01-01' AS dt
+    UNION ALL
+    SELECT dt + INTERVAL '1 day'
+    FROM dates
+    WHERE dt &lt; '2024-12-31'
+)
+SELECT dt FROM dates;
+
+-- ── Fibonacci with recursive CTE ────────────────────────
+WITH RECURSIVE fib AS (
+    SELECT 1 AS n, 0 AS a, 1 AS b
+    UNION ALL
+    SELECT n + 1, b, a + b FROM fib WHERE n &lt; 20
+)
+SELECT n, a AS fibonacci FROM fib;</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-6"><div class="q-h"><span class="q-n">&bull;</span><h3>7. Advanced Aggregation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-6"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Advanced aggregation</span><span class="kt">GROUPING SETS</span><span class="kt">ROLLUP</span><span class="kt">CUBE</span><span class="kt">conditional aggregation</span></div><p><strong>Advanced aggregation</strong> extends basic <code>GROUP BY</code> with specialized constructs: <strong><code>GROUPING SETS</code></strong> (specify exact grouping combinations), <strong><code>ROLLUP</code></strong> (hierarchical subtotals from right to left — e.g., year → year+month → year+month+day → grand total), and <strong><code>CUBE</code></strong> (all possible combinations of grouping columns). Additionally, <strong>conditional aggregation</strong> uses <code>CASE</code> inside aggregate functions (e.g., <code>SUM(CASE WHEN status='active' THEN 1 ELSE 0 END)</code>) to compute multiple metrics in a single pass. These are essential for reporting and dashboard queries.</p>
+<pre class="code" data-lang="sql"><code>-- ── GROUPING SETS (multiple GROUP BY in one query) ──────
+SELECT
+    COALESCE(department, 'ALL') AS department,
+    COALESCE(gender, 'ALL') AS gender,
+    COUNT(*) AS count,
+    AVG(salary) AS avg_salary
+FROM employees
+GROUP BY GROUPING SETS (
+    (department, gender),  -- By dept + gender
+    (department),          -- By dept only
+    (gender),              -- By gender only
+    ()                     -- Grand total
+);
+
+-- ── ROLLUP (hierarchical subtotals) ─────────────────────
+SELECT
+    department, title, 
+    COUNT(*), AVG(salary)
+FROM employees
+GROUP BY ROLLUP (department, title);
+-- Produces: (dept, title), (dept, NULL), (NULL, NULL)
+
+-- ── CUBE (all possible combinations) ────────────────────
+GROUP BY CUBE (department, title);
+-- Produces: (dept, title), (dept, NULL), (NULL, title), (NULL, NULL)
+
+-- Use GROUPING() to distinguish real NULLs from subtotal NULLs
+SELECT
+    CASE WHEN GROUPING(department) = 1 THEN 'ALL' ELSE department END,
+    COUNT(*)
+FROM employees
+GROUP BY ROLLUP (department);</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-7"><div class="q-h"><span class="q-n">&bull;</span><h3>8. Set Operations</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-7"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Set operations</span><span class="kt">UNION</span><span class="kt">UNION ALL</span><span class="kt">INTERSECT</span><span class="kt">EXCEPT</span><span class="kt">MINUS</span></div><p><strong>Set operations</strong> combine the result sets of two or more <code>SELECT</code> queries: <strong><code>UNION</code></strong> (all unique rows from both), <strong><code>UNION ALL</code></strong> (all rows including duplicates — faster), <strong><code>INTERSECT</code></strong> (only rows in both), and <strong><code>EXCEPT</code></strong>/<strong><code>MINUS</code></strong> (rows in first but not second). All set operations require the queries to have the <strong>same number of columns</strong> with <strong>compatible data types</strong>. <code>UNION ALL</code> is preferred over <code>UNION</code> when duplicates are acceptable, as it avoids the deduplication sort.</p>
+<pre class="code" data-lang="sql"><code>-- UNION: Combine results, remove duplicates
+SELECT name FROM employees_2023
+UNION
+SELECT name FROM employees_2024;
+
+-- UNION ALL: Combine results, keep duplicates (faster!)
+SELECT name FROM employees_2023
+UNION ALL
+SELECT name FROM employees_2024;
+
+-- INTERSECT: Rows in BOTH results
+SELECT employee_id FROM q1_sales
+INTERSECT
+SELECT employee_id FROM q2_sales;
+-- → Employees with sales in both Q1 AND Q2
+
+-- EXCEPT (MINUS in Oracle): Rows in first but NOT second
+SELECT employee_id FROM q1_sales
+EXCEPT
+SELECT employee_id FROM q2_sales;
+-- → Employees with Q1 sales but no Q2 sales
+
+-- Rules: Same number of columns, compatible types
+-- UNION removes duplicates (like DISTINCT) — use UNION ALL when possible for speed</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-8"><div class="q-h"><span class="q-n">&bull;</span><h3>9. CASE, COALESCE, NULLIF</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-8"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">CASE</span><span class="kt">COALESCE(a, b, c)</span><span class="kt">NULLIF(a, b)</span></div><p><strong><code>CASE</code></strong> is SQL's if/else logic: <code>CASE WHEN condition THEN result ELSE default END</code>. Use it to create computed columns, bin continuous values, and implement conditional aggregation. <strong><code>COALESCE(a, b, c)</code></strong> returns the first non-NULL argument — essential for providing defaults for missing data. <strong><code>NULLIF(a, b)</code></strong> returns NULL if <code>a = b</code> (useful for avoiding division by zero: <code>x / NULLIF(y, 0)</code>). These three constructs handle most conditional and NULL-related logic in SQL.</p>
+<pre class="code" data-lang="sql"><code>-- ── CASE expression ─────────────────────────────────────
+SELECT
+    name,
+    salary,
+    CASE
+        WHEN salary &gt;= 150000 THEN 'Senior'
+        WHEN salary &gt;= 100000 THEN 'Mid'
+        WHEN salary &gt;= 60000 THEN 'Junior'
+        ELSE 'Entry'
+    END AS level
+FROM employees;
+
+-- CASE in aggregation (pivot-like behavior)
+SELECT
+    department,
+    SUM(CASE WHEN year = 2023 THEN revenue ELSE 0 END) AS rev_2023,
+    SUM(CASE WHEN year = 2024 THEN revenue ELSE 0 END) AS rev_2024
+FROM sales
+GROUP BY department;
+
+-- ── COALESCE (first non-NULL value) ─────────────────────
+SELECT
+    COALESCE(phone, email, 'No Contact') AS contact_info
+FROM customers;
+
+-- ── NULLIF (return NULL if equal) ───────────────────────
+-- Avoid division by zero:
+SELECT revenue / NULLIF(cost, 0) AS margin FROM products;
+-- If cost = 0, NULLIF returns NULL → division returns NULL instead of error</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-9"><div class="q-h"><span class="q-n">&bull;</span><h3>10. EXISTS vs IN</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-9"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">EXISTS</span><span class="kt">any rows</span></div><p><strong><code>IN</code></strong> checks if a value matches any value in a list or subquery result: <code>WHERE id IN (SELECT id FROM ...)</code>.
+<strong><code>EXISTS</code></strong> checks if a correlated subquery returns <strong>any rows</strong> at all: <code>WHERE EXISTS (SELECT 1 FROM ... WHERE ...)</code>. Key differences: <code>EXISTS</code> short-circuits (stops at first match — faster for large subqueries), handles NULLs correctly (unlike <code>NOT IN</code> which fails with NULLs), and is preferred for correlated conditions. Use <code>IN</code> for small, known lists; use <code>EXISTS</code> for large correlated subqueries.</p>
+<pre class="code" data-lang="sql"><code>-- ── IN: Check membership in a list/subquery ─────────────
+SELECT * FROM employees
+WHERE department_id IN (SELECT dept_id FROM departments WHERE region = 'US');
+
+-- ── EXISTS: Check if a correlated subquery returns any rows ──
+SELECT * FROM employees e
+WHERE EXISTS (
+    SELECT 1 FROM orders o WHERE o.salesperson_id = e.employee_id
+);
+
+-- ── NOT EXISTS: Employees with NO orders ────────────────
+SELECT * FROM employees e
+WHERE NOT EXISTS (
+    SELECT 1 FROM orders o WHERE o.salesperson_id = e.employee_id
+);</code></pre>
+<div class="diagram"><pre>EXISTS vs IN:
+  IN:     Evaluates the subquery, creates a list, checks membership.
+          Handles NULLs in subquery result poorly (NULL IN (list) → UNKNOWN).
+          Better for: small result sets, static lists.
+  
+  EXISTS: Checks if at least one row exists (stops at first match).
+          Handles NULLs correctly.
+          Better for: large tables, correlated conditions.
+          
+  PERFORMANCE: 
+    EXISTS is often faster for large subqueries (short-circuits).
+    IN can be optimized well by query planner in modern databases.
+    Rule of thumb: if subquery is large, prefer EXISTS.</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-10"><div class="q-h"><span class="q-n">&bull;</span><h3>11. String &amp; Date Functions</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-10"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">strings</span><span class="kt">dates</span></div><p>SQL provides built-in functions for manipulating <strong>strings</strong> and <strong>dates</strong>: String functions include <code>CONCAT</code>, <code>SUBSTRING</code>, <code>TRIM</code>, <code>UPPER</code>/<code>LOWER</code>, <code>REPLACE</code>, <code>LENGTH</code>, <code>CHARINDEX</code>/<code>POSITION</code>, and <code>LIKE</code>/regex matching. Date functions include <code>DATEADD</code>/<code>DATE_ADD</code>, <code>DATEDIFF</code>, <code>EXTRACT</code>/<code>DATE_PART</code>, <code>DATE_TRUNC</code>, <code>CURRENT_DATE</code>, and formatting functions. These are essential for data cleaning (fixing dirty strings), feature engineering (extracting day-of-week, time since event), and time-based filtering. Note: syntax varies significantly between databases (PostgreSQL, MySQL, SQL Server).</p>
+<pre class="code" data-lang="sql"><code>-- ── String functions ─────────────────────────────────────
+UPPER(name), LOWER(name)
+TRIM(name), LTRIM(name), RTRIM(name)
+LENGTH(name), CHAR_LENGTH(name)
+SUBSTRING(name, 1, 3)             -- First 3 chars (1-indexed)
+CONCAT(first_name, ' ', last_name)
+first_name || ' ' || last_name    -- Concatenation operator
+REPLACE(text, 'old', 'new')
+POSITION('@' IN email)            -- Find position (1-indexed)
+LEFT(name, 3), RIGHT(name, 3)
+REVERSE(name)
+REGEXP_REPLACE(text, '[^a-zA-Z]', '')  -- Remove non-alpha
+
+-- ── Date functions ──────────────────────────────────────
+CURRENT_DATE, CURRENT_TIMESTAMP, NOW()
+EXTRACT(YEAR FROM hire_date)       -- Extract component
+DATE_TRUNC('month', hire_date)     -- Truncate to month start
+hire_date + INTERVAL '30 days'     -- Date arithmetic
+AGE(CURRENT_DATE, hire_date)       -- Difference (PostgreSQL)
+DATEDIFF(day, start_date, end_date)  -- SQL Server / MySQL
+
+-- Date formatting
+TO_CHAR(hire_date, 'YYYY-MM-DD')   -- PostgreSQL
+FORMAT(hire_date, 'yyyy-MM-dd')    -- SQL Server
+DATE_FORMAT(hire_date, '%Y-%m-%d') -- MySQL</code></pre>
+<hr />
+<h3>DML — INSERT, UPDATE, DELETE</h3>
+<pre class="code" data-lang="sql"><code>-- INSERT
+INSERT INTO customers (name, email, created_at)
+VALUES ('Alice', 'alice@example.com', CURRENT_TIMESTAMP);
+
+-- INSERT multiple rows
+INSERT INTO customers (name, email)
+VALUES ('Bob', 'bob@example.com'),
+       ('Charlie', 'charlie@example.com');
+
+-- INSERT from SELECT
+INSERT INTO customer_archive
+SELECT * FROM customers WHERE status = 'inactive';
+
+-- UPDATE
+UPDATE customers
+SET status = 'inactive', updated_at = CURRENT_TIMESTAMP
+WHERE last_login &lt; CURRENT_DATE - INTERVAL '365 days';
+
+-- UPDATE with JOIN (PostgreSQL syntax)
+UPDATE orders o
+SET status = 'cancelled'
+FROM customers c
+WHERE o.customer_id = c.id AND c.status = 'banned';
+
+-- DELETE
+DELETE FROM customers WHERE status = 'inactive';
+
+-- DELETE with subquery
+DELETE FROM orders
+WHERE customer_id IN (SELECT id FROM customers WHERE status = 'banned');
+
+-- TRUNCATE (faster than DELETE for removing ALL rows)
+TRUNCATE TABLE temp_data;  -- Cannot be rolled back in some DBs!</code></pre>
+<h3>DDL — CREATE, ALTER, DROP</h3>
+<pre class="code" data-lang="sql"><code>-- CREATE TABLE
+CREATE TABLE IF NOT EXISTS products (
+    id          SERIAL PRIMARY KEY,
+    name        VARCHAR(255) NOT NULL,
+    price       DECIMAL(10, 2) CHECK (price &gt;= 0),
+    category    VARCHAR(100) DEFAULT 'uncategorized',
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (name, category)
+);
+
+-- ALTER TABLE
+ALTER TABLE products ADD COLUMN description TEXT;
+ALTER TABLE products DROP COLUMN description;
+ALTER TABLE products ALTER COLUMN price SET DEFAULT 0.00;
+ALTER TABLE products RENAME COLUMN name TO product_name;
+ALTER TABLE products ADD CONSTRAINT positive_price CHECK (price &gt; 0);
+
+-- DROP TABLE
+DROP TABLE IF EXISTS temp_results;
+DROP TABLE IF EXISTS temp_results CASCADE;  -- Also drops dependent objects</code></pre>
+<h3>Temporary Tables</h3>
+<pre class="code" data-lang="sql"><code>-- Temporary table (session-scoped, auto-dropped)
+CREATE TEMP TABLE temp_results AS
+SELECT customer_id, SUM(amount) AS total
+FROM orders
+GROUP BY customer_id;
+
+-- Use like a regular table within the session
+SELECT * FROM temp_results WHERE total &gt; 1000;
+
+-- Global temp table (visible to all sessions — PostgreSQL doesn't have this)
+-- In SQL Server:
+-- CREATE TABLE ##global_temp (id INT, value VARCHAR(100));
+
+-- CTE vs Temp Table vs Subquery:
+--   CTE:        Readable, one-time use, optimized inline
+--   Temp Table:  Persistent within session, can index, reuse multiple times
+--   Subquery:    Inline, can be less readable for complex logic</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-11"><div class="q-h"><span class="q-n">&bull;</span><h3>12. Indexes &amp; Query Optimization</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-11"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">index</span><span class="kt">full table scan</span><span class="kt">covering indexes</span><span class="kt">composite indexes</span><span class="kt">query plans</span></div><p>An <strong>index</strong> is a data structure (usually a B-tree) that speeds up data retrieval at the cost of extra storage and slower writes. Without an index, the database performs a <strong>full table scan</strong> (O(n)). With a B-tree index, lookups are O(log n). Key concepts: <strong>covering indexes</strong> (include all columns needed, avoiding table lookups), <strong>composite indexes</strong> (multi-column — leftmost prefix rule applies), <strong>query plans</strong> (<code>EXPLAIN ANALYZE</code>), and optimization strategies: avoid <code>SELECT *</code>, filter early, minimize joins on large tables, and use <code>EXISTS</code> over <code>IN</code> for correlated subqueries.</p>
+<pre class="code" data-lang="sql"><code>-- ── EXPLAIN ANALYZE (see query execution plan) ──────────
+EXPLAIN ANALYZE
+SELECT * FROM employees WHERE department = 'Engineering';
+
+-- Key things to look for in EXPLAIN output:
+-- Seq Scan  → Full table scan (bad for large tables)
+-- Index Scan → Using an index (good!)
+-- Hash Join → Building hash table for join
+-- Nested Loop → For small tables or indexed inner table
+-- Sort → Sorting step (check if needed)
+-- Rows → Estimated vs actual row counts
+
+-- ── Creating indexes ────────────────────────────────────
+CREATE INDEX idx_emp_dept ON employees(department);
+CREATE INDEX idx_emp_dept_salary ON employees(department, salary);  -- Composite
+CREATE UNIQUE INDEX idx_emp_email ON employees(email);
+
+-- ── When to index ───────────────────────────────────────
+-- DO: Columns in WHERE, JOIN, ORDER BY clauses
+-- DO: Foreign keys
+-- DO: High-selectivity columns (many distinct values)
+-- DON'T: Small tables (sequential scan is faster)
+-- DON'T: Columns with very low cardinality (boolean, yes/no)
+-- DON'T: Tables with heavy INSERT/UPDATE (index maintenance overhead)</code></pre>
+<pre class="code"><code>QUERY OPTIMIZATION CHECKLIST:
+  1. SELECT only needed columns (avoid SELECT *)
+  2. Use WHERE to filter early
+  3. Use indexes on filtered/joined columns
+  4. Prefer EXISTS over IN for large subqueries
+  5. Avoid functions on indexed columns in WHERE (breaks index use)
+     BAD:  WHERE YEAR(hire_date) = 2024
+     GOOD: WHERE hire_date &gt;= '2024-01-01' AND hire_date &lt; '2025-01-01'
+  6. Use UNION ALL instead of UNION when duplicates don't matter
+  7. Avoid correlated subqueries when possible (use JOINs)
+  8. Use LIMIT for exploratory queries
+  9. Use CTEs for readability (most engines optimize them well)
+  10. Check EXPLAIN output for unexpected full table scans</code></pre>
+<hr />
+<h3>Database Normalization</h3>
+<div class="diagram"><pre>Normalization reduces data redundancy and ensures data integrity
+by organizing tables according to dependency rules.
+
+1NF (First Normal Form):
+  ✅ Each column contains atomic (indivisible) values
+  ✅ Each row is unique (has a primary key)
+  ❌ Violation: phone = "123, 456" (multiple values in one column)
+
+2NF (Second Normal Form):
+  ✅ Is in 1NF
+  ✅ All non-key columns depend on the ENTIRE primary key
+  ❌ Violation: In (student_id, course_id) → student_name
+     student_name depends only on student_id, not on course_id
+     Fix: Move student_name to a separate students table
+
+3NF (Third Normal Form):
+  ✅ Is in 2NF
+  ✅ No TRANSITIVE dependencies (non-key → non-key)
+  ❌ Violation: employee → department → department_head
+     department_head depends on department, not directly on employee
+     Fix: Move department_head to a departments table
+
+BCNF (Boyce-Codd Normal Form):
+  ✅ Is in 3NF
+  ✅ Every determinant is a candidate key
+  Rarely violated in practice if 3NF is achieved
+
+DENORMALIZATION (for ML/Analytics):
+  Sometimes we INTENTIONALLY denormalize for:
+  - Faster analytical queries (fewer JOINs)
+  - Data warehousing (star schema = denormalized)
+  - ML feature tables (wide, flat tables)
+  Trade-off: Redundancy ↑ but Query Speed ↑</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-12"><div class="q-h"><span class="q-n">&bull;</span><h3>13. Transactions &amp; ACID</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-12"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Transactions</span><span class="kt">fully completes</span><span class="kt">fully rolls back</span><span class="kt">ACID</span><span class="kt">Atomicity</span><span class="kt">Consistency</span></div><p><strong>Transactions</strong> group multiple SQL statements into a single unit of work that either <strong>fully completes</strong> (<code>COMMIT</code>) or <strong>fully rolls back</strong> (<code>ROLLBACK</code>). They guarantee <strong>ACID</strong> properties: <strong>Atomicity</strong> (all-or-nothing), <strong>Consistency</strong> (valid state transitions), <strong>Isolation</strong> (concurrent transactions don't interfere), <strong>Durability</strong> (committed data survives crashes). Isolation levels (READ UNCOMMITTED → READ COMMITTED → REPEATABLE READ → SERIALIZABLE) trade consistency for performance. Understanding transactions is critical for data pipelines that must not leave partial or corrupted data.</p>
+<pre class="code" data-lang="sql"><code>-- ── Transaction basics ──────────────────────────────────
+BEGIN TRANSACTION;
+
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+
+-- If both succeed:
+COMMIT;
+
+-- If something goes wrong:
+ROLLBACK;
+
+-- ── SAVEPOINT (partial rollback) ─────────────────────────
+BEGIN;
+INSERT INTO orders VALUES (...);
+SAVEPOINT sp1;
+INSERT INTO order_items VALUES (...);  -- This might fail
+ROLLBACK TO sp1;                        -- Undo only order_items
+COMMIT;                                 -- order still committed</code></pre>
+<div class="diagram"><pre>ACID PROPERTIES:
+  Atomicity    → All or nothing. Transaction either fully completes or fully rolls back.
+  Consistency  → Database moves from one valid state to another. Constraints enforced.
+  Isolation    → Concurrent transactions don't interfere with each other.
+  Durability   → Once committed, data survives crashes (written to disk).
+
+ISOLATION LEVELS (from weakest to strongest):
+  READ UNCOMMITTED → Can see uncommitted changes (dirty reads)
+  READ COMMITTED   → Only see committed data (default for PostgreSQL)
+  REPEATABLE READ  → Same query in a transaction returns same results
+  SERIALIZABLE     → Full isolation (as if transactions ran sequentially)
+  
+  Higher isolation = fewer anomalies but more locking/slower performance</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-13"><div class="q-h"><span class="q-n">&bull;</span><h3>14. PIVOT, UNPIVOT</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-13"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">PIVOT</span><span class="kt">UNPIVOT</span><span class="kt">conditional aggregation</span></div><p><strong>PIVOT</strong> transforms rows into columns (long → wide format): aggregates values and spreads a column's distinct values as new column headers. <strong>UNPIVOT</strong> does the reverse (wide → long): converts columns back into rows. In databases without native <code>PIVOT</code> syntax (like PostgreSQL), use <strong>conditional aggregation</strong> (<code>SUM(CASE WHEN ...)</code>) as an equivalent. PIVOT/UNPIVOT are used for creating reports, reshaping data for ML models, and comparing metrics across categories side-by-side.</p>
+<pre class="code" data-lang="sql"><code>-- ── PIVOT (rows to columns) — SQL Server / Snowflake ────
+SELECT * FROM (
+    SELECT department, quarter, revenue
+    FROM quarterly_sales
+) src
+PIVOT (
+    SUM(revenue) FOR quarter IN ('Q1', 'Q2', 'Q3', 'Q4')
+) pvt;
+
+-- ── Manual pivot with CASE (works everywhere) ───────────
+SELECT
+    department,
+    SUM(CASE WHEN quarter = 'Q1' THEN revenue ELSE 0 END) AS Q1,
+    SUM(CASE WHEN quarter = 'Q2' THEN revenue ELSE 0 END) AS Q2,
+    SUM(CASE WHEN quarter = 'Q3' THEN revenue ELSE 0 END) AS Q3,
+    SUM(CASE WHEN quarter = 'Q4' THEN revenue ELSE 0 END) AS Q4
+FROM quarterly_sales
+GROUP BY department;
+
+-- ── UNPIVOT (columns to rows) ───────────────────────────
+-- Manual approach (works everywhere):
+SELECT department, 'Q1' AS quarter, q1_revenue AS revenue FROM sales
+UNION ALL
+SELECT department, 'Q2', q2_revenue FROM sales
+UNION ALL
+SELECT department, 'Q3', q3_revenue FROM sales
+UNION ALL
+SELECT department, 'Q4', q4_revenue FROM sales;</code></pre>
+<hr />
+<h3>Views &amp; Materialized Views</h3>
+<pre class="code" data-lang="sql"><code>-- Regular View (virtual table — query runs each time)
+CREATE VIEW active_customers AS
+SELECT customer_id, name, email
+FROM customers
+WHERE status = 'active' AND last_login &gt; CURRENT_DATE - INTERVAL '90 days';
+
+-- Query a view like a regular table
+SELECT * FROM active_customers WHERE name LIKE 'A%';
+
+-- Drop a view
+DROP VIEW IF EXISTS active_customers;
+
+-- Materialized View (stores result physically — faster reads, stale data)
+CREATE MATERIALIZED VIEW monthly_revenue AS
+SELECT DATE_TRUNC('month', order_date) AS month,
+       SUM(amount) AS total_revenue,
+       COUNT(DISTINCT customer_id) AS unique_customers
+FROM orders
+GROUP BY 1;
+
+-- Must manually refresh
+REFRESH MATERIALIZED VIEW monthly_revenue;
+-- CONCURRENTLY allows reads during refresh (requires unique index)
+REFRESH MATERIALIZED VIEW CONCURRENTLY monthly_revenue;</code></pre>
+<div class="diagram"><pre>VIEW vs MATERIALIZED VIEW:
+  Feature          View              Materialized View
+  ───────          ────              ─────────────────
+  Storage          No (virtual)      Yes (physical)
+  Performance      Slow (re-runs)    Fast (pre-computed)
+  Freshness        Always current    Stale until REFRESH
+  Use case         Simplify queries  Dashboard/reporting cache
+  Indexes          ❌ No             ✅ Yes</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-14"><div class="q-h"><span class="q-n">&bull;</span><h3>15. SQL + Python Integration</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-14"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">SQL + Python integration</span><span class="kt">sqlite3</span><span class="kt">sqlalchemy</span><span class="kt">pandas.readsql()</span><span class="kt">psycopg2</span><span class="kt">pymysql</span></div><p><strong>SQL + Python integration</strong> connects data stored in databases to Python-based ML pipelines. Key libraries: <strong><code>sqlite3</code></strong> (built-in, for local SQLite), <strong><code>sqlalchemy</code></strong> (<abbr title="object-relational mapping">ORM</abbr> + raw SQL, connects to any database), <strong><code>pandas.read_sql()</code></strong> (query directly into DataFrames), and <strong><code>psycopg2</code></strong> / <strong><code>pymysql</code></strong> (database-specific drivers). Best practices: use parameterized queries (prevent SQL injection), read in chunks for large datasets, push filtering/aggregation to the database (don't <code>SELECT *</code> then filter in Python), and use connection pooling in production.</p>
+<pre class="code" data-lang="python"><code><span class="cmt"># ── SQLAlchemy (ORM + raw SQL) ───────────────────────────</span>
+<span class="kw">from</span> sqlalchemy <span class="kw">import</span> create_engine, text
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+
+engine = <span class="fn">create_engine</span>(<span class="str">'postgresql://user:pass@host:5432/dbname'</span>)
+
+<span class="cmt"># Read SQL into DataFrame</span>
+df = pd.<span class="fn">read_sql</span>(<span class="str">"SELECT * FROM employees WHERE dept = 'DS'"</span>, engine)
+
+<span class="cmt"># Parameterized query (NEVER use f-strings — SQL injection!)</span>
+query = <span class="fn">text</span>(<span class="str">"SELECT * FROM employees WHERE salary &gt; :min_sal"</span>)
+df = pd.<span class="fn">read_sql</span>(query, engine, params={<span class="str">'min_sal'</span>: <span class="num">80000</span>})
+
+<span class="cmt"># Write DataFrame to SQL</span>
+df.<span class="fn">to_sql</span>(<span class="str">'predictions'</span>, engine, if_exists=<span class="str">'replace'</span>, index=<span class="kw">False</span>)
+
+<span class="cmt"># ── sqlite3 (built-in, no install needed) ────────────────</span>
+<span class="kw">import</span> sqlite3
+
+conn = sqlite3.<span class="fn">connect</span>(<span class="str">'data.db'</span>)
+cursor = conn.<span class="fn">cursor</span>()
+cursor.<span class="fn">execute</span>(<span class="str">"SELECT * FROM users WHERE age &gt; ?"</span>, (<span class="num">25</span>,))
+rows = cursor.<span class="fn">fetchall</span>()
+conn.<span class="fn">close</span>()
+
+<span class="cmt"># ── DuckDB (fast analytics, reads Parquet/CSV directly) ──</span>
+<span class="kw">import</span> duckdb
+
+<span class="cmt"># Query Parquet directly — no loading into memory!</span>
+result = duckdb.<span class="fn">sql</span>(<span class="str">"""
+    SELECT department, AVG(salary) as avg_salary
+    FROM 'employees.parquet'
+    GROUP BY department
+    ORDER BY avg_salary DESC
+"""</span>).<span class="fn">df</span>()  <span class="cmt"># Returns pandas DataFrame</span>
+
+<span class="cmt"># Query existing DataFrame</span>
+df = pd.<span class="fn">read_csv</span>(<span class="str">'data.csv'</span>)
+result = duckdb.<span class="fn">sql</span>(<span class="str">"SELECT * FROM df WHERE salary &gt; 100000"</span>).<span class="fn">df</span>()</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-15"><div class="q-h"><span class="q-n">&bull;</span><h3>16. ML-Specific Query Patterns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-15"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">ML-specific SQL patterns</span><span class="kt">time-based features</span><span class="kt">ratio/proportion features</span><span class="kt">lag/lead features</span><span class="kt">sessionization</span><span class="kt">train/test splits</span></div><p><strong>ML-specific SQL patterns</strong> are queries designed for feature engineering, data preparation, and model evaluation directly in the database. Common patterns: <strong>time-based features</strong> (rolling averages, days since last event), <strong>ratio/proportion features</strong> (conversion rates, percentages), <strong>lag/lead features</strong> (previous purchase, next visit), <strong>sessionization</strong> (grouping events into sessions using gaps), <strong>train/test splits</strong> (random sampling with <code>ROW_NUMBER()</code>), <strong>label encoding</strong> (mapping categories to integers), and <strong>data validation</strong> (checking for nulls, duplicates, <abbr title="one label being far rarer than the others, so accuracy stops being meaningful">class imbalance</abbr>).</p>
+<pre class="code" data-lang="sql"><code>-- ── Feature engineering: Lag features for time series ────
+SELECT
+    user_id,
+    date,
+    purchase_amount,
+    LAG(purchase_amount, 1) OVER (PARTITION BY user_id ORDER BY date) AS prev_purchase,
+    LAG(purchase_amount, 7) OVER (PARTITION BY user_id ORDER BY date) AS purchase_7d_ago,
+    AVG(purchase_amount) OVER (
+        PARTITION BY user_id ORDER BY date ROWS BETWEEN 29 PRECEDING AND CURRENT ROW
+    ) AS avg_purchase_30d,
+    COUNT(*) OVER (
+        PARTITION BY user_id ORDER BY date ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+    ) AS purchase_count_7d
+FROM transactions;
+
+-- ── User retention / cohort analysis ─────────────────────
+WITH first_purchase AS (
+    SELECT user_id, MIN(DATE_TRUNC('month', purchase_date)) AS cohort_month
+    FROM purchases
+    GROUP BY user_id
+),
+monthly_activity AS (
+    SELECT
+        fp.cohort_month,
+        DATE_TRUNC('month', p.purchase_date) AS activity_month,
+        COUNT(DISTINCT p.user_id) AS active_users
+    FROM purchases p
+    JOIN first_purchase fp ON p.user_id = fp.user_id
+    GROUP BY fp.cohort_month, DATE_TRUNC('month', p.purchase_date)
+)
+SELECT
+    cohort_month,
+    activity_month,
+    active_users,
+    EXTRACT(MONTH FROM AGE(activity_month, cohort_month)) AS months_since_first
+FROM monthly_activity
+ORDER BY cohort_month, activity_month;
+
+-- ── RFM Scoring (Recency, Frequency, Monetary) ──────────
+WITH rfm AS (
+    SELECT
+        customer_id,
+        CURRENT_DATE - MAX(order_date) AS recency,
+        COUNT(*) AS frequency,
+        SUM(amount) AS monetary
+    FROM orders
+    WHERE order_date &gt;= CURRENT_DATE - INTERVAL '1 year'
+    GROUP BY customer_id
+)
+SELECT
+    customer_id,
+    recency, frequency, monetary,
+    NTILE(5) OVER (ORDER BY recency) AS r_score,        -- 1=most recent
+    NTILE(5) OVER (ORDER BY frequency DESC) AS f_score,  -- 5=most frequent
+    NTILE(5) OVER (ORDER BY monetary DESC) AS m_score     -- 5=highest spend
+FROM rfm;
+
+-- ── Train/test split by time ─────────────────────────────
+-- Training set: everything before cutoff
+SELECT * FROM features WHERE date &lt; '2024-01-01';
+-- Test set: after cutoff
+SELECT * FROM features WHERE date &gt;= '2024-01-01';
+
+-- ── Stratified sampling ─────────────────────────────────
+WITH ranked AS (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY label ORDER BY RANDOM()) AS rn
+    FROM dataset
+)
+SELECT * FROM ranked WHERE rn &lt;= 1000;  -- 1000 samples per class
+
+-- ── Finding duplicate records ────────────────────────────
+SELECT email, COUNT(*) AS cnt
+FROM users
+GROUP BY email
+HAVING COUNT(*) &gt; 1;
+
+-- ── Sessionization (gap-based) ──────────────────────────
+WITH events_with_gap AS (
+    SELECT
+        user_id, event_time,
+        CASE WHEN event_time - LAG(event_time) OVER (
+            PARTITION BY user_id ORDER BY event_time
+        ) &gt; INTERVAL '30 minutes' THEN 1 ELSE 0 END AS new_session
+    FROM clickstream
+)
+SELECT
+    user_id, event_time,
+    SUM(new_session) OVER (PARTITION BY user_id ORDER BY event_time) AS session_id
+FROM events_with_gap;</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-16"><div class="q-h"><span class="q-n">&bull;</span><h3>17. JSON Handling in SQL</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-16"><span></span></label></div><div class="q-a"><p>ML engineers frequently query JSON columns in logs, API responses, feature stores, and model metadata. PostgreSQL has the richest JSON support; MySQL and BigQuery also support it.</p>
+<h3>17.1 PostgreSQL <code>jsonb</code></h3>
+<pre class="code" data-lang="sql"><code>-- Table: model_registry (metadata stored as JSONB)
+CREATE TABLE model_registry (
+    model_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    metadata JSONB,      -- JSON binary (indexed, fast)
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Insert with JSON
+INSERT INTO model_registry (name, metadata) VALUES
+('fraud_model_v2', '{
+    "framework": "xgboost",
+    "metrics": {"auc": 0.94, "f1": 0.87, "precision": 0.91},
+    "features": ["amount", "hour", "merchant_category", "velocity_1h"],
+    "hyperparameters": {"max_depth": 6, "learning_rate": 0.1, "n_estimators": 500},
+    "training_samples": 150000,
+    "tags": ["production", "fraud", "v2"]
+}');
+
+-- ── Extract values ──────────────────────────────────────
+-- -&gt; returns JSON, -&gt;&gt; returns TEXT
+SELECT
+    name,
+    metadata-&gt;&gt;'framework' AS framework,              -- 'xgboost' (text)
+    metadata-&gt;'metrics'-&gt;&gt;'auc' AS auc_score,          -- '0.94' (text)
+    (metadata-&gt;'metrics'-&gt;&gt;'auc')::FLOAT AS auc_float, -- 0.94 (number)
+    metadata-&gt;'hyperparameters'-&gt;&gt;'max_depth' AS depth
+FROM model_registry;
+
+-- ── Filter on JSON fields ───────────────────────────────
+SELECT name
+FROM model_registry
+WHERE (metadata-&gt;'metrics'-&gt;&gt;'auc')::FLOAT &gt; 0.90
+  AND metadata-&gt;&gt;'framework' = 'xgboost';
+
+-- ── Check if JSON contains a key ───────────────────────
+SELECT name FROM model_registry
+WHERE metadata ? 'tags';           -- Has 'tags' key
+
+-- ── Contains operator (@&gt;) ─────────────────────────────
+SELECT name FROM model_registry
+WHERE metadata @&gt; '{"framework": "xgboost"}';
+
+-- ── Expand JSON arrays ────────────────────────────────
+SELECT name, jsonb_array_elements_text(metadata-&gt;'features') AS feature
+FROM model_registry;
+-- Returns one row per feature (like pandas explode)
+
+-- ── Aggregate JSON arrays ─────────────────────────────
+SELECT jsonb_array_length(metadata-&gt;'features') AS num_features
+FROM model_registry;
+
+-- ── GIN index for fast JSON queries ────────────────────
+CREATE INDEX idx_metadata ON model_registry USING GIN (metadata);</code></pre>
+<h3>17.2 MySQL JSON Functions</h3>
+<pre class="code" data-lang="sql"><code>-- MySQL 5.7+
+SELECT
+    name,
+    JSON_EXTRACT(metadata, '$.framework') AS framework,
+    JSON_EXTRACT(metadata, '$.metrics.auc') AS auc,
+    JSON_LENGTH(JSON_EXTRACT(metadata, '$.features')) AS num_features
+FROM model_registry
+WHERE JSON_EXTRACT(metadata, '$.metrics.auc') &gt; 0.90;
+
+-- Shorthand: -&gt;&gt; extracts as text (MySQL 8.0+)
+SELECT metadata-&gt;&gt;'$.framework' FROM model_registry;
+
+-- JSON_TABLE: Expand JSON to relational rows (MySQL 8.0+)
+SELECT m.name, j.feature
+FROM model_registry m,
+     JSON_TABLE(m.metadata, '$.features[*]'
+         COLUMNS (feature VARCHAR(100) PATH '$')
+     ) AS j;</code></pre>
+<h3>17.3 BigQuery JSON (for GCP Users)</h3>
+<pre class="code" data-lang="sql"><code>-- BigQuery uses JSON_EXTRACT_SCALAR for string values
+SELECT
+    JSON_EXTRACT_SCALAR(metadata, '$.framework') AS framework,
+    CAST(JSON_EXTRACT_SCALAR(metadata, '$.metrics.auc') AS FLOAT64) AS auc
+FROM `project.dataset.model_registry`;
+
+-- Unnest JSON arrays in BigQuery
+SELECT name, feature
+FROM `project.dataset.model_registry`,
+     UNNEST(JSON_EXTRACT_STRING_ARRAY(metadata, '$.features')) AS feature;</code></pre>
+<pre class="code"><code>QUICK REFERENCE:
+  PostgreSQL:  -&gt; (JSON), -&gt;&gt; (text), @&gt; (contains), ? (has key)
+  MySQL:       JSON_EXTRACT(), -&gt;&gt; (text), JSON_TABLE()
+  BigQuery:    JSON_EXTRACT_SCALAR(), JSON_EXTRACT_STRING_ARRAY()
+  
+COMMON ML USE CASES:
+  - Querying experiment tracking logs (MLflow metadata)
+  - Parsing API response columns in feature stores  
+  - Extracting model hyperparameters from registries
+  - Analyzing user event payloads for feature engineering</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01SQLforMLmd-17"><div class="q-h"><span class="q-n">&bull;</span><h3>18. Interview Deep Dive</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-17"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">INNER JOIN</span><span class="kt">LEFT JOIN</span><span class="kt">EXPLAIN ANALYZE</span><span class="kt">Add indexes</span><span class="kt">Reduce result set early</span><span class="kt">Avoid SELECT</span></div><h3>Q1: Explain the difference between WHERE and HAVING.</h3>
+<p><strong>A:</strong> <code>WHERE</code> filters individual rows before grouping — it cannot use aggregate functions. <code>HAVING</code> filters groups after <code>GROUP BY</code> — it can use aggregates. Example: "employees with salary &gt; 50000" → WHERE. "Departments with average salary &gt; 50000" → HAVING. Execution order: WHERE runs at step 2 (before GROUP BY), HAVING runs at step 4 (after GROUP BY). You can use both in the same query to first filter rows, then filter groups.</p>
+<h3>Q2: What are window functions? How do they differ from GROUP BY?</h3>
+<p><strong>A:</strong> Window functions perform calculations across a set of rows related to the current row WITHOUT collapsing them. GROUP BY collapses rows into one per group. With window functions, you see the original row PLUS the computed value. Example: <code>AVG(salary) OVER (PARTITION BY department)</code> adds department average to each row, while <code>GROUP BY department</code> would collapse to one row per department. Window functions use <code>OVER()</code> clause with optional <code>PARTITION BY</code> (define groups) and <code>ORDER BY</code> (define row order within groups).</p>
+<h3>Q3: Write a query to find the second highest salary in each department.</h3>
+<p><strong>A:</strong></p>
+<pre class="code" data-lang="sql"><code>WITH ranked AS (
+    SELECT name, department, salary,
+           DENSE_RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS rnk
+    FROM employees
+)
+SELECT name, department, salary
+FROM ranked
+WHERE rnk = 2;</code></pre>
+<p>Use <code>DENSE_RANK()</code> (not <code>RANK()</code>) to handle ties correctly — if two employees are tied for the highest salary, the next distinct salary gets rank 2 (not 3).</p>
+<h3>Q4: Explain LEFT JOIN vs INNER JOIN. When would you use each?</h3>
+<p><strong>A:</strong> <strong>INNER JOIN</strong> returns only rows with matches in both tables — rows with no match are dropped. <strong>LEFT JOIN</strong> returns ALL rows from the left table, filling in NULLs from the right table where no match exists. Use INNER JOIN when you only want rows with complete data from both tables. Use LEFT JOIN when you want to keep all records from one table regardless of whether they have a match — e.g., "all customers, even those with no orders." Key gotcha: filtering the right table in WHERE (instead of ON) turns a LEFT JOIN into an INNER JOIN.</p>
+<h3>Q5: How would you optimize a slow SQL query?</h3>
+<p><strong>A:</strong> (1) <strong>EXPLAIN ANALYZE</strong> — examine the execution plan for Seq Scans and expensive operations. (2) <strong>Add indexes</strong> on filtered/joined columns. (3) <strong>Reduce result set early</strong> — filter in WHERE before joins. (4) <strong>Avoid SELECT ***  — only retrieve needed columns. (5) </strong>Avoid functions on indexed columns<strong> in WHERE (<code>WHERE YEAR(date) = 2024</code> → <code>WHERE date &gt;= '2024-01-01' AND date &lt; '2025-01-01'</code>). (6) </strong>Replace correlated subqueries with JOINs<strong>. (7) </strong>Use UNION ALL instead of UNION<strong>. (8) </strong>Partition large tables<strong> by date or key columns. (9) </strong>Materialize expensive CTEs** if they're referenced multiple times.</p>
+<h3>Q6: What are CTEs and recursive CTEs? When would you use them?</h3>
+<p><strong>A:</strong> A <strong>CTE</strong> (Common Table Expression) is a named temporary result set defined with <code>WITH</code>. It improves readability and can be referenced multiple times in the main query. A <strong>recursive CTE</strong> references itself to process hierarchical/tree data — employee org charts, category trees, bill of materials. It has a base case (anchor) and a recursive step, connected by <code>UNION ALL</code>. The database iterates until no new rows are produced. Use regular CTEs for clean query organization. Use recursive CTEs when data has parent-child relationships or you need to generate series.</p>
+<h3>Q7: Explain ACID properties with examples.</h3>
+<p><strong>A:</strong> <strong>Atomicity</strong>: Bank transfer — debit from Account A and credit to Account B must both succeed or both fail. No partial transfers. <strong>Consistency</strong>: After transfer, total money across all accounts stays the same. Constraints (foreign keys, check constraints) are never violated. <strong>Isolation</strong>: Two concurrent transfers don't interfere — each sees a consistent snapshot. Without isolation: one transaction might read the balance between the debit and credit of another. <strong>Durability</strong>: Once the transfer is committed, it survives server crashes — data is written to durable storage (disk/<abbr title="write-ahead log">WAL</abbr>).</p>
+<h3>Q8: How do you detect and handle NULLs in SQL?</h3>
+<p><strong>A:</strong> NULLs represent unknown/missing values. Any comparison with NULL returns UNKNOWN (not TRUE/FALSE): <code>NULL = NULL → UNKNOWN</code>, <code>NULL &gt; 5 → UNKNOWN</code>. Detection: <code>IS NULL</code> / <code>IS NOT NULL</code> (never <code>= NULL</code>). Handling: <code>COALESCE(col, default)</code> returns first non-NULL value. <code>NULLIF(a, b)</code> returns NULL if a=b (useful for avoiding division by zero: <code>x / NULLIF(y, 0)</code>). Aggregates ignore NULLs: <code>AVG(col)</code> averages only non-NULL values. <code>COUNT(*)</code> counts all rows; <code>COUNT(col)</code> counts non-NULL only. In JOINs, NULL ≠ NULL, so rows with NULL keys won't match.</p>
+<hr />
+<p><em>Previous: <a href="../../02_Mathematics_and_Statistics/03_Inference_and_Testing.md">../02_Mathematics_and_Statistics/03_Inference_and_Testing.md</a> | Next: <a href="sql.html#fFeatureEnginee">Feature_Engineering_Master.md</a></em></p>
+<div class="note">
+<p><strong>Pandas &amp; NumPy reference</strong> has moved to <a href="../../01_Python/24_Pandas/Pandas_and_NumPy_Reference.md">../01_Python/24_Pandas/Pandas_and_NumPy_Reference.md</a>.</p>
+</div></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fFeatureEnginee"><header class="filehead"><div class="fh-top"><span class="fh-num">Feature Engineering Master</span><span class="fh-count">51 sections</span><a class="fh-src" href="../../03_Data_Handling/Feature_Engineering_Master.md">source .md &#8599;</a></div><h2>Feature Engineering — Master Notes</h2><div class="note">
+<p><strong>One file, everything.</strong> <abbr title="exploratory data analysis">EDA</abbr> → Data Cleaning → Missing Data → Outliers → Encoding → Scaling → Transformations → Binning/Binarization → Mixed Variables → Date/Time → Feature Construction → Extraction → Selection → Leakage → Interview.</p>
+<p><strong>Style:</strong> intuition first, then a <em>simple worked example with real numbers</em>, then "when to use / watch out." No code — concepts and examples only. All example numbers are hand-checkable.</p>
+</div></header><div class="parthead"><span>1. What Feature Engineering Is — The 4 Pillars</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> A model only ever sees the <em>numbers you feed it</em>. Feature engineering is the craft of turning raw, messy data into informative numbers so the model can actually learn the pattern. It is usually the single biggest lever on accuracy — bigger than the choice of algorithm.</p>
+<div class="diagram"><pre>Impact ranking (typical):
+  Feature engineering   →  2–10× improvement      ← biggest lever
+  Hyperparameter tuning →  1.1–1.5×
+  Model architecture    →  1.0–1.3×
+
+Time spent: 60–80% of an ML project is data + features.</pre></div></div><article class="q" id="fFeatureEnginee-18"><div class="q-h"><span class="q-n">&bull;</span><h3>The 4 Pillars (the mental map for this whole file)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-18"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Construction</span><span class="kt">Transformation</span><span class="kt">Extraction</span><span class="kt">Selection</span></div><div class="diagram"><pre>                     FEATURE ENGINEERING
+                            │
+   ┌────────────┬───────────┼────────────┬─────────────┐
+   ▼            ▼           ▼            ▼
+CONSTRUCTION  TRANSFORMATION  EXTRACTION   SELECTION
+(create new) (reshape one)   (compress many) (keep a subset)
+   │            │              │             │
+ ratios,     scaling, log,   PCA, SVD,     drop weak/
+ aggregates, encoding,       embeddings,   correlated/
+ polynomial, binning         autoencoders  leaky features</pre></div>
+<div class="tbl-wrap"><table class="t4"><thead><tr><th>Pillar</th><th>Question it answers</th><th>Examples</th><th>Sections</th></tr></thead><tbody><tr class="g1"><td><strong>Construction</strong></td><td><em>What new signal can I build?</em></td><td><code>price_per_sqft</code>, RFM, lags</td><td>§11, §12</td></tr><tr class="g0"><td><strong>Transformation</strong></td><td><em>How do I reshape an existing column?</em></td><td>encode, scale, log, bin</td><td>§6–§11</td></tr><tr class="g1"><td><strong>Extraction</strong></td><td><em>Can I compress many columns into a few?</em></td><td><abbr title="principal component analysis">PCA</abbr>, SVD, embeddings</td><td>§13</td></tr><tr class="g0"><td><strong>Selection</strong></td><td><em>Which features should I keep?</em></td><td>variance, MI, Lasso</td><td>§14</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-19"><div class="q-h"><span class="q-n">&bull;</span><h3>The Workflow</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-19"><span></span></label></div><div class="q-a"><div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px"><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">RAW DATA</span><span class="ar">&rarr;</span><span class="st"><abbr title="exploratory data analysis">EDA</abbr></span><span class="ar">&rarr;</span><span class="st">CLEAN</span><span class="ar">&rarr;</span><span class="st">FIX MISSING/OUTLIERS</span><span class="ar">&rarr;</span><span class="st">ENCODE/SCALE/TRANSFORM</span></div><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">CREATE</span><span class="ar">&rarr;</span><span class="st">EXTRACT</span><span class="ar">&rarr;</span><span class="st">SELECT</span><span class="ar">&rarr;</span><span class="st">CHECK FOR LEAKAGE</span><span class="ar">&rarr;</span><span class="st">MODEL</span></div></div>
+<div class="note">
+<p><strong>Golden rule that appears in every section:</strong> learn every transformation's parameters (means, category maps, bin edges, scaler stats) <strong>from the training data only</strong>, then apply them to validation/test. Peeking at test data = <em>data leakage</em> (§15).</p>
+</div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>2. Exploratory Data Analysis (EDA)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> Before engineering anything, <em>look at the data</em>. <abbr title="exploratory data analysis">EDA</abbr> is the structured habit of examining one variable at a time, then pairs, then the whole picture — so you choose the right cleaning and encoding instead of guessing.</p></div><article class="q" id="fFeatureEnginee-20"><div class="q-h"><span class="q-n">&bull;</span><h3>2.1 Univariate Analysis (one variable at a time)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-20"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Numeric</span><span class="kt">Categorical</span><span class="kt">Reading cardinality (categoricals)</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Variable type</th><th>What to look at</th><th>Red flags</th></tr></thead><tbody><tr class="g1"><td><strong>Numeric</strong></td><td>min/max, mean vs median, spread, skewness, histogram, box plot</td><td>huge mean≠median (skew), impossible values, spikes</td></tr><tr class="g0"><td><strong>Categorical</strong></td><td>counts, % of each level, number of unique levels (cardinality)</td><td>one level = <span class="mag">99%</span> (near-constant), 5,000 unique levels (high cardinality)</td></tr></tbody></table></div>
+<p><strong>Simple example — spotting skew with mean vs median:</strong></p>
+<div class="diagram"><pre>incomes (k): 20, 22, 25, 28, 30, 35, 40, 500
+mean   = 87.5      ← dragged up by the 500
+median = 29        ← the "typical" person
+mean ≫ median  →  right-skewed  →  expect to log-transform (§8)</pre></div>
+<p><strong>Reading cardinality (categoricals):</strong></p>
+<pre class="code"><code>unique levels   label              typical handling
+&lt; 10            LOW                one-hot encode (§6)
+10–50           MEDIUM             target / frequency encode
+&gt; 50            HIGH               target / binary / hashing / embeddings</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-21"><div class="q-h"><span class="q-n">&bull;</span><h3>2.2 Bivariate Analysis (two variables / feature ↔ target)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-21"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Plain words</span><span class="kt">Which correlation to use</span><span class="kt">Correlation ≠ causation</span></div><p><strong>Plain words:</strong> does this feature actually relate to the target? Pick the tool by the pair of types.</p>
+<pre class="code"><code>PAIR OF TYPES                 TOOL
+numeric  ↔ numeric            scatter plot, correlation (Pearson/Spearman)
+numeric  ↔ categorical        box plot per group, group means, t-test/ANOVA
+categorical ↔ categorical     crosstab, stacked bar, Cramér's V, chi-square
+feature  ↔ binary target      group mean of target per level (= target encoding!)</code></pre>
+<p><strong>Simple example — group means reveal a useful feature:</strong></p>
+<div class="diagram"><pre>              churn rate
+plan = Basic     0.45
+plan = Pro       0.22
+plan = Premium   0.08
+Spread 0.08 → 0.45 = strong signal. "plan" is worth keeping.</pre></div>
+<p><strong>Which correlation to use:</strong></p>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Method</th><th>Captures</th><th>Use when</th></tr></thead><tbody><tr class="g1"><td>Pearson</td><td>straight-line relationship</td><td>numeric, roughly normal, no big outliers</td></tr><tr class="g0"><td>Spearman</td><td>any <em>monotonic</em> (always-up or always-down) trend</td><td>ranks, skew, outliers</td></tr><tr class="g1"><td>Cramér's V</td><td>strength between two categoricals</td><td>both columns are categories</td></tr></tbody></table></div>
+<div class="note">
+<p>⚠️ <strong>Correlation ≠ causation.</strong> A feature can correlate with the target through a hidden confounder.</p>
+</div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-22"><div class="q-h"><span class="q-n">&bull;</span><h3>2.3 Multivariate Analysis (the whole picture)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-22"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Correlation heatmap</span><span class="kt">Pair plots / grouped scatter</span><span class="kt">Target by two dimensions at once</span></div><ul>
+<li><strong>Correlation heatmap</strong> → find clusters of features saying the same thing (multicollinearity) → candidates to drop in selection (§14).</li>
+<li><strong>Pair plots / grouped scatter</strong> → see interactions (effect of A depends on B).</li>
+<li><strong>Target by two dimensions at once</strong> (e.g., churn by <code>plan × region</code>) → reveals interaction features to <em>construct</em> (§12).</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-23"><div class="q-h"><span class="q-n">&bull;</span><h3>2.4 Automated Profiling</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-23"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Plain words</span><span class="kt">pandas-profiling / ydata-profiling</span><span class="kt">Sweetviz</span><span class="kt">D-Tale</span></div><p><strong>Plain words:</strong> tools like <strong>pandas-profiling / ydata-profiling</strong>, <strong>Sweetviz</strong>, or <strong>D-Tale</strong> generate a full report in one shot — per-column stats, distributions, missing-value map, correlations, duplicate/constant warnings.</p>
+<pre class="code"><code>Use it FIRST for a 5-minute overview, THEN do targeted manual EDA on the
+columns the report flags. It replaces the boring 80%, not the thinking 20%.</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>3. Data Cleaning Foundations</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Garbage in, garbage out. Clean before you engineer.</p></div><article class="q" id="fFeatureEnginee-24"><div class="q-h"><span class="q-n">&bull;</span><h3>3.1 Data Quality Dimensions</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-24"><span></span></label></div><div class="q-a"><div class="diagram"><pre>COMPLETENESS  Are values present?           → missing data (§4)
+ACCURACY      Are values correct?           → range/sanity checks
+CONSISTENCY   Do values agree?              → "NYC" vs "New York"
+VALIDITY      Do they follow the rules?     → age ∈ [0,120], end &gt; start
+UNIQUENESS    Any unwanted duplicates?      → dedup
+TIMELINESS    Is the data current?          → staleness checks</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-25"><div class="q-h"><span class="q-n">&bull;</span><h3>3.2 Data Types</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-25"><span></span></label></div><div class="q-a"><p>Wrong types silently break everything. Common fixes:</p>
+<div class="diagram"><pre>"$1,234.56"  (text)        → strip $ and , → number 1234.56
+"007" zip code             → keep as TEXT (numbers lose the leading 0)
+"yes"/"no"                 → boolean True/False
+"2024-13-40"               → invalid date → mark missing
+low-cardinality text       → store as 'category' (saves memory, speeds groupby)</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-26"><div class="q-h"><span class="q-n">&bull;</span><h3>3.3 Duplicates</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-26"><span></span></label></div><div class="q-a"><div class="diagram"><pre>EXACT     identical rows                    → drop, keep first
+KEY-BASED same (customer, date) twice       → sort by updated_at, keep latest
+FUZZY     "Apple Inc" vs "Apple,  Inc."     → string-similarity match, then unify</pre></div>
+<div class="note">
+<p>Always <strong>investigate before deleting</strong> — a "duplicate" may be a legitimate repeat event.</p>
+</div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-27"><div class="q-h"><span class="q-n">&bull;</span><h3>3.4 String &amp; Category Standardization</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-27"><span></span></label></div><div class="q-a"><div class="diagram"><pre>"  USA "  "usa"  "U.S.A."  "United States"   →  all map to  "us"
+Steps: trim spaces → lowercase → collapse repeats → apply a mapping dictionary.</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>4. Missing Data</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> real data has holes. <em>How</em> you fill them matters, and <strong>why</strong> a value is missing decides the right fix.</p></div><article class="q" id="fFeatureEnginee-28"><div class="q-h"><span class="q-n">&bull;</span><h3>4.1 The Three Mechanisms (learn these — common interview question)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-28"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">MCAR</span><span class="kt">MAR</span><span class="kt">MNAR</span><span class="kt">How to tell</span><span class="kt">Practical rule</span><span class="kt">missing-indicator</span></div><div class="tbl-wrap"><table class="t4"><thead><tr><th>Type</th><th>Meaning</th><th>Everyday example</th><th>Safe to…</th></tr></thead><tbody><tr class="g1"><td><strong>MCAR</strong> (completely at random)</td><td>missingness unrelated to anything</td><td>a sensor randomly dropped readings</td><td>drop or simple-impute</td></tr><tr class="g0"><td><strong>MAR</strong> (at random)</td><td>depends on <em>other observed</em> columns</td><td>income missing more for the young (age is known)</td><td>model-based impute (<abbr title="k-nearest neighbours">KNN</abbr>/MICE) using those columns</td></tr><tr class="g1"><td><strong>MNAR</strong> (not at random)</td><td>depends on the <em>missing value itself</em></td><td>high earners refuse to state income</td><td>add a "was-missing" flag; impute carefully</td></tr></tbody></table></div>
+<p><strong>How to tell:</strong> split rows into "value missing" vs "value present," then compare the <em>other</em> columns. If they look the same → likely MCAR. If they differ (missing-income rows are younger) → MAR/MNAR.</p>
+<div class="note">
+<p><strong>Practical rule:</strong> whenever missingness might carry meaning, add a <strong>missing-indicator</strong> column (1 if it was missing) <em>and</em> impute the value. You keep both signals.</p>
+</div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-29"><div class="q-h"><span class="q-n">&bull;</span><h3>4.2 Imputation Methods — With a Tiny Example</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-29"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Mean</span><span class="kt">46.25</span><span class="kt">Median</span><span class="kt">47.5</span><span class="kt">Mode (most frequent)</span><span class="kt">Arbitrary value</span></div><p>Running column (<code>income</code>, in k): <code>30, 40, ?, 55, 60</code> (the <code>?</code> is missing, paired with <code>age = 35</code>).</p>
+<div class="tbl-wrap"><table class="t4"><thead><tr><th>Method</th><th>What it fills the <code>?</code> with</th><th>Result</th><th>Best for</th></tr></thead><tbody><tr class="g1"><td><strong>Mean</strong></td><td>average of observed = (30+40+55+60)/4</td><td><strong>46.25</strong></td><td>MCAR, roughly symmetric</td></tr><tr class="g0"><td><strong>Median</strong></td><td>middle of observed</td><td><strong>47.5</strong></td><td>skewed / has outliers</td></tr><tr class="g1"><td><strong>Mode (most frequent)</strong></td><td>commonest value</td><td>—</td><td>categoricals</td></tr><tr class="g0"><td><strong>Arbitrary value</strong></td><td>a fixed flag like <code>-1</code> or <code>999</code></td><td><strong>-1</strong></td><td>trees; makes "missing" learnable</td></tr><tr class="g1"><td><strong>End-of-tail</strong></td><td>mean + 3×std (far edge)</td><td>far value</td><td>trees; like arbitrary but data-driven</td></tr><tr class="g0"><td><strong>Frequent category</strong></td><td>most common label</td><td>—</td><td>low-missing categoricals</td></tr><tr class="g1"><td><strong>Random sample</strong></td><td>a real observed value picked at random</td><td>e.g. <strong>40</strong></td><td>preserves the distribution</td></tr><tr class="g0"><td><strong><abbr title="k-nearest neighbours">KNN</abbr></strong></td><td>average of the <em>k</em> most similar rows</td><td><strong>47.5</strong> (see below)</td><td>MAR, related columns exist</td></tr><tr class="g1"><td><strong>MICE / Iterative</strong></td><td>predict it from all other columns, repeat</td><td>model-based</td><td>MAR, complex relationships</td></tr></tbody></table></div>
+<p><strong>KNN worked example (k = 2):</strong> the missing row has <code>age = 35</code>. Nearest two rows by age are <code>age 30 (income 40)</code> and <code>age 40 (income 55)</code>. Fill with their average:</p>
+<pre class="code"><code>income? = mean(40, 55) = 47.5</code></pre>
+<p><strong>MICE in one breath:</strong> treat the column with holes as a mini prediction target, predict the holes from the other columns, move to the next column, repeat the whole cycle a few times until values stop changing. Best quality, slowest.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-30"><div class="q-h"><span class="q-n">&bull;</span><h3>4.3 Decision Guide</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-30"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Leakage trap</span><span class="kt">train only</span></div><pre class="code"><code>missing %     action
+&lt; 5%          drop rows OR simple impute (median for numeric, mode for categorical)
+5–30%         impute + add missing-indicator
+30–50%        advanced impute (KNN/MICE) + indicator, and question the column
+&gt; 50%         usually drop the column — UNLESS being missing is itself informative</code></pre>
+<div class="note">
+<p>⚠️ <strong>Leakage trap:</strong> compute the impute value (mean/median/model) on <strong>train only</strong>, then apply to test. Fitting the mean on all data leaks test info.</p>
+</div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>5. Outliers</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> a few extreme values can dominate a mean, stretch a scaler, and wreck a linear model. First <em>detect</em>, then <em>decide</em> (they are not always errors — fraud <strong>is</strong> the outlier).</p></div><article class="q" id="fFeatureEnginee-31"><div class="q-h"><span class="q-n">&bull;</span><h3>5.1 Detection — Univariate</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-31"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">IQR rule (robust, the default)</span><span class="kt">Z-score</span></div><p>Running data: <code>10, 11, 12, 13, 12, 11, 10, 9, 80</code> (the <code>80</code> is the suspect).</p>
+<p><strong>IQR rule (robust, the default):</strong></p>
+<div class="diagram"><pre>Q1 = 10,  Q3 = 12,  IQR = Q3 − Q1 = 2
+fence = [Q1 − 1.5·IQR ,  Q3 + 1.5·IQR] = [7 , 15]
+80 is outside [7,15]  →  flagged ✅</pre></div>
+<p><strong>Z-score</strong> = how many std-devs from the mean: <code>z = (x − mean) / std</code>. Flag <code>|z| &gt; 3</code>.
+<em>Weakness:</em> the outlier itself inflates the mean and std, hiding itself.</p>
+<p><strong>Modified Z-score (robust, uses median):</strong></p>
+<div class="diagram"><pre>z_mod = 0.6745 · (x − median) / MAD      (MAD = median abs deviation)
+median = 11,  MAD = 1
+z_mod(80) = 0.6745 · (80 − 11) / 1 = 46.5     ≫ 3.5  →  flagged ✅</pre></div>
+<p>The modified z-score isn't fooled by the outlier because median and MAD barely move.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-32"><div class="q-h"><span class="q-n">&bull;</span><h3>5.2 Detection — Multivariate (Mahalanobis Distance)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-32"><span></span></label></div><div class="q-a"><p><strong>Plain words:</strong> a point can look normal on each axis alone yet be impossible <em>together</em> (e.g., <code>age = 4</code> with <code>height = 180cm</code>). Mahalanobis distance measures how far a point is from the center <strong>accounting for correlation between features</strong>.</p>
+<div class="diagram"><pre>D² = (x − mean)ᵀ · Σ⁻¹ · (x − mean)         (Σ = covariance matrix)
+
+Example points roughly on the line y≈x; the off-line point (4,1):
+  (2,2) (3,3) (4,4) (5,5) (6,6)  →  D² ≈ 0.2–2.2   (normal)
+  (4,1)                          →  D² = 4.17       (sticks out)
+Compare D² to a chi-square cutoff (df = #features): for 2 features, 7.38 at 97.5%.</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-33"><div class="q-h"><span class="q-n">&bull;</span><h3>5.3 Treatment</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-33"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Is it a data-entry error?      → fix it, or set to missing and impute (§4)
+Valid but extreme?             → CAP (winsorize) to the 1st/99th pct, or transform
+Is it the thing you study?     → KEEP (fraud, churn spikes, failures)
+Model is tree-based?           → usually keep — trees split, scale-invariant
+Model is linear / KNN / NN?    → cap or transform (§8) or RobustScaler (§7)</pre></div>
+<div class="diagram"><pre>Trimming   = delete outlier rows           (lose data; use sparingly)
+Capping    = clip to a limit (winsorize)   (keep row, tame the value)  ← most common
+Transform  = log/Box-Cox compresses tails  (§8)</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>6. Categorical Encoding — Every Method With an Example</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> models eat numbers, not words. Encoding turns categories like <code>"Paris"</code> into numbers — and <em>how</em> you do it changes whether the model learns truth or a fake ordering.</p></div><article class="q" id="fFeatureEnginee-34"><div class="q-h"><span class="q-n">&bull;</span><h3>The Running Example (used for every method below)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-34"><span></span></label></div><div class="q-a"><p>8 customers, a <code>city</code> column, and a binary <code>target</code> (1 = churned). Per-city summary:</p>
+<pre class="code"><code>city     rows  target values   count  mean(target)
+Paris     3    1, 0, 1           3      0.667
+London    2    0, 0              2      0.000
+Tokyo     2    1, 1              2      1.000
+Dubai     1    0                 1      0.000
+                          global mean target = 4/8 = 0.500</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-35"><div class="q-h"><span class="q-n">&bull;</span><h3>6.1 Label / Ordinal Encoding — *one integer per category</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-35"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Ordinal</span><span class="kt">tree models</span><span class="kt">Never</span></div><p>Map each category to an integer (alphabetical here).</p>
+<div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px"><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">Dubai</span><span class="ar">&rarr;</span><span class="st">0 London</span><span class="ar">&rarr;</span><span class="st">1 Paris</span><span class="ar">&rarr;</span><span class="st">2 Tokyo</span><span class="ar">&rarr;</span><span class="st">3</span></div></div>
+<ul>
+<li><strong>Ordinal</strong> = same idea but you <em>choose the order</em> on purpose (<code>low&lt;medium&lt;high → 0,1,2</code>).</li>
+<li>✅ Great for <strong>tree models</strong> and genuinely ordered categories.</li>
+<li>⚠️ <strong>Never</strong> for unordered categories in linear/NN models — it invents a false order (<code>Tokyo(3) &gt; Paris(2)</code> is meaningless).</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-36"><div class="q-h"><span class="q-n">&bull;</span><h3>6.2 One-Hot / Dummy Encoding — *one column per category</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-36"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Dummy</span><span class="kt">low cardinality (&lt; ~10–15 levels)</span></div><p>One new 0/1 column per level.</p>
+<div class="diagram"><pre>city    →  is_Paris  is_London  is_Tokyo  is_Dubai
+Paris        1          0          0         0
+London       0          1          0         0
+Tokyo        0          0          1         0</pre></div>
+<ul>
+<li><strong>Dummy</strong> = drop one column (e.g. <code>is_Dubai</code>) to avoid redundancy (the "dummy-variable trap") — important for linear models.</li>
+<li>✅ Best for <strong>low cardinality (&lt; ~10–15 levels)</strong> and linear/NN models.</li>
+<li>⚠️ 500 categories → 500 columns → sparse, slow, overfits.</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-37"><div class="q-h"><span class="q-n">&bull;</span><h3>6.3 Count &amp; Frequency Encoding — *replace with how often it appears</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-37"><span></span></label></div><div class="q-a"><pre class="code"><code>            count    frequency (count / 8)
+Paris         3         0.375
+London        2         0.250
+Tokyo         2         0.250
+Dubai         1         0.125</code></pre>
+<ul>
+<li>✅ One column, handles high cardinality, captures "popularity."</li>
+<li>⚠️ Two different categories with the <em>same</em> count become identical (collision).</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-38"><div class="q-h"><span class="q-n">&bull;</span><h3>6.4 Target / Mean Encoding — *replace with the category's average target</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-38"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Problem</span><span class="kt">Fix = smoothing</span><span class="kt">high-cardinality</span><span class="kt">Leakage-prone</span></div><p>Replace each city with its mean target.</p>
+<div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px"><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">Paris</span><span class="ar">&rarr;</span><span class="st">0.667 London</span><span class="ar">&rarr;</span><span class="st">0.000 Tokyo</span><span class="ar">&rarr;</span><span class="st">1.000 Dubai</span><span class="ar">&rarr;</span><span class="st">0.000</span><span class="fl" style="margin:0 0 0 10px">raw</span></div></div>
+<p><strong>Problem:</strong> <code>Dubai</code> has only 1 row → <code>0.0</code> is noise, and <code>Tokyo</code>'s <code>1.0</code> is overconfident. <strong>Fix = smoothing</strong> toward the global mean:</p>
+<div class="diagram"><pre>encoded = (n · category_mean + m · global_mean) / (n + m)        m = smoothing (e.g. 2)
+
+Paris : (3·0.667 + 2·0.5) / 5 = 0.600    ← barely moved (lots of data)
+Tokyo : (2·1.0   + 2·0.5) / 4 = 0.750    ← pulled in from 1.0 (little data)
+London: (2·0.0   + 2·0.5) / 4 = 0.250
+Dubai : (1·0.0   + 2·0.5) / 3 = 0.333    ← pulled hard toward 0.5 (only 1 row)</pre></div>
+<p>Big categories keep their own mean; rare ones lean on the global mean. <strong>Smoothing = trust data you have a lot of.</strong>
+- ✅ The go-to for <strong>high-cardinality</strong> tabular ML; one column, directly target-aware.
+- ⚠️ <strong>Leakage-prone</strong> — must be done with <abbr title="splitting data into folds and training repeatedly so the score is not one lucky split">cross-validation</abbr> / out-of-fold (see §6.5 and §15).</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-39"><div class="q-h"><span class="q-n">&bull;</span><h3>6.5 Leave-One-Out &amp; Ordered (CatBoost) Encoding — *target encoding without cheating</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-39"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Leave-One-Out</span><span class="kt">excluding that row</span><span class="kt">Ordered / CatBoost encoding</span></div><p><strong>Leave-One-Out:</strong> encode each row with its category's mean target <strong>excluding that row</strong> — so a row never sees its own answer.</p>
+<div class="diagram"><pre>Paris rows (targets 1,0,1):
+  row1 (t=1) → mean of the other two (0,1) = 0.5
+  row2 (t=0) → mean of the other two (1,1) = 1.0
+  row3 (t=1) → mean of the other two (1,0) = 0.5</pre></div>
+<p><strong>Ordered / CatBoost encoding:</strong> same spirit but uses only <em>past</em> rows in a random order — the trick CatBoost uses internally to avoid target leakage.
+- ✅ Strong high-cardinality encoders with built-in leakage protection.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-40"><div class="q-h"><span class="q-n">&bull;</span><h3>6.6 Weight of Evidence (WoE) &amp; Information Value (IV) — *credit-scoring favorite</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-40"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Plain words</span><span class="kt">binary</span><span class="kt">Reading IV (rule of thumb)</span><span class="kt">feature-selection</span></div><p><strong>Plain words:</strong> for a <strong>binary</strong> target, WoE tells you, per category, how much it leans "good" vs "bad" — on a clean log scale that linear models (logistic regression) love. <strong>IV</strong> rolls all categories into one number: <em>how predictive is this whole feature?</em></p>
+<div class="diagram"><pre>WoE = ln( %good_in_level / %bad_in_level )       (+ve → safer than average)
+IV  = Σ (%good − %bad) · WoE        over all levels</pre></div>
+<p>Worked example — an <code>age</code> feature binned, target = "bad" (default):</p>
+<pre class="code"><code>bin     good  bad   %good   %bad    WoE      IV part
+18–25    50    50   0.071   0.250  −1.253    0.224
+26–35   200   100   0.286   0.500  −0.560    0.120
+36–50   300    40   0.429   0.200  +0.762    0.174
+51+     150    10   0.214   0.050  +1.455    0.239
+totals  700   200                          IV = 0.757</code></pre>
+<p><strong>Reading IV (rule of thumb):</strong></p>
+<div class="diagram"><pre>&lt; 0.02   useless     0.1–0.3  medium      0.5+   suspiciously strong → check leakage
+0.02–0.1 weak        0.3–0.5  strong</pre></div>
+<ul>
+<li>✅ Monotonic, interpretable, perfect for logistic-regression scorecards; IV doubles as a <strong>feature-selection</strong> score.</li>
+<li>⚠️ Needs both classes present in every bin (smooth or merge empty bins).</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-41"><div class="q-h"><span class="q-n">&bull;</span><h3>6.7 Binary &amp; Hashing Encoding — *squeeze huge cardinality into few columns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-41"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Binary</span><span class="kt">base-2 across columns</span><span class="kt">Hashing (the &quot;hashing trick&quot;)</span><span class="kt">Any</span><span class="kt">Collisions</span></div><p><strong>Binary:</strong> integer-encode, then write the integer in <strong>base-2 across columns</strong>.</p>
+<div class="diagram"><pre>Dubai 0→00   London 1→01   Paris 2→10   Tokyo 3→11      (4 levels → 2 columns)
+500 levels → ~9 columns (log₂500), vs 500 for one-hot.</pre></div>
+<p><strong>Hashing (the "hashing trick"):</strong> run the category name through a hash function and take it mod <em>N</em> to land in one of <em>N</em> fixed buckets.
+- ✅ <strong>Any</strong> number of categories → a <em>fixed</em> small width; great for streaming/unknown future categories.
+- ⚠️ <strong>Collisions</strong> — two categories can share a bucket (usually a tolerable price).</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-42"><div class="q-h"><span class="q-n">&bull;</span><h3>6.8 Rare-Label Encoding — *bucket the long tail</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-42"><span></span></label></div><div class="q-a"><p>Group every category below a frequency threshold into a single <code>"Rare"</code> level.</p>
+<div class="diagram"><pre>Dubai is 12.5% of rows; with a 15% threshold →  Dubai → "Rare"</pre></div>
+<ul>
+<li>✅ Stops one-hot/target encoders from creating noisy columns for categories seen 3 times.</li>
+<li>Often a <strong>pre-step</strong> before one-hot or target encoding.</li>
+</ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-43"><div class="q-h"><span class="q-n">&bull;</span><h3>6.9 Entity Embeddings — *let a neural net learn the encoding</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-43"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Plain words</span><span class="kt">learns</span><span class="kt">very high cardinality</span></div><p><strong>Plain words:</strong> instead of you choosing numbers, a small neural-network layer <strong>learns</strong> a short vector (say 8 numbers) for each category during training, placing <em>similar</em> categories near each other (like word vectors). <code>"Paris"</code> and <code>"London"</code> may end up close because they behave similarly.
+- ✅ Best for <strong>very high cardinality</strong> with rich structure (user IDs, product IDs) inside deep models; can be reused across models.
+- ⚠️ Needs a neural net, more data, less interpretable.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-44"><div class="q-h"><span class="q-n">&bull;</span><h3>Side-by-Side Summary (the <code>city</code> column, every method)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-44"><span></span></label></div><div class="q-a"><div class="diagram"><pre>city    label  one-hot       count  freq    target  target   leave-   binary
+                (4 cols)              (norm)  (raw)   (m=2)    1-out
+Paris     2    1,0,0,0         3     0.375   0.667   0.600    0.5/1.0  10
+London    1    0,1,0,0         2     0.250   0.000   0.250    0.0      01
+Tokyo     3    0,0,1,0         2     0.250   1.000   0.750    1.0      11
+Dubai     0    0,0,0,1         1     0.125   0.000   0.333    0.5*     00
+                                                        (*LOO single row → global 0.5)</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-45"><div class="q-h"><span class="q-n">&bull;</span><h3>Encoding Decision Guide</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-45"><span></span></label></div><div class="q-a"><div class="diagram"><pre>binary (2 values)              → label (0/1)
+ordered categories             → ordinal with your chosen order
+nominal, &lt; 10 levels           → one-hot / dummy
+nominal, 10–50 levels          → target (smoothed/CV) or frequency
+nominal, &gt; 50 levels           → target, binary, hashing, or embeddings
+binary target + want scorecard → WoE (and use IV to rank features)
+tree models                    → label/ordinal works fine (no one-hot needed)
+linear / NN models             → one-hot or target/WoE (never raw label on nominal)</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>7. Feature Scaling</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> if <code>income</code> ranges 0–500,000 and <code>age</code> ranges 0–100, any distance- or gradient-based model thinks income is <span class="mag">5,000×</span> more important — purely because of units. Scaling puts features on a comparable footing.</p>
+<pre class="code"><code>MUST scale:  KNN, SVM, K-Means, PCA, neural nets, L1/L2-regularized linear models
+DON'T need:  decision trees, random forest, XGBoost/LightGBM (splits are scale-free)</code></pre></div><article class="q" id="fFeatureEnginee-46"><div class="q-h"><span class="q-n">&bull;</span><h3>The Methods — Same Data, Different Results</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-46"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Standard</span><span class="kt">2.00</span><span class="kt">Min-Max</span><span class="kt">1.00</span><span class="kt">Robust</span><span class="kt">21.5</span></div><p>Data with an outlier: <code>10, 12, 14, 16, 100</code>  →  <code>mean = 30.4, std = 34.9, median = 14, IQR = 4</code>.</p>
+<div class="tbl-wrap"><table class="t4"><thead><tr><th>Scaler</th><th>Formula</th><th>Result on the data</th><th>Notes</th></tr></thead><tbody><tr class="g1"><td><strong>Standard</strong></td><td>(x − mean) / std</td><td>−0.59, −0.53, −0.47, −0.41, <strong>2.00</strong></td><td>mean 0, std 1; outlier squashes the rest</td></tr><tr class="g0"><td><strong>Min-Max</strong></td><td>(x − min)/(max − min)</td><td>0, 0.02, 0.04, 0.07, <strong>1.00</strong></td><td>range [0,1]; the four real values cram into [0, 0.07]</td></tr><tr class="g1"><td><strong>Robust</strong></td><td>(x − median)/IQR</td><td>−1, −0.5, 0, 0.5, <strong>21.5</strong></td><td>inliers stay nicely spread; outlier flagged far out</td></tr><tr class="g0"><td><strong>MaxAbs</strong></td><td>x / max(|x|)</td><td>0.10, 0.12, 0.14, 0.16, <strong>1.00</strong></td><td>keeps sparsity/zeros; range [−1,1]</td></tr><tr class="g1"><td><strong>Normalizer</strong></td><td>row / ‖row‖</td><td>per-row unit length</td><td>for text/TF-IDF, cosine similarity</td></tr></tbody></table></div>
+<p><strong>The lesson in one line:</strong> with an outlier, Standard and Min-Max <em>crush the real values into a tiny band</em> while <strong>RobustScaler keeps the inliers readable</strong> (−1 … 0.5) and lets the outlier stick out (21.5). Outliers → reach for Robust.</p>
+<div class="note">
+<p>⚠️ <strong>Always</strong> fit the scaler on <strong>train</strong>, then transform train <em>and</em> test with those same numbers. Fitting on all data leaks.</p>
+</div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>8. Numerical Transformations</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> many models (especially linear ones) assume features are roughly symmetric/bell-shaped. Real columns are often right-skewed (income, prices, counts). A transformation <em>reshapes the distribution</em> to be more normal, which straightens relationships and tames outliers.</p></div><article class="q" id="fFeatureEnginee-47"><div class="q-h"><span class="q-n">&bull;</span><h3>The Toolkit</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-47"><span></span></label></div><div class="q-a"><pre class="code"><code>TRANSFORM        DOES                              USE WHEN
+log1p  ln(1+x)   compresses big values hard        right-skew, positive, has zeros
+sqrt   √x        gentle compression                counts, mild skew
+reciprocal 1/x   very strong                        extreme right-skew (no zeros)
+Box-Cox          finds the BEST power λ for you     strictly positive values
+Yeo-Johnson      like Box-Cox but allows 0/negatives  any real values</code></pre>
+<p><strong>Box-Cox formula</strong> (it auto-picks λ to maximize normality):</p>
+<pre class="code"><code>x' = (x^λ − 1) / λ     if λ ≠ 0           x' = ln(x)   if λ = 0</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-48"><div class="q-h"><span class="q-n">&bull;</span><h3>Worked Example — Killing Skew</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-48"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">skewness ≈ 1.71</span><span class="kt">For regression targets</span></div><p>Right-skewed column: <code>1, 2, 4, 8, 16, 100</code>  → <strong>skewness ≈ 1.71</strong> (far from 0 = very skewed).</p>
+<div class="diagram"><pre>transform        values (rounded)                    skewness
+raw              1, 2, 4, 8, 16, 100                   1.71   ← bad
+log1p            0.69, 1.10, 1.61, 2.20, 2.83, 4.62    0.78   ← better
+Box-Cox (λ≈−0.20) 0.00, 0.65, 1.21, 1.71, 2.14, 3.03   0.10   ← almost symmetric ✅</pre></div>
+<p>Box-Cox searched for the power that flattens the skew best and landed near λ = −0.2.</p>
+<div class="note">
+<p><strong>For regression targets:</strong> log-transforming a skewed <em>target</em> (then exponentiating predictions back) is a classic, high-value trick. Remember to invert it at the end.</p>
+</div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>9. Binning, Discretization &amp; Binarization</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> <em>Binning/discretization</em> chops a continuous column into a few buckets (turning a number into a category). <em>Binarization</em> is the extreme case — collapse to just 0/1 around a threshold.</p></div><article class="q" id="fFeatureEnginee-49"><div class="q-h"><span class="q-n">&bull;</span><h3>Binning Strategies</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-49"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Equal-width</span><span class="kt">Equal-frequency</span><span class="kt">Custom / domain</span><span class="kt">Tree-based</span><span class="kt">K-means</span></div><p>Ages: <code>5, 17, 25, 40, 67</code>.</p>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Strategy</th><th>How it picks edges</th><th>Result (bin index)</th></tr></thead><tbody><tr class="g1"><td><strong>Equal-width</strong></td><td>split the range into N equal spans (here 0–70 → 0–23.3–46.7–70)</td><td>0, 0, 1, 1, 2</td></tr><tr class="g0"><td><strong>Equal-frequency</strong> (quantile)</td><td>each bin holds the same <em>count</em> of rows</td><td>0, 0, 1, 2, 2</td></tr><tr class="g1"><td><strong>Custom / domain</strong></td><td>business cut-points (child&lt;18, adult&lt;65, senior)</td><td>by rule</td></tr><tr class="g0"><td><strong>Tree-based</strong></td><td>let a shallow decision tree choose splits that help the target</td><td>optimal vs target</td></tr><tr class="g1"><td><strong>K-means</strong></td><td>cluster the values into N groups</td><td>data-driven</td></tr></tbody></table></div>
+<p>Equal-width is simple but a skewed column can dump everything into one bin; equal-frequency guarantees balanced buckets.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-50"><div class="q-h"><span class="q-n">&bull;</span><h3>Binarization</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-50"><span></span></label></div><div class="q-a"><div class="diagram"><pre>threshold age ≥ 18  →  "is_adult"
+ages   5, 17, 25, 40, 67
+flag   0,  0,  1,  1,  1</pre></div>
+<p>Useful for "has any / none" style features (<code>num_complaints &gt; 0 → had_complaint</code>).</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-51"><div class="q-h"><span class="q-n">&bull;</span><h3>When (and When Not) to Bin</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-51"><span></span></label></div><div class="q-a"><pre class="code"><code>✅ capture non-linear effect in a linear model    ✅ business needs brackets
+✅ reduce the pull of outliers/noise              ✅ build WoE scorecards (§6.6)
+❌ tree models — they already bin at every split  ❌ when the smooth signal matters</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>10. Mixed Variables</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> sometimes one column secretly holds <strong>two kinds of information</strong> — a letter <em>and</em> a number, or numbers mixed with labels. Split it into separate clean features.</p>
+<p><strong>Type A — value contains both a category and a number</strong> (e.g. a ticket/cabin code):</p>
+<div class="diagram"><pre>code        →  code_letter (category)   code_number (numeric)
+A12               A                          12
+B7                B                           7
+C103              C                         103
+D5                D                           5</pre></div>
+<p><strong>Type B — column is numeric for some rows, a label for others</strong> (e.g. <code>missed_payments</code>: <code>0,1,2,…</code> but also <code>"Defaulted"</code>, <code>"NA"</code>):</p>
+<pre class="code"><code>split into:  payments_num  (the numbers, else missing)
+             payments_cat  (the labels like "Defaulted", else "none")</code></pre>
+<ul>
+<li>✅ Each derived column is now cleanly numeric <em>or</em> cleanly categorical and can be scaled/encoded normally.</li>
+<li>This is a frequently-missed step — interviewers love it because it shows you actually <em>read</em> the column.</li>
+</ul></div><div class="parthead"><span>11. Date / Time Feature Engineering</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> a raw timestamp like <code>2024-12-31 23:00</code> is useless as a number. Explode it into the signals it contains: <em>which part of the cycle</em> and <em>how long ago</em>.</p></div><article class="q" id="fFeatureEnginee-52"><div class="q-h"><span class="q-n">&bull;</span><h3>11.1 Component Extraction</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-52"><span></span></label></div><div class="q-a"><div class="diagram"><pre>from one timestamp →  year, month, day, hour, day-of-week, quarter,
+                      is_weekend, is_month_start, is_holiday, week-of-year</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-53"><div class="q-h"><span class="q-n">&bull;</span><h3>11.2 Elapsed-Time Features (often the strongest)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-53"><span></span></label></div><div class="q-a"><pre class="code"><code>account_age_days        = today − signup_date
+days_since_last_purchase = today − last_purchase
+time_to_convert_hours    = converted_at − signup_at</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-54"><div class="q-h"><span class="q-n">&bull;</span><h3>11.3 Cyclical Encoding (the must-know trick)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-54"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Problem</span><span class="kt">Fix</span><span class="kt">and</span><span class="kt">close</span><span class="kt">both</span></div><p><strong>Problem:</strong> December is month <code>12</code>, January is month <code>1</code>. Numerically they look 11 apart — but they're <em>adjacent</em>. Same for hour 23 → 0. Encoding the raw number teaches a linear model/NN a lie.</p>
+<p><strong>Fix:</strong> place the value on a circle with sine <strong>and</strong> cosine:</p>
+<pre class="code"><code>month_sin = sin(2π · month / 12)      month_cos = cos(2π · month / 12)</code></pre>
+<p>Worked example (distance on the circle vs. the raw gap):</p>
+<div class="diagram"><pre>month   sin     cos
+Jan(1)  +0.50   +0.87
+Jun(6)   0.00   −1.00
+Dec(12) −0.00   +1.00
+
+Dec → Jan   circle distance = 0.52   (raw gap said 11  ← wrong!)
+Jun → Dec   circle distance = 2.00   (raw gap said  6)</pre></div>
+<p>On the circle, Dec and Jan are correctly <strong>close</strong>, and the truly-opposite months are far. You need <strong>both</strong> sin and cos — sin alone can't tell two different months apart (two months share the same sine).
+- Tree models don't need this (they split on the raw number happily); linear models and NNs do.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>12. Feature Construction (Creation)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> the highest-value, most human part — invent features that <em>encode domain knowledge</em> the raw columns don't state outright.</p></div><article class="q" id="fFeatureEnginee-55"><div class="q-h"><span class="q-n">&bull;</span><h3>Ratios, Products, Differences</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-55"><span></span></label></div><div class="q-a"><div class="diagram"><pre>price_per_sqft      = price / sqft
+bmi                 = weight_kg / height_m²
+debt_to_income      = total_debt / annual_income
+revenue_per_employee= revenue / employees
+age × income        ← interaction: effect of age may depend on income</pre></div>
+<p>A hand-built ratio often beats letting the model rediscover it.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-56"><div class="q-h"><span class="q-n">&bull;</span><h3>Polynomial &amp; Interaction Features</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-56"><span></span></label></div><div class="q-a"><div class="diagram"><pre>from [a, b] degree-2  →  a, b, a², a·b, b²
+captures curves and "A only matters when B is high".
+⚠️ explodes fast: 10 features, degree 2 → 65 features; degree 3 → 285.
+Prefer a few targeted interactions from domain knowledge over blind expansion.</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-57"><div class="q-h"><span class="q-n">&bull;</span><h3>Aggregation Features (group-level summaries)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-57"><span></span></label></div><div class="q-a"><p>Turn transaction rows into customer-level signals:</p>
+<pre class="code"><code>per customer:  total_spend, avg_spend, max_spend, #transactions,
+               #unique_products, days_since_first_order
+relative:      this_price − category_average_price   ("how unusual for its group")</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-58"><div class="q-h"><span class="q-n">&bull;</span><h3>Domain Cookbook</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-58"><span></span></label></div><div class="q-a"><pre class="code"><code>E-COMMERCE   RFM = Recency, Frequency, Monetary; avg_order_value; return_rate
+FINANCE      debt-to-income, credit_utilization, delinquency_rate
+TIME SERIES  lag_1/lag_7 (yesterday/last-week value), rolling_mean_7,
+             momentum = lag_1 / lag_7;  ⚠️ only ever look BACKWARD (§15)</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>13. Feature Extraction</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> when you have <em>many</em> correlated columns, extraction compresses them into a few new columns that keep most of the information. Different from selection — you build <strong>new</strong> combined axes rather than keeping originals.</p>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Method</th><th>One-line idea</th><th>Use when</th></tr></thead><tbody><tr class="g1"><td><strong><abbr title="principal component analysis">PCA</abbr></strong></td><td>new axes = directions of maximum variance; keep the top few</td><td>many correlated numeric features; speed/denoise</td></tr><tr class="g0"><td><strong><abbr title="linear discriminant analysis">LDA</abbr></strong></td><td>like PCA but axes that best <em>separate the classes</em></td><td>supervised dimensionality reduction</td></tr><tr class="g1"><td><strong>Truncated SVD</strong></td><td>PCA that works on sparse data</td><td>TF-IDF text matrices ("LSA")</td></tr><tr class="g0"><td><strong>t-SNE / UMAP</strong></td><td>squeeze to 2-D for <em>visualization</em> (not modeling)</td><td>seeing clusters by eye</td></tr><tr class="g1"><td><strong>Autoencoder</strong></td><td>a neural net learns a compact code of the input</td><td>images, complex non-linear data</td></tr><tr class="g0"><td><strong>Embeddings</strong></td><td>learned dense vectors for categories/text/items</td><td>high-cardinality IDs, <abbr title="natural language processing">NLP</abbr> (§6.9)</td></tr></tbody></table></div>
+<p><strong>PCA intuition:</strong> picture a stretched oval cloud of points. PCA finds the long axis of the oval (PC1, most spread) and the short axis (PC2). Keep PC1, drop PC2 → 2 columns become 1 with little information lost.</p>
+<div class="diagram"><pre>✅ fewer features → faster, less overfit, removes multicollinearity
+⚠️ new axes are combinations → hard to interpret; SCALE first; can hurt trees</pre></div></div><div class="parthead"><span>14. Feature Selection</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> more features ≠ better. Irrelevant and redundant ones add noise, slow training, and overfit. Selection <em>keeps a subset</em> of the originals (stays interpretable).</p></div><article class="q" id="fFeatureEnginee-59"><div class="q-h"><span class="q-n">&bull;</span><h3>The Three Families</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-59"><span></span></label></div><div class="q-a"><pre class="code"><code>FAMILY     idea                                speed   quality   notes
+Filter     score each feature vs target,        fast    medium    model-agnostic
+           ignore the model
+Wrapper     try feature subsets, train a model,  slow    high      can overfit
+           keep what helps
+Embedded    selection happens *inside* training  fast    high      Lasso, tree importance</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-60"><div class="q-h"><span class="q-n">&bull;</span><h3>Filter Methods</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-60"><span></span></label></div><div class="q-a"><pre class="code"><code>Variance threshold   drop near-constant columns (no information)
+Correlation          drop one of any pair with |r| &gt; 0.95 (redundant)
+Chi-square / ANOVA   categorical vs target / numeric vs class
+Mutual Information    catches NON-linear relationships (see below)
+WoE Information Value rank features by IV (§6.6)</code></pre>
+<p><strong>Mutual Information (MI) — simple example.</strong> MI measures how much knowing a feature <em>reduces uncertainty</em> about the target; 0 means independent. It catches relationships correlation misses.</p>
+<div class="diagram"><pre>weather vs play:
+              play=Yes  play=No
+Sunny            6        1
+Rainy            1        6
+Strong link  →  MI = 0.41 bits
+
+if weather and play were unrelated  →  MI ≈ 0.00 bits</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-61"><div class="q-h"><span class="q-n">&bull;</span><h3>Wrapper Methods</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-61"><span></span></label></div><div class="q-a"><div class="diagram"><pre>RFE (Recursive Feature Elimination): train → drop the weakest feature → repeat.
+RFECV: same, with cross-validation to auto-pick the best number of features.
+Forward / backward selection: add (or remove) one feature at a time, greedily.</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-62"><div class="q-h"><span class="q-n">&bull;</span><h3>Embedded Methods</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-62"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Lasso (L1)          shrinks useless coefficients to exactly 0 → auto-selects
+Tree importance     RF/XGBoost rank features by how much they cut error
+Permutation imp.    shuffle one feature, measure accuracy drop  ← most reliable</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-63"><div class="q-h"><span class="q-n">&bull;</span><h3>Strategy</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-63"><span></span></label></div><div class="q-a"><pre class="code"><code>1. drop constant/near-constant (variance)
+2. drop one of each highly-correlated pair (keep the one with higher MI/IV)
+3. rank survivors by Mutual Information or Permutation Importance
+4. (optional) RFECV for the optimal subset
+5. validate: model with all features vs selected — keep the simpler if equal
+ALWAYS run selection INSIDE cross-validation folds, never on the full data (§15).</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>15. Data Leakage Prevention</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> leakage is when information that <em>won't be available at prediction time</em> sneaks into training. It makes validation scores look amazing and production scores collapse. It is the #1 way real ML projects fail silently.</p></div><article class="q" id="fFeatureEnginee-64"><div class="q-h"><span class="q-n">&bull;</span><h3>The Three Kinds</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-64"><span></span></label></div><div class="q-a"><ol class="steplist"><li>TARGET LEAKAGE — a feature is caused by / contains the answer. ❌ "discharge_medication_count" to predict readmission (set because doctor already knew the patient was high-risk). Test: "Would I really have this value BEFORE the event I'm predicting?"</li><li>TRAIN–TEST CONTAMINATION — test stats influence training. ❌ scaler/imputer/target-encoder fit on ALL data before the split. Fix: learn every parameter on TRAIN only; apply to test. Use a pipeline.</li><li>TEMPORAL LEAKAGE — using the future to predict the past. ❌ rolling average that includes tomorrow; random split on time series. Fix: split by TIME; only backward-looking features.</li></ol></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-65"><div class="q-h"><span class="q-n">&bull;</span><h3>Detection &amp; Prevention</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-65"><span></span></label></div><div class="q-a"><div class="diagram"><pre>🚩 validation accuracy suspiciously high?            → suspect leakage
+🚩 one feature dominates importance unexpectedly?    → investigate it
+✅ do ALL preprocessing (impute/scale/encode/select) learned on train only
+✅ time series → split by date, never randomly
+✅ for every feature ask: "available at prediction time?"</pre></div>
+<div class="note">
+<p>Every earlier section repeats one rule because it is <em>the</em> rule: <strong>fit transformations on train, apply to test.</strong> That single discipline prevents most leakage.</p>
+</div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>16. Interview Deep Dive</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Q1. Feature engineering vs feature selection?</strong>
+Engineering <strong>creates/reshapes</strong> features to add signal (ratios, encodings, transforms). Selection <strong>removes</strong> noisy/redundant ones. Engineer first, then select. They are two of the four pillars (§1).</p>
+<p><strong>Q2. How do you handle a high-cardinality categorical (e.g. 5,000 cities)?</strong>
+Not one-hot (too sparse). Options: <strong>target encoding</strong> with smoothing + <abbr title="splitting data into folds and training repeatedly so the score is not one lucky split">cross-validation</abbr> (captures the target relationship in one column), <strong>frequency/count</strong> (popularity), <strong>binary/hashing</strong> (few columns), <strong>rare-label grouping</strong> for the long tail, or <strong>embeddings</strong> in deep models. Pick by model type and leakage tolerance.</p>
+<p><strong>Q3. MCAR vs MAR vs MNAR — and how you'd impute each?</strong>
+MCAR: missing unrelated to anything → drop or simple impute. MAR: depends on other observed columns → <abbr title="k-nearest neighbours">KNN</abbr>/MICE using them. MNAR: depends on the hidden value itself → add a missing-indicator and impute carefully. Always consider adding the indicator flag.</p>
+<p><strong>Q4. Explain target encoding leakage and how to prevent it.</strong>
+Naively replacing a category with its target mean lets each row peek at its own answer → over-optimistic. Prevent with <strong>out-of-fold / K-fold encoding</strong>, <strong>leave-one-out</strong>, <strong>CatBoost ordered</strong> encoding, plus <strong>smoothing</strong> so rare categories lean on the global mean.</p>
+<p><strong>Q5. When is cyclical (sin/cos) encoding needed?</strong>
+For circular features — month (Dec↔Jan), hour (23↔0), day-of-week. Raw numbers make adjacent points look far apart. Encode with <strong>both</strong> sin and cos so the circle's geometry is preserved. Trees don't need it; linear models and NNs do.</p>
+<p><strong>Q6. WoE and IV — what and why?</strong>
+WoE = <code>ln(%good/%bad)</code> per category: a clean, monotonic, log-scale value that logistic regression loves. IV = <code>Σ(%good−%bad)·WoE</code> summarizes the whole feature's predictive power (used for selection). Standard in credit scorecards. IV &gt; 0.5 → check for leakage.</p>
+<p><strong>Q7. Which scaler with outliers, and why?</strong>
+<strong>RobustScaler</strong> (median/IQR). Standard and Min-Max use mean/min/max, which the outlier distorts — it crushes the real values into a tiny range. Robust keeps the inliers well-spread.</p>
+<p><strong>Q8. Most reliable feature-importance method?</strong>
+<strong>Permutation importance</strong> on a held-out set: shuffle a feature, measure the accuracy drop. Model-agnostic, captures non-linearity, less biased than built-in tree importance (which favors high-cardinality features).</p></div><div class="parthead"><span>17. Cheat Sheets</span><i></i></div><article class="q" id="fFeatureEnginee-66"><div class="q-h"><span class="q-n">&bull;</span><h3>Pick the Right Tool</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-66"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SKEWED numeric           → log / Box-Cox / Yeo-Johnson (§8)
+OUTLIERS present         → RobustScaler (§7) or cap (§5)
+LOW-card categorical     → one-hot (§6.2)
+HIGH-card categorical    → target / frequency / binary / embeddings (§6)
+BINARY-target + linear   → WoE encoding + IV selection (§6.6)
+CYCLIC time part         → sin/cos (§11.3)
+MANY correlated numeric  → PCA (§13) or drop correlated (§14)
+NON-linear feature↔target→ Mutual Information to detect/select (§14)</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-67"><div class="q-h"><span class="q-n">&bull;</span><h3>Common Mistakes</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-67"><span></span></label></div><div class="q-a"><div class="diagram"><pre>ENCODING   one-hot on 500 levels · label-encoding nominal for linear models ·
+           target encoding without CV → leakage
+SCALING    fitting scaler on full data → leakage · scaling for tree models (pointless)
+MISSING    deleting columns that are informatively missing · no missing-indicator
+OUTLIERS   blindly deleting (fraud IS the signal) · z-score hidden by its own outlier
+TIME       random split on time series · features that peek into the future
+SELECTION  selecting on full data (not inside CV) · trusting raw tree importance</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-68"><div class="q-h"><span class="q-n">&bull;</span><h3>Model-by-Model: What You Actually Need</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-68"><span></span></label></div><div class="q-a"><pre class="code"><code>                        scale?  one-hot?  handle outliers?  missing?
+Linear / Logistic / SVM  yes     yes       yes (or transform)  impute
+KNN / K-Means            yes     yes       yes                 impute
+Neural Networks          yes     yes/embed yes                 impute
+Decision Tree / RF        no      no        usually no          some handle natively
+XGBoost / LightGBM        no      no/native usually no          native support</code></pre>
+<hr />
+<p><em>Part of <a href="../../03_Data_Handling/README.md">03_Data_Handling</a>. Previous: <a href="sql.html#f01SQLforMLmd">01_SQL_for_ML.md</a> | Next: <a href="../../04_Machine_Learning/01_ML_Fundamentals.md">../04_Machine_Learning/01_ML_Fundamentals.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section>
+<div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+</div></main>
+</div>
+<button class="totop" id="totop" title="Back to top">&#8593;</button>
+<script>
+var LS='ai14.done.v2', TH='ai14.theme';
+var done={};try{done=JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){}
+var root=document.documentElement;
+function setTheme(t){root.setAttribute('data-theme',t);try{localStorage.setItem(TH,t)}catch(e){}
+  var b=document.getElementById('themeBtn'); if(b)b.textContent=(t==='dark'?'Light':'Dark');}
+setTheme((function(){try{return localStorage.getItem(TH)}catch(e){return null}})()||
+  (window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'));
+var tb=document.getElementById('themeBtn');
+if(tb)tb.onclick=function(){setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark')};
+
+var boxes=[].slice.call(document.querySelectorAll('.q-done input'));
+function refresh(){
+  var n=0;
+  boxes.forEach(function(b){
+    var q=b.closest('.q'), on=!!done[b.dataset.id];
+    b.checked=on; q.classList.toggle('done',on); if(on)n++;
+    var l=document.querySelector('nav a[data-q="'+q.id+'"]'); if(l)l.classList.toggle('done',on);
+  });
+  var el=document.getElementById('pgCount');
+  if(el)el.textContent=n+' / '+boxes.length;
+}
+boxes.forEach(function(b){b.addEventListener('change',function(){
+  if(b.checked)done[b.dataset.id]=1;else delete done[b.dataset.id];
+  try{localStorage.setItem(LS,JSON.stringify(done))}catch(e){}refresh();});});
+refresh();
+
+var db=document.getElementById('drillBtn');
+if(db)db.onclick=function(){var on=document.body.classList.toggle('drill');db.classList.toggle('on',on);
+  if(!on)[].forEach.call(document.querySelectorAll('.q.open'),function(q){q.classList.remove('open')});};
+[].forEach.call(document.querySelectorAll('.reveal'),function(b){
+  b.onclick=function(){b.closest('.q').classList.add('open')};});
+
+var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementById('search'),
+    noRes=document.getElementById('noRes');
+qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
+function runSearch(){
+  if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
+    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  [].forEach.call(document.querySelectorAll('.parthead'),function(p){
+    if(!v){p.style.display='';return}
+    var vis=false,n=p.nextElementSibling;
+    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
+    p.style.display=vis?'':'none';});
+  if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
+}
+if(inp)inp.addEventListener('input',runSearch);
+
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+var totop=document.getElementById('totop');
+function onScroll(){
+  var sc=document.documentElement.scrollTop;
+  if(totop)totop.classList.toggle('show',sc>600);
+  var cur=null;
+  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
+    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  navLinks.forEach(function(l){l.classList.remove('active')});
+  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
+    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
+      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+}
+window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
+
+var sb=document.getElementById('sidebar'), mb=document.getElementById('menuBtn');
+if(mb)mb.onclick=function(){sb.classList.toggle('open')};
+if(sb)sb.addEventListener('click',function(e){if(e.target.tagName==='A'&&window.innerWidth<=1060)sb.classList.remove('open')});
+
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'){if(e.key==='Escape'){e.target.value='';runSearch();e.target.blur()}return}
+  if(e.key==='/'&&inp){e.preventDefault();inp.focus()}
+  else if(e.key==='d'&&db){db.click()}
+  else if(e.key==='t'&&tb){tb.click()}
+  else if(e.key==='j'||e.key==='k'){
+    var vis=qs.filter(function(q){return q.style.display!=='none'}),idx=-1;
+    for(var i=0;i<vis.length;i++){if(vis[i].getBoundingClientRect().top>64){idx=i;break}}
+    if(e.key==='k')idx=(idx<0?vis.length:idx)-2;
+    var t=vis[Math.max(0,Math.min(vis.length-1,idx<0?0:idx))];
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}
+});
+/* reading progress */
+(function(){
+  var b=document.createElement('div'); b.id='rprog'; document.body.appendChild(b);
+  var t=null;
+  function upd(){
+    var h=document.documentElement, m=(h.scrollHeight-h.clientHeight);
+    b.style.width=(m>0?(h.scrollTop/m)*100:0)+'%';
+  }
+  addEventListener('scroll',function(){ if(t)return; t=requestAnimationFrame(function(){t=null;upd();}); },
+                   {passive:true});
+  addEventListener('resize',upd); upd();
+})();
+
+/* copy button on every code block */
+(function(){
+  document.querySelectorAll('pre.code').forEach(function(pre){
+    var b=document.createElement('button'); b.className='copy'; b.type='button'; b.textContent='Copy';
+    b.addEventListener('click',function(){
+      var code=pre.querySelector('code'); var txt=code?code.innerText:pre.innerText;
+      var done=function(){ b.textContent='Copied'; b.classList.add('ok');
+        setTimeout(function(){ b.textContent='Copy'; b.classList.remove('ok'); },1400); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(done,function(){});
+      } else {
+        var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta);
+        ta.select(); try{document.execCommand('copy');done();}catch(e){} document.body.removeChild(ta);
+      }
+    });
+    pre.appendChild(b);
+  });
+})();
+
+/* deep link on each question card */
+(function(){
+  document.querySelectorAll('.q[id] > .q-h').forEach(function(h){
+    var id=h.parentNode.id, a=document.createElement('a');
+    a.className='q-anchor'; a.href='#'+id; a.textContent='#';
+    a.title='Copy a link to this question';
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      var url=location.href.split('#')[0]+'#'+id;
+      history.replaceState(null,'','#'+id);
+      var done=function(){ a.classList.add('ok'); a.textContent='✓';
+        setTimeout(function(){ a.classList.remove('ok'); a.textContent='#'; },1200); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(done,done);
+      } else { done(); }
+    });
+    var label=h.querySelector('.q-done');
+    if(label){ h.insertBefore(a,label); } else { h.appendChild(a); }
+  });
+})();
+
+</script>
+</body></html>
