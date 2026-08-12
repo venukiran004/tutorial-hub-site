@@ -509,9 +509,358 @@ body.searching .parthead{opacity:.5}
 
 @media(max-width:1060px){ .parthead{top:0} }
 
+/* =====================================================================
+   AURORA GLASS
+   The final layer. Everything below re-tints the sheet above it: a deep
+   near-black canvas lit by a fixed gradient mesh, with the chrome and the
+   cards reading as frosted panels floating on top of it.
+   ===================================================================== */
+
+:root{
+  --bg:#070a12; --bg-2:#0a0e18;
+  --surface:#0f131e; --surface-2:#141a27; --surface-3:#1c2333;
+  --border:#232c40; --border-soft:#19202f;
+  --ink:#eaf0fb; --ink-2:#9fabc4; --ink-mut:#6b7690;
+
+  --accent:#7c9dff; --accent-2:#b18cff;
+  --accent-soft:rgba(124,157,255,.15); --accent-bd:rgba(124,157,255,.40);
+  --t-rag:#7c9dff; --t-agentic:#ff9563; --t-recall:#3ed9a4;
+  --t-violet:#b18cff; --t-amber:#f0c274;
+  --good:#3ed9a4; --warn:#f5c451; --crit:#ff6b81;
+  --good-soft:rgba(62,217,164,.12); --warn-soft:rgba(245,196,81,.12);
+  --crit-soft:rgba(255,107,129,.12);
+  --code-bg:#080b13;
+
+  --glass:rgba(255,255,255,.045);
+  --glass-bd:rgba(255,255,255,.075);
+  --e1:0 1px 2px rgba(0,0,0,.40);
+  --e2:0 8px 26px rgba(3,6,15,.55);
+  --e3:0 22px 60px rgba(3,6,15,.68);
+  --radius:16px; --radius-sm:11px;
+}
+html[data-theme="light"]{
+  --bg:#f6f8fe; --bg-2:#eef2fb;
+  --surface:#fff; --surface-2:#fafbff; --surface-3:#eef2fb;
+  --border:#dce3f2; --border-soft:#e9edf8;
+  --ink:#111828; --ink-2:#4c586f; --ink-mut:#7c8699;
+
+  --accent:#4f6fe6; --accent-2:#8b5cf6;
+  --accent-soft:rgba(79,111,230,.10); --accent-bd:rgba(79,111,230,.34);
+  --t-rag:#4f6fe6; --t-agentic:#e0663a; --t-recall:#0f9e74;
+  --t-violet:#8b5cf6; --t-amber:#a9760a;
+  --good:#0f9e74; --warn:#b07d00; --crit:#dc3d55;
+  --good-soft:rgba(15,158,116,.10); --warn-soft:rgba(176,125,0,.11);
+  --crit-soft:rgba(220,61,85,.09);
+  --code-bg:#f2f5fc;
+
+  --glass:rgba(255,255,255,.62);
+  --glass-bd:rgba(17,24,40,.07);
+  --e1:0 1px 2px rgba(16,24,40,.05);
+  --e2:0 8px 24px rgba(16,24,40,.08);
+  --e3:0 22px 56px rgba(16,24,40,.12);
+}
+
+/* ---------- the canvas ---------- */
+/* the page background lives on <html> so the fixed aurora layer can sit
+   between it and the content without the body's own fill covering it */
+html{background:var(--bg)}
+body{background:transparent}
+
+/* Ambient tint on every page: strongest at the top edge, gone by mid-scroll, so
+   long reading pages settle onto clean dark instead of a permanent wash. */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 22% -6%, color-mix(in srgb,var(--accent) 46%,transparent), transparent 66%),
+    radial-gradient(38% 32% at 82% -8%, color-mix(in srgb,var(--accent-2) 40%,transparent), transparent 64%);
+  filter:blur(30px) saturate(1.3);opacity:.5;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%);
+          mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%)}
+html[data-theme="light"] body::before{opacity:.5;filter:blur(36px) saturate(1)}
+
+/* film grain: keeps the large flat gradients from banding on cheap panels */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.032;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* multiply over a light canvas darkens fast - the grain has to be far weaker here
+   or the whole page reads grey instead of white */
+html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply}
+
+@keyframes aurora-drift{
+  from{transform:translate3d(0,0,0) scale(1)}
+  to{transform:translate3d(3%,-2.5%,0) scale(1.12)}
+}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:transparent;border-bottom:1px solid var(--border-soft)}
+.siteswitch a{color:var(--ink-mut)}
+.siteswitch a:hover{background:var(--glass);color:var(--ink)}
+.siteswitch a.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  box-shadow:0 3px 14px color-mix(in srgb,var(--accent) 40%,transparent)}
+.sitebar{background:color-mix(in srgb,var(--bg) 62%,transparent);
+  backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);
+  border-bottom:1px solid var(--glass-bd);box-shadow:0 1px 0 rgba(255,255,255,.03),var(--e1)}
+.logo b{background:linear-gradient(115deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{background:var(--glass);border:1px solid var(--glass-bd);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);border-radius:10px}
+.btn:hover{border-color:var(--accent-bd);color:var(--ink);
+  box-shadow:0 4px 16px color-mix(in srgb,var(--accent) 22%,transparent)}
+.btn.on{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,transparent),
+  color-mix(in srgb,var(--accent-2) 18%,transparent));border-color:var(--accent-bd);color:var(--accent)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 55%,transparent),transparent 60%);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-right:1px solid var(--glass-bd)}
+.sb-search input{background:var(--glass);border:1px solid var(--glass-bd);border-radius:11px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sb-search input:focus{border-color:var(--accent-bd);
+  box-shadow:0 0 0 3px var(--accent-soft),0 4px 18px color-mix(in srgb,var(--accent) 20%,transparent)}
+nav a:hover{background:var(--glass);color:var(--ink)}
+nav a.active{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 20%,transparent),transparent 78%);
+  box-shadow:inset 0 0 0 1px var(--accent-bd);color:var(--accent)}
+nav a.active::before{background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 10px var(--accent)}
+.nav-grp{color:var(--ink-mut)}
+
+/* ---------- hero ---------- */
+.hero::before{opacity:.72;filter:blur(38px)}
+.eyebrow{background:var(--glass);border:1px solid var(--glass-bd);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:var(--ink-2);font-weight:700}
+.hero h1{background:linear-gradient(112deg,var(--ink) 4%,
+    color-mix(in srgb,var(--accent) 88%,var(--ink)) 46%,
+    color-mix(in srgb,var(--accent-2) 92%,var(--ink)) 74%,
+    color-mix(in srgb,var(--t-recall) 70%,var(--ink)) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- surfaces: glass everywhere the old sheet used flat fills ---------- */
+.stat,.q,.tcard,.hub-card,.panel,.learn,figure.viz,.tbl-wrap,.flow,.learn-item{
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 72%,transparent));
+  border-color:var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+
+.stat{border-radius:14px}
+.stat::before{height:1.5px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),color-mix(in srgb,var(--tc,var(--accent)) 20%,transparent) 70%,transparent)}
+.stat:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 18%,transparent)}
+.stat-v{background:linear-gradient(150deg,var(--ink),var(--tc,var(--accent)));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 42%,transparent);box-shadow:var(--e2)}
+.q:target{box-shadow:0 0 0 3px var(--accent-soft),var(--e2)}
+.tcard:hover,.hub-card:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 22%,transparent)}
+
+/* the hover affordance was emitting a literal "92" - it wants to be an arrow */
+.tcard::after,.hub-card::after{content:"\2192"}
+
+figure.viz{border-radius:18px}
+pre.code{background:color-mix(in srgb,var(--code-bg) 88%,transparent);
+  border:1px solid var(--glass-bd);border-radius:13px;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.say{background:linear-gradient(100deg,color-mix(in srgb,var(--accent) 14%,transparent),transparent 72%);
+  border-left-color:var(--accent)}
+.kt{background:var(--glass);border-color:var(--glass-bd)}
+.kt:hover{border-color:var(--accent-bd);color:var(--accent)}
+.parthead{background:color-mix(in srgb,var(--bg) 66%,transparent);
+  backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5)}
+th{background:color-mix(in srgb,var(--surface-3) 82%,transparent)}
+
+/* ---------- right-hand "on this page" rail ---------- */
+:root{ --tocw:262px }
+.app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr) var(--tocw)}
+.toc{position:sticky;top:47px;align-self:start;height:calc(100vh - 47px);overflow-y:auto;
+  overscroll-behavior:contain;padding:22px 20px 60px;font-size:12.6px;
+  border-left:1px solid var(--glass-bd)}
+.toc::-webkit-scrollbar{width:7px}
+.toc::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.toc-h{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-mut);margin-bottom:12px}
+.toc-h svg.ic{font-size:13px;color:var(--tc,var(--accent))}
+/* one group per file section; the script shows the one you are reading */
+body.js .toc-g{display:none}
+body.js .toc-g.on{display:block}
+.toc-g > b{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tc,var(--accent));margin:0 0 9px;padding-left:11px}
+.toc-g a{display:block;padding:5px 10px 5px 12px;margin:1px 0;border-radius:7px;color:var(--ink-2);
+  text-decoration:none;line-height:1.42;border-left:2px solid transparent}
+.toc-g a:hover{background:var(--glass);color:var(--ink);text-decoration:none}
+.toc-g a.on{color:var(--accent);border-left-color:var(--accent);font-weight:650;
+  background:linear-gradient(90deg,var(--accent-soft),transparent 80%)}
+.toc-empty{color:var(--ink-mut);font-size:12px;padding-left:12px}
+@media(max-width:1400px){
+  .app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr)}
+  .toc{display:none}
+}
+
+/* ---------- breadcrumb ---------- */
+.crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.2px;color:var(--ink-mut);
+  padding-top:26px}
+.crumb a{color:var(--ink-mut);text-decoration:none}
+.crumb a:hover{color:var(--accent);text-decoration:none}
+.crumb svg.ic{font-size:12px;opacity:.5}
+.crumb b{color:var(--ink-2);font-weight:650}
+.crumb + .hero{padding-top:18px}
+.pnav-t{min-width:0}
+
+/* ---------- previous / next ---------- */
+.pnav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:64px 0 0}
+.pnav a{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:14px;
+  text-decoration:none;color:inherit;border:1px solid var(--glass-bd);
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 86%,transparent),
+    color-mix(in srgb,var(--surface-2) 66%,transparent))}
+.pnav a:hover{text-decoration:none;border-color:var(--accent-bd);box-shadow:var(--e2)}
+.pnav a.next{grid-column:2;justify-content:flex-end;text-align:right}
+.pnav a.prev{grid-column:1}
+.pnav span{display:block;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-mut)}
+.pnav b{display:block;margin-top:4px;font-size:14.5px;letter-spacing:-.02em;color:var(--ink)}
+.pnav svg.ic{font-size:18px;color:var(--accent);flex:none}
+@media(max-width:760px){
+  .pnav{grid-template-columns:1fr}
+  .pnav a.next,.pnav a.prev{grid-column:1}
+}
+
+/* ---------- section headers (shared by the hub and every topic index) ---------- */
+.h-sec-h{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.h-sec-h h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-mut);white-space:nowrap;display:flex;align-items:center;gap:9px;border:0;padding:0}
+.h-sec-h h2 svg.ic{font-size:15px;color:var(--accent);opacity:.9}
+.h-sec-h i{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- icons ---------- */
+.sprite{display:none}
+svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.13em}
+/* the boxed icon tile used by track rows, callouts and nav groups */
+.ic-box{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:44px;height:44px;border-radius:13px;font-size:20px;color:var(--tc,var(--accent));
+  background:linear-gradient(150deg,color-mix(in srgb,var(--tc,var(--accent)) 26%,transparent),
+    color-mix(in srgb,var(--tc,var(--accent)) 8%,transparent));
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.ic-sm{width:30px;height:30px;border-radius:9px;font-size:15px}
+
+/* ---------- topic index: learning-track rows ---------- */
+.trk{display:flex;flex-direction:column;gap:11px;margin:40px 0 0}
+.trk-row{position:relative;display:flex;align-items:center;gap:17px;padding:17px 19px;
+  border-radius:15px;text-decoration:none;color:inherit;overflow:hidden;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--surface) 90%,transparent),
+    color-mix(in srgb,var(--surface-2) 68%,transparent));
+  border:1px solid var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.trk-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tc)}
+.trk-row:hover{text-decoration:none;transform:translateX(3px);
+  border-color:color-mix(in srgb,var(--tc) 46%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc) 18%,transparent)}
+.trk-b{min-width:0;flex:1}
+.trk-b b{display:block;font-size:16.5px;letter-spacing:-.022em;color:var(--ink);font-weight:750}
+.trk-b b i{font-style:normal;color:var(--ink-mut);font-weight:600;margin-right:3px}
+.trk-b p{margin:4px 0 0;font-size:13.2px;line-height:1.5;color:var(--ink-2)}
+.trk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.trk-chips span{font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.trk-row:hover .trk-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+.trk-meta{display:flex;align-items:center;gap:8px;flex:none;font-size:11.5px;
+  font-family:var(--mono);color:var(--tc);white-space:nowrap}
+.trk-meta i{font-style:normal;opacity:.45}
+.trk-go{flex:none;font-size:19px;color:var(--ink-mut);display:inline-flex}
+.trk-row:hover .trk-go{color:var(--tc);transform:translateX(2px)}
+@media(prefers-reduced-motion:no-preference){
+  .trk-row,.trk-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,color .18s ease}
+}
+@media(max-width:820px){
+  .trk-row{flex-wrap:wrap;gap:13px}
+  .trk-meta{order:3;width:100%}
+  .trk-go{display:none}
+}
+
+/* ---------- sidebar nav with icons ---------- */
+.nav-grp{display:flex;align-items:center;gap:8px}
+.nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
+nav a svg.ic{font-size:14px;opacity:.6}
+nav a.active svg.ic{opacity:1}
+/* file = main heading, named part = its only sub-entry */
+nav a.nav-file{margin-top:13px;font-size:13px;font-weight:750;color:var(--ink);align-items:center}
+nav a.nav-file svg.ic{color:var(--tc,var(--accent));opacity:.95}
+nav a.nav-sub{padding-left:30px;font-size:12.2px;position:relative}
+nav a.nav-sub::after{content:"";position:absolute;left:16px;top:50%;width:5px;height:5px;
+  margin-top:-2.5px;border-radius:50%;background:var(--ink-mut);opacity:.5}
+nav a.nav-sub.active::after{background:var(--accent);opacity:1}
+
+/* ---------- callouts with icons ---------- */
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key,.say{position:relative}
+.note-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;font-size:13px;margin-right:8px;vertical-align:-.35em;flex:none}
+.say-h svg.ic{font-size:13px}
+
+/* ---------- topic index: the landing page of each site ---------- */
+/* the reading measure is right for prose but starves a card grid, so an index
+   page widens its column and fits three across */
+.wrap:has(.idx-grid){max-width:1300px}
+.idx-hero{padding:58px 0 4px}
+.idx-hero h1{font-size:clamp(36px,4.8vw,56px);margin:18px 0 16px}
+.idx-hero .lede{font-size:17.5px;max-width:76ch;margin:0}
+
+.idx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;
+  margin:44px 0 0}
+.idx-card{position:relative;display:block;padding:22px 23px 20px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 70%,transparent));
+  border:1px solid var(--glass-bd);text-decoration:none;color:inherit;
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.idx-card::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc),transparent 80%)}
+.idx-card:hover{transform:translateY(-3px);text-decoration:none;
+  border-color:color-mix(in srgb,var(--tc) 48%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc) 20%,transparent)}
+.idx-card-h{display:flex;align-items:center;gap:11px}
+.idx-card-h h3{margin:0;font-size:18.5px;letter-spacing:-.026em;color:var(--ink);font-weight:750}
+.idx-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--tc);
+  box-shadow:0 0 10px var(--tc)}
+.idx-go{margin-left:auto;font-size:16px;color:var(--tc);opacity:0;transform:translateX(-5px);flex:none}
+.idx-card:hover .idx-go{opacity:1;transform:translateX(0)}
+.idx-card p{margin:11px 0 0;font-size:13.4px;line-height:1.6;color:var(--ink-2)}
+.idx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}
+.idx-chips span{font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.idx-card:hover .idx-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+@media(prefers-reduced-motion:no-preference){
+  .idx-card,.idx-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,opacity .18s ease}
+}
+
+/* ---------- file section headers ---------- */
+/* .fh-top's spans had no rules at all, so the name and the count ran together as
+   one unstyled line. It reads as an eyebrow row above the file title. */
+.filehead{margin:56px 0 16px}
+.fh-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px}
+.fh-num{font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--tc,var(--accent));padding:4px 12px;border-radius:999px;
+  background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.fh-count{font-family:var(--mono);font-size:10.5px;color:var(--ink-mut);padding:4px 11px;
+  border-radius:999px;background:var(--glass);border:1px solid var(--glass-bd)}
+.filehead h2{font-size:28px;letter-spacing:-.032em;margin:0}
+
+/* ---------- detail ---------- */
+::selection{background:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--ink)}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-bd);background-clip:padding-box}
+#rprog{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--t-recall));
+  box-shadow:0 0 14px color-mix(in srgb,var(--accent) 70%,transparent)}
+.totop{background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 8px 26px color-mix(in srgb,var(--accent) 45%,transparent)}
+.totop:hover{transform:translateY(-2px)}
+
 </style>
 </head>
 <body>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol><symbol id="i-arrowl" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol><symbol id="i-branch" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol><symbol id="i-bulb" viewBox="0 0 24 24"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2z"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol><symbol id="i-code" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></symbol><symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol><symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 2v6.5L4.2 17A2 2 0 0 0 6 20h12a2 2 0 0 0 1.8-3L15 8.5V2"/><line x1="8" y1="2" x2="16" y2="2"/><line x1="7" y1="14" x2="17" y2="14"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol><symbol id="i-network" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></symbol><symbol id="i-package" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol><symbol id="i-sigma" viewBox="0 0 24 24"><path d="M18 4H6l6 8-6 8h12"/></symbol><symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol><symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol><symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol></svg>
 <div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
   <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw on" href="../03_Data_Handling/index.html">03 Data</a><a class="sw" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw" href="../11_System_Design/index.html">11 Sys Design</a>
 </div></div><div class="sitebar-in">
@@ -523,20 +872,19 @@ body.searching .parthead{opacity:.5}
   <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
   <button class="btn" id="themeBtn">Dark</button>
 </div></div>
-<div class="app" style="--tc:var(--t-rag)">
+<div class="app has-toc" style="--tc:var(--t-rag)">
 <aside id="sidebar">
   <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
   <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
-  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><div class="nav-grp">SQL for ML</div><a href="#f01SQLforMLmd-0" data-q="f01SQLforMLmd-0"><span class="qn">&bull;</span>1. Fundamentals</a><a href="#f01SQLforMLmd-1" data-q="f01SQLforMLmd-1"><span class="qn">&bull;</span>2. JOINs Deep Dive</a><a href="#f01SQLforMLmd-2" data-q="f01SQLforMLmd-2"><span class="qn">&bull;</span>3. GROUP BY, HAVING &amp; Aggregations</a><a href="#f01SQLforMLmd-3" data-q="f01SQLforMLmd-3"><span class="qn">&bull;</span>4. Window Functions</a><a href="#f01SQLforMLmd-4" data-q="f01SQLforMLmd-4"><span class="qn">&bull;</span>5. Subqueries &amp; CTEs</a><a href="#f01SQLforMLmd-5" data-q="f01SQLforMLmd-5"><span class="qn">&bull;</span>6. Recursive CTEs</a><a href="#f01SQLforMLmd-6" data-q="f01SQLforMLmd-6"><span class="qn">&bull;</span>7. Advanced Aggregation</a><a href="#f01SQLforMLmd-7" data-q="f01SQLforMLmd-7"><span class="qn">&bull;</span>8. Set Operations</a><a href="#f01SQLforMLmd-8" data-q="f01SQLforMLmd-8"><span class="qn">&bull;</span>9. CASE, COALESCE, NULLIF</a><a href="#f01SQLforMLmd-9" data-q="f01SQLforMLmd-9"><span class="qn">&bull;</span>10. EXISTS vs IN</a><a href="#f01SQLforMLmd-10" data-q="f01SQLforMLmd-10"><span class="qn">&bull;</span>11. String &amp; Date Functions</a><a href="#f01SQLforMLmd-11" data-q="f01SQLforMLmd-11"><span class="qn">&bull;</span>12. Indexes &amp; Query Optimization</a><a href="#f01SQLforMLmd-12" data-q="f01SQLforMLmd-12"><span class="qn">&bull;</span>13. Transactions &amp; ACID</a><a href="#f01SQLforMLmd-13" data-q="f01SQLforMLmd-13"><span class="qn">&bull;</span>14. PIVOT, UNPIVOT</a><a href="#f01SQLforMLmd-14" data-q="f01SQLforMLmd-14"><span class="qn">&bull;</span>15. SQL + Python Integration</a><a href="#f01SQLforMLmd-15" data-q="f01SQLforMLmd-15"><span class="qn">&bull;</span>16. ML-Specific Query Patterns</a><a href="#f01SQLforMLmd-16" data-q="f01SQLforMLmd-16"><span class="qn">&bull;</span>17. JSON Handling in SQL</a><a href="#f01SQLforMLmd-17" data-q="f01SQLforMLmd-17"><span class="qn">&bull;</span>18. Interview Deep Dive</a><div class="nav-grp">Feature Engineering Master</div><a href="#fFeatureEnginee-18" data-q="fFeatureEnginee-18"><span class="qn">&bull;</span>The 4 Pillars (the mental map for this whole file)</a><a href="#fFeatureEnginee-19" data-q="fFeatureEnginee-19"><span class="qn">&bull;</span>The Workflow</a><a href="#fFeatureEnginee-20" data-q="fFeatureEnginee-20"><span class="qn">&bull;</span>2.1 Univariate Analysis (one variable at a time)</a><a href="#fFeatureEnginee-21" data-q="fFeatureEnginee-21"><span class="qn">&bull;</span>2.2 Bivariate Analysis (two variables / feature ↔ target)</a><a href="#fFeatureEnginee-22" data-q="fFeatureEnginee-22"><span class="qn">&bull;</span>2.3 Multivariate Analysis (the whole picture)</a><a href="#fFeatureEnginee-23" data-q="fFeatureEnginee-23"><span class="qn">&bull;</span>2.4 Automated Profiling</a><a href="#fFeatureEnginee-24" data-q="fFeatureEnginee-24"><span class="qn">&bull;</span>3.1 Data Quality Dimensions</a><a href="#fFeatureEnginee-25" data-q="fFeatureEnginee-25"><span class="qn">&bull;</span>3.2 Data Types</a><a href="#fFeatureEnginee-26" data-q="fFeatureEnginee-26"><span class="qn">&bull;</span>3.3 Duplicates</a><a href="#fFeatureEnginee-27" data-q="fFeatureEnginee-27"><span class="qn">&bull;</span>3.4 String &amp; Category Standardization</a><a href="#fFeatureEnginee-28" data-q="fFeatureEnginee-28"><span class="qn">&bull;</span>4.1 The Three Mechanisms (learn these — common interview question)</a><a href="#fFeatureEnginee-29" data-q="fFeatureEnginee-29"><span class="qn">&bull;</span>4.2 Imputation Methods — With a Tiny Example</a><a href="#fFeatureEnginee-30" data-q="fFeatureEnginee-30"><span class="qn">&bull;</span>4.3 Decision Guide</a><a href="#fFeatureEnginee-31" data-q="fFeatureEnginee-31"><span class="qn">&bull;</span>5.1 Detection — Univariate</a><a href="#fFeatureEnginee-32" data-q="fFeatureEnginee-32"><span class="qn">&bull;</span>5.2 Detection — Multivariate (Mahalanobis Distance)</a><a href="#fFeatureEnginee-33" data-q="fFeatureEnginee-33"><span class="qn">&bull;</span>5.3 Treatment</a><a href="#fFeatureEnginee-34" data-q="fFeatureEnginee-34"><span class="qn">&bull;</span>The Running Example (used for every method below)</a><a href="#fFeatureEnginee-35" data-q="fFeatureEnginee-35"><span class="qn">&bull;</span>6.1 Label / Ordinal Encoding — *one integer per category</a><a href="#fFeatureEnginee-36" data-q="fFeatureEnginee-36"><span class="qn">&bull;</span>6.2 One-Hot / Dummy Encoding — *one column per category</a><a href="#fFeatureEnginee-37" data-q="fFeatureEnginee-37"><span class="qn">&bull;</span>6.3 Count &amp; Frequency Encoding — *replace with how often it appears</a><a href="#fFeatureEnginee-38" data-q="fFeatureEnginee-38"><span class="qn">&bull;</span>6.4 Target / Mean Encoding — *replace with the category's average target</a><a href="#fFeatureEnginee-39" data-q="fFeatureEnginee-39"><span class="qn">&bull;</span>6.5 Leave-One-Out &amp; Ordered (CatBoost) Encoding — *target encoding without cheating</a><a href="#fFeatureEnginee-40" data-q="fFeatureEnginee-40"><span class="qn">&bull;</span>6.6 Weight of Evidence (WoE) &amp; Information Value (IV) — *credit-scoring favorite</a><a href="#fFeatureEnginee-41" data-q="fFeatureEnginee-41"><span class="qn">&bull;</span>6.7 Binary &amp; Hashing Encoding — *squeeze huge cardinality into few columns</a><a href="#fFeatureEnginee-42" data-q="fFeatureEnginee-42"><span class="qn">&bull;</span>6.8 Rare-Label Encoding — *bucket the long tail</a><a href="#fFeatureEnginee-43" data-q="fFeatureEnginee-43"><span class="qn">&bull;</span>6.9 Entity Embeddings — *let a neural net learn the encoding</a><a href="#fFeatureEnginee-44" data-q="fFeatureEnginee-44"><span class="qn">&bull;</span>Side-by-Side Summary (the <code>city</code> column, every method)</a><a href="#fFeatureEnginee-45" data-q="fFeatureEnginee-45"><span class="qn">&bull;</span>Encoding Decision Guide</a><a href="#fFeatureEnginee-46" data-q="fFeatureEnginee-46"><span class="qn">&bull;</span>The Methods — Same Data, Different Results</a><a href="#fFeatureEnginee-47" data-q="fFeatureEnginee-47"><span class="qn">&bull;</span>The Toolkit</a><a href="#fFeatureEnginee-48" data-q="fFeatureEnginee-48"><span class="qn">&bull;</span>Worked Example — Killing Skew</a><a href="#fFeatureEnginee-49" data-q="fFeatureEnginee-49"><span class="qn">&bull;</span>Binning Strategies</a><a href="#fFeatureEnginee-50" data-q="fFeatureEnginee-50"><span class="qn">&bull;</span>Binarization</a><a href="#fFeatureEnginee-51" data-q="fFeatureEnginee-51"><span class="qn">&bull;</span>When (and When Not) to Bin</a><a href="#fFeatureEnginee-52" data-q="fFeatureEnginee-52"><span class="qn">&bull;</span>11.1 Component Extraction</a><a href="#fFeatureEnginee-53" data-q="fFeatureEnginee-53"><span class="qn">&bull;</span>11.2 Elapsed-Time Features (often the strongest)</a><a href="#fFeatureEnginee-54" data-q="fFeatureEnginee-54"><span class="qn">&bull;</span>11.3 Cyclical Encoding (the must-know trick)</a><a href="#fFeatureEnginee-55" data-q="fFeatureEnginee-55"><span class="qn">&bull;</span>Ratios, Products, Differences</a><a href="#fFeatureEnginee-56" data-q="fFeatureEnginee-56"><span class="qn">&bull;</span>Polynomial &amp; Interaction Features</a><a href="#fFeatureEnginee-57" data-q="fFeatureEnginee-57"><span class="qn">&bull;</span>Aggregation Features (group-level summaries)</a><a href="#fFeatureEnginee-58" data-q="fFeatureEnginee-58"><span class="qn">&bull;</span>Domain Cookbook</a><a href="#fFeatureEnginee-59" data-q="fFeatureEnginee-59"><span class="qn">&bull;</span>The Three Families</a><a href="#fFeatureEnginee-60" data-q="fFeatureEnginee-60"><span class="qn">&bull;</span>Filter Methods</a><a href="#fFeatureEnginee-61" data-q="fFeatureEnginee-61"><span class="qn">&bull;</span>Wrapper Methods</a><a href="#fFeatureEnginee-62" data-q="fFeatureEnginee-62"><span class="qn">&bull;</span>Embedded Methods</a><a href="#fFeatureEnginee-63" data-q="fFeatureEnginee-63"><span class="qn">&bull;</span>Strategy</a><a href="#fFeatureEnginee-64" data-q="fFeatureEnginee-64"><span class="qn">&bull;</span>The Three Kinds</a><a href="#fFeatureEnginee-65" data-q="fFeatureEnginee-65"><span class="qn">&bull;</span>Detection &amp; Prevention</a><a href="#fFeatureEnginee-66" data-q="fFeatureEnginee-66"><span class="qn">&bull;</span>Pick the Right Tool</a><a href="#fFeatureEnginee-67" data-q="fFeatureEnginee-67"><span class="qn">&bull;</span>Common Mistakes</a><a href="#fFeatureEnginee-68" data-q="fFeatureEnginee-68"><span class="qn">&bull;</span>Model-by-Model: What You Actually Need</a></nav>
+  <nav><div class="nav-grp"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg>On this page</div><a href="#top" data-t="top"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compass"/></svg>Overview</a><a class="nav-file" href="#f01SQLforMLmd" data-t="f01SQLforMLmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-grid"/></svg>SQL for ML</a><a class="nav-file" href="#fFeatureEnginee" data-t="fFeatureEnginee"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>Feature Engineering Master</a><a class="nav-sub" href="#fFeatureEnginee-p0" data-t="fFeatureEnginee-p0">1. What Feature Engineering Is — The 4 Pillars</a><a class="nav-sub" href="#fFeatureEnginee-p1" data-t="fFeatureEnginee-p1">2. Exploratory Data Analysis (EDA)</a><a class="nav-sub" href="#fFeatureEnginee-p2" data-t="fFeatureEnginee-p2">3. Data Cleaning Foundations</a><a class="nav-sub" href="#fFeatureEnginee-p3" data-t="fFeatureEnginee-p3">4. Missing Data</a><a class="nav-sub" href="#fFeatureEnginee-p4" data-t="fFeatureEnginee-p4">5. Outliers</a><a class="nav-sub" href="#fFeatureEnginee-p5" data-t="fFeatureEnginee-p5">6. Categorical Encoding — Every Method With an Example</a><a class="nav-sub" href="#fFeatureEnginee-p6" data-t="fFeatureEnginee-p6">7. Feature Scaling</a><a class="nav-sub" href="#fFeatureEnginee-p7" data-t="fFeatureEnginee-p7">8. Numerical Transformations</a><a class="nav-sub" href="#fFeatureEnginee-p8" data-t="fFeatureEnginee-p8">9. Binning, Discretization &amp; Binarization</a><a class="nav-sub" href="#fFeatureEnginee-p9" data-t="fFeatureEnginee-p9">10. Mixed Variables</a><a class="nav-sub" href="#fFeatureEnginee-p10" data-t="fFeatureEnginee-p10">11. Date / Time Feature Engineering</a><a class="nav-sub" href="#fFeatureEnginee-p11" data-t="fFeatureEnginee-p11">12. Feature Construction (Creation)</a><a class="nav-sub" href="#fFeatureEnginee-p12" data-t="fFeatureEnginee-p12">13. Feature Extraction</a><a class="nav-sub" href="#fFeatureEnginee-p13" data-t="fFeatureEnginee-p13">14. Feature Selection</a><a class="nav-sub" href="#fFeatureEnginee-p14" data-t="fFeatureEnginee-p14">15. Data Leakage Prevention</a><a class="nav-sub" href="#fFeatureEnginee-p15" data-t="fFeatureEnginee-p15">16. Interview Deep Dive</a><a class="nav-sub" href="#fFeatureEnginee-p16" data-t="fFeatureEnginee-p16">17. Cheat Sheets</a></nav>
 </aside>
 <main><div class="wrap">
 
-<section class="hero" id="top"><div class="eyebrow">03_Data_Handling &middot; SQL &amp; Features</div>
-<h1>SQL &amp; Features</h1><p class="lede">SQL for machine learning, and the feature-engineering master reference</p><div class="oneliner"><b>2 files</b> in this section, <b>69 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
-<div class="stats"><div class="stat"><div class="stat-v">2</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">69</div><div class="stat-l">sections</div></div></div></section>
-<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">SQL for machine learning, and the feature-engineering master reference</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>SQL for ML</b><span class="learn-n">18 sections</span></div><div class="learn-tags"><span>Fundamentals</span><span>JOINs Deep Dive</span><span>GROUP BY, HAVING &amp; Aggregations</span><span>Window Functions</span><span>Subqueries &amp; CTEs</span></div></li><li class="learn-item"><div class="learn-top"><b>Feature Engineering Master</b><span class="learn-n">51 sections</span></div><div class="learn-tags"><span>What Feature Engineering Is — The 4 P…</span><span>Exploratory Data Analysis (EDA)</span><span>Data Cleaning Foundations</span><span>Missing Data</span><span>Outliers</span></div></li></ul></section>
+<nav class="crumb"><a href="../index.html">Home</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><a href="index.html">Data Handling</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><b>SQL &amp; Features</b></nav>
+<section class="hero" id="top"><div class="eyebrow">Data Handling &middot; SQL &amp; Features</div>
+<h1>SQL &amp; Features</h1><p class="lede">SQL for machine learning, and the feature-engineering master reference</p><div class="oneliner"><b>2 files</b> in this section, <b>69 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div></section>
 
-<section class="filesec" id="f01SQLforMLmd"><header class="filehead"><div class="fh-top"><span class="fh-num">SQL for ML</span><span class="fh-count">18 sections</span><a class="fh-src" href="../../03_Data_Handling/01_SQL_for_ML.md">source .md &#8599;</a></div><h2>SQL for ML Engineers — Complete Reference</h2><div class="note">
+<section class="filesec" id="f01SQLforMLmd"><header class="filehead"><div class="fh-top"><span class="fh-num">SQL for ML</span><span class="fh-count">18 sections</span></div><h2>SQL for ML Engineers — Complete Reference</h2><div class="note">
 <p><strong>Scope:</strong> SELECT/WHERE/ORDER BY, JOINs (INNER/LEFT/RIGHT/FULL/CROSS/SELF), GROUP BY/HAVING, window functions (ROW_NUMBER/RANK/LAG/LEAD/NTILE), subqueries &amp; CTEs, recursive CTEs, aggregation (GROUPING SETS/ROLLUP/CUBE), set operations (UNION/INTERSECT/EXCEPT), CASE/COALESCE/NULLIF, EXISTS vs IN, string/date functions, EXPLAIN ANALYZE, indexes, transactions &amp; ACID, PIVOT/UNPIVOT, QUALIFY, SQL+Python integration, ML-specific query patterns, interview Q&amp;A.</p>
 </div></header><article class="q" id="f01SQLforMLmd-0"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Fundamentals</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01SQLforMLmd-0"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">SQL (Structured Query Language)</span><span class="kt">tables</span></div><p><strong>SQL (Structured Query Language)</strong> is the standard language for querying and manipulating relational databases. Data is organized into <strong>tables</strong> (rows × columns), and SQL operations follow a logical execution order: <code>FROM</code> → <code>WHERE</code> → <code>GROUP BY</code> → <code>HAVING</code> → <code>SELECT</code> → <code>ORDER BY</code> → <code>LIMIT</code>. Understanding this order is crucial for debugging queries and writing efficient filters. SQL is essential for ML engineers because most production data lives in databases — feature extraction, data validation, and pipeline queries all require strong SQL skills.</p>
 <pre class="code" data-lang="sql"><code>-- Basic SELECT with filtering, sorting, limiting
@@ -1452,10 +1800,10 @@ WHERE rnk = 2;</code></pre>
 <p><em>Previous: <a href="../../02_Mathematics_and_Statistics/03_Inference_and_Testing.md">../02_Mathematics_and_Statistics/03_Inference_and_Testing.md</a> | Next: <a href="sql.html#fFeatureEnginee">Feature_Engineering_Master.md</a></em></p>
 <div class="note">
 <p><strong>Pandas &amp; NumPy reference</strong> has moved to <a href="../../01_Python/24_Pandas/Pandas_and_NumPy_Reference.md">../01_Python/24_Pandas/Pandas_and_NumPy_Reference.md</a>.</p>
-</div></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fFeatureEnginee"><header class="filehead"><div class="fh-top"><span class="fh-num">Feature Engineering Master</span><span class="fh-count">51 sections</span><a class="fh-src" href="../../03_Data_Handling/Feature_Engineering_Master.md">source .md &#8599;</a></div><h2>Feature Engineering — Master Notes</h2><div class="note">
+</div></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fFeatureEnginee"><header class="filehead"><div class="fh-top"><span class="fh-num">Feature Engineering Master</span><span class="fh-count">51 sections</span></div><h2>Feature Engineering — Master Notes</h2><div class="note">
 <p><strong>One file, everything.</strong> <abbr title="exploratory data analysis">EDA</abbr> → Data Cleaning → Missing Data → Outliers → Encoding → Scaling → Transformations → Binning/Binarization → Mixed Variables → Date/Time → Feature Construction → Extraction → Selection → Leakage → Interview.</p>
 <p><strong>Style:</strong> intuition first, then a <em>simple worked example with real numbers</em>, then "when to use / watch out." No code — concepts and examples only. All example numbers are hand-checkable.</p>
-</div></header><div class="parthead"><span>1. What Feature Engineering Is — The 4 Pillars</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> A model only ever sees the <em>numbers you feed it</em>. Feature engineering is the craft of turning raw, messy data into informative numbers so the model can actually learn the pattern. It is usually the single biggest lever on accuracy — bigger than the choice of algorithm.</p>
+</div></header><div class="parthead" id="fFeatureEnginee-p0"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>1. What Feature Engineering Is — The 4 Pillars</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> A model only ever sees the <em>numbers you feed it</em>. Feature engineering is the craft of turning raw, messy data into informative numbers so the model can actually learn the pattern. It is usually the single biggest lever on accuracy — bigger than the choice of algorithm.</p>
 <div class="diagram"><pre>Impact ranking (typical):
   Feature engineering   →  2–10× improvement      ← biggest lever
   Hyperparameter tuning →  1.1–1.5×
@@ -1474,7 +1822,7 @@ CONSTRUCTION  TRANSFORMATION  EXTRACTION   SELECTION
 <div class="tbl-wrap"><table class="t4"><thead><tr><th>Pillar</th><th>Question it answers</th><th>Examples</th><th>Sections</th></tr></thead><tbody><tr class="g1"><td><strong>Construction</strong></td><td><em>What new signal can I build?</em></td><td><code>price_per_sqft</code>, RFM, lags</td><td>§11, §12</td></tr><tr class="g0"><td><strong>Transformation</strong></td><td><em>How do I reshape an existing column?</em></td><td>encode, scale, log, bin</td><td>§6–§11</td></tr><tr class="g1"><td><strong>Extraction</strong></td><td><em>Can I compress many columns into a few?</em></td><td><abbr title="principal component analysis">PCA</abbr>, SVD, embeddings</td><td>§13</td></tr><tr class="g0"><td><strong>Selection</strong></td><td><em>Which features should I keep?</em></td><td>variance, MI, Lasso</td><td>§14</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-19"><div class="q-h"><span class="q-n">&bull;</span><h3>The Workflow</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-19"><span></span></label></div><div class="q-a"><div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px"><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">RAW DATA</span><span class="ar">&rarr;</span><span class="st"><abbr title="exploratory data analysis">EDA</abbr></span><span class="ar">&rarr;</span><span class="st">CLEAN</span><span class="ar">&rarr;</span><span class="st">FIX MISSING/OUTLIERS</span><span class="ar">&rarr;</span><span class="st">ENCODE/SCALE/TRANSFORM</span></div><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">CREATE</span><span class="ar">&rarr;</span><span class="st">EXTRACT</span><span class="ar">&rarr;</span><span class="st">SELECT</span><span class="ar">&rarr;</span><span class="st">CHECK FOR LEAKAGE</span><span class="ar">&rarr;</span><span class="st">MODEL</span></div></div>
 <div class="note">
 <p><strong>Golden rule that appears in every section:</strong> learn every transformation's parameters (means, category maps, bin edges, scaler stats) <strong>from the training data only</strong>, then apply them to validation/test. Peeking at test data = <em>data leakage</em> (§15).</p>
-</div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>2. Exploratory Data Analysis (EDA)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> Before engineering anything, <em>look at the data</em>. <abbr title="exploratory data analysis">EDA</abbr> is the structured habit of examining one variable at a time, then pairs, then the whole picture — so you choose the right cleaning and encoding instead of guessing.</p></div><article class="q" id="fFeatureEnginee-20"><div class="q-h"><span class="q-n">&bull;</span><h3>2.1 Univariate Analysis (one variable at a time)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-20"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Numeric</span><span class="kt">Categorical</span><span class="kt">Reading cardinality (categoricals)</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Variable type</th><th>What to look at</th><th>Red flags</th></tr></thead><tbody><tr class="g1"><td><strong>Numeric</strong></td><td>min/max, mean vs median, spread, skewness, histogram, box plot</td><td>huge mean≠median (skew), impossible values, spikes</td></tr><tr class="g0"><td><strong>Categorical</strong></td><td>counts, % of each level, number of unique levels (cardinality)</td><td>one level = <span class="mag">99%</span> (near-constant), 5,000 unique levels (high cardinality)</td></tr></tbody></table></div>
+</div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fFeatureEnginee-p1"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>2. Exploratory Data Analysis (EDA)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> Before engineering anything, <em>look at the data</em>. <abbr title="exploratory data analysis">EDA</abbr> is the structured habit of examining one variable at a time, then pairs, then the whole picture — so you choose the right cleaning and encoding instead of guessing.</p></div><article class="q" id="fFeatureEnginee-20"><div class="q-h"><span class="q-n">&bull;</span><h3>2.1 Univariate Analysis (one variable at a time)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-20"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Numeric</span><span class="kt">Categorical</span><span class="kt">Reading cardinality (categoricals)</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Variable type</th><th>What to look at</th><th>Red flags</th></tr></thead><tbody><tr class="g1"><td><strong>Numeric</strong></td><td>min/max, mean vs median, spread, skewness, histogram, box plot</td><td>huge mean≠median (skew), impossible values, spikes</td></tr><tr class="g0"><td><strong>Categorical</strong></td><td>counts, % of each level, number of unique levels (cardinality)</td><td>one level = <span class="mag">99%</span> (near-constant), 5,000 unique levels (high cardinality)</td></tr></tbody></table></div>
 <p><strong>Simple example — spotting skew with mean vs median:</strong></p>
 <div class="diagram"><pre>incomes (k): 20, 22, 25, 28, 30, 35, 40, 500
 mean   = 87.5      ← dragged up by the 500
@@ -1506,7 +1854,7 @@ Spread 0.08 → 0.45 = strong signal. "plan" is worth keeping.</pre></div>
 <li><strong>Target by two dimensions at once</strong> (e.g., churn by <code>plan × region</code>) → reveals interaction features to <em>construct</em> (§12).</li>
 </ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-23"><div class="q-h"><span class="q-n">&bull;</span><h3>2.4 Automated Profiling</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-23"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Plain words</span><span class="kt">pandas-profiling / ydata-profiling</span><span class="kt">Sweetviz</span><span class="kt">D-Tale</span></div><p><strong>Plain words:</strong> tools like <strong>pandas-profiling / ydata-profiling</strong>, <strong>Sweetviz</strong>, or <strong>D-Tale</strong> generate a full report in one shot — per-column stats, distributions, missing-value map, correlations, duplicate/constant warnings.</p>
 <pre class="code"><code>Use it FIRST for a 5-minute overview, THEN do targeted manual EDA on the
-columns the report flags. It replaces the boring 80%, not the thinking 20%.</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>3. Data Cleaning Foundations</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Garbage in, garbage out. Clean before you engineer.</p></div><article class="q" id="fFeatureEnginee-24"><div class="q-h"><span class="q-n">&bull;</span><h3>3.1 Data Quality Dimensions</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-24"><span></span></label></div><div class="q-a"><div class="diagram"><pre>COMPLETENESS  Are values present?           → missing data (§4)
+columns the report flags. It replaces the boring 80%, not the thinking 20%.</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fFeatureEnginee-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>3. Data Cleaning Foundations</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Garbage in, garbage out. Clean before you engineer.</p></div><article class="q" id="fFeatureEnginee-24"><div class="q-h"><span class="q-n">&bull;</span><h3>3.1 Data Quality Dimensions</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-24"><span></span></label></div><div class="q-a"><div class="diagram"><pre>COMPLETENESS  Are values present?           → missing data (§4)
 ACCURACY      Are values correct?           → range/sanity checks
 CONSISTENCY   Do values agree?              → "NYC" vs "New York"
 VALIDITY      Do they follow the rules?     → age ∈ [0,120], end &gt; start
@@ -1522,7 +1870,7 @@ FUZZY     "Apple Inc" vs "Apple,  Inc."     → string-similarity match, then un
 <div class="note">
 <p>Always <strong>investigate before deleting</strong> — a "duplicate" may be a legitimate repeat event.</p>
 </div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-27"><div class="q-h"><span class="q-n">&bull;</span><h3>3.4 String &amp; Category Standardization</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-27"><span></span></label></div><div class="q-a"><div class="diagram"><pre>"  USA "  "usa"  "U.S.A."  "United States"   →  all map to  "us"
-Steps: trim spaces → lowercase → collapse repeats → apply a mapping dictionary.</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>4. Missing Data</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> real data has holes. <em>How</em> you fill them matters, and <strong>why</strong> a value is missing decides the right fix.</p></div><article class="q" id="fFeatureEnginee-28"><div class="q-h"><span class="q-n">&bull;</span><h3>4.1 The Three Mechanisms (learn these — common interview question)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-28"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">MCAR</span><span class="kt">MAR</span><span class="kt">MNAR</span><span class="kt">How to tell</span><span class="kt">Practical rule</span><span class="kt">missing-indicator</span></div><div class="tbl-wrap"><table class="t4"><thead><tr><th>Type</th><th>Meaning</th><th>Everyday example</th><th>Safe to…</th></tr></thead><tbody><tr class="g1"><td><strong>MCAR</strong> (completely at random)</td><td>missingness unrelated to anything</td><td>a sensor randomly dropped readings</td><td>drop or simple-impute</td></tr><tr class="g0"><td><strong>MAR</strong> (at random)</td><td>depends on <em>other observed</em> columns</td><td>income missing more for the young (age is known)</td><td>model-based impute (<abbr title="k-nearest neighbours">KNN</abbr>/MICE) using those columns</td></tr><tr class="g1"><td><strong>MNAR</strong> (not at random)</td><td>depends on the <em>missing value itself</em></td><td>high earners refuse to state income</td><td>add a "was-missing" flag; impute carefully</td></tr></tbody></table></div>
+Steps: trim spaces → lowercase → collapse repeats → apply a mapping dictionary.</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fFeatureEnginee-p3"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>4. Missing Data</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> real data has holes. <em>How</em> you fill them matters, and <strong>why</strong> a value is missing decides the right fix.</p></div><article class="q" id="fFeatureEnginee-28"><div class="q-h"><span class="q-n">&bull;</span><h3>4.1 The Three Mechanisms (learn these — common interview question)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-28"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">MCAR</span><span class="kt">MAR</span><span class="kt">MNAR</span><span class="kt">How to tell</span><span class="kt">Practical rule</span><span class="kt">missing-indicator</span></div><div class="tbl-wrap"><table class="t4"><thead><tr><th>Type</th><th>Meaning</th><th>Everyday example</th><th>Safe to…</th></tr></thead><tbody><tr class="g1"><td><strong>MCAR</strong> (completely at random)</td><td>missingness unrelated to anything</td><td>a sensor randomly dropped readings</td><td>drop or simple-impute</td></tr><tr class="g0"><td><strong>MAR</strong> (at random)</td><td>depends on <em>other observed</em> columns</td><td>income missing more for the young (age is known)</td><td>model-based impute (<abbr title="k-nearest neighbours">KNN</abbr>/MICE) using those columns</td></tr><tr class="g1"><td><strong>MNAR</strong> (not at random)</td><td>depends on the <em>missing value itself</em></td><td>high earners refuse to state income</td><td>add a "was-missing" flag; impute carefully</td></tr></tbody></table></div>
 <p><strong>How to tell:</strong> split rows into "value missing" vs "value present," then compare the <em>other</em> columns. If they look the same → likely MCAR. If they differ (missing-income rows are younger) → MAR/MNAR.</p>
 <div class="note">
 <p><strong>Practical rule:</strong> whenever missingness might carry meaning, add a <strong>missing-indicator</strong> column (1 if it was missing) <em>and</em> impute the value. You keep both signals.</p>
@@ -1537,7 +1885,7 @@ Steps: trim spaces → lowercase → collapse repeats → apply a mapping dictio
 &gt; 50%         usually drop the column — UNLESS being missing is itself informative</code></pre>
 <div class="note">
 <p>⚠️ <strong>Leakage trap:</strong> compute the impute value (mean/median/model) on <strong>train only</strong>, then apply to test. Fitting the mean on all data leaks test info.</p>
-</div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>5. Outliers</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> a few extreme values can dominate a mean, stretch a scaler, and wreck a linear model. First <em>detect</em>, then <em>decide</em> (they are not always errors — fraud <strong>is</strong> the outlier).</p></div><article class="q" id="fFeatureEnginee-31"><div class="q-h"><span class="q-n">&bull;</span><h3>5.1 Detection — Univariate</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-31"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">IQR rule (robust, the default)</span><span class="kt">Z-score</span></div><p>Running data: <code>10, 11, 12, 13, 12, 11, 10, 9, 80</code> (the <code>80</code> is the suspect).</p>
+</div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fFeatureEnginee-p4"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>5. Outliers</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> a few extreme values can dominate a mean, stretch a scaler, and wreck a linear model. First <em>detect</em>, then <em>decide</em> (they are not always errors — fraud <strong>is</strong> the outlier).</p></div><article class="q" id="fFeatureEnginee-31"><div class="q-h"><span class="q-n">&bull;</span><h3>5.1 Detection — Univariate</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-31"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">IQR rule (robust, the default)</span><span class="kt">Z-score</span></div><p>Running data: <code>10, 11, 12, 13, 12, 11, 10, 9, 80</code> (the <code>80</code> is the suspect).</p>
 <p><strong>IQR rule (robust, the default):</strong></p>
 <div class="diagram"><pre>Q1 = 10,  Q3 = 12,  IQR = Q3 − Q1 = 2
 fence = [Q1 − 1.5·IQR ,  Q3 + 1.5·IQR] = [7 , 15]
@@ -1561,7 +1909,7 @@ Model is tree-based?           → usually keep — trees split, scale-invariant
 Model is linear / KNN / NN?    → cap or transform (§8) or RobustScaler (§7)</pre></div>
 <div class="diagram"><pre>Trimming   = delete outlier rows           (lose data; use sparingly)
 Capping    = clip to a limit (winsorize)   (keep row, tame the value)  ← most common
-Transform  = log/Box-Cox compresses tails  (§8)</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>6. Categorical Encoding — Every Method With an Example</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> models eat numbers, not words. Encoding turns categories like <code>"Paris"</code> into numbers — and <em>how</em> you do it changes whether the model learns truth or a fake ordering.</p></div><article class="q" id="fFeatureEnginee-34"><div class="q-h"><span class="q-n">&bull;</span><h3>The Running Example (used for every method below)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-34"><span></span></label></div><div class="q-a"><p>8 customers, a <code>city</code> column, and a binary <code>target</code> (1 = churned). Per-city summary:</p>
+Transform  = log/Box-Cox compresses tails  (§8)</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fFeatureEnginee-p5"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>6. Categorical Encoding — Every Method With an Example</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> models eat numbers, not words. Encoding turns categories like <code>"Paris"</code> into numbers — and <em>how</em> you do it changes whether the model learns truth or a fake ordering.</p></div><article class="q" id="fFeatureEnginee-34"><div class="q-h"><span class="q-n">&bull;</span><h3>The Running Example (used for every method below)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-34"><span></span></label></div><div class="q-a"><p>8 customers, a <code>city</code> column, and a binary <code>target</code> (1 = churned). Per-city summary:</p>
 <pre class="code"><code>city     rows  target values   count  mean(target)
 Paris     3    1, 0, 1           3      0.667
 London    2    0, 0              2      0.000
@@ -1648,14 +1996,14 @@ nominal, 10–50 levels          → target (smoothed/CV) or frequency
 nominal, &gt; 50 levels           → target, binary, hashing, or embeddings
 binary target + want scorecard → WoE (and use IV to rank features)
 tree models                    → label/ordinal works fine (no one-hot needed)
-linear / NN models             → one-hot or target/WoE (never raw label on nominal)</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>7. Feature Scaling</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> if <code>income</code> ranges 0–500,000 and <code>age</code> ranges 0–100, any distance- or gradient-based model thinks income is <span class="mag">5,000×</span> more important — purely because of units. Scaling puts features on a comparable footing.</p>
+linear / NN models             → one-hot or target/WoE (never raw label on nominal)</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fFeatureEnginee-p6"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-network"/></svg>7. Feature Scaling</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> if <code>income</code> ranges 0–500,000 and <code>age</code> ranges 0–100, any distance- or gradient-based model thinks income is <span class="mag">5,000×</span> more important — purely because of units. Scaling puts features on a comparable footing.</p>
 <pre class="code"><code>MUST scale:  KNN, SVM, K-Means, PCA, neural nets, L1/L2-regularized linear models
 DON'T need:  decision trees, random forest, XGBoost/LightGBM (splits are scale-free)</code></pre></div><article class="q" id="fFeatureEnginee-46"><div class="q-h"><span class="q-n">&bull;</span><h3>The Methods — Same Data, Different Results</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-46"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Standard</span><span class="kt">2.00</span><span class="kt">Min-Max</span><span class="kt">1.00</span><span class="kt">Robust</span><span class="kt">21.5</span></div><p>Data with an outlier: <code>10, 12, 14, 16, 100</code>  →  <code>mean = 30.4, std = 34.9, median = 14, IQR = 4</code>.</p>
 <div class="tbl-wrap"><table class="t4"><thead><tr><th>Scaler</th><th>Formula</th><th>Result on the data</th><th>Notes</th></tr></thead><tbody><tr class="g1"><td><strong>Standard</strong></td><td>(x − mean) / std</td><td>−0.59, −0.53, −0.47, −0.41, <strong>2.00</strong></td><td>mean 0, std 1; outlier squashes the rest</td></tr><tr class="g0"><td><strong>Min-Max</strong></td><td>(x − min)/(max − min)</td><td>0, 0.02, 0.04, 0.07, <strong>1.00</strong></td><td>range [0,1]; the four real values cram into [0, 0.07]</td></tr><tr class="g1"><td><strong>Robust</strong></td><td>(x − median)/IQR</td><td>−1, −0.5, 0, 0.5, <strong>21.5</strong></td><td>inliers stay nicely spread; outlier flagged far out</td></tr><tr class="g0"><td><strong>MaxAbs</strong></td><td>x / max(|x|)</td><td>0.10, 0.12, 0.14, 0.16, <strong>1.00</strong></td><td>keeps sparsity/zeros; range [−1,1]</td></tr><tr class="g1"><td><strong>Normalizer</strong></td><td>row / ‖row‖</td><td>per-row unit length</td><td>for text/TF-IDF, cosine similarity</td></tr></tbody></table></div>
 <p><strong>The lesson in one line:</strong> with an outlier, Standard and Min-Max <em>crush the real values into a tiny band</em> while <strong>RobustScaler keeps the inliers readable</strong> (−1 … 0.5) and lets the outlier stick out (21.5). Outliers → reach for Robust.</p>
 <div class="note">
 <p>⚠️ <strong>Always</strong> fit the scaler on <strong>train</strong>, then transform train <em>and</em> test with those same numbers. Fitting on all data leaks.</p>
-</div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>8. Numerical Transformations</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> many models (especially linear ones) assume features are roughly symmetric/bell-shaped. Real columns are often right-skewed (income, prices, counts). A transformation <em>reshapes the distribution</em> to be more normal, which straightens relationships and tames outliers.</p></div><article class="q" id="fFeatureEnginee-47"><div class="q-h"><span class="q-n">&bull;</span><h3>The Toolkit</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-47"><span></span></label></div><div class="q-a"><pre class="code"><code>TRANSFORM        DOES                              USE WHEN
+</div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fFeatureEnginee-p7"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>8. Numerical Transformations</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> many models (especially linear ones) assume features are roughly symmetric/bell-shaped. Real columns are often right-skewed (income, prices, counts). A transformation <em>reshapes the distribution</em> to be more normal, which straightens relationships and tames outliers.</p></div><article class="q" id="fFeatureEnginee-47"><div class="q-h"><span class="q-n">&bull;</span><h3>The Toolkit</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-47"><span></span></label></div><div class="q-a"><pre class="code"><code>TRANSFORM        DOES                              USE WHEN
 log1p  ln(1+x)   compresses big values hard        right-skew, positive, has zeros
 sqrt   √x        gentle compression                counts, mild skew
 reciprocal 1/x   very strong                        extreme right-skew (no zeros)
@@ -1670,14 +2018,14 @@ Box-Cox (λ≈−0.20) 0.00, 0.65, 1.21, 1.71, 2.14, 3.03   0.10   ← almost sy
 <p>Box-Cox searched for the power that flattens the skew best and landed near λ = −0.2.</p>
 <div class="note">
 <p><strong>For regression targets:</strong> log-transforming a skewed <em>target</em> (then exponentiating predictions back) is a classic, high-value trick. Remember to invert it at the end.</p>
-</div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>9. Binning, Discretization &amp; Binarization</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> <em>Binning/discretization</em> chops a continuous column into a few buckets (turning a number into a category). <em>Binarization</em> is the extreme case — collapse to just 0/1 around a threshold.</p></div><article class="q" id="fFeatureEnginee-49"><div class="q-h"><span class="q-n">&bull;</span><h3>Binning Strategies</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-49"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Equal-width</span><span class="kt">Equal-frequency</span><span class="kt">Custom / domain</span><span class="kt">Tree-based</span><span class="kt">K-means</span></div><p>Ages: <code>5, 17, 25, 40, 67</code>.</p>
+</div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fFeatureEnginee-p8"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>9. Binning, Discretization &amp; Binarization</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> <em>Binning/discretization</em> chops a continuous column into a few buckets (turning a number into a category). <em>Binarization</em> is the extreme case — collapse to just 0/1 around a threshold.</p></div><article class="q" id="fFeatureEnginee-49"><div class="q-h"><span class="q-n">&bull;</span><h3>Binning Strategies</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-49"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Equal-width</span><span class="kt">Equal-frequency</span><span class="kt">Custom / domain</span><span class="kt">Tree-based</span><span class="kt">K-means</span></div><p>Ages: <code>5, 17, 25, 40, 67</code>.</p>
 <div class="tbl-wrap"><table class="t3"><thead><tr><th>Strategy</th><th>How it picks edges</th><th>Result (bin index)</th></tr></thead><tbody><tr class="g1"><td><strong>Equal-width</strong></td><td>split the range into N equal spans (here 0–70 → 0–23.3–46.7–70)</td><td>0, 0, 1, 1, 2</td></tr><tr class="g0"><td><strong>Equal-frequency</strong> (quantile)</td><td>each bin holds the same <em>count</em> of rows</td><td>0, 0, 1, 2, 2</td></tr><tr class="g1"><td><strong>Custom / domain</strong></td><td>business cut-points (child&lt;18, adult&lt;65, senior)</td><td>by rule</td></tr><tr class="g0"><td><strong>Tree-based</strong></td><td>let a shallow decision tree choose splits that help the target</td><td>optimal vs target</td></tr><tr class="g1"><td><strong>K-means</strong></td><td>cluster the values into N groups</td><td>data-driven</td></tr></tbody></table></div>
 <p>Equal-width is simple but a skewed column can dump everything into one bin; equal-frequency guarantees balanced buckets.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-50"><div class="q-h"><span class="q-n">&bull;</span><h3>Binarization</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-50"><span></span></label></div><div class="q-a"><div class="diagram"><pre>threshold age ≥ 18  →  "is_adult"
 ages   5, 17, 25, 40, 67
 flag   0,  0,  1,  1,  1</pre></div>
 <p>Useful for "has any / none" style features (<code>num_complaints &gt; 0 → had_complaint</code>).</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-51"><div class="q-h"><span class="q-n">&bull;</span><h3>When (and When Not) to Bin</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-51"><span></span></label></div><div class="q-a"><pre class="code"><code>✅ capture non-linear effect in a linear model    ✅ business needs brackets
 ✅ reduce the pull of outliers/noise              ✅ build WoE scorecards (§6.6)
-❌ tree models — they already bin at every split  ❌ when the smooth signal matters</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>10. Mixed Variables</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> sometimes one column secretly holds <strong>two kinds of information</strong> — a letter <em>and</em> a number, or numbers mixed with labels. Split it into separate clean features.</p>
+❌ tree models — they already bin at every split  ❌ when the smooth signal matters</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fFeatureEnginee-p9"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>10. Mixed Variables</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> sometimes one column secretly holds <strong>two kinds of information</strong> — a letter <em>and</em> a number, or numbers mixed with labels. Split it into separate clean features.</p>
 <p><strong>Type A — value contains both a category and a number</strong> (e.g. a ticket/cabin code):</p>
 <div class="diagram"><pre>code        →  code_letter (category)   code_number (numeric)
 A12               A                          12
@@ -1690,7 +2038,7 @@ D5                D                           5</pre></div>
 <ul>
 <li>✅ Each derived column is now cleanly numeric <em>or</em> cleanly categorical and can be scaled/encoded normally.</li>
 <li>This is a frequently-missed step — interviewers love it because it shows you actually <em>read</em> the column.</li>
-</ul></div><div class="parthead"><span>11. Date / Time Feature Engineering</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> a raw timestamp like <code>2024-12-31 23:00</code> is useless as a number. Explode it into the signals it contains: <em>which part of the cycle</em> and <em>how long ago</em>.</p></div><article class="q" id="fFeatureEnginee-52"><div class="q-h"><span class="q-n">&bull;</span><h3>11.1 Component Extraction</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-52"><span></span></label></div><div class="q-a"><div class="diagram"><pre>from one timestamp →  year, month, day, hour, day-of-week, quarter,
+</ul></div><div class="parthead" id="fFeatureEnginee-p10"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>11. Date / Time Feature Engineering</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> a raw timestamp like <code>2024-12-31 23:00</code> is useless as a number. Explode it into the signals it contains: <em>which part of the cycle</em> and <em>how long ago</em>.</p></div><article class="q" id="fFeatureEnginee-52"><div class="q-h"><span class="q-n">&bull;</span><h3>11.1 Component Extraction</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-52"><span></span></label></div><div class="q-a"><div class="diagram"><pre>from one timestamp →  year, month, day, hour, day-of-week, quarter,
                       is_weekend, is_month_start, is_holiday, week-of-year</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-53"><div class="q-h"><span class="q-n">&bull;</span><h3>11.2 Elapsed-Time Features (often the strongest)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-53"><span></span></label></div><div class="q-a"><pre class="code"><code>account_age_days        = today − signup_date
 days_since_last_purchase = today − last_purchase
 time_to_convert_hours    = converted_at − signup_at</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-54"><div class="q-h"><span class="q-n">&bull;</span><h3>11.3 Cyclical Encoding (the must-know trick)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-54"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Problem</span><span class="kt">Fix</span><span class="kt">and</span><span class="kt">close</span><span class="kt">both</span></div><p><strong>Problem:</strong> December is month <code>12</code>, January is month <code>1</code>. Numerically they look 11 apart — but they're <em>adjacent</em>. Same for hour 23 → 0. Encoding the raw number teaches a linear model/NN a lie.</p>
@@ -1705,7 +2053,7 @@ Dec(12) −0.00   +1.00
 Dec → Jan   circle distance = 0.52   (raw gap said 11  ← wrong!)
 Jun → Dec   circle distance = 2.00   (raw gap said  6)</pre></div>
 <p>On the circle, Dec and Jan are correctly <strong>close</strong>, and the truly-opposite months are far. You need <strong>both</strong> sin and cos — sin alone can't tell two different months apart (two months share the same sine).
-- Tree models don't need this (they split on the raw number happily); linear models and NNs do.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>12. Feature Construction (Creation)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> the highest-value, most human part — invent features that <em>encode domain knowledge</em> the raw columns don't state outright.</p></div><article class="q" id="fFeatureEnginee-55"><div class="q-h"><span class="q-n">&bull;</span><h3>Ratios, Products, Differences</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-55"><span></span></label></div><div class="q-a"><div class="diagram"><pre>price_per_sqft      = price / sqft
+- Tree models don't need this (they split on the raw number happily); linear models and NNs do.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fFeatureEnginee-p11"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>12. Feature Construction (Creation)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> the highest-value, most human part — invent features that <em>encode domain knowledge</em> the raw columns don't state outright.</p></div><article class="q" id="fFeatureEnginee-55"><div class="q-h"><span class="q-n">&bull;</span><h3>Ratios, Products, Differences</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-55"><span></span></label></div><div class="q-a"><div class="diagram"><pre>price_per_sqft      = price / sqft
 bmi                 = weight_kg / height_m²
 debt_to_income      = total_debt / annual_income
 revenue_per_employee= revenue / employees
@@ -1719,11 +2067,11 @@ Prefer a few targeted interactions from domain knowledge over blind expansion.</
 relative:      this_price − category_average_price   ("how unusual for its group")</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-58"><div class="q-h"><span class="q-n">&bull;</span><h3>Domain Cookbook</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-58"><span></span></label></div><div class="q-a"><pre class="code"><code>E-COMMERCE   RFM = Recency, Frequency, Monetary; avg_order_value; return_rate
 FINANCE      debt-to-income, credit_utilization, delinquency_rate
 TIME SERIES  lag_1/lag_7 (yesterday/last-week value), rolling_mean_7,
-             momentum = lag_1 / lag_7;  ⚠️ only ever look BACKWARD (§15)</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>13. Feature Extraction</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> when you have <em>many</em> correlated columns, extraction compresses them into a few new columns that keep most of the information. Different from selection — you build <strong>new</strong> combined axes rather than keeping originals.</p>
+             momentum = lag_1 / lag_7;  ⚠️ only ever look BACKWARD (§15)</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fFeatureEnginee-p12"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>13. Feature Extraction</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> when you have <em>many</em> correlated columns, extraction compresses them into a few new columns that keep most of the information. Different from selection — you build <strong>new</strong> combined axes rather than keeping originals.</p>
 <div class="tbl-wrap"><table class="t3"><thead><tr><th>Method</th><th>One-line idea</th><th>Use when</th></tr></thead><tbody><tr class="g1"><td><strong><abbr title="principal component analysis">PCA</abbr></strong></td><td>new axes = directions of maximum variance; keep the top few</td><td>many correlated numeric features; speed/denoise</td></tr><tr class="g0"><td><strong><abbr title="linear discriminant analysis">LDA</abbr></strong></td><td>like PCA but axes that best <em>separate the classes</em></td><td>supervised dimensionality reduction</td></tr><tr class="g1"><td><strong>Truncated SVD</strong></td><td>PCA that works on sparse data</td><td>TF-IDF text matrices ("LSA")</td></tr><tr class="g0"><td><strong>t-SNE / UMAP</strong></td><td>squeeze to 2-D for <em>visualization</em> (not modeling)</td><td>seeing clusters by eye</td></tr><tr class="g1"><td><strong>Autoencoder</strong></td><td>a neural net learns a compact code of the input</td><td>images, complex non-linear data</td></tr><tr class="g0"><td><strong>Embeddings</strong></td><td>learned dense vectors for categories/text/items</td><td>high-cardinality IDs, <abbr title="natural language processing">NLP</abbr> (§6.9)</td></tr></tbody></table></div>
 <p><strong>PCA intuition:</strong> picture a stretched oval cloud of points. PCA finds the long axis of the oval (PC1, most spread) and the short axis (PC2). Keep PC1, drop PC2 → 2 columns become 1 with little information lost.</p>
 <div class="diagram"><pre>✅ fewer features → faster, less overfit, removes multicollinearity
-⚠️ new axes are combinations → hard to interpret; SCALE first; can hurt trees</pre></div></div><div class="parthead"><span>14. Feature Selection</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> more features ≠ better. Irrelevant and redundant ones add noise, slow training, and overfit. Selection <em>keeps a subset</em> of the originals (stays interpretable).</p></div><article class="q" id="fFeatureEnginee-59"><div class="q-h"><span class="q-n">&bull;</span><h3>The Three Families</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-59"><span></span></label></div><div class="q-a"><pre class="code"><code>FAMILY     idea                                speed   quality   notes
+⚠️ new axes are combinations → hard to interpret; SCALE first; can hurt trees</pre></div></div><div class="parthead" id="fFeatureEnginee-p13"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>14. Feature Selection</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> more features ≠ better. Irrelevant and redundant ones add noise, slow training, and overfit. Selection <em>keeps a subset</em> of the originals (stays interpretable).</p></div><article class="q" id="fFeatureEnginee-59"><div class="q-h"><span class="q-n">&bull;</span><h3>The Three Families</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-59"><span></span></label></div><div class="q-a"><pre class="code"><code>FAMILY     idea                                speed   quality   notes
 Filter     score each feature vs target,        fast    medium    model-agnostic
            ignore the model
 Wrapper     try feature subsets, train a model,  slow    high      can overfit
@@ -1749,14 +2097,14 @@ Permutation imp.    shuffle one feature, measure accuracy drop  ← most reliabl
 3. rank survivors by Mutual Information or Permutation Importance
 4. (optional) RFECV for the optimal subset
 5. validate: model with all features vs selected — keep the simpler if equal
-ALWAYS run selection INSIDE cross-validation folds, never on the full data (§15).</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>15. Data Leakage Prevention</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> leakage is when information that <em>won't be available at prediction time</em> sneaks into training. It makes validation scores look amazing and production scores collapse. It is the #1 way real ML projects fail silently.</p></div><article class="q" id="fFeatureEnginee-64"><div class="q-h"><span class="q-n">&bull;</span><h3>The Three Kinds</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-64"><span></span></label></div><div class="q-a"><ol class="steplist"><li>TARGET LEAKAGE — a feature is caused by / contains the answer. ❌ "discharge_medication_count" to predict readmission (set because doctor already knew the patient was high-risk). Test: "Would I really have this value BEFORE the event I'm predicting?"</li><li>TRAIN–TEST CONTAMINATION — test stats influence training. ❌ scaler/imputer/target-encoder fit on ALL data before the split. Fix: learn every parameter on TRAIN only; apply to test. Use a pipeline.</li><li>TEMPORAL LEAKAGE — using the future to predict the past. ❌ rolling average that includes tomorrow; random split on time series. Fix: split by TIME; only backward-looking features.</li></ol></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-65"><div class="q-h"><span class="q-n">&bull;</span><h3>Detection &amp; Prevention</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-65"><span></span></label></div><div class="q-a"><div class="diagram"><pre>🚩 validation accuracy suspiciously high?            → suspect leakage
+ALWAYS run selection INSIDE cross-validation folds, never on the full data (§15).</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fFeatureEnginee-p14"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>15. Data Leakage Prevention</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Plain words:</strong> leakage is when information that <em>won't be available at prediction time</em> sneaks into training. It makes validation scores look amazing and production scores collapse. It is the #1 way real ML projects fail silently.</p></div><article class="q" id="fFeatureEnginee-64"><div class="q-h"><span class="q-n">&bull;</span><h3>The Three Kinds</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-64"><span></span></label></div><div class="q-a"><ol class="steplist"><li>TARGET LEAKAGE — a feature is caused by / contains the answer. ❌ "discharge_medication_count" to predict readmission (set because doctor already knew the patient was high-risk). Test: "Would I really have this value BEFORE the event I'm predicting?"</li><li>TRAIN–TEST CONTAMINATION — test stats influence training. ❌ scaler/imputer/target-encoder fit on ALL data before the split. Fix: learn every parameter on TRAIN only; apply to test. Use a pipeline.</li><li>TEMPORAL LEAKAGE — using the future to predict the past. ❌ rolling average that includes tomorrow; random split on time series. Fix: split by TIME; only backward-looking features.</li></ol></div><button class="reveal">Reveal answer</button></article><article class="q" id="fFeatureEnginee-65"><div class="q-h"><span class="q-n">&bull;</span><h3>Detection &amp; Prevention</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-65"><span></span></label></div><div class="q-a"><div class="diagram"><pre>🚩 validation accuracy suspiciously high?            → suspect leakage
 🚩 one feature dominates importance unexpectedly?    → investigate it
 ✅ do ALL preprocessing (impute/scale/encode/select) learned on train only
 ✅ time series → split by date, never randomly
 ✅ for every feature ask: "available at prediction time?"</pre></div>
 <div class="note">
 <p>Every earlier section repeats one rule because it is <em>the</em> rule: <strong>fit transformations on train, apply to test.</strong> That single discipline prevents most leakage.</p>
-</div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>16. Interview Deep Dive</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Q1. Feature engineering vs feature selection?</strong>
+</div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fFeatureEnginee-p15"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>16. Interview Deep Dive</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Q1. Feature engineering vs feature selection?</strong>
 Engineering <strong>creates/reshapes</strong> features to add signal (ratios, encodings, transforms). Selection <strong>removes</strong> noisy/redundant ones. Engineer first, then select. They are two of the four pillars (§1).</p>
 <p><strong>Q2. How do you handle a high-cardinality categorical (e.g. 5,000 cities)?</strong>
 Not one-hot (too sparse). Options: <strong>target encoding</strong> with smoothing + <abbr title="splitting data into folds and training repeatedly so the score is not one lucky split">cross-validation</abbr> (captures the target relationship in one column), <strong>frequency/count</strong> (popularity), <strong>binary/hashing</strong> (few columns), <strong>rare-label grouping</strong> for the long tail, or <strong>embeddings</strong> in deep models. Pick by model type and leakage tolerance.</p>
@@ -1771,7 +2119,7 @@ WoE = <code>ln(%good/%bad)</code> per category: a clean, monotonic, log-scale va
 <p><strong>Q7. Which scaler with outliers, and why?</strong>
 <strong>RobustScaler</strong> (median/IQR). Standard and Min-Max use mean/min/max, which the outlier distorts — it crushes the real values into a tiny range. Robust keeps the inliers well-spread.</p>
 <p><strong>Q8. Most reliable feature-importance method?</strong>
-<strong>Permutation importance</strong> on a held-out set: shuffle a feature, measure the accuracy drop. Model-agnostic, captures non-linearity, less biased than built-in tree importance (which favors high-cardinality features).</p></div><div class="parthead"><span>17. Cheat Sheets</span><i></i></div><article class="q" id="fFeatureEnginee-66"><div class="q-h"><span class="q-n">&bull;</span><h3>Pick the Right Tool</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-66"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SKEWED numeric           → log / Box-Cox / Yeo-Johnson (§8)
+<strong>Permutation importance</strong> on a held-out set: shuffle a feature, measure the accuracy drop. Model-agnostic, captures non-linearity, less biased than built-in tree importance (which favors high-cardinality features).</p></div><div class="parthead" id="fFeatureEnginee-p16"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>17. Cheat Sheets</span><i></i></div><article class="q" id="fFeatureEnginee-66"><div class="q-h"><span class="q-n">&bull;</span><h3>Pick the Right Tool</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-66"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SKEWED numeric           → log / Box-Cox / Yeo-Johnson (§8)
 OUTLIERS present         → RobustScaler (§7) or cap (§5)
 LOW-card categorical     → one-hot (§6.2)
 HIGH-card categorical    → target / frequency / binary / embeddings (§6)
@@ -1793,8 +2141,10 @@ XGBoost / LightGBM        no      no/native usually no          native support</
 <hr />
 <p><em>Part of <a href="../../03_Data_Handling/README.md">03_Data_Handling</a>. Previous: <a href="sql.html#f01SQLforMLmd">01_SQL_for_ML.md</a> | Next: <a href="../../04_Machine_Learning/01_ML_Fundamentals.md">../04_Machine_Learning/01_ML_Fundamentals.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<nav class="pnav"><a class="prev" href="index.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrowl"/></svg><span class="pnav-t"><span>Previous</span><b>Home</b></span></a><a class="next" href="practice.html"><span class="pnav-t"><span>Next</span><b>Practice</b></span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></a></nav>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
 </div></main>
+<aside class="toc" id="toc"><div class="toc-h"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>On this page</div><div class="toc-g" data-for="f01SQLforMLmd"><b>SQL for ML</b><a href="#f01SQLforMLmd-0" data-c="f01SQLforMLmd-0">1. Fundamentals</a><a href="#f01SQLforMLmd-1" data-c="f01SQLforMLmd-1">2. JOINs Deep Dive</a><a href="#f01SQLforMLmd-2" data-c="f01SQLforMLmd-2">3. GROUP BY, HAVING &amp; Aggregations</a><a href="#f01SQLforMLmd-3" data-c="f01SQLforMLmd-3">4. Window Functions</a><a href="#f01SQLforMLmd-4" data-c="f01SQLforMLmd-4">5. Subqueries &amp; CTEs</a><a href="#f01SQLforMLmd-5" data-c="f01SQLforMLmd-5">6. Recursive CTEs</a><a href="#f01SQLforMLmd-6" data-c="f01SQLforMLmd-6">7. Advanced Aggregation</a><a href="#f01SQLforMLmd-7" data-c="f01SQLforMLmd-7">8. Set Operations</a><a href="#f01SQLforMLmd-8" data-c="f01SQLforMLmd-8">9. CASE, COALESCE, NULLIF</a><a href="#f01SQLforMLmd-9" data-c="f01SQLforMLmd-9">10. EXISTS vs IN</a><a href="#f01SQLforMLmd-10" data-c="f01SQLforMLmd-10">11. String &amp; Date Functions</a><a href="#f01SQLforMLmd-11" data-c="f01SQLforMLmd-11">12. Indexes &amp; Query Optimization</a><a href="#f01SQLforMLmd-12" data-c="f01SQLforMLmd-12">13. Transactions &amp; ACID</a><a href="#f01SQLforMLmd-13" data-c="f01SQLforMLmd-13">14. PIVOT, UNPIVOT</a><a href="#f01SQLforMLmd-14" data-c="f01SQLforMLmd-14">15. SQL + Python Integration</a><a href="#f01SQLforMLmd-15" data-c="f01SQLforMLmd-15">16. ML-Specific Query Patterns</a><a href="#f01SQLforMLmd-16" data-c="f01SQLforMLmd-16">17. JSON Handling in SQL</a><a href="#f01SQLforMLmd-17" data-c="f01SQLforMLmd-17">18. Interview Deep Dive</a></div><div class="toc-g" data-for="fFeatureEnginee"><b>Feature Engineering Master</b><a href="#fFeatureEnginee-18" data-c="fFeatureEnginee-18">The 4 Pillars (the mental map for this whole file)</a><a href="#fFeatureEnginee-19" data-c="fFeatureEnginee-19">The Workflow</a><a href="#fFeatureEnginee-20" data-c="fFeatureEnginee-20">2.1 Univariate Analysis (one variable at a time)</a><a href="#fFeatureEnginee-21" data-c="fFeatureEnginee-21">2.2 Bivariate Analysis (two variables / feature ↔ target)</a><a href="#fFeatureEnginee-22" data-c="fFeatureEnginee-22">2.3 Multivariate Analysis (the whole picture)</a><a href="#fFeatureEnginee-23" data-c="fFeatureEnginee-23">2.4 Automated Profiling</a><a href="#fFeatureEnginee-24" data-c="fFeatureEnginee-24">3.1 Data Quality Dimensions</a><a href="#fFeatureEnginee-25" data-c="fFeatureEnginee-25">3.2 Data Types</a><a href="#fFeatureEnginee-26" data-c="fFeatureEnginee-26">3.3 Duplicates</a><a href="#fFeatureEnginee-27" data-c="fFeatureEnginee-27">3.4 String &amp; Category Standardization</a><a href="#fFeatureEnginee-28" data-c="fFeatureEnginee-28">4.1 The Three Mechanisms (learn these — common interview question)</a><a href="#fFeatureEnginee-29" data-c="fFeatureEnginee-29">4.2 Imputation Methods — With a Tiny Example</a><a href="#fFeatureEnginee-30" data-c="fFeatureEnginee-30">4.3 Decision Guide</a><a href="#fFeatureEnginee-31" data-c="fFeatureEnginee-31">5.1 Detection — Univariate</a><a href="#fFeatureEnginee-32" data-c="fFeatureEnginee-32">5.2 Detection — Multivariate (Mahalanobis Distance)</a><a href="#fFeatureEnginee-33" data-c="fFeatureEnginee-33">5.3 Treatment</a><a href="#fFeatureEnginee-34" data-c="fFeatureEnginee-34">The Running Example (used for every method below)</a><a href="#fFeatureEnginee-35" data-c="fFeatureEnginee-35">6.1 Label / Ordinal Encoding — *one integer per category</a><a href="#fFeatureEnginee-36" data-c="fFeatureEnginee-36">6.2 One-Hot / Dummy Encoding — *one column per category</a><a href="#fFeatureEnginee-37" data-c="fFeatureEnginee-37">6.3 Count &amp; Frequency Encoding — *replace with how often it appears</a><a href="#fFeatureEnginee-38" data-c="fFeatureEnginee-38">6.4 Target / Mean Encoding — *replace with the category's average target</a><a href="#fFeatureEnginee-39" data-c="fFeatureEnginee-39">6.5 Leave-One-Out &amp; Ordered (CatBoost) Encoding — *target encoding without cheating</a><a href="#fFeatureEnginee-40" data-c="fFeatureEnginee-40">6.6 Weight of Evidence (WoE) &amp; Information Value (IV) — *credit-scoring favorite</a><a href="#fFeatureEnginee-41" data-c="fFeatureEnginee-41">6.7 Binary &amp; Hashing Encoding — *squeeze huge cardinality into few columns</a><a href="#fFeatureEnginee-42" data-c="fFeatureEnginee-42">6.8 Rare-Label Encoding — *bucket the long tail</a><a href="#fFeatureEnginee-43" data-c="fFeatureEnginee-43">6.9 Entity Embeddings — *let a neural net learn the encoding</a><a href="#fFeatureEnginee-44" data-c="fFeatureEnginee-44">Side-by-Side Summary (the <code>city</code> column, every method)</a><a href="#fFeatureEnginee-45" data-c="fFeatureEnginee-45">Encoding Decision Guide</a><a href="#fFeatureEnginee-46" data-c="fFeatureEnginee-46">The Methods — Same Data, Different Results</a><a href="#fFeatureEnginee-47" data-c="fFeatureEnginee-47">The Toolkit</a><a href="#fFeatureEnginee-48" data-c="fFeatureEnginee-48">Worked Example — Killing Skew</a><a href="#fFeatureEnginee-49" data-c="fFeatureEnginee-49">Binning Strategies</a><a href="#fFeatureEnginee-50" data-c="fFeatureEnginee-50">Binarization</a><a href="#fFeatureEnginee-51" data-c="fFeatureEnginee-51">When (and When Not) to Bin</a><a href="#fFeatureEnginee-52" data-c="fFeatureEnginee-52">11.1 Component Extraction</a><a href="#fFeatureEnginee-53" data-c="fFeatureEnginee-53">11.2 Elapsed-Time Features (often the strongest)</a><a href="#fFeatureEnginee-54" data-c="fFeatureEnginee-54">11.3 Cyclical Encoding (the must-know trick)</a><a href="#fFeatureEnginee-55" data-c="fFeatureEnginee-55">Ratios, Products, Differences</a><a href="#fFeatureEnginee-56" data-c="fFeatureEnginee-56">Polynomial &amp; Interaction Features</a><a href="#fFeatureEnginee-57" data-c="fFeatureEnginee-57">Aggregation Features (group-level summaries)</a><a href="#fFeatureEnginee-58" data-c="fFeatureEnginee-58">Domain Cookbook</a><a href="#fFeatureEnginee-59" data-c="fFeatureEnginee-59">The Three Families</a><a href="#fFeatureEnginee-60" data-c="fFeatureEnginee-60">Filter Methods</a><a href="#fFeatureEnginee-61" data-c="fFeatureEnginee-61">Wrapper Methods</a><a href="#fFeatureEnginee-62" data-c="fFeatureEnginee-62">Embedded Methods</a><a href="#fFeatureEnginee-63" data-c="fFeatureEnginee-63">Strategy</a><a href="#fFeatureEnginee-64" data-c="fFeatureEnginee-64">The Three Kinds</a><a href="#fFeatureEnginee-65" data-c="fFeatureEnginee-65">Detection &amp; Prevention</a><a href="#fFeatureEnginee-66" data-c="fFeatureEnginee-66">Pick the Right Tool</a><a href="#fFeatureEnginee-67" data-c="fFeatureEnginee-67">Common Mistakes</a><a href="#fFeatureEnginee-68" data-c="fFeatureEnginee-68">Model-by-Model: What You Actually Need</a></div></aside>
 </div>
 <button class="totop" id="totop" title="Back to top">&#8593;</button>
 <script>
@@ -1835,29 +2185,44 @@ var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementBy
 qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
 function runSearch(){
   if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
-  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
-    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;});
+  /* a heading survives the filter only while something under it is still showing */
   [].forEach.call(document.querySelectorAll('.parthead'),function(p){
-    if(!v){p.style.display='';return}
-    var vis=false,n=p.nextElementSibling;
-    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
-    p.style.display=vis?'':'none';});
+    var vis=true;
+    if(v){
+      vis=false;
+      var n=p.nextElementSibling;
+      while(n&&!n.classList.contains('parthead')){
+        if(n.classList.contains('q')&&n.style.display!=='none'){vis=true;break}
+        n=n.nextElementSibling;
+      }
+    }
+    p.style.display=vis?'':'none';
+    if(p.id){var l=document.querySelector('nav a[data-t="'+p.id+'"]');
+      if(l)l.style.display=vis?'':'none';}
+  });
   if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
 }
 if(inp)inp.addEventListener('input',runSearch);
 
-var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+/* The sidebar lists main headings only, so scroll tracking follows those headings
+   (data-t -> element id) rather than one entry per question card. */
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-t]'));
+var navTargets=navLinks.map(function(l){return document.getElementById(l.getAttribute('data-t'))});
 var totop=document.getElementById('totop');
 function onScroll(){
   var sc=document.documentElement.scrollTop;
   if(totop)totop.classList.toggle('show',sc>600);
-  var cur=null;
-  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
-    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  var cur=-1;
+  for(var i=0;i<navTargets.length;i++){
+    var el=navTargets[i];
+    if(!el||el.offsetParent===null)continue;
+    if(el.getBoundingClientRect().top<=140)cur=i;else break;
+  }
   navLinks.forEach(function(l){l.classList.remove('active')});
-  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
-    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
-      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+  if(cur>=0){var l=navLinks[cur];
+    l.classList.add('active');var r=l.getBoundingClientRect();
+    if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}
 }
 window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
@@ -1908,6 +2273,43 @@ document.addEventListener('keydown',function(e){
     });
     pre.appendChild(b);
   });
+})();
+
+/* Right-hand rail: reveal the group for the file section being read, and mark the
+   card in view. Scrolling is done on the rail itself - scrollIntoView would drag the
+   window along with it. */
+(function(){
+  var toc=document.getElementById('toc'); if(!toc)return;
+  document.body.classList.add('js');
+  var groups=[].slice.call(toc.querySelectorAll('.toc-g'));
+  if(!groups.length)return;
+  var secs=groups.map(function(g){return document.getElementById(g.getAttribute('data-for'))});
+  var links=groups.map(function(g){return [].slice.call(g.querySelectorAll('a[data-c]'))});
+  var curG=-1;
+  function upd(){
+    var i,g=-1;
+    for(i=0;i<secs.length;i++){
+      var el=secs[i]; if(!el)continue;
+      if(el.getBoundingClientRect().top<=160)g=i; else break;
+    }
+    if(g<0)g=0;
+    if(g!==curG){groups.forEach(function(x,k){x.classList.toggle('on',k===g)});curG=g;}
+    var ls=links[g]||[],act=null;
+    for(i=0;i<ls.length;i++){
+      var t=document.getElementById(ls[i].getAttribute('data-c'));
+      if(!t||t.style.display==='none')continue;
+      if(t.getBoundingClientRect().top<=160)act=ls[i]; else break;
+    }
+    ls.forEach(function(a){a.classList.remove('on')});
+    if(act){
+      act.classList.add('on');
+      var top=act.offsetTop,h=act.offsetHeight;
+      if(top<toc.scrollTop+8||top+h>toc.scrollTop+toc.clientHeight-8)
+        toc.scrollTop=top-toc.clientHeight/2+h/2;
+    }
+  }
+  addEventListener('scroll',upd,{passive:true});
+  addEventListener('resize',upd); upd();
 })();
 
 /* deep link on each question card */

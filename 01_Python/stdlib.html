@@ -509,9 +509,358 @@ body.searching .parthead{opacity:.5}
 
 @media(max-width:1060px){ .parthead{top:0} }
 
+/* =====================================================================
+   AURORA GLASS
+   The final layer. Everything below re-tints the sheet above it: a deep
+   near-black canvas lit by a fixed gradient mesh, with the chrome and the
+   cards reading as frosted panels floating on top of it.
+   ===================================================================== */
+
+:root{
+  --bg:#070a12; --bg-2:#0a0e18;
+  --surface:#0f131e; --surface-2:#141a27; --surface-3:#1c2333;
+  --border:#232c40; --border-soft:#19202f;
+  --ink:#eaf0fb; --ink-2:#9fabc4; --ink-mut:#6b7690;
+
+  --accent:#7c9dff; --accent-2:#b18cff;
+  --accent-soft:rgba(124,157,255,.15); --accent-bd:rgba(124,157,255,.40);
+  --t-rag:#7c9dff; --t-agentic:#ff9563; --t-recall:#3ed9a4;
+  --t-violet:#b18cff; --t-amber:#f0c274;
+  --good:#3ed9a4; --warn:#f5c451; --crit:#ff6b81;
+  --good-soft:rgba(62,217,164,.12); --warn-soft:rgba(245,196,81,.12);
+  --crit-soft:rgba(255,107,129,.12);
+  --code-bg:#080b13;
+
+  --glass:rgba(255,255,255,.045);
+  --glass-bd:rgba(255,255,255,.075);
+  --e1:0 1px 2px rgba(0,0,0,.40);
+  --e2:0 8px 26px rgba(3,6,15,.55);
+  --e3:0 22px 60px rgba(3,6,15,.68);
+  --radius:16px; --radius-sm:11px;
+}
+html[data-theme="light"]{
+  --bg:#f6f8fe; --bg-2:#eef2fb;
+  --surface:#fff; --surface-2:#fafbff; --surface-3:#eef2fb;
+  --border:#dce3f2; --border-soft:#e9edf8;
+  --ink:#111828; --ink-2:#4c586f; --ink-mut:#7c8699;
+
+  --accent:#4f6fe6; --accent-2:#8b5cf6;
+  --accent-soft:rgba(79,111,230,.10); --accent-bd:rgba(79,111,230,.34);
+  --t-rag:#4f6fe6; --t-agentic:#e0663a; --t-recall:#0f9e74;
+  --t-violet:#8b5cf6; --t-amber:#a9760a;
+  --good:#0f9e74; --warn:#b07d00; --crit:#dc3d55;
+  --good-soft:rgba(15,158,116,.10); --warn-soft:rgba(176,125,0,.11);
+  --crit-soft:rgba(220,61,85,.09);
+  --code-bg:#f2f5fc;
+
+  --glass:rgba(255,255,255,.62);
+  --glass-bd:rgba(17,24,40,.07);
+  --e1:0 1px 2px rgba(16,24,40,.05);
+  --e2:0 8px 24px rgba(16,24,40,.08);
+  --e3:0 22px 56px rgba(16,24,40,.12);
+}
+
+/* ---------- the canvas ---------- */
+/* the page background lives on <html> so the fixed aurora layer can sit
+   between it and the content without the body's own fill covering it */
+html{background:var(--bg)}
+body{background:transparent}
+
+/* Ambient tint on every page: strongest at the top edge, gone by mid-scroll, so
+   long reading pages settle onto clean dark instead of a permanent wash. */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 22% -6%, color-mix(in srgb,var(--accent) 46%,transparent), transparent 66%),
+    radial-gradient(38% 32% at 82% -8%, color-mix(in srgb,var(--accent-2) 40%,transparent), transparent 64%);
+  filter:blur(30px) saturate(1.3);opacity:.5;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%);
+          mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%)}
+html[data-theme="light"] body::before{opacity:.5;filter:blur(36px) saturate(1)}
+
+/* film grain: keeps the large flat gradients from banding on cheap panels */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.032;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* multiply over a light canvas darkens fast - the grain has to be far weaker here
+   or the whole page reads grey instead of white */
+html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply}
+
+@keyframes aurora-drift{
+  from{transform:translate3d(0,0,0) scale(1)}
+  to{transform:translate3d(3%,-2.5%,0) scale(1.12)}
+}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:transparent;border-bottom:1px solid var(--border-soft)}
+.siteswitch a{color:var(--ink-mut)}
+.siteswitch a:hover{background:var(--glass);color:var(--ink)}
+.siteswitch a.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  box-shadow:0 3px 14px color-mix(in srgb,var(--accent) 40%,transparent)}
+.sitebar{background:color-mix(in srgb,var(--bg) 62%,transparent);
+  backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);
+  border-bottom:1px solid var(--glass-bd);box-shadow:0 1px 0 rgba(255,255,255,.03),var(--e1)}
+.logo b{background:linear-gradient(115deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{background:var(--glass);border:1px solid var(--glass-bd);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);border-radius:10px}
+.btn:hover{border-color:var(--accent-bd);color:var(--ink);
+  box-shadow:0 4px 16px color-mix(in srgb,var(--accent) 22%,transparent)}
+.btn.on{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,transparent),
+  color-mix(in srgb,var(--accent-2) 18%,transparent));border-color:var(--accent-bd);color:var(--accent)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 55%,transparent),transparent 60%);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-right:1px solid var(--glass-bd)}
+.sb-search input{background:var(--glass);border:1px solid var(--glass-bd);border-radius:11px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sb-search input:focus{border-color:var(--accent-bd);
+  box-shadow:0 0 0 3px var(--accent-soft),0 4px 18px color-mix(in srgb,var(--accent) 20%,transparent)}
+nav a:hover{background:var(--glass);color:var(--ink)}
+nav a.active{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 20%,transparent),transparent 78%);
+  box-shadow:inset 0 0 0 1px var(--accent-bd);color:var(--accent)}
+nav a.active::before{background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 10px var(--accent)}
+.nav-grp{color:var(--ink-mut)}
+
+/* ---------- hero ---------- */
+.hero::before{opacity:.72;filter:blur(38px)}
+.eyebrow{background:var(--glass);border:1px solid var(--glass-bd);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:var(--ink-2);font-weight:700}
+.hero h1{background:linear-gradient(112deg,var(--ink) 4%,
+    color-mix(in srgb,var(--accent) 88%,var(--ink)) 46%,
+    color-mix(in srgb,var(--accent-2) 92%,var(--ink)) 74%,
+    color-mix(in srgb,var(--t-recall) 70%,var(--ink)) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- surfaces: glass everywhere the old sheet used flat fills ---------- */
+.stat,.q,.tcard,.hub-card,.panel,.learn,figure.viz,.tbl-wrap,.flow,.learn-item{
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 72%,transparent));
+  border-color:var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+
+.stat{border-radius:14px}
+.stat::before{height:1.5px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),color-mix(in srgb,var(--tc,var(--accent)) 20%,transparent) 70%,transparent)}
+.stat:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 18%,transparent)}
+.stat-v{background:linear-gradient(150deg,var(--ink),var(--tc,var(--accent)));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 42%,transparent);box-shadow:var(--e2)}
+.q:target{box-shadow:0 0 0 3px var(--accent-soft),var(--e2)}
+.tcard:hover,.hub-card:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 22%,transparent)}
+
+/* the hover affordance was emitting a literal "92" - it wants to be an arrow */
+.tcard::after,.hub-card::after{content:"\2192"}
+
+figure.viz{border-radius:18px}
+pre.code{background:color-mix(in srgb,var(--code-bg) 88%,transparent);
+  border:1px solid var(--glass-bd);border-radius:13px;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.say{background:linear-gradient(100deg,color-mix(in srgb,var(--accent) 14%,transparent),transparent 72%);
+  border-left-color:var(--accent)}
+.kt{background:var(--glass);border-color:var(--glass-bd)}
+.kt:hover{border-color:var(--accent-bd);color:var(--accent)}
+.parthead{background:color-mix(in srgb,var(--bg) 66%,transparent);
+  backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5)}
+th{background:color-mix(in srgb,var(--surface-3) 82%,transparent)}
+
+/* ---------- right-hand "on this page" rail ---------- */
+:root{ --tocw:262px }
+.app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr) var(--tocw)}
+.toc{position:sticky;top:47px;align-self:start;height:calc(100vh - 47px);overflow-y:auto;
+  overscroll-behavior:contain;padding:22px 20px 60px;font-size:12.6px;
+  border-left:1px solid var(--glass-bd)}
+.toc::-webkit-scrollbar{width:7px}
+.toc::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.toc-h{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-mut);margin-bottom:12px}
+.toc-h svg.ic{font-size:13px;color:var(--tc,var(--accent))}
+/* one group per file section; the script shows the one you are reading */
+body.js .toc-g{display:none}
+body.js .toc-g.on{display:block}
+.toc-g > b{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tc,var(--accent));margin:0 0 9px;padding-left:11px}
+.toc-g a{display:block;padding:5px 10px 5px 12px;margin:1px 0;border-radius:7px;color:var(--ink-2);
+  text-decoration:none;line-height:1.42;border-left:2px solid transparent}
+.toc-g a:hover{background:var(--glass);color:var(--ink);text-decoration:none}
+.toc-g a.on{color:var(--accent);border-left-color:var(--accent);font-weight:650;
+  background:linear-gradient(90deg,var(--accent-soft),transparent 80%)}
+.toc-empty{color:var(--ink-mut);font-size:12px;padding-left:12px}
+@media(max-width:1400px){
+  .app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr)}
+  .toc{display:none}
+}
+
+/* ---------- breadcrumb ---------- */
+.crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.2px;color:var(--ink-mut);
+  padding-top:26px}
+.crumb a{color:var(--ink-mut);text-decoration:none}
+.crumb a:hover{color:var(--accent);text-decoration:none}
+.crumb svg.ic{font-size:12px;opacity:.5}
+.crumb b{color:var(--ink-2);font-weight:650}
+.crumb + .hero{padding-top:18px}
+.pnav-t{min-width:0}
+
+/* ---------- previous / next ---------- */
+.pnav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:64px 0 0}
+.pnav a{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:14px;
+  text-decoration:none;color:inherit;border:1px solid var(--glass-bd);
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 86%,transparent),
+    color-mix(in srgb,var(--surface-2) 66%,transparent))}
+.pnav a:hover{text-decoration:none;border-color:var(--accent-bd);box-shadow:var(--e2)}
+.pnav a.next{grid-column:2;justify-content:flex-end;text-align:right}
+.pnav a.prev{grid-column:1}
+.pnav span{display:block;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-mut)}
+.pnav b{display:block;margin-top:4px;font-size:14.5px;letter-spacing:-.02em;color:var(--ink)}
+.pnav svg.ic{font-size:18px;color:var(--accent);flex:none}
+@media(max-width:760px){
+  .pnav{grid-template-columns:1fr}
+  .pnav a.next,.pnav a.prev{grid-column:1}
+}
+
+/* ---------- section headers (shared by the hub and every topic index) ---------- */
+.h-sec-h{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.h-sec-h h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-mut);white-space:nowrap;display:flex;align-items:center;gap:9px;border:0;padding:0}
+.h-sec-h h2 svg.ic{font-size:15px;color:var(--accent);opacity:.9}
+.h-sec-h i{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- icons ---------- */
+.sprite{display:none}
+svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.13em}
+/* the boxed icon tile used by track rows, callouts and nav groups */
+.ic-box{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:44px;height:44px;border-radius:13px;font-size:20px;color:var(--tc,var(--accent));
+  background:linear-gradient(150deg,color-mix(in srgb,var(--tc,var(--accent)) 26%,transparent),
+    color-mix(in srgb,var(--tc,var(--accent)) 8%,transparent));
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.ic-sm{width:30px;height:30px;border-radius:9px;font-size:15px}
+
+/* ---------- topic index: learning-track rows ---------- */
+.trk{display:flex;flex-direction:column;gap:11px;margin:40px 0 0}
+.trk-row{position:relative;display:flex;align-items:center;gap:17px;padding:17px 19px;
+  border-radius:15px;text-decoration:none;color:inherit;overflow:hidden;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--surface) 90%,transparent),
+    color-mix(in srgb,var(--surface-2) 68%,transparent));
+  border:1px solid var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.trk-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tc)}
+.trk-row:hover{text-decoration:none;transform:translateX(3px);
+  border-color:color-mix(in srgb,var(--tc) 46%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc) 18%,transparent)}
+.trk-b{min-width:0;flex:1}
+.trk-b b{display:block;font-size:16.5px;letter-spacing:-.022em;color:var(--ink);font-weight:750}
+.trk-b b i{font-style:normal;color:var(--ink-mut);font-weight:600;margin-right:3px}
+.trk-b p{margin:4px 0 0;font-size:13.2px;line-height:1.5;color:var(--ink-2)}
+.trk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.trk-chips span{font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.trk-row:hover .trk-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+.trk-meta{display:flex;align-items:center;gap:8px;flex:none;font-size:11.5px;
+  font-family:var(--mono);color:var(--tc);white-space:nowrap}
+.trk-meta i{font-style:normal;opacity:.45}
+.trk-go{flex:none;font-size:19px;color:var(--ink-mut);display:inline-flex}
+.trk-row:hover .trk-go{color:var(--tc);transform:translateX(2px)}
+@media(prefers-reduced-motion:no-preference){
+  .trk-row,.trk-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,color .18s ease}
+}
+@media(max-width:820px){
+  .trk-row{flex-wrap:wrap;gap:13px}
+  .trk-meta{order:3;width:100%}
+  .trk-go{display:none}
+}
+
+/* ---------- sidebar nav with icons ---------- */
+.nav-grp{display:flex;align-items:center;gap:8px}
+.nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
+nav a svg.ic{font-size:14px;opacity:.6}
+nav a.active svg.ic{opacity:1}
+/* file = main heading, named part = its only sub-entry */
+nav a.nav-file{margin-top:13px;font-size:13px;font-weight:750;color:var(--ink);align-items:center}
+nav a.nav-file svg.ic{color:var(--tc,var(--accent));opacity:.95}
+nav a.nav-sub{padding-left:30px;font-size:12.2px;position:relative}
+nav a.nav-sub::after{content:"";position:absolute;left:16px;top:50%;width:5px;height:5px;
+  margin-top:-2.5px;border-radius:50%;background:var(--ink-mut);opacity:.5}
+nav a.nav-sub.active::after{background:var(--accent);opacity:1}
+
+/* ---------- callouts with icons ---------- */
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key,.say{position:relative}
+.note-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;font-size:13px;margin-right:8px;vertical-align:-.35em;flex:none}
+.say-h svg.ic{font-size:13px}
+
+/* ---------- topic index: the landing page of each site ---------- */
+/* the reading measure is right for prose but starves a card grid, so an index
+   page widens its column and fits three across */
+.wrap:has(.idx-grid){max-width:1300px}
+.idx-hero{padding:58px 0 4px}
+.idx-hero h1{font-size:clamp(36px,4.8vw,56px);margin:18px 0 16px}
+.idx-hero .lede{font-size:17.5px;max-width:76ch;margin:0}
+
+.idx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;
+  margin:44px 0 0}
+.idx-card{position:relative;display:block;padding:22px 23px 20px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 70%,transparent));
+  border:1px solid var(--glass-bd);text-decoration:none;color:inherit;
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.idx-card::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc),transparent 80%)}
+.idx-card:hover{transform:translateY(-3px);text-decoration:none;
+  border-color:color-mix(in srgb,var(--tc) 48%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc) 20%,transparent)}
+.idx-card-h{display:flex;align-items:center;gap:11px}
+.idx-card-h h3{margin:0;font-size:18.5px;letter-spacing:-.026em;color:var(--ink);font-weight:750}
+.idx-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--tc);
+  box-shadow:0 0 10px var(--tc)}
+.idx-go{margin-left:auto;font-size:16px;color:var(--tc);opacity:0;transform:translateX(-5px);flex:none}
+.idx-card:hover .idx-go{opacity:1;transform:translateX(0)}
+.idx-card p{margin:11px 0 0;font-size:13.4px;line-height:1.6;color:var(--ink-2)}
+.idx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}
+.idx-chips span{font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.idx-card:hover .idx-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+@media(prefers-reduced-motion:no-preference){
+  .idx-card,.idx-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,opacity .18s ease}
+}
+
+/* ---------- file section headers ---------- */
+/* .fh-top's spans had no rules at all, so the name and the count ran together as
+   one unstyled line. It reads as an eyebrow row above the file title. */
+.filehead{margin:56px 0 16px}
+.fh-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px}
+.fh-num{font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--tc,var(--accent));padding:4px 12px;border-radius:999px;
+  background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.fh-count{font-family:var(--mono);font-size:10.5px;color:var(--ink-mut);padding:4px 11px;
+  border-radius:999px;background:var(--glass);border:1px solid var(--glass-bd)}
+.filehead h2{font-size:28px;letter-spacing:-.032em;margin:0}
+
+/* ---------- detail ---------- */
+::selection{background:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--ink)}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-bd);background-clip:padding-box}
+#rprog{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--t-recall));
+  box-shadow:0 0 14px color-mix(in srgb,var(--accent) 70%,transparent)}
+.totop{background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 8px 26px color-mix(in srgb,var(--accent) 45%,transparent)}
+.totop:hover{transform:translateY(-2px)}
+
 </style>
 </head>
 <body>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol><symbol id="i-arrowl" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol><symbol id="i-branch" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol><symbol id="i-bulb" viewBox="0 0 24 24"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2z"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol><symbol id="i-code" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></symbol><symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol><symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 2v6.5L4.2 17A2 2 0 0 0 6 20h12a2 2 0 0 0 1.8-3L15 8.5V2"/><line x1="8" y1="2" x2="16" y2="2"/><line x1="7" y1="14" x2="17" y2="14"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol><symbol id="i-network" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></symbol><symbol id="i-package" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol><symbol id="i-sigma" viewBox="0 0 24 24"><path d="M18 4H6l6 8-6 8h12"/></symbol><symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol><symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol><symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol></svg>
 <div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
   <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw on" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw" href="../03_Data_Handling/index.html">03 Data</a><a class="sw" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw" href="../11_System_Design/index.html">11 Sys Design</a>
 </div></div><div class="sitebar-in">
@@ -523,20 +872,19 @@ body.searching .parthead{opacity:.5}
   <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
   <button class="btn" id="themeBtn">Dark</button>
 </div></div>
-<div class="app" style="--tc:var(--t-recall)">
+<div class="app has-toc" style="--tc:var(--t-recall)">
 <aside id="sidebar">
   <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
   <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
-  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><div class="nav-grp">Standard Library Reference</div><a href="#fStandardLibrar-0" data-q="fStandardLibrar-0"><span class="qn">&bull;</span>1. os &amp; sys — System Interface</a><a href="#fStandardLibrar-1" data-q="fStandardLibrar-1"><span class="qn">&bull;</span>2. datetime &amp; time — Date/Time Handling</a><a href="#fStandardLibrar-2" data-q="fStandardLibrar-2"><span class="qn">&bull;</span>3. json &amp; csv — Data Serialization</a><a href="#fStandardLibrar-3" data-q="fStandardLibrar-3"><span class="qn">&bull;</span>4. subprocess — Running External Commands</a><a href="#fStandardLibrar-4" data-q="fStandardLibrar-4"><span class="qn">&bull;</span>5. argparse — Command-Line Arguments</a><a href="#fStandardLibrar-5" data-q="fStandardLibrar-5"><span class="qn">&bull;</span>6. hashlib &amp; secrets — Hashing &amp; Security</a><a href="#fStandardLibrar-6" data-q="fStandardLibrar-6"><span class="qn">&bull;</span>7. http &amp; urllib — HTTP Client/Server</a><a href="#fStandardLibrar-7" data-q="fStandardLibrar-7"><span class="qn">&bull;</span>8. sqlite3 — Embedded Database</a><a href="#fStandardLibrar-8" data-q="fStandardLibrar-8"><span class="qn">&bull;</span>9. unittest.mock — Mocking for Tests</a><a href="#fStandardLibrar-9" data-q="fStandardLibrar-9"><span class="qn">&bull;</span>10. contextlib — Context Manager Utilities</a><a href="#fStandardLibrar-10" data-q="fStandardLibrar-10"><span class="qn">&bull;</span>11. struct &amp; array — Binary Data</a><a href="#fStandardLibrar-11" data-q="fStandardLibrar-11"><span class="qn">&bull;</span>12. math &amp; statistics — Numeric Functions</a><a href="#fStandardLibrar-12" data-q="fStandardLibrar-12"><span class="qn">&bull;</span>13. typing — Type Hint Utilities</a><a href="#fStandardLibrar-13" data-q="fStandardLibrar-13"><span class="qn">&bull;</span>14. Other Useful Modules</a><a href="#fStandardLibrar-14" data-q="fStandardLibrar-14"><span class="qn">&bull;</span>14b. re (Regular Expressions)</a><a href="#fStandardLibrar-15" data-q="fStandardLibrar-15"><span class="qn">&bull;</span>14c. collections</a><a href="#fStandardLibrar-16" data-q="fStandardLibrar-16"><span class="qn">&bull;</span>14d. pathlib</a><a href="#fStandardLibrar-17" data-q="fStandardLibrar-17"><span class="qn">&bull;</span>14e. logging</a><a href="#fStandardLibrar-18" data-q="fStandardLibrar-18"><span class="qn">&bull;</span>14f. heapq &amp; bisect</a><a href="#fStandardLibrar-19" data-q="fStandardLibrar-19"><span class="qn">&bull;</span>14g. pickle &amp; shelve</a><a href="#fStandardLibrar-20" data-q="fStandardLibrar-20"><span class="qn">&bull;</span>15. Interview Deep Dive</a><div class="nav-grp">Python Tooling Reference</div><a href="#fPythonToolingR-21" data-q="fPythonToolingR-21"><span class="qn">&bull;</span>1.1 Installation</a><a href="#fPythonToolingR-22" data-q="fPythonToolingR-22"><span class="qn">&bull;</span>1.2 Basic Usage</a><a href="#fPythonToolingR-23" data-q="fPythonToolingR-23"><span class="qn">&bull;</span>1.3 Ruff Configuration in <code>pyproject.toml</code></a><a href="#fPythonToolingR-24" data-q="fPythonToolingR-24"><span class="qn">&bull;</span>1.4 Ruff Rule Categories — Complete Reference</a><a href="#fPythonToolingR-25" data-q="fPythonToolingR-25"><span class="qn">&bull;</span>1.5 Common Ruff Rules Explained with Examples</a><a href="#fPythonToolingR-26" data-q="fPythonToolingR-26"><span class="qn">&bull;</span>1.6 Ruff vs Other Tools — Speed Comparison</a><a href="#fPythonToolingR-27" data-q="fPythonToolingR-27"><span class="qn">&bull;</span>2.1 Installation &amp; Basic Usage</a><a href="#fPythonToolingR-28" data-q="fPythonToolingR-28"><span class="qn">&bull;</span>2.2 mypy Configuration in <code>pyproject.toml</code></a><a href="#fPythonToolingR-29" data-q="fPythonToolingR-29"><span class="qn">&bull;</span>2.3 Type Annotations — Complete Reference</a><a href="#fPythonToolingR-30" data-q="fPythonToolingR-30"><span class="qn">&bull;</span>2.4 Common mypy Errors &amp; Fixes</a><a href="#fPythonToolingR-31" data-q="fPythonToolingR-31"><span class="qn">&bull;</span>2.5 mypy Strict Mode Levels</a><a href="#fPythonToolingR-32" data-q="fPythonToolingR-32"><span class="qn">&bull;</span>3.1 Complete pyproject.toml Reference</a><a href="#fPythonToolingR-33" data-q="fPythonToolingR-33"><span class="qn">&bull;</span>3.2 Dynamic Version from Source</a><a href="#fPythonToolingR-34" data-q="fPythonToolingR-34"><span class="qn">&bull;</span>3.3 Sections Cheat Sheet</a><a href="#fPythonToolingR-35" data-q="fPythonToolingR-35"><span class="qn">&bull;</span>4.1 Syntax &amp; Best Practices</a><a href="#fPythonToolingR-36" data-q="fPythonToolingR-36"><span class="qn">&bull;</span>4.2 Multiple Requirements Files Strategy</a><a href="#fPythonToolingR-37" data-q="fPythonToolingR-37"><span class="qn">&bull;</span>4.3 pip Commands</a><a href="#fPythonToolingR-38" data-q="fPythonToolingR-38"><span class="qn">&bull;</span>4.4 pip-tools Workflow</a><a href="#fPythonToolingR-39" data-q="fPythonToolingR-39"><span class="qn">&bull;</span>5.1 Installation</a><a href="#fPythonToolingR-40" data-q="fPythonToolingR-40"><span class="qn">&bull;</span>5.2 Project Initialization</a><a href="#fPythonToolingR-41" data-q="fPythonToolingR-41"><span class="qn">&bull;</span>5.3 Dependency Management</a><a href="#fPythonToolingR-42" data-q="fPythonToolingR-42"><span class="qn">&bull;</span>5.4 Poetry pyproject.toml</a><a href="#fPythonToolingR-43" data-q="fPythonToolingR-43"><span class="qn">&bull;</span>5.5 Poetry Version Constraints</a><a href="#fPythonToolingR-44" data-q="fPythonToolingR-44"><span class="qn">&bull;</span>5.6 Virtual Environment Management</a><a href="#fPythonToolingR-45" data-q="fPythonToolingR-45"><span class="qn">&bull;</span>5.7 poetry.lock — The Lockfile</a><a href="#fPythonToolingR-46" data-q="fPythonToolingR-46"><span class="qn">&bull;</span>5.8 Publishing to PyPI</a><a href="#fPythonToolingR-47" data-q="fPythonToolingR-47"><span class="qn">&bull;</span>6.1 Comparison of Tools</a><a href="#fPythonToolingR-48" data-q="fPythonToolingR-48"><span class="qn">&bull;</span>6.2 venv (Built-in)</a><a href="#fPythonToolingR-49" data-q="fPythonToolingR-49"><span class="qn">&bull;</span>6.3 uv — Ultra-Fast Package Manager</a><a href="#fPythonToolingR-50" data-q="fPythonToolingR-50"><span class="qn">&bull;</span>Basics</a><a href="#fPythonToolingR-51" data-q="fPythonToolingR-51"><span class="qn">&bull;</span>Fixtures (setup/teardown)</a><a href="#fPythonToolingR-52" data-q="fPythonToolingR-52"><span class="qn">&bull;</span>Parametrize (data-driven tests)</a><a href="#fPythonToolingR-53" data-q="fPythonToolingR-53"><span class="qn">&bull;</span>Markers</a><a href="#fPythonToolingR-54" data-q="fPythonToolingR-54"><span class="qn">&bull;</span>Coverage</a><a href="#fPythonToolingR-55" data-q="fPythonToolingR-55"><span class="qn">&bull;</span>Mocking</a><a href="#fPythonToolingR-56" data-q="fPythonToolingR-56"><span class="qn">&bull;</span>7.1 Setup</a><a href="#fPythonToolingR-57" data-q="fPythonToolingR-57"><span class="qn">&bull;</span>7.2 <code>.pre-commit-config.yaml</code></a><a href="#fPythonToolingR-58" data-q="fPythonToolingR-58"><span class="qn">&bull;</span>7.3 CI Integration</a><a href="#fPythonToolingR-59" data-q="fPythonToolingR-59"><span class="qn">&bull;</span>8.1 FastAPI Project (Production-Ready)</a><a href="#fPythonToolingR-60" data-q="fPythonToolingR-60"><span class="qn">&bull;</span>8.2 Makefile for Common Tasks</a><a href="#fPythonToolingR-61" data-q="fPythonToolingR-61"><span class="qn">&bull;</span>8.3 ML Project Setup</a><a href="#fPythonToolingR-62" data-q="fPythonToolingR-62"><span class="qn">&bull;</span>9.1 Linter/Formatter Comparison</a><a href="#fPythonToolingR-63" data-q="fPythonToolingR-63"><span class="qn">&bull;</span>9.2 Dependency Management Comparison</a><a href="#fPythonToolingR-64" data-q="fPythonToolingR-64"><span class="qn">&bull;</span>9.3 Type Checker Comparison</a><a href="#fPythonToolingR-65" data-q="fPythonToolingR-65"><span class="qn">&bull;</span>9.4 Decision Flowchart</a><a href="#fPythonToolingR-66" data-q="fPythonToolingR-66"><span class="qn">&bull;</span>Q1. What is Ruff and why has it replaced multiple tools?</a><a href="#fPythonToolingR-67" data-q="fPythonToolingR-67"><span class="qn">&bull;</span>Q2. What is <code>pyproject.toml</code> and why is it preferred over <code>setup.py</code>?</a><a href="#fPythonToolingR-68" data-q="fPythonToolingR-68"><span class="qn">&bull;</span>Q3. Explain Poetry vs pip+requirements.txt. When would you use each?</a><a href="#fPythonToolingR-69" data-q="fPythonToolingR-69"><span class="qn">&bull;</span>Q4. What is mypy strict mode and when should you use it?</a><a href="#fPythonToolingR-70" data-q="fPythonToolingR-70"><span class="qn">&bull;</span>Q5. What is the difference between <code>^1.2.3</code> and <code>~1.2.3</code> in Poetry?</a><a href="#fPythonToolingR-71" data-q="fPythonToolingR-71"><span class="qn">&bull;</span>Q6. How do you set up a new Python project with modern tooling?</a><a href="#fPythonToolingR-72" data-q="fPythonToolingR-72"><span class="qn">&bull;</span>Q7. What is <code>py.typed</code> and PEP 561?</a><a href="#fPythonToolingR-73" data-q="fPythonToolingR-73"><span class="qn">&bull;</span>Q8. Explain the purpose of <code>poetry.lock</code> vs <code>requirements.txt</code>.</a><a href="#fPythonToolingR-74" data-q="fPythonToolingR-74"><span class="qn">&bull;</span>Q9. What Ruff rules would you enable for a production project?</a><a href="#fPythonToolingR-75" data-q="fPythonToolingR-75"><span class="qn">&bull;</span>Q10. How does <code>uv</code> compare to <code>pip</code> and when would you use it?</a></nav>
+  <nav><div class="nav-grp"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg>On this page</div><a href="#top" data-t="top"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compass"/></svg>Overview</a><a class="nav-file" href="#fStandardLibrar" data-t="fStandardLibrar"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-package"/></svg>Standard Library Reference</a><a class="nav-file" href="#fPythonToolingR" data-t="fPythonToolingR"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-package"/></svg>Python Tooling Reference</a><a class="nav-sub" href="#fPythonToolingR-p0" data-t="fPythonToolingR-p0">1. Ruff — Lightning-Fast Linter &amp; Formatter</a><a class="nav-sub" href="#fPythonToolingR-p1" data-t="fPythonToolingR-p1">2. mypy — Static Type Checking</a><a class="nav-sub" href="#fPythonToolingR-p2" data-t="fPythonToolingR-p2">3. pyproject.toml — Unified Project Configuration</a><a class="nav-sub" href="#fPythonToolingR-p3" data-t="fPythonToolingR-p3">4. requirements.txt — Dependency Management</a><a class="nav-sub" href="#fPythonToolingR-p4" data-t="fPythonToolingR-p4">5. Poetry — Modern Dependency &amp; Package Management</a><a class="nav-sub" href="#fPythonToolingR-p5" data-t="fPythonToolingR-p5">6. Virtual Environments</a><a class="nav-sub" href="#fPythonToolingR-p6" data-t="fPythonToolingR-p6">6b. pytest — Testing Framework</a><a class="nav-sub" href="#fPythonToolingR-p7" data-t="fPythonToolingR-p7">6c. tox — Multi-Environment Testing</a><a class="nav-sub" href="#fPythonToolingR-p8" data-t="fPythonToolingR-p8">7. Pre-commit Hooks</a><a class="nav-sub" href="#fPythonToolingR-p9" data-t="fPythonToolingR-p9">8. Complete Project Setup Examples</a><a class="nav-sub" href="#fPythonToolingR-p10" data-t="fPythonToolingR-p10">9. Tool Comparison &amp; Decision Guide</a><a class="nav-sub" href="#fPythonToolingR-p11" data-t="fPythonToolingR-p11">10. Interview Questions</a></nav>
 </aside>
 <main><div class="wrap">
 
-<section class="hero" id="top"><div class="eyebrow">01_Python &middot; Stdlib & Tooling</div>
-<h1>Stdlib & Tooling</h1><p class="lede">Standard-library reference and the tooling ecosystem</p><div class="oneliner"><b>2 files</b> in this section, <b>76 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
-<div class="stats"><div class="stat"><div class="stat-v">2</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">76</div><div class="stat-l">sections</div></div></div></section>
-<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">Standard-library reference and the tooling ecosystem</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>Standard Library Reference</b><span class="learn-n">21 sections</span></div><div class="learn-tags"><span>os &amp; sys — System Interface</span><span>datetime &amp; time — Date/Time Handling</span><span>json &amp; csv — Data Serialization</span><span>subprocess — Running External Commands</span><span>argparse — Command-Line Arguments</span></div></li><li class="learn-item"><div class="learn-top"><b>Python Tooling Reference</b><span class="learn-n">55 sections</span></div><div class="learn-tags"><span>Ruff — Lightning-Fast Linter &amp; Format…</span><span>mypy — Static Type Checking</span><span>pyproject.toml — Unified Project Conf…</span><span>requirements.txt — Dependency Managem…</span><span>Poetry — Modern Dependency &amp; Package…</span></div></li></ul></section>
+<nav class="crumb"><a href="../index.html">Home</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><a href="index.html">Python</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><b>Stdlib & Tooling</b></nav>
+<section class="hero" id="top"><div class="eyebrow">Python &middot; Stdlib & Tooling</div>
+<h1>Stdlib & Tooling</h1><p class="lede">Standard-library reference and the tooling ecosystem</p><div class="oneliner"><b>2 files</b> in this section, <b>76 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div></section>
 
-<section class="filesec" id="fStandardLibrar"><header class="filehead"><div class="fh-top"><span class="fh-num">Standard Library Reference</span><span class="fh-count">21 sections</span><a class="fh-src" href="../../01_Python/31_Standard_Library/Standard_Library_Reference.md">source .md &#8599;</a></div><h2>Python Standard Library — Complete Reference</h2><div class="note">
+<section class="filesec" id="fStandardLibrar"><header class="filehead"><div class="fh-top"><span class="fh-num">Standard Library Reference</span><span class="fh-count">21 sections</span></div><h2>Python Standard Library — Complete Reference</h2><div class="note">
 <p><strong>Scope:</strong> os &amp; sys, datetime &amp; time, json &amp; csv, pathlib, re (regex), collections, functools, itertools, subprocess, argparse, logging, typing, dataclasses, contextlib, unittest.mock, hashlib, secrets, http, sqlite3, threading &amp; multiprocessing primitives, and other essential stdlib modules for day-to-day Python development.</p>
 </div></header><article class="q" id="fStandardLibrar-0"><div class="q-h"><span class="q-n">&bull;</span><h3>1. os &amp; sys — System Interface</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fStandardLibrar-0"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">operating system</span><span class="kt">interpreter-level</span></div><p>The <code>os</code> module provides a portable way to interact with the <strong>operating system</strong> — file/directory operations, environment variables, process management, and path manipulation. The <code>sys</code> module exposes <strong>interpreter-level</strong> information — command-line arguments, module search path, stdin/stdout, recursion limit, and Python version. Together they are the primary interface between your Python program and the underlying system.</p>
 <pre class="code" data-lang="python"><code><span class="kw">import</span> os
@@ -1583,9 +1931,9 @@ data = {<span class="str">'model'</span>: <span class="str">'xgboost'</span>, <s
 <h3>Q5: When would you use <code>unittest.mock.patch</code> vs dependency injection?</h3>
 <p><strong>A:</strong> <code>patch</code> is for testing existing code that directly imports dependencies — it temporarily replaces the import. Dependency injection (passing dependencies as parameters) is the cleaner design: <code>def fetch(client=requests)</code> — pass a mock client in tests. Prefer DI for new code (more testable, explicit). Use <code>patch</code> for legacy code or when the dependency is deeply embedded. Key: always patch where the object is <strong>used</strong>, not where it's <strong>defined</strong>: <code>@patch("mymodule.requests.get")</code>, not <code>@patch("requests.get")</code>.</p>
 <hr />
-<p><em>Previous: <a href="../../01_Python/19_Best_Practices/Best_Practices_Extended.md">Best_Practices_Extended.md</a> | Next: <a href="../../01_Python/00_Interview_Bank/03_Advanced_and_Internals_Interview.md">03_Advanced_and_Internals_Interview.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fPythonToolingR"><header class="filehead"><div class="fh-top"><span class="fh-num">Python Tooling Reference</span><span class="fh-count">55 sections</span><a class="fh-src" href="../../01_Python/32_Python_Tooling/Python_Tooling_Reference.md">source .md &#8599;</a></div><h2>Python Tooling — Ruff, mypy, pyproject.toml, requirements.txt &amp; Poetry</h2><div class="note">
+<p><em>Previous: <a href="../../01_Python/19_Best_Practices/Best_Practices_Extended.md">Best_Practices_Extended.md</a> | Next: <a href="../../01_Python/00_Interview_Bank/03_Advanced_and_Internals_Interview.md">03_Advanced_and_Internals_Interview.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fPythonToolingR"><header class="filehead"><div class="fh-top"><span class="fh-num">Python Tooling Reference</span><span class="fh-count">55 sections</span></div><h2>Python Tooling — Ruff, mypy, pyproject.toml, requirements.txt &amp; Poetry</h2><div class="note">
 <p><strong>Scope:</strong> Modern Python project tooling — linting &amp; formatting with Ruff, static type checking with mypy, project configuration with pyproject.toml, dependency management with requirements.txt and Poetry, packaging, virtual environments, and production-ready project setup.</p>
-</div></header><div class="parthead"><span>1. Ruff — Lightning-Fast Linter &amp; Formatter</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Ruff</strong> is an extremely fast Python linter and code formatter written in <strong>Rust</strong>. It replaces <strong>flake8, isort, pyflakes, pycodestyle, pydocstyle, autoflake, and Black</strong> — all in a single tool that runs <strong>10-100x faster</strong> than traditional alternatives.</p></div><article class="q" id="fPythonToolingR-21"><div class="q-h"><span class="q-n">&bull;</span><h3>1.1 Installation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-21"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Install via pip</span>
+</div></header><div class="parthead" id="fPythonToolingR-p0"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>1. Ruff — Lightning-Fast Linter &amp; Formatter</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Ruff</strong> is an extremely fast Python linter and code formatter written in <strong>Rust</strong>. It replaces <strong>flake8, isort, pyflakes, pycodestyle, pydocstyle, autoflake, and Black</strong> — all in a single tool that runs <strong>10-100x faster</strong> than traditional alternatives.</p></div><article class="q" id="fPythonToolingR-21"><div class="q-h"><span class="q-n">&bull;</span><h3>1.1 Installation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-21"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Install via pip</span>
 pip install ruff
 
 <span class="cmt"># Install via pipx (isolated)</span>
@@ -1834,7 +2182,7 @@ pylint          ~60s                ~400     ❌ No
 Black           ~5s                 N/A      ✅ Yes (only)
 isort           ~3s                 N/A      ✅ Imports only
 
-→ Ruff is 10-100x faster and replaces ALL of the above</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>2. mypy — Static Type Checking</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>mypy</strong> is the reference implementation of Python's static type checker. It analyzes type annotations to catch bugs before runtime — like TypeScript for Python. mypy can find <code>None</code> access errors, wrong argument types, missing return types, and more.</p></div><article class="q" id="fPythonToolingR-27"><div class="q-h"><span class="q-n">&bull;</span><h3>2.1 Installation &amp; Basic Usage</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-27"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Install</span>
+→ Ruff is 10-100x faster and replaces ALL of the above</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fPythonToolingR-p1"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>2. mypy — Static Type Checking</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>mypy</strong> is the reference implementation of Python's static type checker. It analyzes type annotations to catch bugs before runtime — like TypeScript for Python. mypy can find <code>None</code> access errors, wrong argument types, missing return types, and more.</p></div><article class="q" id="fPythonToolingR-27"><div class="q-h"><span class="q-n">&bull;</span><h3>2.1 Installation &amp; Basic Usage</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-27"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Install</span>
 pip install mypy
 
 <span class="cmt"># Type-check a file</span>
@@ -2169,7 +2517,7 @@ strict = true                         # Enables ALL strict flags
 # warn_unused_ignores = true
 # warn_return_any = true
 # no_implicit_reexport = true
-# strict_equality = true</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>3. pyproject.toml — Unified Project Configuration</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>pyproject.toml</strong> (PEP 518 / PEP 621) is the <strong>single configuration file</strong> for modern Python projects. It replaces <code>setup.py</code>, <code>setup.cfg</code>, <code>MANIFEST.in</code>, and individual tool config files (<code>tox.ini</code>, <code>.flake8</code>, <code>.isort.cfg</code>, <code>mypy.ini</code>).</p></div><article class="q" id="fPythonToolingR-32"><div class="q-h"><span class="q-n">&bull;</span><h3>3.1 Complete pyproject.toml Reference</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-32"><span></span></label></div><div class="q-a"><pre class="code" data-lang="toml"><code># ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# strict_equality = true</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fPythonToolingR-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>3. pyproject.toml — Unified Project Configuration</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>pyproject.toml</strong> (PEP 518 / PEP 621) is the <strong>single configuration file</strong> for modern Python projects. It replaces <code>setup.py</code>, <code>setup.cfg</code>, <code>MANIFEST.in</code>, and individual tool config files (<code>tox.ini</code>, <code>.flake8</code>, <code>.isort.cfg</code>, <code>mypy.ini</code>).</p></div><article class="q" id="fPythonToolingR-32"><div class="q-h"><span class="q-n">&bull;</span><h3>3.1 Complete pyproject.toml Reference</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-32"><span></span></label></div><div class="q-a"><pre class="code" data-lang="toml"><code># ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #  pyproject.toml — Complete Project Configuration
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -2398,7 +2746,7 @@ write_to = "src/myproject/_version.py"</code></pre></div><button class="reveal">
 [tool.pytest.ini_options]         pytest config
 [tool.coverage.*]                 Coverage.py config
 [tool.setuptools.*]               setuptools-specific config
-[tool.poetry.*]                   Poetry-specific config</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>4. requirements.txt — Dependency Management</span><i></i></div><article class="q" id="fPythonToolingR-35"><div class="q-h"><span class="q-n">&bull;</span><h3>4.1 Syntax &amp; Best Practices</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-35"><span></span></label></div><div class="q-a"><pre class="code" data-lang="text"><code># ── requirements.txt ─────────────────────────────────────
+[tool.poetry.*]                   Poetry-specific config</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fPythonToolingR-p3"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>4. requirements.txt — Dependency Management</span><i></i></div><article class="q" id="fPythonToolingR-35"><div class="q-h"><span class="q-n">&bull;</span><h3>4.1 Syntax &amp; Best Practices</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-35"><span></span></label></div><div class="q-a"><pre class="code" data-lang="text"><code># ── requirements.txt ─────────────────────────────────────
 
 # Exact pinning (production — reproducible builds)
 fastapi==0.115.6
@@ -2520,7 +2868,7 @@ Workflow:
 2. Run: pip-compile requirements.in
 3. Review: git diff requirements.txt
 4. Sync: pip-sync requirements.txt
-5. Commit both files</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>5. Poetry — Modern Dependency &amp; Package Management</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Poetry</strong> is an all-in-one tool for Python dependency management, packaging, and publishing. It provides <strong>deterministic builds</strong> with a lockfile, <strong>virtual environment management</strong>, and <strong>simple publishing</strong> to PyPI.</p></div><article class="q" id="fPythonToolingR-39"><div class="q-h"><span class="q-n">&bull;</span><h3>5.1 Installation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-39"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Official installer (recommended)</span>
+5. Commit both files</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fPythonToolingR-p4"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-package"/></svg>5. Poetry — Modern Dependency &amp; Package Management</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Poetry</strong> is an all-in-one tool for Python dependency management, packaging, and publishing. It provides <strong>deterministic builds</strong> with a lockfile, <strong>virtual environment management</strong>, and <strong>simple publishing</strong> to PyPI.</p></div><article class="q" id="fPythonToolingR-39"><div class="q-h"><span class="q-n">&bull;</span><h3>5.1 Installation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-39"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Official installer (recommended)</span>
 curl -sSL https://install.python-poetry.org | python3 -
 
 <span class="cmt"># Or via pipx (isolated)</span>
@@ -2747,7 +3095,7 @@ poetry publish -r testpypi
 poetry publish --build
 
 <span class="cmt"># Configure PyPI token</span>
-poetry config pypi-token.pypi pypi-xxxxxxxxxxxxx</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>6. Virtual Environments</span><i></i></div><article class="q" id="fPythonToolingR-47"><div class="q-h"><span class="q-n">&bull;</span><h3>6.1 Comparison of Tools</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-47"><span></span></label></div><div class="q-a"><pre class="code" data-lang="text"><code>Tool        Create           Activate (Linux/Mac)      Activate (Windows)
+poetry config pypi-token.pypi pypi-xxxxxxxxxxxxx</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fPythonToolingR-p5"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>6. Virtual Environments</span><i></i></div><article class="q" id="fPythonToolingR-47"><div class="q-h"><span class="q-n">&bull;</span><h3>6.1 Comparison of Tools</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-47"><span></span></label></div><div class="q-a"><pre class="code" data-lang="text"><code>Tool        Create           Activate (Linux/Mac)      Activate (Windows)
 ──────────────────────────────────────────────────────────────────────────
 venv        python -m venv   source .venv/bin/activate  .venv\Scripts\activate
 virtualenv  virtualenv .venv source .venv/bin/activate  .venv\Scripts\activate
@@ -2800,7 +3148,7 @@ uv run python app.py
 uv run pytest
 
 <span class="cmt"># uv is from the same team as Ruff (Astral)</span>
-<span class="cmt"># 10-100x faster than pip for installs</span></code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>6b. pytest — Testing Framework</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>pytest</strong> is the de-facto Python testing framework — simpler than <code>unittest</code>, with powerful fixtures, parametrization, and plugin ecosystem.</p></div><article class="q" id="fPythonToolingR-50"><div class="q-h"><span class="q-n">&bull;</span><h3>Basics</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-50"><span></span></label></div><div class="q-a"><pre class="code" data-lang="python"><code><span class="cmt"># test_calculator.py</span>
+<span class="cmt"># 10-100x faster than pip for installs</span></code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fPythonToolingR-p6"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>6b. pytest — Testing Framework</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>pytest</strong> is the de-facto Python testing framework — simpler than <code>unittest</code>, with powerful fixtures, parametrization, and plugin ecosystem.</p></div><article class="q" id="fPythonToolingR-50"><div class="q-h"><span class="q-n">&bull;</span><h3>Basics</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-50"><span></span></label></div><div class="q-a"><pre class="code" data-lang="python"><code><span class="cmt"># test_calculator.py</span>
 <span class="kw">def</span> <span class="fn">add</span>(a, b):
     <span class="kw">return</span> a + b
 
@@ -2866,7 +3214,7 @@ pytest --cov=src --cov-fail-under=<span class="num">80</span>  <span class="cmt"
         mock_get.return_value.json.return_value = {<span class="str">"status"</span>: <span class="str">"ok"</span>}
         result = mymodule.<span class="fn">fetch_status</span>()
         <span class="kw">assert</span> result == <span class="str">"ok"</span>
-        mock_get.<span class="fn">assert_called_once</span>()</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>6c. tox — Multi-Environment Testing</span><i></i></div><div class="q-a" style="margin:0 0 12px"><pre class="code" data-lang="ini"><code># tox.ini
+        mock_get.<span class="fn">assert_called_once</span>()</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fPythonToolingR-p7"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>6c. tox — Multi-Environment Testing</span><i></i></div><div class="q-a" style="margin:0 0 12px"><pre class="code" data-lang="ini"><code># tox.ini
 [tox]
 envlist = py310, py311, py312
 
@@ -2874,7 +3222,7 @@ envlist = py310, py311, py312
 deps = pytest
 commands = pytest tests/</code></pre>
 <pre class="code" data-lang="bash"><code>tox          <span class="cmt"># Run tests on all Python versions</span>
-tox -e py312 <span class="cmt"># Run only on Python 3.12</span></code></pre></div><div class="parthead"><span>7. Pre-commit Hooks</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Pre-commit</strong> runs code quality checks automatically before every <code>git commit</code>, catching issues before they reach the repository.</p></div><article class="q" id="fPythonToolingR-56"><div class="q-h"><span class="q-n">&bull;</span><h3>7.1 Setup</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-56"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Install</span>
+tox -e py312 <span class="cmt"># Run only on Python 3.12</span></code></pre></div><div class="parthead" id="fPythonToolingR-p8"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>7. Pre-commit Hooks</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Pre-commit</strong> runs code quality checks automatically before every <code>git commit</code>, catching issues before they reach the repository.</p></div><article class="q" id="fPythonToolingR-56"><div class="q-h"><span class="q-n">&bull;</span><h3>7.1 Setup</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-56"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Install</span>
 pip install pre-commit
 
 <span class="cmt"># Or with Poetry</span>
@@ -2963,7 +3311,7 @@ jobs:
         run: ruff format --check .
 
       - name: mypy
-        run: mypy src/</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>8. Complete Project Setup Examples</span><i></i></div><article class="q" id="fPythonToolingR-59"><div class="q-h"><span class="q-n">&bull;</span><h3>8.1 FastAPI Project (Production-Ready)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-59"><span></span></label></div><div class="q-a"><pre class="code" data-lang="text"><code>my-fastapi-project/
+        run: mypy src/</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fPythonToolingR-p9"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>8. Complete Project Setup Examples</span><i></i></div><article class="q" id="fPythonToolingR-59"><div class="q-h"><span class="q-n">&bull;</span><h3>8.1 FastAPI Project (Production-Ready)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-59"><span></span></label></div><div class="q-a"><pre class="code" data-lang="text"><code>my-fastapi-project/
 ├── src/
 │   └── myproject/
 │       ├── __init__.py
@@ -3098,7 +3446,7 @@ docker-run:                        ## Run Docker container
 ├── tests/
 ├── pyproject.toml
 ├── Makefile
-└── README.md</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>9. Tool Comparison &amp; Decision Guide</span><i></i></div><article class="q" id="fPythonToolingR-62"><div class="q-h"><span class="q-n">&bull;</span><h3>9.1 Linter/Formatter Comparison</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-62"><span></span></label></div><div class="q-a"><pre class="code" data-lang="text"><code>Feature             Ruff        Black       flake8      pylint
+└── README.md</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fPythonToolingR-p10"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>9. Tool Comparison &amp; Decision Guide</span><i></i></div><article class="q" id="fPythonToolingR-62"><div class="q-h"><span class="q-n">&bull;</span><h3>9.1 Linter/Formatter Comparison</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-62"><span></span></label></div><div class="q-a"><pre class="code" data-lang="text"><code>Feature             Ruff        Black       flake8      pylint
 ──────────────────────────────────────────────────────────────
 Speed               ⭐⭐⭐⭐⭐    ⭐⭐⭐       ⭐⭐⭐       ⭐⭐
 Linting             ✅           ❌          ✅          ✅
@@ -3159,7 +3507,7 @@ Recommendation: mypy for CI, pyright for VS Code</code></pre></div><button class
    └── Always use pre-commit hooks
 
 5. Configuration:
-   └── Always pyproject.toml (single source of truth)</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>10. Interview Questions</span><i></i></div><article class="q" id="fPythonToolingR-66"><div class="q-h"><span class="q-n">&bull;</span><h3>Q1. What is Ruff and why has it replaced multiple tools?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-66"><span></span></label></div><div class="q-a"><p><strong>Answer:</strong> Ruff is a Python linter and formatter written in Rust that replaces flake8, isort, pyflakes, pycodestyle, pydocstyle, autoflake, and Black — all in one tool. It's 10-100x faster because it's compiled (Rust vs Python). It supports 800+ lint rules across 50+ plugins and can auto-fix most violations. It's the de facto standard in modern Python projects.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fPythonToolingR-67"><div class="q-h"><span class="q-n">&bull;</span><h3>Q2. What is <code>pyproject.toml</code> and why is it preferred over <code>setup.py</code>?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-67"><span></span></label></div><div class="q-a"><p><strong>Answer:</strong> <code>pyproject.toml</code> (PEP 518/621) is the standardized configuration file for Python projects. It replaces <code>setup.py</code>, <code>setup.cfg</code>, and individual tool configs (<code>.flake8</code>, <code>mypy.ini</code>, <code>tox.ini</code>) with a single TOML file. Benefits: declarative (no arbitrary Python execution), standardized (PEP 621), and all tools read from one file. <code>setup.py</code> is legacy and has security risks (arbitrary code execution on install).</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fPythonToolingR-68"><div class="q-h"><span class="q-n">&bull;</span><h3>Q3. Explain Poetry vs pip+requirements.txt. When would you use each?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-68"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">pip+requirements.txt</span><span class="kt">Poetry</span></div><p><strong>Answer:</strong>
+   └── Always pyproject.toml (single source of truth)</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fPythonToolingR-p11"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>10. Interview Questions</span><i></i></div><article class="q" id="fPythonToolingR-66"><div class="q-h"><span class="q-n">&bull;</span><h3>Q1. What is Ruff and why has it replaced multiple tools?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-66"><span></span></label></div><div class="q-a"><p><strong>Answer:</strong> Ruff is a Python linter and formatter written in Rust that replaces flake8, isort, pyflakes, pycodestyle, pydocstyle, autoflake, and Black — all in one tool. It's 10-100x faster because it's compiled (Rust vs Python). It supports 800+ lint rules across 50+ plugins and can auto-fix most violations. It's the de facto standard in modern Python projects.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fPythonToolingR-67"><div class="q-h"><span class="q-n">&bull;</span><h3>Q2. What is <code>pyproject.toml</code> and why is it preferred over <code>setup.py</code>?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-67"><span></span></label></div><div class="q-a"><p><strong>Answer:</strong> <code>pyproject.toml</code> (PEP 518/621) is the standardized configuration file for Python projects. It replaces <code>setup.py</code>, <code>setup.cfg</code>, and individual tool configs (<code>.flake8</code>, <code>mypy.ini</code>, <code>tox.ini</code>) with a single TOML file. Benefits: declarative (no arbitrary Python execution), standardized (PEP 621), and all tools read from one file. <code>setup.py</code> is legacy and has security risks (arbitrary code execution on install).</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fPythonToolingR-68"><div class="q-h"><span class="q-n">&bull;</span><h3>Q3. Explain Poetry vs pip+requirements.txt. When would you use each?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-68"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">pip+requirements.txt</span><span class="kt">Poetry</span></div><p><strong>Answer:</strong>
 - <strong>pip+requirements.txt</strong>: Simple, universal, no lockfile by default. Use for simple scripts, Docker images, or when Poetry overhead isn't justified.
 - <strong>Poetry</strong>: Lockfile for reproducible builds, automatic venv management, dependency resolution, and PyPI publishing. Use for applications and libraries.
 - Key difference: Poetry resolves dependency conflicts automatically and pins all transitive dependencies in <code>poetry.lock</code>.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fPythonToolingR-69"><div class="q-h"><span class="q-n">&bull;</span><h3>Q4. What is mypy strict mode and when should you use it?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-69"><span></span></label></div><div class="q-a"><p><strong>Answer:</strong> <code>mypy --strict</code> enables all strict type checking flags: requires type annotations on all functions, disallows <code>Any</code> types, checks untyped code, and more. Use it for production code to catch type errors before runtime. Start with basic mode (<code>check_untyped_defs = true</code>) and gradually increase strictness. Use per-module overrides to relax rules for tests and migrations.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fPythonToolingR-70"><div class="q-h"><span class="q-n">&bull;</span><h3>Q5. What is the difference between <code>^1.2.3</code> and <code>~1.2.3</code> in Poetry?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPythonToolingR-70"><span></span></label></div><div class="q-a"><p><strong>Answer:</strong>
@@ -3189,8 +3537,10 @@ pre-commit install
 <hr />
 <p><em>Reference: Ruff docs (docs.astral.sh/ruff), mypy docs (mypy.readthedocs.io), Poetry docs (python-poetry.org), PEP 518/621/561, pip-tools, uv (astral.sh/uv).</em></p></div><button class="reveal">Reveal answer</button></article></section>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<nav class="pnav"><a class="prev" href="web.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrowl"/></svg><span class="pnav-t"><span>Previous</span><b>Backend & Web</b></span></a><a class="next" href="dsa.html"><span class="pnav-t"><span>Next</span><b>DSA</b></span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></a></nav>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
 </div></main>
+<aside class="toc" id="toc"><div class="toc-h"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>On this page</div><div class="toc-g" data-for="fStandardLibrar"><b>Standard Library Reference</b><a href="#fStandardLibrar-0" data-c="fStandardLibrar-0">1. os &amp; sys — System Interface</a><a href="#fStandardLibrar-1" data-c="fStandardLibrar-1">2. datetime &amp; time — Date/Time Handling</a><a href="#fStandardLibrar-2" data-c="fStandardLibrar-2">3. json &amp; csv — Data Serialization</a><a href="#fStandardLibrar-3" data-c="fStandardLibrar-3">4. subprocess — Running External Commands</a><a href="#fStandardLibrar-4" data-c="fStandardLibrar-4">5. argparse — Command-Line Arguments</a><a href="#fStandardLibrar-5" data-c="fStandardLibrar-5">6. hashlib &amp; secrets — Hashing &amp; Security</a><a href="#fStandardLibrar-6" data-c="fStandardLibrar-6">7. http &amp; urllib — HTTP Client/Server</a><a href="#fStandardLibrar-7" data-c="fStandardLibrar-7">8. sqlite3 — Embedded Database</a><a href="#fStandardLibrar-8" data-c="fStandardLibrar-8">9. unittest.mock — Mocking for Tests</a><a href="#fStandardLibrar-9" data-c="fStandardLibrar-9">10. contextlib — Context Manager Utilities</a><a href="#fStandardLibrar-10" data-c="fStandardLibrar-10">11. struct &amp; array — Binary Data</a><a href="#fStandardLibrar-11" data-c="fStandardLibrar-11">12. math &amp; statistics — Numeric Functions</a><a href="#fStandardLibrar-12" data-c="fStandardLibrar-12">13. typing — Type Hint Utilities</a><a href="#fStandardLibrar-13" data-c="fStandardLibrar-13">14. Other Useful Modules</a><a href="#fStandardLibrar-14" data-c="fStandardLibrar-14">14b. re (Regular Expressions)</a><a href="#fStandardLibrar-15" data-c="fStandardLibrar-15">14c. collections</a><a href="#fStandardLibrar-16" data-c="fStandardLibrar-16">14d. pathlib</a><a href="#fStandardLibrar-17" data-c="fStandardLibrar-17">14e. logging</a><a href="#fStandardLibrar-18" data-c="fStandardLibrar-18">14f. heapq &amp; bisect</a><a href="#fStandardLibrar-19" data-c="fStandardLibrar-19">14g. pickle &amp; shelve</a><a href="#fStandardLibrar-20" data-c="fStandardLibrar-20">15. Interview Deep Dive</a></div><div class="toc-g" data-for="fPythonToolingR"><b>Python Tooling Reference</b><a href="#fPythonToolingR-21" data-c="fPythonToolingR-21">1.1 Installation</a><a href="#fPythonToolingR-22" data-c="fPythonToolingR-22">1.2 Basic Usage</a><a href="#fPythonToolingR-23" data-c="fPythonToolingR-23">1.3 Ruff Configuration in <code>pyproject.toml</code></a><a href="#fPythonToolingR-24" data-c="fPythonToolingR-24">1.4 Ruff Rule Categories — Complete Reference</a><a href="#fPythonToolingR-25" data-c="fPythonToolingR-25">1.5 Common Ruff Rules Explained with Examples</a><a href="#fPythonToolingR-26" data-c="fPythonToolingR-26">1.6 Ruff vs Other Tools — Speed Comparison</a><a href="#fPythonToolingR-27" data-c="fPythonToolingR-27">2.1 Installation &amp; Basic Usage</a><a href="#fPythonToolingR-28" data-c="fPythonToolingR-28">2.2 mypy Configuration in <code>pyproject.toml</code></a><a href="#fPythonToolingR-29" data-c="fPythonToolingR-29">2.3 Type Annotations — Complete Reference</a><a href="#fPythonToolingR-30" data-c="fPythonToolingR-30">2.4 Common mypy Errors &amp; Fixes</a><a href="#fPythonToolingR-31" data-c="fPythonToolingR-31">2.5 mypy Strict Mode Levels</a><a href="#fPythonToolingR-32" data-c="fPythonToolingR-32">3.1 Complete pyproject.toml Reference</a><a href="#fPythonToolingR-33" data-c="fPythonToolingR-33">3.2 Dynamic Version from Source</a><a href="#fPythonToolingR-34" data-c="fPythonToolingR-34">3.3 Sections Cheat Sheet</a><a href="#fPythonToolingR-35" data-c="fPythonToolingR-35">4.1 Syntax &amp; Best Practices</a><a href="#fPythonToolingR-36" data-c="fPythonToolingR-36">4.2 Multiple Requirements Files Strategy</a><a href="#fPythonToolingR-37" data-c="fPythonToolingR-37">4.3 pip Commands</a><a href="#fPythonToolingR-38" data-c="fPythonToolingR-38">4.4 pip-tools Workflow</a><a href="#fPythonToolingR-39" data-c="fPythonToolingR-39">5.1 Installation</a><a href="#fPythonToolingR-40" data-c="fPythonToolingR-40">5.2 Project Initialization</a><a href="#fPythonToolingR-41" data-c="fPythonToolingR-41">5.3 Dependency Management</a><a href="#fPythonToolingR-42" data-c="fPythonToolingR-42">5.4 Poetry pyproject.toml</a><a href="#fPythonToolingR-43" data-c="fPythonToolingR-43">5.5 Poetry Version Constraints</a><a href="#fPythonToolingR-44" data-c="fPythonToolingR-44">5.6 Virtual Environment Management</a><a href="#fPythonToolingR-45" data-c="fPythonToolingR-45">5.7 poetry.lock — The Lockfile</a><a href="#fPythonToolingR-46" data-c="fPythonToolingR-46">5.8 Publishing to PyPI</a><a href="#fPythonToolingR-47" data-c="fPythonToolingR-47">6.1 Comparison of Tools</a><a href="#fPythonToolingR-48" data-c="fPythonToolingR-48">6.2 venv (Built-in)</a><a href="#fPythonToolingR-49" data-c="fPythonToolingR-49">6.3 uv — Ultra-Fast Package Manager</a><a href="#fPythonToolingR-50" data-c="fPythonToolingR-50">Basics</a><a href="#fPythonToolingR-51" data-c="fPythonToolingR-51">Fixtures (setup/teardown)</a><a href="#fPythonToolingR-52" data-c="fPythonToolingR-52">Parametrize (data-driven tests)</a><a href="#fPythonToolingR-53" data-c="fPythonToolingR-53">Markers</a><a href="#fPythonToolingR-54" data-c="fPythonToolingR-54">Coverage</a><a href="#fPythonToolingR-55" data-c="fPythonToolingR-55">Mocking</a><a href="#fPythonToolingR-56" data-c="fPythonToolingR-56">7.1 Setup</a><a href="#fPythonToolingR-57" data-c="fPythonToolingR-57">7.2 <code>.pre-commit-config.yaml</code></a><a href="#fPythonToolingR-58" data-c="fPythonToolingR-58">7.3 CI Integration</a><a href="#fPythonToolingR-59" data-c="fPythonToolingR-59">8.1 FastAPI Project (Production-Ready)</a><a href="#fPythonToolingR-60" data-c="fPythonToolingR-60">8.2 Makefile for Common Tasks</a><a href="#fPythonToolingR-61" data-c="fPythonToolingR-61">8.3 ML Project Setup</a><a href="#fPythonToolingR-62" data-c="fPythonToolingR-62">9.1 Linter/Formatter Comparison</a><a href="#fPythonToolingR-63" data-c="fPythonToolingR-63">9.2 Dependency Management Comparison</a><a href="#fPythonToolingR-64" data-c="fPythonToolingR-64">9.3 Type Checker Comparison</a><a href="#fPythonToolingR-65" data-c="fPythonToolingR-65">9.4 Decision Flowchart</a><a href="#fPythonToolingR-66" data-c="fPythonToolingR-66">Q1. What is Ruff and why has it replaced multiple tools?</a><a href="#fPythonToolingR-67" data-c="fPythonToolingR-67">Q2. What is <code>pyproject.toml</code> and why is it preferred over <code>setup.py</code>?</a><a href="#fPythonToolingR-68" data-c="fPythonToolingR-68">Q3. Explain Poetry vs pip+requirements.txt. When would you use each?</a><a href="#fPythonToolingR-69" data-c="fPythonToolingR-69">Q4. What is mypy strict mode and when should you use it?</a><a href="#fPythonToolingR-70" data-c="fPythonToolingR-70">Q5. What is the difference between <code>^1.2.3</code> and <code>~1.2.3</code> in Poetry?</a><a href="#fPythonToolingR-71" data-c="fPythonToolingR-71">Q6. How do you set up a new Python project with modern tooling?</a><a href="#fPythonToolingR-72" data-c="fPythonToolingR-72">Q7. What is <code>py.typed</code> and PEP 561?</a><a href="#fPythonToolingR-73" data-c="fPythonToolingR-73">Q8. Explain the purpose of <code>poetry.lock</code> vs <code>requirements.txt</code>.</a><a href="#fPythonToolingR-74" data-c="fPythonToolingR-74">Q9. What Ruff rules would you enable for a production project?</a><a href="#fPythonToolingR-75" data-c="fPythonToolingR-75">Q10. How does <code>uv</code> compare to <code>pip</code> and when would you use it?</a></div></aside>
 </div>
 <button class="totop" id="totop" title="Back to top">&#8593;</button>
 <script>
@@ -3231,29 +3581,44 @@ var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementBy
 qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
 function runSearch(){
   if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
-  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
-    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;});
+  /* a heading survives the filter only while something under it is still showing */
   [].forEach.call(document.querySelectorAll('.parthead'),function(p){
-    if(!v){p.style.display='';return}
-    var vis=false,n=p.nextElementSibling;
-    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
-    p.style.display=vis?'':'none';});
+    var vis=true;
+    if(v){
+      vis=false;
+      var n=p.nextElementSibling;
+      while(n&&!n.classList.contains('parthead')){
+        if(n.classList.contains('q')&&n.style.display!=='none'){vis=true;break}
+        n=n.nextElementSibling;
+      }
+    }
+    p.style.display=vis?'':'none';
+    if(p.id){var l=document.querySelector('nav a[data-t="'+p.id+'"]');
+      if(l)l.style.display=vis?'':'none';}
+  });
   if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
 }
 if(inp)inp.addEventListener('input',runSearch);
 
-var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+/* The sidebar lists main headings only, so scroll tracking follows those headings
+   (data-t -> element id) rather than one entry per question card. */
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-t]'));
+var navTargets=navLinks.map(function(l){return document.getElementById(l.getAttribute('data-t'))});
 var totop=document.getElementById('totop');
 function onScroll(){
   var sc=document.documentElement.scrollTop;
   if(totop)totop.classList.toggle('show',sc>600);
-  var cur=null;
-  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
-    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  var cur=-1;
+  for(var i=0;i<navTargets.length;i++){
+    var el=navTargets[i];
+    if(!el||el.offsetParent===null)continue;
+    if(el.getBoundingClientRect().top<=140)cur=i;else break;
+  }
   navLinks.forEach(function(l){l.classList.remove('active')});
-  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
-    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
-      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+  if(cur>=0){var l=navLinks[cur];
+    l.classList.add('active');var r=l.getBoundingClientRect();
+    if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}
 }
 window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
@@ -3304,6 +3669,43 @@ document.addEventListener('keydown',function(e){
     });
     pre.appendChild(b);
   });
+})();
+
+/* Right-hand rail: reveal the group for the file section being read, and mark the
+   card in view. Scrolling is done on the rail itself - scrollIntoView would drag the
+   window along with it. */
+(function(){
+  var toc=document.getElementById('toc'); if(!toc)return;
+  document.body.classList.add('js');
+  var groups=[].slice.call(toc.querySelectorAll('.toc-g'));
+  if(!groups.length)return;
+  var secs=groups.map(function(g){return document.getElementById(g.getAttribute('data-for'))});
+  var links=groups.map(function(g){return [].slice.call(g.querySelectorAll('a[data-c]'))});
+  var curG=-1;
+  function upd(){
+    var i,g=-1;
+    for(i=0;i<secs.length;i++){
+      var el=secs[i]; if(!el)continue;
+      if(el.getBoundingClientRect().top<=160)g=i; else break;
+    }
+    if(g<0)g=0;
+    if(g!==curG){groups.forEach(function(x,k){x.classList.toggle('on',k===g)});curG=g;}
+    var ls=links[g]||[],act=null;
+    for(i=0;i<ls.length;i++){
+      var t=document.getElementById(ls[i].getAttribute('data-c'));
+      if(!t||t.style.display==='none')continue;
+      if(t.getBoundingClientRect().top<=160)act=ls[i]; else break;
+    }
+    ls.forEach(function(a){a.classList.remove('on')});
+    if(act){
+      act.classList.add('on');
+      var top=act.offsetTop,h=act.offsetHeight;
+      if(top<toc.scrollTop+8||top+h>toc.scrollTop+toc.clientHeight-8)
+        toc.scrollTop=top-toc.clientHeight/2+h/2;
+    }
+  }
+  addEventListener('scroll',upd,{passive:true});
+  addEventListener('resize',upd); upd();
 })();
 
 /* deep link on each question card */

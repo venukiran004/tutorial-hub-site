@@ -509,9 +509,358 @@ body.searching .parthead{opacity:.5}
 
 @media(max-width:1060px){ .parthead{top:0} }
 
+/* =====================================================================
+   AURORA GLASS
+   The final layer. Everything below re-tints the sheet above it: a deep
+   near-black canvas lit by a fixed gradient mesh, with the chrome and the
+   cards reading as frosted panels floating on top of it.
+   ===================================================================== */
+
+:root{
+  --bg:#070a12; --bg-2:#0a0e18;
+  --surface:#0f131e; --surface-2:#141a27; --surface-3:#1c2333;
+  --border:#232c40; --border-soft:#19202f;
+  --ink:#eaf0fb; --ink-2:#9fabc4; --ink-mut:#6b7690;
+
+  --accent:#7c9dff; --accent-2:#b18cff;
+  --accent-soft:rgba(124,157,255,.15); --accent-bd:rgba(124,157,255,.40);
+  --t-rag:#7c9dff; --t-agentic:#ff9563; --t-recall:#3ed9a4;
+  --t-violet:#b18cff; --t-amber:#f0c274;
+  --good:#3ed9a4; --warn:#f5c451; --crit:#ff6b81;
+  --good-soft:rgba(62,217,164,.12); --warn-soft:rgba(245,196,81,.12);
+  --crit-soft:rgba(255,107,129,.12);
+  --code-bg:#080b13;
+
+  --glass:rgba(255,255,255,.045);
+  --glass-bd:rgba(255,255,255,.075);
+  --e1:0 1px 2px rgba(0,0,0,.40);
+  --e2:0 8px 26px rgba(3,6,15,.55);
+  --e3:0 22px 60px rgba(3,6,15,.68);
+  --radius:16px; --radius-sm:11px;
+}
+html[data-theme="light"]{
+  --bg:#f6f8fe; --bg-2:#eef2fb;
+  --surface:#fff; --surface-2:#fafbff; --surface-3:#eef2fb;
+  --border:#dce3f2; --border-soft:#e9edf8;
+  --ink:#111828; --ink-2:#4c586f; --ink-mut:#7c8699;
+
+  --accent:#4f6fe6; --accent-2:#8b5cf6;
+  --accent-soft:rgba(79,111,230,.10); --accent-bd:rgba(79,111,230,.34);
+  --t-rag:#4f6fe6; --t-agentic:#e0663a; --t-recall:#0f9e74;
+  --t-violet:#8b5cf6; --t-amber:#a9760a;
+  --good:#0f9e74; --warn:#b07d00; --crit:#dc3d55;
+  --good-soft:rgba(15,158,116,.10); --warn-soft:rgba(176,125,0,.11);
+  --crit-soft:rgba(220,61,85,.09);
+  --code-bg:#f2f5fc;
+
+  --glass:rgba(255,255,255,.62);
+  --glass-bd:rgba(17,24,40,.07);
+  --e1:0 1px 2px rgba(16,24,40,.05);
+  --e2:0 8px 24px rgba(16,24,40,.08);
+  --e3:0 22px 56px rgba(16,24,40,.12);
+}
+
+/* ---------- the canvas ---------- */
+/* the page background lives on <html> so the fixed aurora layer can sit
+   between it and the content without the body's own fill covering it */
+html{background:var(--bg)}
+body{background:transparent}
+
+/* Ambient tint on every page: strongest at the top edge, gone by mid-scroll, so
+   long reading pages settle onto clean dark instead of a permanent wash. */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 22% -6%, color-mix(in srgb,var(--accent) 46%,transparent), transparent 66%),
+    radial-gradient(38% 32% at 82% -8%, color-mix(in srgb,var(--accent-2) 40%,transparent), transparent 64%);
+  filter:blur(30px) saturate(1.3);opacity:.5;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%);
+          mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%)}
+html[data-theme="light"] body::before{opacity:.5;filter:blur(36px) saturate(1)}
+
+/* film grain: keeps the large flat gradients from banding on cheap panels */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.032;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* multiply over a light canvas darkens fast - the grain has to be far weaker here
+   or the whole page reads grey instead of white */
+html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply}
+
+@keyframes aurora-drift{
+  from{transform:translate3d(0,0,0) scale(1)}
+  to{transform:translate3d(3%,-2.5%,0) scale(1.12)}
+}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:transparent;border-bottom:1px solid var(--border-soft)}
+.siteswitch a{color:var(--ink-mut)}
+.siteswitch a:hover{background:var(--glass);color:var(--ink)}
+.siteswitch a.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  box-shadow:0 3px 14px color-mix(in srgb,var(--accent) 40%,transparent)}
+.sitebar{background:color-mix(in srgb,var(--bg) 62%,transparent);
+  backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);
+  border-bottom:1px solid var(--glass-bd);box-shadow:0 1px 0 rgba(255,255,255,.03),var(--e1)}
+.logo b{background:linear-gradient(115deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{background:var(--glass);border:1px solid var(--glass-bd);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);border-radius:10px}
+.btn:hover{border-color:var(--accent-bd);color:var(--ink);
+  box-shadow:0 4px 16px color-mix(in srgb,var(--accent) 22%,transparent)}
+.btn.on{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,transparent),
+  color-mix(in srgb,var(--accent-2) 18%,transparent));border-color:var(--accent-bd);color:var(--accent)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 55%,transparent),transparent 60%);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-right:1px solid var(--glass-bd)}
+.sb-search input{background:var(--glass);border:1px solid var(--glass-bd);border-radius:11px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sb-search input:focus{border-color:var(--accent-bd);
+  box-shadow:0 0 0 3px var(--accent-soft),0 4px 18px color-mix(in srgb,var(--accent) 20%,transparent)}
+nav a:hover{background:var(--glass);color:var(--ink)}
+nav a.active{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 20%,transparent),transparent 78%);
+  box-shadow:inset 0 0 0 1px var(--accent-bd);color:var(--accent)}
+nav a.active::before{background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 10px var(--accent)}
+.nav-grp{color:var(--ink-mut)}
+
+/* ---------- hero ---------- */
+.hero::before{opacity:.72;filter:blur(38px)}
+.eyebrow{background:var(--glass);border:1px solid var(--glass-bd);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:var(--ink-2);font-weight:700}
+.hero h1{background:linear-gradient(112deg,var(--ink) 4%,
+    color-mix(in srgb,var(--accent) 88%,var(--ink)) 46%,
+    color-mix(in srgb,var(--accent-2) 92%,var(--ink)) 74%,
+    color-mix(in srgb,var(--t-recall) 70%,var(--ink)) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- surfaces: glass everywhere the old sheet used flat fills ---------- */
+.stat,.q,.tcard,.hub-card,.panel,.learn,figure.viz,.tbl-wrap,.flow,.learn-item{
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 72%,transparent));
+  border-color:var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+
+.stat{border-radius:14px}
+.stat::before{height:1.5px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),color-mix(in srgb,var(--tc,var(--accent)) 20%,transparent) 70%,transparent)}
+.stat:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 18%,transparent)}
+.stat-v{background:linear-gradient(150deg,var(--ink),var(--tc,var(--accent)));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 42%,transparent);box-shadow:var(--e2)}
+.q:target{box-shadow:0 0 0 3px var(--accent-soft),var(--e2)}
+.tcard:hover,.hub-card:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 22%,transparent)}
+
+/* the hover affordance was emitting a literal "92" - it wants to be an arrow */
+.tcard::after,.hub-card::after{content:"\2192"}
+
+figure.viz{border-radius:18px}
+pre.code{background:color-mix(in srgb,var(--code-bg) 88%,transparent);
+  border:1px solid var(--glass-bd);border-radius:13px;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.say{background:linear-gradient(100deg,color-mix(in srgb,var(--accent) 14%,transparent),transparent 72%);
+  border-left-color:var(--accent)}
+.kt{background:var(--glass);border-color:var(--glass-bd)}
+.kt:hover{border-color:var(--accent-bd);color:var(--accent)}
+.parthead{background:color-mix(in srgb,var(--bg) 66%,transparent);
+  backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5)}
+th{background:color-mix(in srgb,var(--surface-3) 82%,transparent)}
+
+/* ---------- right-hand "on this page" rail ---------- */
+:root{ --tocw:262px }
+.app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr) var(--tocw)}
+.toc{position:sticky;top:47px;align-self:start;height:calc(100vh - 47px);overflow-y:auto;
+  overscroll-behavior:contain;padding:22px 20px 60px;font-size:12.6px;
+  border-left:1px solid var(--glass-bd)}
+.toc::-webkit-scrollbar{width:7px}
+.toc::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.toc-h{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-mut);margin-bottom:12px}
+.toc-h svg.ic{font-size:13px;color:var(--tc,var(--accent))}
+/* one group per file section; the script shows the one you are reading */
+body.js .toc-g{display:none}
+body.js .toc-g.on{display:block}
+.toc-g > b{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tc,var(--accent));margin:0 0 9px;padding-left:11px}
+.toc-g a{display:block;padding:5px 10px 5px 12px;margin:1px 0;border-radius:7px;color:var(--ink-2);
+  text-decoration:none;line-height:1.42;border-left:2px solid transparent}
+.toc-g a:hover{background:var(--glass);color:var(--ink);text-decoration:none}
+.toc-g a.on{color:var(--accent);border-left-color:var(--accent);font-weight:650;
+  background:linear-gradient(90deg,var(--accent-soft),transparent 80%)}
+.toc-empty{color:var(--ink-mut);font-size:12px;padding-left:12px}
+@media(max-width:1400px){
+  .app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr)}
+  .toc{display:none}
+}
+
+/* ---------- breadcrumb ---------- */
+.crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.2px;color:var(--ink-mut);
+  padding-top:26px}
+.crumb a{color:var(--ink-mut);text-decoration:none}
+.crumb a:hover{color:var(--accent);text-decoration:none}
+.crumb svg.ic{font-size:12px;opacity:.5}
+.crumb b{color:var(--ink-2);font-weight:650}
+.crumb + .hero{padding-top:18px}
+.pnav-t{min-width:0}
+
+/* ---------- previous / next ---------- */
+.pnav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:64px 0 0}
+.pnav a{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:14px;
+  text-decoration:none;color:inherit;border:1px solid var(--glass-bd);
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 86%,transparent),
+    color-mix(in srgb,var(--surface-2) 66%,transparent))}
+.pnav a:hover{text-decoration:none;border-color:var(--accent-bd);box-shadow:var(--e2)}
+.pnav a.next{grid-column:2;justify-content:flex-end;text-align:right}
+.pnav a.prev{grid-column:1}
+.pnav span{display:block;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-mut)}
+.pnav b{display:block;margin-top:4px;font-size:14.5px;letter-spacing:-.02em;color:var(--ink)}
+.pnav svg.ic{font-size:18px;color:var(--accent);flex:none}
+@media(max-width:760px){
+  .pnav{grid-template-columns:1fr}
+  .pnav a.next,.pnav a.prev{grid-column:1}
+}
+
+/* ---------- section headers (shared by the hub and every topic index) ---------- */
+.h-sec-h{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.h-sec-h h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-mut);white-space:nowrap;display:flex;align-items:center;gap:9px;border:0;padding:0}
+.h-sec-h h2 svg.ic{font-size:15px;color:var(--accent);opacity:.9}
+.h-sec-h i{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- icons ---------- */
+.sprite{display:none}
+svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.13em}
+/* the boxed icon tile used by track rows, callouts and nav groups */
+.ic-box{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:44px;height:44px;border-radius:13px;font-size:20px;color:var(--tc,var(--accent));
+  background:linear-gradient(150deg,color-mix(in srgb,var(--tc,var(--accent)) 26%,transparent),
+    color-mix(in srgb,var(--tc,var(--accent)) 8%,transparent));
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.ic-sm{width:30px;height:30px;border-radius:9px;font-size:15px}
+
+/* ---------- topic index: learning-track rows ---------- */
+.trk{display:flex;flex-direction:column;gap:11px;margin:40px 0 0}
+.trk-row{position:relative;display:flex;align-items:center;gap:17px;padding:17px 19px;
+  border-radius:15px;text-decoration:none;color:inherit;overflow:hidden;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--surface) 90%,transparent),
+    color-mix(in srgb,var(--surface-2) 68%,transparent));
+  border:1px solid var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.trk-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tc)}
+.trk-row:hover{text-decoration:none;transform:translateX(3px);
+  border-color:color-mix(in srgb,var(--tc) 46%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc) 18%,transparent)}
+.trk-b{min-width:0;flex:1}
+.trk-b b{display:block;font-size:16.5px;letter-spacing:-.022em;color:var(--ink);font-weight:750}
+.trk-b b i{font-style:normal;color:var(--ink-mut);font-weight:600;margin-right:3px}
+.trk-b p{margin:4px 0 0;font-size:13.2px;line-height:1.5;color:var(--ink-2)}
+.trk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.trk-chips span{font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.trk-row:hover .trk-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+.trk-meta{display:flex;align-items:center;gap:8px;flex:none;font-size:11.5px;
+  font-family:var(--mono);color:var(--tc);white-space:nowrap}
+.trk-meta i{font-style:normal;opacity:.45}
+.trk-go{flex:none;font-size:19px;color:var(--ink-mut);display:inline-flex}
+.trk-row:hover .trk-go{color:var(--tc);transform:translateX(2px)}
+@media(prefers-reduced-motion:no-preference){
+  .trk-row,.trk-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,color .18s ease}
+}
+@media(max-width:820px){
+  .trk-row{flex-wrap:wrap;gap:13px}
+  .trk-meta{order:3;width:100%}
+  .trk-go{display:none}
+}
+
+/* ---------- sidebar nav with icons ---------- */
+.nav-grp{display:flex;align-items:center;gap:8px}
+.nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
+nav a svg.ic{font-size:14px;opacity:.6}
+nav a.active svg.ic{opacity:1}
+/* file = main heading, named part = its only sub-entry */
+nav a.nav-file{margin-top:13px;font-size:13px;font-weight:750;color:var(--ink);align-items:center}
+nav a.nav-file svg.ic{color:var(--tc,var(--accent));opacity:.95}
+nav a.nav-sub{padding-left:30px;font-size:12.2px;position:relative}
+nav a.nav-sub::after{content:"";position:absolute;left:16px;top:50%;width:5px;height:5px;
+  margin-top:-2.5px;border-radius:50%;background:var(--ink-mut);opacity:.5}
+nav a.nav-sub.active::after{background:var(--accent);opacity:1}
+
+/* ---------- callouts with icons ---------- */
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key,.say{position:relative}
+.note-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;font-size:13px;margin-right:8px;vertical-align:-.35em;flex:none}
+.say-h svg.ic{font-size:13px}
+
+/* ---------- topic index: the landing page of each site ---------- */
+/* the reading measure is right for prose but starves a card grid, so an index
+   page widens its column and fits three across */
+.wrap:has(.idx-grid){max-width:1300px}
+.idx-hero{padding:58px 0 4px}
+.idx-hero h1{font-size:clamp(36px,4.8vw,56px);margin:18px 0 16px}
+.idx-hero .lede{font-size:17.5px;max-width:76ch;margin:0}
+
+.idx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;
+  margin:44px 0 0}
+.idx-card{position:relative;display:block;padding:22px 23px 20px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 70%,transparent));
+  border:1px solid var(--glass-bd);text-decoration:none;color:inherit;
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.idx-card::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc),transparent 80%)}
+.idx-card:hover{transform:translateY(-3px);text-decoration:none;
+  border-color:color-mix(in srgb,var(--tc) 48%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc) 20%,transparent)}
+.idx-card-h{display:flex;align-items:center;gap:11px}
+.idx-card-h h3{margin:0;font-size:18.5px;letter-spacing:-.026em;color:var(--ink);font-weight:750}
+.idx-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--tc);
+  box-shadow:0 0 10px var(--tc)}
+.idx-go{margin-left:auto;font-size:16px;color:var(--tc);opacity:0;transform:translateX(-5px);flex:none}
+.idx-card:hover .idx-go{opacity:1;transform:translateX(0)}
+.idx-card p{margin:11px 0 0;font-size:13.4px;line-height:1.6;color:var(--ink-2)}
+.idx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}
+.idx-chips span{font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.idx-card:hover .idx-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+@media(prefers-reduced-motion:no-preference){
+  .idx-card,.idx-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,opacity .18s ease}
+}
+
+/* ---------- file section headers ---------- */
+/* .fh-top's spans had no rules at all, so the name and the count ran together as
+   one unstyled line. It reads as an eyebrow row above the file title. */
+.filehead{margin:56px 0 16px}
+.fh-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px}
+.fh-num{font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--tc,var(--accent));padding:4px 12px;border-radius:999px;
+  background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.fh-count{font-family:var(--mono);font-size:10.5px;color:var(--ink-mut);padding:4px 11px;
+  border-radius:999px;background:var(--glass);border:1px solid var(--glass-bd)}
+.filehead h2{font-size:28px;letter-spacing:-.032em;margin:0}
+
+/* ---------- detail ---------- */
+::selection{background:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--ink)}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-bd);background-clip:padding-box}
+#rprog{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--t-recall));
+  box-shadow:0 0 14px color-mix(in srgb,var(--accent) 70%,transparent)}
+.totop{background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 8px 26px color-mix(in srgb,var(--accent) 45%,transparent)}
+.totop:hover{transform:translateY(-2px)}
+
 </style>
 </head>
 <body>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol><symbol id="i-arrowl" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol><symbol id="i-branch" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol><symbol id="i-bulb" viewBox="0 0 24 24"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2z"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol><symbol id="i-code" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></symbol><symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol><symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 2v6.5L4.2 17A2 2 0 0 0 6 20h12a2 2 0 0 0 1.8-3L15 8.5V2"/><line x1="8" y1="2" x2="16" y2="2"/><line x1="7" y1="14" x2="17" y2="14"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol><symbol id="i-network" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></symbol><symbol id="i-package" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol><symbol id="i-sigma" viewBox="0 0 24 24"><path d="M18 4H6l6 8-6 8h12"/></symbol><symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol><symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol><symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol></svg>
 <div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
   <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw" href="../03_Data_Handling/index.html">03 Data</a><a class="sw on" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw" href="../11_System_Design/index.html">11 Sys Design</a>
 </div></div><div class="sitebar-in">
@@ -523,20 +872,19 @@ body.searching .parthead{opacity:.5}
   <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
   <button class="btn" id="themeBtn">Dark</button>
 </div></div>
-<div class="app" style="--tc:var(--t-agentic)">
+<div class="app has-toc" style="--tc:var(--t-agentic)">
 <aside id="sidebar">
   <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
   <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
-  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><div class="nav-grp">adaboost</div><a href="#fadaboostmd-0" data-q="fadaboostmd-0"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fadaboostmd-1" data-q="fadaboostmd-1"><span class="qn">&bull;</span>1. Definition</a><a href="#fadaboostmd-2" data-q="fadaboostmd-2"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fadaboostmd-3" data-q="fadaboostmd-3"><span class="qn">&bull;</span>3. Mathematical formulation (with the update)</a><a href="#fadaboostmd-4" data-q="fadaboostmd-4"><span class="qn">&bull;</span>4. Assumptions</a><a href="#fadaboostmd-5" data-q="fadaboostmd-5"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#fadaboostmd-6" data-q="fadaboostmd-6"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fadaboostmd-7" data-q="fadaboostmd-7"><span class="qn">&bull;</span>7. Complexity</a><a href="#fadaboostmd-8" data-q="fadaboostmd-8"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fadaboostmd-9" data-q="fadaboostmd-9"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#fadaboostmd-10" data-q="fadaboostmd-10"><span class="qn">&bull;</span>10. Comparison</a><a href="#fadaboostmd-11" data-q="fadaboostmd-11"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fadaboostmd-12" data-q="fadaboostmd-12"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fadaboostmd-13" data-q="fadaboostmd-13"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fadaboostmd-14" data-q="fadaboostmd-14"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">adasyn</div><a href="#fadasynmd-15" data-q="fadasynmd-15"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fadasynmd-16" data-q="fadasynmd-16"><span class="qn">&bull;</span>1. Definition</a><a href="#fadasynmd-17" data-q="fadasynmd-17"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fadasynmd-18" data-q="fadasynmd-18"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#fadasynmd-19" data-q="fadasynmd-19"><span class="qn">&bull;</span>4. Assumptions</a><a href="#fadasynmd-20" data-q="fadasynmd-20"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#fadasynmd-21" data-q="fadasynmd-21"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fadasynmd-22" data-q="fadasynmd-22"><span class="qn">&bull;</span>7. Complexity</a><a href="#fadasynmd-23" data-q="fadasynmd-23"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fadasynmd-24" data-q="fadasynmd-24"><span class="qn">&bull;</span>9. In code (imbalanced-learn, scikit-learn-compatible)</a><a href="#fadasynmd-25" data-q="fadasynmd-25"><span class="qn">&bull;</span>10. Comparison</a><a href="#fadasynmd-26" data-q="fadasynmd-26"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fadasynmd-27" data-q="fadasynmd-27"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fadasynmd-28" data-q="fadasynmd-28"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fadasynmd-29" data-q="fadasynmd-29"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">arima</div><a href="#farimamd-30" data-q="farimamd-30"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#farimamd-31" data-q="farimamd-31"><span class="qn">&bull;</span>1. Definition</a><a href="#farimamd-32" data-q="farimamd-32"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#farimamd-33" data-q="farimamd-33"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#farimamd-34" data-q="farimamd-34"><span class="qn">&bull;</span>4. Assumptions</a><a href="#farimamd-35" data-q="farimamd-35"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#farimamd-36" data-q="farimamd-36"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#farimamd-37" data-q="farimamd-37"><span class="qn">&bull;</span>7. Complexity</a><a href="#farimamd-38" data-q="farimamd-38"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#farimamd-39" data-q="farimamd-39"><span class="qn">&bull;</span>9. In code (statsmodels / pmdarima)</a><a href="#farimamd-40" data-q="farimamd-40"><span class="qn">&bull;</span>10. Comparison</a><a href="#farimamd-41" data-q="farimamd-41"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#farimamd-42" data-q="farimamd-42"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#farimamd-43" data-q="farimamd-43"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#farimamd-44" data-q="farimamd-44"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">catboost</div><a href="#fcatboostmd-45" data-q="fcatboostmd-45"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fcatboostmd-46" data-q="fcatboostmd-46"><span class="qn">&bull;</span>1. Definition</a><a href="#fcatboostmd-47" data-q="fcatboostmd-47"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fcatboostmd-48" data-q="fcatboostmd-48"><span class="qn">&bull;</span>3. Mechanisms (what's distinctive)</a><a href="#fcatboostmd-49" data-q="fcatboostmd-49"><span class="qn">&bull;</span>4. Assumptions</a><a href="#fcatboostmd-50" data-q="fcatboostmd-50"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#fcatboostmd-51" data-q="fcatboostmd-51"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fcatboostmd-52" data-q="fcatboostmd-52"><span class="qn">&bull;</span>7. Complexity</a><a href="#fcatboostmd-53" data-q="fcatboostmd-53"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fcatboostmd-54" data-q="fcatboostmd-54"><span class="qn">&bull;</span>9. In scikit-learn (catboost's sklearn API)</a><a href="#fcatboostmd-55" data-q="fcatboostmd-55"><span class="qn">&bull;</span>10. Comparison</a><a href="#fcatboostmd-56" data-q="fcatboostmd-56"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fcatboostmd-57" data-q="fcatboostmd-57"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fcatboostmd-58" data-q="fcatboostmd-58"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fcatboostmd-59" data-q="fcatboostmd-59"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">dbscan</div><a href="#fdbscanmd-60" data-q="fdbscanmd-60"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fdbscanmd-61" data-q="fdbscanmd-61"><span class="qn">&bull;</span>1. Definition</a><a href="#fdbscanmd-62" data-q="fdbscanmd-62"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fdbscanmd-63" data-q="fdbscanmd-63"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#fdbscanmd-64" data-q="fdbscanmd-64"><span class="qn">&bull;</span>4. Assumptions</a><a href="#fdbscanmd-65" data-q="fdbscanmd-65"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#fdbscanmd-66" data-q="fdbscanmd-66"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fdbscanmd-67" data-q="fdbscanmd-67"><span class="qn">&bull;</span>7. Complexity</a><a href="#fdbscanmd-68" data-q="fdbscanmd-68"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fdbscanmd-69" data-q="fdbscanmd-69"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#fdbscanmd-70" data-q="fdbscanmd-70"><span class="qn">&bull;</span>10. Comparison</a><a href="#fdbscanmd-71" data-q="fdbscanmd-71"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fdbscanmd-72" data-q="fdbscanmd-72"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fdbscanmd-73" data-q="fdbscanmd-73"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fdbscanmd-74" data-q="fdbscanmd-74"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">decision trees</div><a href="#fdecisiontreesm-75" data-q="fdecisiontreesm-75"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fdecisiontreesm-76" data-q="fdecisiontreesm-76"><span class="qn">&bull;</span>1. Definition</a><a href="#fdecisiontreesm-77" data-q="fdecisiontreesm-77"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fdecisiontreesm-78" data-q="fdecisiontreesm-78"><span class="qn">&bull;</span>3. How splitting works — ID3, C4.5 &amp; CART (with worked numbers)</a><a href="#fdecisiontreesm-79" data-q="fdecisiontreesm-79"><span class="qn">&bull;</span>4. Continuous splits, pruning, importance</a><a href="#fdecisiontreesm-80" data-q="fdecisiontreesm-80"><span class="qn">&bull;</span>5. Assumptions</a><a href="#fdecisiontreesm-81" data-q="fdecisiontreesm-81"><span class="qn">&bull;</span>6. If assumptions (practical limits) are violated</a><a href="#fdecisiontreesm-82" data-q="fdecisiontreesm-82"><span class="qn">&bull;</span>7. Advantages &amp; disadvantages</a><a href="#fdecisiontreesm-83" data-q="fdecisiontreesm-83"><span class="qn">&bull;</span>8. Complexity</a><a href="#fdecisiontreesm-84" data-q="fdecisiontreesm-84"><span class="qn">&bull;</span>9. Key hyperparameters</a><a href="#fdecisiontreesm-85" data-q="fdecisiontreesm-85"><span class="qn">&bull;</span>10. In scikit-learn</a><a href="#fdecisiontreesm-86" data-q="fdecisiontreesm-86"><span class="qn">&bull;</span>11. Comparison with related models</a><a href="#fdecisiontreesm-87" data-q="fdecisiontreesm-87"><span class="qn">&bull;</span>12. When to use / when not to</a><a href="#fdecisiontreesm-88" data-q="fdecisiontreesm-88"><span class="qn">&bull;</span>13. Interview deep dive</a><a href="#fdecisiontreesm-89" data-q="fdecisiontreesm-89"><span class="qn">&bull;</span>14. Common mistakes &amp; best practices</a><a href="#fdecisiontreesm-90" data-q="fdecisiontreesm-90"><span class="qn">&bull;</span>15. One-paragraph summary</a><div class="nav-grp">elastic net</div><a href="#felasticnetmd-91" data-q="felasticnetmd-91"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#felasticnetmd-92" data-q="felasticnetmd-92"><span class="qn">&bull;</span>1. Definition</a><a href="#felasticnetmd-93" data-q="felasticnetmd-93"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#felasticnetmd-94" data-q="felasticnetmd-94"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#felasticnetmd-95" data-q="felasticnetmd-95"><span class="qn">&bull;</span>4. Assumptions</a><a href="#felasticnetmd-96" data-q="felasticnetmd-96"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#felasticnetmd-97" data-q="felasticnetmd-97"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#felasticnetmd-98" data-q="felasticnetmd-98"><span class="qn">&bull;</span>7. Complexity</a><a href="#felasticnetmd-99" data-q="felasticnetmd-99"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#felasticnetmd-100" data-q="felasticnetmd-100"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#felasticnetmd-101" data-q="felasticnetmd-101"><span class="qn">&bull;</span>10. Comparison</a><a href="#felasticnetmd-102" data-q="felasticnetmd-102"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#felasticnetmd-103" data-q="felasticnetmd-103"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#felasticnetmd-104" data-q="felasticnetmd-104"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#felasticnetmd-105" data-q="felasticnetmd-105"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">generalized linear models</div><a href="#fgeneralizedlin-106" data-q="fgeneralizedlin-106"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fgeneralizedlin-107" data-q="fgeneralizedlin-107"><span class="qn">&bull;</span>1. Definition</a><a href="#fgeneralizedlin-108" data-q="fgeneralizedlin-108"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fgeneralizedlin-109" data-q="fgeneralizedlin-109"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#fgeneralizedlin-110" data-q="fgeneralizedlin-110"><span class="qn">&bull;</span>4. Assumptions</a><a href="#fgeneralizedlin-111" data-q="fgeneralizedlin-111"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#fgeneralizedlin-112" data-q="fgeneralizedlin-112"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fgeneralizedlin-113" data-q="fgeneralizedlin-113"><span class="qn">&bull;</span>7. Complexity</a><a href="#fgeneralizedlin-114" data-q="fgeneralizedlin-114"><span class="qn">&bull;</span>8. Key hyperparameters / choices</a><a href="#fgeneralizedlin-115" data-q="fgeneralizedlin-115"><span class="qn">&bull;</span>9. In scikit-learn / statsmodels</a><a href="#fgeneralizedlin-116" data-q="fgeneralizedlin-116"><span class="qn">&bull;</span>10. Comparison</a><a href="#fgeneralizedlin-117" data-q="fgeneralizedlin-117"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fgeneralizedlin-118" data-q="fgeneralizedlin-118"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fgeneralizedlin-119" data-q="fgeneralizedlin-119"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fgeneralizedlin-120" data-q="fgeneralizedlin-120"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">gradient boosting</div><a href="#fgradientboosti-121" data-q="fgradientboosti-121"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fgradientboosti-122" data-q="fgradientboosti-122"><span class="qn">&bull;</span>1. Definition</a><a href="#fgradientboosti-123" data-q="fgradientboosti-123"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fgradientboosti-124" data-q="fgradientboosti-124"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#fgradientboosti-125" data-q="fgradientboosti-125"><span class="qn">&bull;</span>4. Assumptions</a><a href="#fgradientboosti-126" data-q="fgradientboosti-126"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#fgradientboosti-127" data-q="fgradientboosti-127"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fgradientboosti-128" data-q="fgradientboosti-128"><span class="qn">&bull;</span>7. Complexity</a><a href="#fgradientboosti-129" data-q="fgradientboosti-129"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fgradientboosti-130" data-q="fgradientboosti-130"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#fgradientboosti-131" data-q="fgradientboosti-131"><span class="qn">&bull;</span>10. Comparison</a><a href="#fgradientboosti-132" data-q="fgradientboosti-132"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fgradientboosti-133" data-q="fgradientboosti-133"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fgradientboosti-134" data-q="fgradientboosti-134"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fgradientboosti-135" data-q="fgradientboosti-135"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">hierarchical clustering</div><a href="#fhierarchicalcl-136" data-q="fhierarchicalcl-136"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fhierarchicalcl-137" data-q="fhierarchicalcl-137"><span class="qn">&bull;</span>1. Definition</a><a href="#fhierarchicalcl-138" data-q="fhierarchicalcl-138"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fhierarchicalcl-139" data-q="fhierarchicalcl-139"><span class="qn">&bull;</span>3. Mathematical formulation — linkage &amp; a worked merge</a><a href="#fhierarchicalcl-140" data-q="fhierarchicalcl-140"><span class="qn">&bull;</span>4. Assumptions</a><a href="#fhierarchicalcl-141" data-q="fhierarchicalcl-141"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#fhierarchicalcl-142" data-q="fhierarchicalcl-142"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fhierarchicalcl-143" data-q="fhierarchicalcl-143"><span class="qn">&bull;</span>7. Complexity</a><a href="#fhierarchicalcl-144" data-q="fhierarchicalcl-144"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fhierarchicalcl-145" data-q="fhierarchicalcl-145"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#fhierarchicalcl-146" data-q="fhierarchicalcl-146"><span class="qn">&bull;</span>10. Comparison</a><a href="#fhierarchicalcl-147" data-q="fhierarchicalcl-147"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fhierarchicalcl-148" data-q="fhierarchicalcl-148"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fhierarchicalcl-149" data-q="fhierarchicalcl-149"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fhierarchicalcl-150" data-q="fhierarchicalcl-150"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">isolation forest</div><a href="#fisolationfores-151" data-q="fisolationfores-151"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fisolationfores-152" data-q="fisolationfores-152"><span class="qn">&bull;</span>1. Definition</a><a href="#fisolationfores-153" data-q="fisolationfores-153"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fisolationfores-154" data-q="fisolationfores-154"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#fisolationfores-155" data-q="fisolationfores-155"><span class="qn">&bull;</span>4. Assumptions</a><a href="#fisolationfores-156" data-q="fisolationfores-156"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#fisolationfores-157" data-q="fisolationfores-157"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fisolationfores-158" data-q="fisolationfores-158"><span class="qn">&bull;</span>7. Complexity</a><a href="#fisolationfores-159" data-q="fisolationfores-159"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fisolationfores-160" data-q="fisolationfores-160"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#fisolationfores-161" data-q="fisolationfores-161"><span class="qn">&bull;</span>10. Comparison</a><a href="#fisolationfores-162" data-q="fisolationfores-162"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fisolationfores-163" data-q="fisolationfores-163"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fisolationfores-164" data-q="fisolationfores-164"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fisolationfores-165" data-q="fisolationfores-165"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">kmeans</div><a href="#fkmeansmd-166" data-q="fkmeansmd-166"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fkmeansmd-167" data-q="fkmeansmd-167"><span class="qn">&bull;</span>1. Definition</a><a href="#fkmeansmd-168" data-q="fkmeansmd-168"><span class="qn">&bull;</span>2. Intuition &amp; how it works (Lloyd's algorithm)</a><a href="#fkmeansmd-169" data-q="fkmeansmd-169"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#fkmeansmd-170" data-q="fkmeansmd-170"><span class="qn">&bull;</span>4. Assumptions</a><a href="#fkmeansmd-171" data-q="fkmeansmd-171"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#fkmeansmd-172" data-q="fkmeansmd-172"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fkmeansmd-173" data-q="fkmeansmd-173"><span class="qn">&bull;</span>7. Complexity</a><a href="#fkmeansmd-174" data-q="fkmeansmd-174"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fkmeansmd-175" data-q="fkmeansmd-175"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#fkmeansmd-176" data-q="fkmeansmd-176"><span class="qn">&bull;</span>10. Comparison</a><a href="#fkmeansmd-177" data-q="fkmeansmd-177"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fkmeansmd-178" data-q="fkmeansmd-178"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fkmeansmd-179" data-q="fkmeansmd-179"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fkmeansmd-180" data-q="fkmeansmd-180"><span class="qn">&bull;</span>14. One-paragraph summary</a><a href="#fkmeansmd-181" data-q="fkmeansmd-181"><span class="qn">&bull;</span>Choosing a clustering model &amp; selecting <code>k</code> (beyond the elbow)</a><div class="nav-grp">knn</div><a href="#fknnmd-182" data-q="fknnmd-182"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fknnmd-183" data-q="fknnmd-183"><span class="qn">&bull;</span>1. Definition</a><a href="#fknnmd-184" data-q="fknnmd-184"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fknnmd-185" data-q="fknnmd-185"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#fknnmd-186" data-q="fknnmd-186"><span class="qn">&bull;</span>4. Complexity</a><a href="#fknnmd-187" data-q="fknnmd-187"><span class="qn">&bull;</span>5. Assumptions</a><a href="#fknnmd-188" data-q="fknnmd-188"><span class="qn">&bull;</span>6. If assumptions are violated</a><a href="#fknnmd-189" data-q="fknnmd-189"><span class="qn">&bull;</span>7. Advantages &amp; disadvantages</a><a href="#fknnmd-190" data-q="fknnmd-190"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fknnmd-191" data-q="fknnmd-191"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#fknnmd-192" data-q="fknnmd-192"><span class="qn">&bull;</span>10. Comparison with related models</a><a href="#fknnmd-193" data-q="fknnmd-193"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fknnmd-194" data-q="fknnmd-194"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fknnmd-195" data-q="fknnmd-195"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fknnmd-196" data-q="fknnmd-196"><span class="qn">&bull;</span>14. One-paragraph summary</a></nav>
+  <nav><div class="nav-grp"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg>On this page</div><a href="#top" data-t="top"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compass"/></svg>Overview</a><a class="nav-file" href="#fadaboostmd" data-t="fadaboostmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>adaboost</a><a class="nav-file" href="#fadasynmd" data-t="fadasynmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>adasyn</a><a class="nav-file" href="#farimamd" data-t="farimamd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>ARIMA</a><a class="nav-file" href="#fcatboostmd" data-t="fcatboostmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>catboost</a><a class="nav-file" href="#fdbscanmd" data-t="fdbscanmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>dbscan</a><a class="nav-file" href="#fdecisiontreesm" data-t="fdecisiontreesm"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>decision trees</a><a class="nav-file" href="#felasticnetmd" data-t="felasticnetmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>elastic net</a><a class="nav-file" href="#fgeneralizedlin" data-t="fgeneralizedlin"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>generalized linear models</a><a class="nav-file" href="#fgradientboosti" data-t="fgradientboosti"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>gradient boosting</a><a class="nav-file" href="#fhierarchicalcl" data-t="fhierarchicalcl"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>hierarchical clustering</a><a class="nav-file" href="#fisolationfores" data-t="fisolationfores"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>isolation forest</a><a class="nav-file" href="#fkmeansmd" data-t="fkmeansmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>kmeans</a><a class="nav-file" href="#fknnmd" data-t="fknnmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>KNN</a></nav>
 </aside>
 <main><div class="wrap">
 
-<section class="hero" id="top"><div class="eyebrow">04_Machine_Learning &middot; Algorithms A&ndash;L</div>
-<h1>Algorithms A&ndash;L</h1><p class="lede">Linear models, trees, boosting, clustering (first half)</p><div class="oneliner"><b>13 files</b> in this section, <b>197 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
-<div class="stats"><div class="stat"><div class="stat-v">13</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">197</div><div class="stat-l">sections</div></div></div></section>
-<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">Linear models, trees, boosting, clustering (first half)</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>adaboost</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation (with the up…</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>adasyn</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>arima</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>catboost</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mechanisms (what's distinctive)</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>dbscan</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>decision trees</b><span class="learn-n">16 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>How splitting works — ID3, C4.5 &amp; CAR…</span><span>Continuous splits, pruning, importance</span></div></li><li class="learn-item"><div class="learn-top"><b>elastic net</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>generalized linear models</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>gradient boosting</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>hierarchical clustering</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation — linkage &amp;…</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>isolation forest</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>kmeans</b><span class="learn-n">16 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works (Lloyd's alg…</span><span>Mathematical formulation</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>knn</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>Complexity</span></div></li></ul></section>
+<nav class="crumb"><a href="../index.html">Home</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><a href="index.html">Machine Learning</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><b>Algorithms A&ndash;L</b></nav>
+<section class="hero" id="top"><div class="eyebrow">Machine Learning &middot; Algorithms A&ndash;L</div>
+<h1>Algorithms A&ndash;L</h1><p class="lede">Linear models, trees, boosting, clustering (first half)</p><div class="oneliner"><b>13 files</b> in this section, <b>197 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div></section>
 
-<section class="filesec" id="fadaboostmd"><header class="filehead"><div class="fh-top"><span class="fh-num">adaboost</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/adaboost.md">source .md &#8599;</a></div><h2>AdaBoost (Adaptive Boosting)</h2><div class="note">
+<section class="filesec" id="fadaboostmd"><header class="filehead"><div class="fh-top"><span class="fh-num">adaboost</span><span class="fh-count">15 sections</span></div><h2>AdaBoost (Adaptive Boosting)</h2><div class="note">
 <p>Combine many <strong>weak learners</strong> into a strong one by making each new learner focus
 on the mistakes of the previous ones.</p>
 </div></header><article class="q" id="fadaboostmd-0"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fadaboostmd-0"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">boosting</span><span class="kt">Idea</span><span class="kt">Learner weight</span><span class="kt">Loss</span><span class="kt">exponential loss</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Supervised · classification (&amp; regression) · <strong>boosting</strong> ensemble</td></tr><tr class="g0"><td><strong>Idea</strong></td><td>sequential weak learners; reweight misclassified points up</td></tr><tr class="g1"><td><strong>Learner weight</strong></td><td>$\alpha_t=\tfrac12\ln\frac{1-\varepsilon_t}{\varepsilon_t}$</td></tr><tr class="g0"><td><strong>Loss</strong></td><td><strong>exponential loss</strong> (forward stagewise additive modeling)</td></tr><tr class="g1"><td><strong>Base learner</strong></td><td>decision <strong>stump</strong> (depth-1 tree)</td></tr><tr class="g0"><td><strong>Weakness</strong></td><td>very sensitive to noise / outliers</td></tr><tr class="g1"><td><strong>sklearn</strong></td><td><code>AdaBoostClassifier</code> / <code>AdaBoostRegressor</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fadaboostmd-1"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fadaboostmd-1"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">sequentially</span><span class="kt">reweighted</span><span class="kt">weighted vote</span></div><p>AdaBoost builds an ensemble <strong>sequentially</strong>: each new weak learner is trained on a
@@ -610,7 +958,7 @@ its exponential loss makes it <strong>very sensitive to noisy labels and outlier
 is why gradient boosting (gradient of an arbitrary, more robust loss) usually wins.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-a.html#fdecisiontreesm">Decision Trees</a> · <a href="algorithms-b.html#frandomforestmd">Random Forest</a> ·
-<a href="algorithms-a.html#fgradientboosti">Gradient Boosting</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fadasynmd"><header class="filehead"><div class="fh-top"><span class="fh-num">adasyn</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/adasyn.md">source .md &#8599;</a></div><h2>ADASYN (Adaptive Synthetic Sampling)</h2><div class="note">
+<a href="algorithms-a.html#fgradientboosti">Gradient Boosting</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fadasynmd"><header class="filehead"><div class="fh-top"><span class="fh-num">adasyn</span><span class="fh-count">15 sections</span></div><h2>ADASYN (Adaptive Synthetic Sampling)</h2><div class="note">
 <p>Fix <abbr title="one label being far rarer than the others, so accuracy stops being meaningful">class imbalance</abbr> by <strong>synthesizing</strong> minority-class examples — and make <strong>more</strong> of
 them where the minority is hardest to learn (near the decision boundary).</p>
 </div></header><article class="q" id="fadasynmd-15"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fadasynmd-15"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">imbalance handling</span><span class="kt">Idea</span><span class="kt">adaptively weighted</span><span class="kt">vs SMOTE</span><span class="kt">Difficulty score</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Data-level <strong>imbalance handling</strong> · oversampling (preprocessing, not a classifier)</td></tr><tr class="g0"><td><strong>Idea</strong></td><td>generate synthetic minority points, <strong>adaptively weighted</strong> by difficulty</td></tr><tr class="g1"><td><strong>vs SMOTE</strong></td><td>SMOTE = uniform synthesis; ADASYN = <strong>more synthesis near hard/boundary regions</strong></td></tr><tr class="g0"><td><strong>Difficulty score</strong></td><td>$r_i$ = fraction of a minority point's k-NN that are majority</td></tr><tr class="g1"><td><strong>Generation</strong></td><td>linear interpolation $x_{new}=x_i+\lambda(x_{zi}-x_i)$</td></tr><tr class="g0"><td><strong>Apply on</strong></td><td><strong>training fold only</strong> (inside CV) — never the test set</td></tr><tr class="g1"><td><strong>Library</strong></td><td><code>imbalanced-learn</code> (<code>ADASYN</code>, sklearn-compatible <code>Pipeline</code>)</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fadasynmd-16"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fadasynmd-16"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">oversampling</span><span class="kt">more</span></div><p>ADASYN is an <strong>oversampling</strong> method for imbalanced classification. It creates synthetic
@@ -692,7 +1040,7 @@ training fold only (via <code>imblearn.Pipeline</code>) to avoid leakage — eva
 minority recall, and compare against plain <code>class_weight</code>.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-b.html#flogisticregres">Logistic Regression</a> · <a href="algorithms-a.html#fknnmd"><abbr title="k-nearest neighbours">KNN</abbr></a> ·
-<a href="algorithms-b.html#frandomforestmd">Random Forest</a> · <a href="algorithms-a.html#fdecisiontreesm">Decision Trees</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="farimamd"><header class="filehead"><div class="fh-top"><span class="fh-num">arima</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/arima.md">source .md &#8599;</a></div><h2>ARIMA (Time-Series Forecasting)</h2><div class="note">
+<a href="algorithms-b.html#frandomforestmd">Random Forest</a> · <a href="algorithms-a.html#fdecisiontreesm">Decision Trees</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="farimamd"><header class="filehead"><div class="fh-top"><span class="fh-num">ARIMA</span><span class="fh-count">15 sections</span></div><h2>ARIMA (Time-Series Forecasting)</h2><div class="note">
 <p>Forecast a time series from its own past: <strong>AR</strong>(autoregression) + <strong>I</strong>(differencing for
 stationarity) + <strong>MA</strong>(moving average of past errors).</p>
 </div></header><article class="q" id="farimamd-30"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="farimamd-30"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">time-series forecasting</span><span class="kt">Order</span><span class="kt">p, d, q</span><span class="kt">Needs</span><span class="kt">stationarity</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Supervised · <strong>time-series forecasting</strong> · linear</td></tr><tr class="g0"><td><strong>Order</strong></td><td>ARIMA(<strong>p, d, q</strong>): AR lags, differences, MA lags</td></tr><tr class="g1"><td><strong>Needs</strong></td><td><strong>stationarity</strong> (achieved by differencing $d$)</td></tr><tr class="g0"><td><strong>Order picked by</strong></td><td>ACF/PACF plots, ADF test, AIC/BIC (or <code>auto_arima</code>)</td></tr><tr class="g1"><td><strong>Seasonality</strong></td><td>use <strong>SARIMA</strong>(p,d,q)(P,D,Q)$_s$</td></tr><tr class="g0"><td><strong>Library</strong></td><td><code>statsmodels</code> (<code>ARIMA</code>), <code>pmdarima</code> (<code>auto_arima</code>)</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="farimamd-31"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="farimamd-31"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">past values</span><span class="kt">forecast errors</span><span class="kt">differencing</span></div><p>ARIMA models a stationary time series as a linear combination of its own <strong>past values</strong>
@@ -767,7 +1115,7 @@ intervals, extended by <strong>SARIMA</strong> (seasonality), <strong>ARIMAX</st
 for non-linear, multi-seasonal, or data-rich problems.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-b.html#flinearregressi">Linear Regression</a> ·
-Cox Proportional Hazards</p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fcatboostmd"><header class="filehead"><div class="fh-top"><span class="fh-num">catboost</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/catboost.md">source .md &#8599;</a></div><h2>CatBoost (Categorical Boosting)</h2><div class="note">
+Cox Proportional Hazards</p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fcatboostmd"><header class="filehead"><div class="fh-top"><span class="fh-num">catboost</span><span class="fh-count">15 sections</span></div><h2>CatBoost (Categorical Boosting)</h2><div class="note">
 <p>Gradient boosting that handles <strong>categorical features</strong> natively and fixes a subtle
 leakage bug in boosting via <strong>ordered boosting</strong> — strong accuracy with almost no
 preprocessing.</p>
@@ -838,7 +1186,7 @@ defaults on categorical-heavy or smaller datasets; the trade-off is slower train
 LightGBM on purely numeric big data.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-a.html#fgradientboosti">Gradient Boosting</a> · <a href="algorithms-b.html#fxgboostmd">XGBoost</a> ·
-<a href="algorithms-b.html#flightgbmmd">LightGBM</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fdbscanmd"><header class="filehead"><div class="fh-top"><span class="fh-num">dbscan</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/dbscan.md">source .md &#8599;</a></div><h2>DBSCAN (Density-Based Spatial Clustering)</h2><div class="note">
+<a href="algorithms-b.html#flightgbmmd">LightGBM</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fdbscanmd"><header class="filehead"><div class="fh-top"><span class="fh-num">dbscan</span><span class="fh-count">15 sections</span></div><h2>DBSCAN (Density-Based Spatial Clustering)</h2><div class="note">
 <p>Find clusters as <strong>dense regions</strong> separated by sparse ones. No need to choose k,
 discovers arbitrary shapes, and labels outliers as noise.</p>
 </div></header><article class="q" id="fdbscanmd-60"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdbscanmd-60"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">Params</span><span class="kt">Point types</span><span class="kt">core</span><span class="kt">border</span><span class="kt">noise</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Unsupervised · clustering · density-based</td></tr><tr class="g0"><td><strong>Params</strong></td><td><code>eps</code> (ε neighborhood radius), <code>min_samples</code> (minPts)</td></tr><tr class="g1"><td><strong>Point types</strong></td><td><strong>core</strong> (≥ minPts within ε), <strong>border</strong>, <strong>noise</strong></td></tr><tr class="g0"><td><strong>No need for k</strong></td><td>clusters emerge from density</td></tr><tr class="g1"><td><strong>Strengths</strong></td><td>arbitrary shapes, <strong>outlier detection</strong></td></tr><tr class="g0"><td><strong>Weakness</strong></td><td><strong>varying density</strong>; high-dimensional data</td></tr><tr class="g1"><td><strong>Complexity</strong></td><td>$O(n\log n)$ with a spatial index ($O(n^2)$ worst)</td></tr><tr class="g0"><td><strong>sklearn</strong></td><td><code>DBSCAN</code>, <code>OPTICS</code>, <code>HDBSCAN</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fdbscanmd-61"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdbscanmd-61"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">densely packed</span><span class="kt">noise</span></div><p>DBSCAN groups points that are <strong>densely packed</strong> (many neighbors within radius <code>eps</code>)
@@ -908,7 +1256,7 @@ high dimensions. Scale features, set <code>min_samples</code>≈2·dims, and pic
 k-distance plot.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-a.html#fkmeansmd">K-Means</a> · <a href="algorithms-a.html#fhierarchicalcl">Hierarchical Clustering</a> ·
-GMM · <a href="algorithms-a.html#fisolationfores">Isolation Forest</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fdecisiontreesm"><header class="filehead"><div class="fh-top"><span class="fh-num">decision trees</span><span class="fh-count">16 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/decision_trees.md">source .md &#8599;</a></div><h2>Decision Trees</h2><div class="note">
+GMM · <a href="algorithms-a.html#fisolationfores">Isolation Forest</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fdecisiontreesm"><header class="filehead"><div class="fh-top"><span class="fh-num">decision trees</span><span class="fh-count">16 sections</span></div><h2>Decision Trees</h2><div class="note">
 <p>A flowchart of yes/no questions that splits the data into ever-purer groups.
 Non-parametric, non-linear, self-explaining — and the building block of Random
 Forests and gradient boosting.</p>
@@ -1073,7 +1421,7 @@ tabular ML.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-b.html#frandomforestmd">Random Forest</a> ·
 <a href="algorithms-a.html#fgradientboosti">Gradient Boosting</a> · <a href="algorithms-b.html#fxgboostmd">XGBoost</a> ·
-<a href="algorithms-a.html#fadaboostmd">AdaBoost</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="felasticnetmd"><header class="filehead"><div class="fh-top"><span class="fh-num">elastic net</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/elastic_net.md">source .md &#8599;</a></div><h2>Elastic Net</h2><div class="note">
+<a href="algorithms-a.html#fadaboostmd">AdaBoost</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="felasticnetmd"><header class="filehead"><div class="fh-top"><span class="fh-num">elastic net</span><span class="fh-count">15 sections</span></div><h2>Elastic Net</h2><div class="note">
 <p>The best of both regularizers: combine L1 (Lasso) and L2 (Ridge) to get feature
 selection <strong>and</strong> stability with correlated predictors.</p>
 </div></header><article class="q" id="felasticnetmd-91"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="felasticnetmd-91"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">Objective</span><span class="kt">l1ratio = α</span><span class="kt">Solves</span><span class="kt">Beats Lasso when</span><span class="kt">Solved by</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Supervised · regression · linear · regularized (L1 + L2)</td></tr><tr class="g0"><td><strong>Objective</strong></td><td>$\lVert y-X\beta\rVert^2 + \lambda(\alpha\lVert\beta\rVert_1 + \tfrac{1-\alpha}{2}\lVert\beta\rVert_2^2)$</td></tr><tr class="g1"><td><strong><code>l1_ratio</code> = α</strong></td><td>1 = Lasso, 0 = Ridge, between = mix</td></tr><tr class="g0"><td><strong>Solves</strong></td><td>sparsity (L1) + correlated-feature stability/grouping (L2)</td></tr><tr class="g1"><td><strong>Beats Lasso when</strong></td><td>features are correlated, or $p&gt;n$ (no $n$-feature cap)</td></tr><tr class="g0"><td><strong>Solved by</strong></td><td>coordinate descent (no closed form)</td></tr><tr class="g1"><td><strong>sklearn</strong></td><td><code>ElasticNet</code>, <code>ElasticNetCV</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="felasticnetmd-92"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="felasticnetmd-92"><span></span></label></div><div class="q-a"><p>Elastic Net minimizes RSS plus a <strong>weighted mix</strong> of the L1 and L2 penalties:</p>
@@ -1143,7 +1491,7 @@ when $p&gt;n$. It generalizes both Ridge (α=0) and Lasso (α=1) at the cost of 
 hyperparameter; standardize features and tune (<code>alpha</code>, <code>l1_ratio</code>) jointly by CV.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-b.html#fridgeregressio">Ridge</a> · <a href="algorithms-b.html#flassoregressio">Lasso</a> ·
-<a href="algorithms-b.html#flinearregressi">Linear Regression</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fgeneralizedlin"><header class="filehead"><div class="fh-top"><span class="fh-num">generalized linear models</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/generalized_linear_models.md">source .md &#8599;</a></div><h2>Generalized Linear Models (GLM) — incl. Poisson Regression</h2><div class="note">
+<a href="algorithms-b.html#flinearregressi">Linear Regression</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fgeneralizedlin"><header class="filehead"><div class="fh-top"><span class="fh-num">generalized linear models</span><span class="fh-count">15 sections</span></div><h2>Generalized Linear Models (GLM) — incl. Poisson Regression</h2><div class="note">
 <p>One framework that unifies linear, logistic, and <strong>Poisson</strong> regression: connect a
 linear predictor to a non-normal response through a <strong>link function</strong>.</p>
 </div></header><article class="q" id="fgeneralizedlin-106"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fgeneralizedlin-106"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">non-normal</span><span class="kt">Three parts</span><span class="kt">link</span><span class="kt">Special cases</span><span class="kt">Poisson/log = count</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Supervised · regression for <strong>non-normal</strong> targets · parametric</td></tr><tr class="g0"><td><strong>Three parts</strong></td><td>random (exponential-family dist.) + systematic ($\eta=X\beta$) + <strong>link</strong> $g(\mu)=\eta$</td></tr><tr class="g1"><td><strong>Special cases</strong></td><td>Normal/identity = linear, Bernoulli/logit = logistic, <strong>Poisson/log = count</strong></td></tr><tr class="g0"><td><strong>Fit by</strong></td><td>MLE via <strong>IRLS</strong> (iteratively reweighted least squares)</td></tr><tr class="g1"><td><strong>Poisson coef</strong></td><td>$e^{\beta_j}$ = multiplicative <strong>rate ratio</strong></td></tr><tr class="g0"><td><strong>Watch for</strong></td><td><strong>overdispersion</strong> (variance &gt; mean) in counts</td></tr><tr class="g1"><td><strong>sklearn</strong></td><td><code>PoissonRegressor</code>, <code>GammaRegressor</code>, <code>TweedieRegressor</code>; <code>statsmodels.GLM</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fgeneralizedlin-107"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fgeneralizedlin-107"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">linear predictor</span><span class="kt">link function</span><span class="kt">exponential-family</span></div><p>A GLM generalizes linear regression to response variables whose errors are <strong>not
@@ -1227,7 +1575,7 @@ excess zeros call for zero-inflated models. Use GLMs for counts, rates, and skew
 targets where ordinary linear regression's Normal assumption breaks.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-b.html#flinearregressi">Linear Regression</a> ·
-<a href="algorithms-b.html#flogisticregres">Logistic Regression</a> · <a href="algorithms-b.html#fridgeregressio">Ridge</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fgradientboosti"><header class="filehead"><div class="fh-top"><span class="fh-num">gradient boosting</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/gradient_boosting.md">source .md &#8599;</a></div><h2>Gradient Boosting</h2><div class="note">
+<a href="algorithms-b.html#flogisticregres">Logistic Regression</a> · <a href="algorithms-b.html#fridgeregressio">Ridge</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fgradientboosti"><header class="filehead"><div class="fh-top"><span class="fh-num">gradient boosting</span><span class="fh-count">15 sections</span></div><h2>Gradient Boosting</h2><div class="note">
 <p>Build an additive model <strong>stage by stage</strong>, where each new tree is fit to the
 errors (gradients) of the model so far. The engine behind XGBoost, LightGBM, and
 CatBoost.</p>
@@ -1301,7 +1649,7 @@ overfits noisy data — motivating the optimized libraries XGBoost/LightGBM/CatB
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-a.html#fdecisiontreesm">Decision Trees</a> · <a href="algorithms-b.html#frandomforestmd">Random Forest</a> ·
 <a href="algorithms-a.html#fadaboostmd">AdaBoost</a> · <a href="algorithms-b.html#fxgboostmd">XGBoost</a> · <a href="algorithms-b.html#flightgbmmd">LightGBM</a> ·
-<a href="algorithms-a.html#fcatboostmd">CatBoost</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fhierarchicalcl"><header class="filehead"><div class="fh-top"><span class="fh-num">hierarchical clustering</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/hierarchical_clustering.md">source .md &#8599;</a></div><h2>Hierarchical Clustering</h2><div class="note">
+<a href="algorithms-a.html#fcatboostmd">CatBoost</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fhierarchicalcl"><header class="filehead"><div class="fh-top"><span class="fh-num">hierarchical clustering</span><span class="fh-count">15 sections</span></div><h2>Hierarchical Clustering</h2><div class="note">
 <p>Build a <strong>tree of nested clusters</strong> (a dendrogram) by repeatedly merging the closest
 groups — no need to pick k in advance.</p>
 </div></header><article class="q" id="fhierarchicalcl-136"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fhierarchicalcl-136"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">Output</span><span class="kt">dendrogram</span><span class="kt">Agglomerative</span><span class="kt">Linkage</span><span class="kt">Ward</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Unsupervised · clustering · hierarchical</td></tr><tr class="g0"><td><strong>Output</strong></td><td>a <strong>dendrogram</strong> (tree); cut it to get flat clusters</td></tr><tr class="g1"><td><strong>Agglomerative</strong></td><td>bottom-up: start singletons, merge closest pair</td></tr><tr class="g0"><td><strong>Linkage</strong></td><td>single / complete / average / <strong>Ward</strong> (default)</td></tr><tr class="g1"><td><strong>No need for k</strong></td><td>choose by cutting the tree</td></tr><tr class="g0"><td><strong>Complexity</strong></td><td>$O(n^2)$ memory, up to $O(n^3)$ time</td></tr><tr class="g1"><td><strong>sklearn</strong></td><td><code>AgglomerativeClustering</code> (+ <code>scipy</code> for dendrograms)</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fhierarchicalcl-137"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fhierarchicalcl-137"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">dendrogram</span><span class="kt">agglomerative</span><span class="kt">merges the two closest clusters</span><span class="kt">divisive</span></div><p>Hierarchical clustering produces a hierarchy of clusters shown as a <strong>dendrogram</strong>. The
@@ -1365,7 +1713,7 @@ distance metric, but costs $O(n^2)$ memory / up to $O(n^3)$ time, makes greedy
 irreversible merges, and can't natively assign new points — so it's best on small-to-
 medium data, with DBSCAN/HDBSCAN or K-Means for scale.</p>
 <hr />
-<p><strong>Related:</strong> <a href="algorithms-a.html#fkmeansmd">K-Means</a> · <a href="algorithms-a.html#fdbscanmd">DBSCAN</a> · GMM</p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fisolationfores"><header class="filehead"><div class="fh-top"><span class="fh-num">isolation forest</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/isolation_forest.md">source .md &#8599;</a></div><h2>Isolation Forest</h2><div class="note">
+<p><strong>Related:</strong> <a href="algorithms-a.html#fkmeansmd">K-Means</a> · <a href="algorithms-a.html#fdbscanmd">DBSCAN</a> · GMM</p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fisolationfores"><header class="filehead"><div class="fh-top"><span class="fh-num">isolation forest</span><span class="fh-count">15 sections</span></div><h2>Isolation Forest</h2><div class="note">
 <p>Detect anomalies by how <strong>easily a point is isolated</strong> with random splits. Outliers are
 few and different, so they get cut off in just a few splits.</p>
 </div></header><article class="q" id="fisolationfores-151"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fisolationfores-151"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">anomaly detection</span><span class="kt">Idea</span><span class="kt">fewer</span><span class="kt">Score</span><span class="kt">path length</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Unsupervised · <strong>anomaly detection</strong> · tree ensemble</td></tr><tr class="g0"><td><strong>Idea</strong></td><td>random splits isolate anomalies in <strong>fewer</strong> splits than normal points</td></tr><tr class="g1"><td><strong>Score</strong></td><td>average <strong>path length</strong> to isolate a point (short = anomalous)</td></tr><tr class="g0"><td><strong>Key param</strong></td><td><code>contamination</code> (expected anomaly fraction)</td></tr><tr class="g1"><td><strong>Strength</strong></td><td>fast, scalable, linear time, high-dimensional</td></tr><tr class="g0"><td><strong>Weakness</strong></td><td>axis-aligned cuts; struggles with local/contextual anomalies</td></tr><tr class="g1"><td><strong>Complexity</strong></td><td>$O(n\log n)$</td></tr><tr class="g0"><td><strong>sklearn</strong></td><td><code>IsolationForest</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fisolationfores-152"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fisolationfores-152"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Anomalies</span><span class="kt">few splits</span></div><p>Isolation Forest builds many random binary trees ("iTrees") by repeatedly picking a random
@@ -1428,7 +1776,7 @@ with little tuning, but uses <strong>axis-aligned</strong> splits (miss diagonal
 IF) and targets <strong>global</strong> anomalies (miss local ones → LOF); set <code>contamination</code> from the
 expected anomaly rate.</p>
 <hr />
-<p><strong>Related:</strong> <a href="algorithms-b.html#frandomforestmd">Random Forest</a> · <a href="algorithms-a.html#fdbscanmd">DBSCAN</a> · GMM</p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fkmeansmd"><header class="filehead"><div class="fh-top"><span class="fh-num">kmeans</span><span class="fh-count">16 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/kmeans.md">source .md &#8599;</a></div><h2>K-Means Clustering</h2><div class="note">
+<p><strong>Related:</strong> <a href="algorithms-b.html#frandomforestmd">Random Forest</a> · <a href="algorithms-a.html#fdbscanmd">DBSCAN</a> · GMM</p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fkmeansmd"><header class="filehead"><div class="fh-top"><span class="fh-num">kmeans</span><span class="fh-count">16 sections</span></div><h2>K-Means Clustering</h2><div class="note">
 <p>Partition data into <strong>k</strong> groups by repeatedly assigning points to the nearest
 centroid and moving each centroid to its members' mean. The default unsupervised
 workhorse.</p>
@@ -1534,7 +1882,7 @@ switch to GMM (soft, ellipsoidal), DBSCAN (arbitrary shapes, outliers), or k-mod
 - <strong>BIC / AIC</strong> (for GMM) — information criteria balancing fit vs #parameters; pick the lowest.
 - <strong>Stability / consensus</strong> — re-cluster on bootstraps; the <code>k</code> giving the most stable assignments is more trustworthy.
 - <strong>Business validity</strong> — the ultimate test: are segments distinct, sizeable, and <strong>actionable</strong>? A statistically "best" <code>k</code> with unusable segments is wrong.</p>
-<p>Practice: compute <strong>Silhouette + Davies–Bouldin + Calinski–Harabasz</strong> across a range of <code>k</code>, look for agreement, then sanity-check the segment profiles.</p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fknnmd"><header class="filehead"><div class="fh-top"><span class="fh-num">knn</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/knn.md">source .md &#8599;</a></div><h2>K-Nearest Neighbors (KNN)</h2><div class="note">
+<p>Practice: compute <strong>Silhouette + Davies–Bouldin + Calinski–Harabasz</strong> across a range of <code>k</code>, look for agreement, then sanity-check the segment profiles.</p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fknnmd"><header class="filehead"><div class="fh-top"><span class="fh-num">KNN</span><span class="fh-count">15 sections</span></div><h2>K-Nearest Neighbors (KNN)</h2><div class="note">
 <p>"You are the average of your k closest neighbors." A lazy, non-parametric model
 that predicts by looking up the most similar training examples.</p>
 </div></header><article class="q" id="fknnmd-182"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fknnmd-182"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">and</span><span class="kt">Predicts</span><span class="kt">Training</span><span class="kt">Distance</span><span class="kt">Key knobs</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Supervised · classification <strong>and</strong> regression · non-parametric · instance-based ("lazy")</td></tr><tr class="g0"><td><strong>Predicts</strong></td><td>majority vote (clf) / mean (reg) of the k nearest training points</td></tr><tr class="g1"><td><strong>Training</strong></td><td>none — just stores the data</td></tr><tr class="g0"><td><strong>Distance</strong></td><td>Euclidean / Manhattan / Minkowski / cosine</td></tr><tr class="g1"><td><strong>Key knobs</strong></td><td><code>n_neighbors</code> (k), <code>weights</code>, <code>metric</code></td></tr><tr class="g0"><td><strong>Must do</strong></td><td><strong>scale features</strong>; reduce dimensions</td></tr><tr class="g1"><td><strong>Complexity</strong></td><td>train $O(1)$; predict $O(nd)$ brute force (KD/Ball-tree or <abbr title="approximate nearest neighbour">ANN</abbr> to speed up)</td></tr><tr class="g0"><td><strong>Fails on</strong></td><td>high dimensions (curse of dimensionality), large $n$ at inference</td></tr><tr class="g1"><td><strong>sklearn</strong></td><td><code>KNeighborsClassifier</code> / <code>KNeighborsRegressor</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fknnmd-183"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fknnmd-183"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">majority vote</span><span class="kt">average</span></div><p><abbr title="k-nearest neighbours">KNN</abbr> predicts the label of a new point by finding the <strong>k</strong> training points closest
@@ -1651,8 +1999,10 @@ matter. Tune k (bias–variance) and consider distance weighting.</p>
 <p><strong>Related:</strong> <a href="algorithms-b.html#flogisticregres">Logistic Regression</a> · <a href="algorithms-b.html#fsvmmd"><abbr title="support vector machine">SVM</abbr></a> ·
 <a href="algorithms-a.html#fdecisiontreesm">Decision Trees</a> · <a href="algorithms-a.html#fkmeansmd">K-Means</a></p></div><button class="reveal">Reveal answer</button></article></section>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<nav class="pnav"><a class="prev" href="fundamentals.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrowl"/></svg><span class="pnav-t"><span>Previous</span><b>Fundamentals</b></span></a><a class="next" href="algorithms-b.html"><span class="pnav-t"><span>Next</span><b>Algorithms M&ndash;X</b></span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></a></nav>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
 </div></main>
+<aside class="toc" id="toc"><div class="toc-h"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>On this page</div><div class="toc-g" data-for="fadaboostmd"><b>adaboost</b><a href="#fadaboostmd-0" data-c="fadaboostmd-0">TL;DR (quick reference)</a><a href="#fadaboostmd-1" data-c="fadaboostmd-1">1. Definition</a><a href="#fadaboostmd-2" data-c="fadaboostmd-2">2. Intuition &amp; how it works</a><a href="#fadaboostmd-3" data-c="fadaboostmd-3">3. Mathematical formulation (with the update)</a><a href="#fadaboostmd-4" data-c="fadaboostmd-4">4. Assumptions</a><a href="#fadaboostmd-5" data-c="fadaboostmd-5">5. If assumptions are violated</a><a href="#fadaboostmd-6" data-c="fadaboostmd-6">6. Advantages &amp; disadvantages</a><a href="#fadaboostmd-7" data-c="fadaboostmd-7">7. Complexity</a><a href="#fadaboostmd-8" data-c="fadaboostmd-8">8. Key hyperparameters</a><a href="#fadaboostmd-9" data-c="fadaboostmd-9">9. In scikit-learn</a><a href="#fadaboostmd-10" data-c="fadaboostmd-10">10. Comparison</a><a href="#fadaboostmd-11" data-c="fadaboostmd-11">11. When to use / when not to</a><a href="#fadaboostmd-12" data-c="fadaboostmd-12">12. Interview deep dive</a><a href="#fadaboostmd-13" data-c="fadaboostmd-13">13. Common mistakes &amp; best practices</a><a href="#fadaboostmd-14" data-c="fadaboostmd-14">14. One-paragraph summary</a></div><div class="toc-g" data-for="fadasynmd"><b>adasyn</b><a href="#fadasynmd-15" data-c="fadasynmd-15">TL;DR (quick reference)</a><a href="#fadasynmd-16" data-c="fadasynmd-16">1. Definition</a><a href="#fadasynmd-17" data-c="fadasynmd-17">2. Intuition &amp; how it works</a><a href="#fadasynmd-18" data-c="fadasynmd-18">3. Mathematical formulation</a><a href="#fadasynmd-19" data-c="fadasynmd-19">4. Assumptions</a><a href="#fadasynmd-20" data-c="fadasynmd-20">5. If assumptions are violated</a><a href="#fadasynmd-21" data-c="fadasynmd-21">6. Advantages &amp; disadvantages</a><a href="#fadasynmd-22" data-c="fadasynmd-22">7. Complexity</a><a href="#fadasynmd-23" data-c="fadasynmd-23">8. Key hyperparameters</a><a href="#fadasynmd-24" data-c="fadasynmd-24">9. In code (imbalanced-learn, scikit-learn-compatible)</a><a href="#fadasynmd-25" data-c="fadasynmd-25">10. Comparison</a><a href="#fadasynmd-26" data-c="fadasynmd-26">11. When to use / when not to</a><a href="#fadasynmd-27" data-c="fadasynmd-27">12. Interview deep dive</a><a href="#fadasynmd-28" data-c="fadasynmd-28">13. Common mistakes &amp; best practices</a><a href="#fadasynmd-29" data-c="fadasynmd-29">14. One-paragraph summary</a></div><div class="toc-g" data-for="farimamd"><b>ARIMA</b><a href="#farimamd-30" data-c="farimamd-30">TL;DR (quick reference)</a><a href="#farimamd-31" data-c="farimamd-31">1. Definition</a><a href="#farimamd-32" data-c="farimamd-32">2. Intuition &amp; how it works</a><a href="#farimamd-33" data-c="farimamd-33">3. Mathematical formulation</a><a href="#farimamd-34" data-c="farimamd-34">4. Assumptions</a><a href="#farimamd-35" data-c="farimamd-35">5. If assumptions are violated</a><a href="#farimamd-36" data-c="farimamd-36">6. Advantages &amp; disadvantages</a><a href="#farimamd-37" data-c="farimamd-37">7. Complexity</a><a href="#farimamd-38" data-c="farimamd-38">8. Key hyperparameters</a><a href="#farimamd-39" data-c="farimamd-39">9. In code (statsmodels / pmdarima)</a><a href="#farimamd-40" data-c="farimamd-40">10. Comparison</a><a href="#farimamd-41" data-c="farimamd-41">11. When to use / when not to</a><a href="#farimamd-42" data-c="farimamd-42">12. Interview deep dive</a><a href="#farimamd-43" data-c="farimamd-43">13. Common mistakes &amp; best practices</a><a href="#farimamd-44" data-c="farimamd-44">14. One-paragraph summary</a></div><div class="toc-g" data-for="fcatboostmd"><b>catboost</b><a href="#fcatboostmd-45" data-c="fcatboostmd-45">TL;DR (quick reference)</a><a href="#fcatboostmd-46" data-c="fcatboostmd-46">1. Definition</a><a href="#fcatboostmd-47" data-c="fcatboostmd-47">2. Intuition &amp; how it works</a><a href="#fcatboostmd-48" data-c="fcatboostmd-48">3. Mechanisms (what's distinctive)</a><a href="#fcatboostmd-49" data-c="fcatboostmd-49">4. Assumptions</a><a href="#fcatboostmd-50" data-c="fcatboostmd-50">5. If assumptions are violated</a><a href="#fcatboostmd-51" data-c="fcatboostmd-51">6. Advantages &amp; disadvantages</a><a href="#fcatboostmd-52" data-c="fcatboostmd-52">7. Complexity</a><a href="#fcatboostmd-53" data-c="fcatboostmd-53">8. Key hyperparameters</a><a href="#fcatboostmd-54" data-c="fcatboostmd-54">9. In scikit-learn (catboost's sklearn API)</a><a href="#fcatboostmd-55" data-c="fcatboostmd-55">10. Comparison</a><a href="#fcatboostmd-56" data-c="fcatboostmd-56">11. When to use / when not to</a><a href="#fcatboostmd-57" data-c="fcatboostmd-57">12. Interview deep dive</a><a href="#fcatboostmd-58" data-c="fcatboostmd-58">13. Common mistakes &amp; best practices</a><a href="#fcatboostmd-59" data-c="fcatboostmd-59">14. One-paragraph summary</a></div><div class="toc-g" data-for="fdbscanmd"><b>dbscan</b><a href="#fdbscanmd-60" data-c="fdbscanmd-60">TL;DR (quick reference)</a><a href="#fdbscanmd-61" data-c="fdbscanmd-61">1. Definition</a><a href="#fdbscanmd-62" data-c="fdbscanmd-62">2. Intuition &amp; how it works</a><a href="#fdbscanmd-63" data-c="fdbscanmd-63">3. Mathematical formulation</a><a href="#fdbscanmd-64" data-c="fdbscanmd-64">4. Assumptions</a><a href="#fdbscanmd-65" data-c="fdbscanmd-65">5. If assumptions are violated</a><a href="#fdbscanmd-66" data-c="fdbscanmd-66">6. Advantages &amp; disadvantages</a><a href="#fdbscanmd-67" data-c="fdbscanmd-67">7. Complexity</a><a href="#fdbscanmd-68" data-c="fdbscanmd-68">8. Key hyperparameters</a><a href="#fdbscanmd-69" data-c="fdbscanmd-69">9. In scikit-learn</a><a href="#fdbscanmd-70" data-c="fdbscanmd-70">10. Comparison</a><a href="#fdbscanmd-71" data-c="fdbscanmd-71">11. When to use / when not to</a><a href="#fdbscanmd-72" data-c="fdbscanmd-72">12. Interview deep dive</a><a href="#fdbscanmd-73" data-c="fdbscanmd-73">13. Common mistakes &amp; best practices</a><a href="#fdbscanmd-74" data-c="fdbscanmd-74">14. One-paragraph summary</a></div><div class="toc-g" data-for="fdecisiontreesm"><b>decision trees</b><a href="#fdecisiontreesm-75" data-c="fdecisiontreesm-75">TL;DR (quick reference)</a><a href="#fdecisiontreesm-76" data-c="fdecisiontreesm-76">1. Definition</a><a href="#fdecisiontreesm-77" data-c="fdecisiontreesm-77">2. Intuition &amp; how it works</a><a href="#fdecisiontreesm-78" data-c="fdecisiontreesm-78">3. How splitting works — ID3, C4.5 &amp; CART (with worked numbers)</a><a href="#fdecisiontreesm-79" data-c="fdecisiontreesm-79">4. Continuous splits, pruning, importance</a><a href="#fdecisiontreesm-80" data-c="fdecisiontreesm-80">5. Assumptions</a><a href="#fdecisiontreesm-81" data-c="fdecisiontreesm-81">6. If assumptions (practical limits) are violated</a><a href="#fdecisiontreesm-82" data-c="fdecisiontreesm-82">7. Advantages &amp; disadvantages</a><a href="#fdecisiontreesm-83" data-c="fdecisiontreesm-83">8. Complexity</a><a href="#fdecisiontreesm-84" data-c="fdecisiontreesm-84">9. Key hyperparameters</a><a href="#fdecisiontreesm-85" data-c="fdecisiontreesm-85">10. In scikit-learn</a><a href="#fdecisiontreesm-86" data-c="fdecisiontreesm-86">11. Comparison with related models</a><a href="#fdecisiontreesm-87" data-c="fdecisiontreesm-87">12. When to use / when not to</a><a href="#fdecisiontreesm-88" data-c="fdecisiontreesm-88">13. Interview deep dive</a><a href="#fdecisiontreesm-89" data-c="fdecisiontreesm-89">14. Common mistakes &amp; best practices</a><a href="#fdecisiontreesm-90" data-c="fdecisiontreesm-90">15. One-paragraph summary</a></div><div class="toc-g" data-for="felasticnetmd"><b>elastic net</b><a href="#felasticnetmd-91" data-c="felasticnetmd-91">TL;DR (quick reference)</a><a href="#felasticnetmd-92" data-c="felasticnetmd-92">1. Definition</a><a href="#felasticnetmd-93" data-c="felasticnetmd-93">2. Intuition &amp; how it works</a><a href="#felasticnetmd-94" data-c="felasticnetmd-94">3. Mathematical formulation</a><a href="#felasticnetmd-95" data-c="felasticnetmd-95">4. Assumptions</a><a href="#felasticnetmd-96" data-c="felasticnetmd-96">5. If assumptions are violated</a><a href="#felasticnetmd-97" data-c="felasticnetmd-97">6. Advantages &amp; disadvantages</a><a href="#felasticnetmd-98" data-c="felasticnetmd-98">7. Complexity</a><a href="#felasticnetmd-99" data-c="felasticnetmd-99">8. Key hyperparameters</a><a href="#felasticnetmd-100" data-c="felasticnetmd-100">9. In scikit-learn</a><a href="#felasticnetmd-101" data-c="felasticnetmd-101">10. Comparison</a><a href="#felasticnetmd-102" data-c="felasticnetmd-102">11. When to use / when not to</a><a href="#felasticnetmd-103" data-c="felasticnetmd-103">12. Interview deep dive</a><a href="#felasticnetmd-104" data-c="felasticnetmd-104">13. Common mistakes &amp; best practices</a><a href="#felasticnetmd-105" data-c="felasticnetmd-105">14. One-paragraph summary</a></div><div class="toc-g" data-for="fgeneralizedlin"><b>generalized linear models</b><a href="#fgeneralizedlin-106" data-c="fgeneralizedlin-106">TL;DR (quick reference)</a><a href="#fgeneralizedlin-107" data-c="fgeneralizedlin-107">1. Definition</a><a href="#fgeneralizedlin-108" data-c="fgeneralizedlin-108">2. Intuition &amp; how it works</a><a href="#fgeneralizedlin-109" data-c="fgeneralizedlin-109">3. Mathematical formulation</a><a href="#fgeneralizedlin-110" data-c="fgeneralizedlin-110">4. Assumptions</a><a href="#fgeneralizedlin-111" data-c="fgeneralizedlin-111">5. If assumptions are violated</a><a href="#fgeneralizedlin-112" data-c="fgeneralizedlin-112">6. Advantages &amp; disadvantages</a><a href="#fgeneralizedlin-113" data-c="fgeneralizedlin-113">7. Complexity</a><a href="#fgeneralizedlin-114" data-c="fgeneralizedlin-114">8. Key hyperparameters / choices</a><a href="#fgeneralizedlin-115" data-c="fgeneralizedlin-115">9. In scikit-learn / statsmodels</a><a href="#fgeneralizedlin-116" data-c="fgeneralizedlin-116">10. Comparison</a><a href="#fgeneralizedlin-117" data-c="fgeneralizedlin-117">11. When to use / when not to</a><a href="#fgeneralizedlin-118" data-c="fgeneralizedlin-118">12. Interview deep dive</a><a href="#fgeneralizedlin-119" data-c="fgeneralizedlin-119">13. Common mistakes &amp; best practices</a><a href="#fgeneralizedlin-120" data-c="fgeneralizedlin-120">14. One-paragraph summary</a></div><div class="toc-g" data-for="fgradientboosti"><b>gradient boosting</b><a href="#fgradientboosti-121" data-c="fgradientboosti-121">TL;DR (quick reference)</a><a href="#fgradientboosti-122" data-c="fgradientboosti-122">1. Definition</a><a href="#fgradientboosti-123" data-c="fgradientboosti-123">2. Intuition &amp; how it works</a><a href="#fgradientboosti-124" data-c="fgradientboosti-124">3. Mathematical formulation</a><a href="#fgradientboosti-125" data-c="fgradientboosti-125">4. Assumptions</a><a href="#fgradientboosti-126" data-c="fgradientboosti-126">5. If assumptions are violated</a><a href="#fgradientboosti-127" data-c="fgradientboosti-127">6. Advantages &amp; disadvantages</a><a href="#fgradientboosti-128" data-c="fgradientboosti-128">7. Complexity</a><a href="#fgradientboosti-129" data-c="fgradientboosti-129">8. Key hyperparameters</a><a href="#fgradientboosti-130" data-c="fgradientboosti-130">9. In scikit-learn</a><a href="#fgradientboosti-131" data-c="fgradientboosti-131">10. Comparison</a><a href="#fgradientboosti-132" data-c="fgradientboosti-132">11. When to use / when not to</a><a href="#fgradientboosti-133" data-c="fgradientboosti-133">12. Interview deep dive</a><a href="#fgradientboosti-134" data-c="fgradientboosti-134">13. Common mistakes &amp; best practices</a><a href="#fgradientboosti-135" data-c="fgradientboosti-135">14. One-paragraph summary</a></div><div class="toc-g" data-for="fhierarchicalcl"><b>hierarchical clustering</b><a href="#fhierarchicalcl-136" data-c="fhierarchicalcl-136">TL;DR (quick reference)</a><a href="#fhierarchicalcl-137" data-c="fhierarchicalcl-137">1. Definition</a><a href="#fhierarchicalcl-138" data-c="fhierarchicalcl-138">2. Intuition &amp; how it works</a><a href="#fhierarchicalcl-139" data-c="fhierarchicalcl-139">3. Mathematical formulation — linkage &amp; a worked merge</a><a href="#fhierarchicalcl-140" data-c="fhierarchicalcl-140">4. Assumptions</a><a href="#fhierarchicalcl-141" data-c="fhierarchicalcl-141">5. If assumptions are violated</a><a href="#fhierarchicalcl-142" data-c="fhierarchicalcl-142">6. Advantages &amp; disadvantages</a><a href="#fhierarchicalcl-143" data-c="fhierarchicalcl-143">7. Complexity</a><a href="#fhierarchicalcl-144" data-c="fhierarchicalcl-144">8. Key hyperparameters</a><a href="#fhierarchicalcl-145" data-c="fhierarchicalcl-145">9. In scikit-learn</a><a href="#fhierarchicalcl-146" data-c="fhierarchicalcl-146">10. Comparison</a><a href="#fhierarchicalcl-147" data-c="fhierarchicalcl-147">11. When to use / when not to</a><a href="#fhierarchicalcl-148" data-c="fhierarchicalcl-148">12. Interview deep dive</a><a href="#fhierarchicalcl-149" data-c="fhierarchicalcl-149">13. Common mistakes &amp; best practices</a><a href="#fhierarchicalcl-150" data-c="fhierarchicalcl-150">14. One-paragraph summary</a></div><div class="toc-g" data-for="fisolationfores"><b>isolation forest</b><a href="#fisolationfores-151" data-c="fisolationfores-151">TL;DR (quick reference)</a><a href="#fisolationfores-152" data-c="fisolationfores-152">1. Definition</a><a href="#fisolationfores-153" data-c="fisolationfores-153">2. Intuition &amp; how it works</a><a href="#fisolationfores-154" data-c="fisolationfores-154">3. Mathematical formulation</a><a href="#fisolationfores-155" data-c="fisolationfores-155">4. Assumptions</a><a href="#fisolationfores-156" data-c="fisolationfores-156">5. If assumptions are violated</a><a href="#fisolationfores-157" data-c="fisolationfores-157">6. Advantages &amp; disadvantages</a><a href="#fisolationfores-158" data-c="fisolationfores-158">7. Complexity</a><a href="#fisolationfores-159" data-c="fisolationfores-159">8. Key hyperparameters</a><a href="#fisolationfores-160" data-c="fisolationfores-160">9. In scikit-learn</a><a href="#fisolationfores-161" data-c="fisolationfores-161">10. Comparison</a><a href="#fisolationfores-162" data-c="fisolationfores-162">11. When to use / when not to</a><a href="#fisolationfores-163" data-c="fisolationfores-163">12. Interview deep dive</a><a href="#fisolationfores-164" data-c="fisolationfores-164">13. Common mistakes &amp; best practices</a><a href="#fisolationfores-165" data-c="fisolationfores-165">14. One-paragraph summary</a></div><div class="toc-g" data-for="fkmeansmd"><b>kmeans</b><a href="#fkmeansmd-166" data-c="fkmeansmd-166">TL;DR (quick reference)</a><a href="#fkmeansmd-167" data-c="fkmeansmd-167">1. Definition</a><a href="#fkmeansmd-168" data-c="fkmeansmd-168">2. Intuition &amp; how it works (Lloyd's algorithm)</a><a href="#fkmeansmd-169" data-c="fkmeansmd-169">3. Mathematical formulation</a><a href="#fkmeansmd-170" data-c="fkmeansmd-170">4. Assumptions</a><a href="#fkmeansmd-171" data-c="fkmeansmd-171">5. If assumptions are violated</a><a href="#fkmeansmd-172" data-c="fkmeansmd-172">6. Advantages &amp; disadvantages</a><a href="#fkmeansmd-173" data-c="fkmeansmd-173">7. Complexity</a><a href="#fkmeansmd-174" data-c="fkmeansmd-174">8. Key hyperparameters</a><a href="#fkmeansmd-175" data-c="fkmeansmd-175">9. In scikit-learn</a><a href="#fkmeansmd-176" data-c="fkmeansmd-176">10. Comparison</a><a href="#fkmeansmd-177" data-c="fkmeansmd-177">11. When to use / when not to</a><a href="#fkmeansmd-178" data-c="fkmeansmd-178">12. Interview deep dive</a><a href="#fkmeansmd-179" data-c="fkmeansmd-179">13. Common mistakes &amp; best practices</a><a href="#fkmeansmd-180" data-c="fkmeansmd-180">14. One-paragraph summary</a><a href="#fkmeansmd-181" data-c="fkmeansmd-181">Choosing a clustering model &amp; selecting <code>k</code> (beyond the elbow)</a></div><div class="toc-g" data-for="fknnmd"><b>KNN</b><a href="#fknnmd-182" data-c="fknnmd-182">TL;DR (quick reference)</a><a href="#fknnmd-183" data-c="fknnmd-183">1. Definition</a><a href="#fknnmd-184" data-c="fknnmd-184">2. Intuition &amp; how it works</a><a href="#fknnmd-185" data-c="fknnmd-185">3. Mathematical formulation</a><a href="#fknnmd-186" data-c="fknnmd-186">4. Complexity</a><a href="#fknnmd-187" data-c="fknnmd-187">5. Assumptions</a><a href="#fknnmd-188" data-c="fknnmd-188">6. If assumptions are violated</a><a href="#fknnmd-189" data-c="fknnmd-189">7. Advantages &amp; disadvantages</a><a href="#fknnmd-190" data-c="fknnmd-190">8. Key hyperparameters</a><a href="#fknnmd-191" data-c="fknnmd-191">9. In scikit-learn</a><a href="#fknnmd-192" data-c="fknnmd-192">10. Comparison with related models</a><a href="#fknnmd-193" data-c="fknnmd-193">11. When to use / when not to</a><a href="#fknnmd-194" data-c="fknnmd-194">12. Interview deep dive</a><a href="#fknnmd-195" data-c="fknnmd-195">13. Common mistakes &amp; best practices</a><a href="#fknnmd-196" data-c="fknnmd-196">14. One-paragraph summary</a></div></aside>
 </div>
 <button class="totop" id="totop" title="Back to top">&#8593;</button>
 <script>
@@ -1693,29 +2043,44 @@ var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementBy
 qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
 function runSearch(){
   if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
-  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
-    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;});
+  /* a heading survives the filter only while something under it is still showing */
   [].forEach.call(document.querySelectorAll('.parthead'),function(p){
-    if(!v){p.style.display='';return}
-    var vis=false,n=p.nextElementSibling;
-    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
-    p.style.display=vis?'':'none';});
+    var vis=true;
+    if(v){
+      vis=false;
+      var n=p.nextElementSibling;
+      while(n&&!n.classList.contains('parthead')){
+        if(n.classList.contains('q')&&n.style.display!=='none'){vis=true;break}
+        n=n.nextElementSibling;
+      }
+    }
+    p.style.display=vis?'':'none';
+    if(p.id){var l=document.querySelector('nav a[data-t="'+p.id+'"]');
+      if(l)l.style.display=vis?'':'none';}
+  });
   if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
 }
 if(inp)inp.addEventListener('input',runSearch);
 
-var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+/* The sidebar lists main headings only, so scroll tracking follows those headings
+   (data-t -> element id) rather than one entry per question card. */
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-t]'));
+var navTargets=navLinks.map(function(l){return document.getElementById(l.getAttribute('data-t'))});
 var totop=document.getElementById('totop');
 function onScroll(){
   var sc=document.documentElement.scrollTop;
   if(totop)totop.classList.toggle('show',sc>600);
-  var cur=null;
-  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
-    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  var cur=-1;
+  for(var i=0;i<navTargets.length;i++){
+    var el=navTargets[i];
+    if(!el||el.offsetParent===null)continue;
+    if(el.getBoundingClientRect().top<=140)cur=i;else break;
+  }
   navLinks.forEach(function(l){l.classList.remove('active')});
-  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
-    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
-      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+  if(cur>=0){var l=navLinks[cur];
+    l.classList.add('active');var r=l.getBoundingClientRect();
+    if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}
 }
 window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
@@ -1766,6 +2131,43 @@ document.addEventListener('keydown',function(e){
     });
     pre.appendChild(b);
   });
+})();
+
+/* Right-hand rail: reveal the group for the file section being read, and mark the
+   card in view. Scrolling is done on the rail itself - scrollIntoView would drag the
+   window along with it. */
+(function(){
+  var toc=document.getElementById('toc'); if(!toc)return;
+  document.body.classList.add('js');
+  var groups=[].slice.call(toc.querySelectorAll('.toc-g'));
+  if(!groups.length)return;
+  var secs=groups.map(function(g){return document.getElementById(g.getAttribute('data-for'))});
+  var links=groups.map(function(g){return [].slice.call(g.querySelectorAll('a[data-c]'))});
+  var curG=-1;
+  function upd(){
+    var i,g=-1;
+    for(i=0;i<secs.length;i++){
+      var el=secs[i]; if(!el)continue;
+      if(el.getBoundingClientRect().top<=160)g=i; else break;
+    }
+    if(g<0)g=0;
+    if(g!==curG){groups.forEach(function(x,k){x.classList.toggle('on',k===g)});curG=g;}
+    var ls=links[g]||[],act=null;
+    for(i=0;i<ls.length;i++){
+      var t=document.getElementById(ls[i].getAttribute('data-c'));
+      if(!t||t.style.display==='none')continue;
+      if(t.getBoundingClientRect().top<=160)act=ls[i]; else break;
+    }
+    ls.forEach(function(a){a.classList.remove('on')});
+    if(act){
+      act.classList.add('on');
+      var top=act.offsetTop,h=act.offsetHeight;
+      if(top<toc.scrollTop+8||top+h>toc.scrollTop+toc.clientHeight-8)
+        toc.scrollTop=top-toc.clientHeight/2+h/2;
+    }
+  }
+  addEventListener('scroll',upd,{passive:true});
+  addEventListener('resize',upd); upd();
 })();
 
 /* deep link on each question card */

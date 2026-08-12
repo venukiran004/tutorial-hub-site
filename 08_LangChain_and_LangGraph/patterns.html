@@ -509,9 +509,358 @@ body.searching .parthead{opacity:.5}
 
 @media(max-width:1060px){ .parthead{top:0} }
 
+/* =====================================================================
+   AURORA GLASS
+   The final layer. Everything below re-tints the sheet above it: a deep
+   near-black canvas lit by a fixed gradient mesh, with the chrome and the
+   cards reading as frosted panels floating on top of it.
+   ===================================================================== */
+
+:root{
+  --bg:#070a12; --bg-2:#0a0e18;
+  --surface:#0f131e; --surface-2:#141a27; --surface-3:#1c2333;
+  --border:#232c40; --border-soft:#19202f;
+  --ink:#eaf0fb; --ink-2:#9fabc4; --ink-mut:#6b7690;
+
+  --accent:#7c9dff; --accent-2:#b18cff;
+  --accent-soft:rgba(124,157,255,.15); --accent-bd:rgba(124,157,255,.40);
+  --t-rag:#7c9dff; --t-agentic:#ff9563; --t-recall:#3ed9a4;
+  --t-violet:#b18cff; --t-amber:#f0c274;
+  --good:#3ed9a4; --warn:#f5c451; --crit:#ff6b81;
+  --good-soft:rgba(62,217,164,.12); --warn-soft:rgba(245,196,81,.12);
+  --crit-soft:rgba(255,107,129,.12);
+  --code-bg:#080b13;
+
+  --glass:rgba(255,255,255,.045);
+  --glass-bd:rgba(255,255,255,.075);
+  --e1:0 1px 2px rgba(0,0,0,.40);
+  --e2:0 8px 26px rgba(3,6,15,.55);
+  --e3:0 22px 60px rgba(3,6,15,.68);
+  --radius:16px; --radius-sm:11px;
+}
+html[data-theme="light"]{
+  --bg:#f6f8fe; --bg-2:#eef2fb;
+  --surface:#fff; --surface-2:#fafbff; --surface-3:#eef2fb;
+  --border:#dce3f2; --border-soft:#e9edf8;
+  --ink:#111828; --ink-2:#4c586f; --ink-mut:#7c8699;
+
+  --accent:#4f6fe6; --accent-2:#8b5cf6;
+  --accent-soft:rgba(79,111,230,.10); --accent-bd:rgba(79,111,230,.34);
+  --t-rag:#4f6fe6; --t-agentic:#e0663a; --t-recall:#0f9e74;
+  --t-violet:#8b5cf6; --t-amber:#a9760a;
+  --good:#0f9e74; --warn:#b07d00; --crit:#dc3d55;
+  --good-soft:rgba(15,158,116,.10); --warn-soft:rgba(176,125,0,.11);
+  --crit-soft:rgba(220,61,85,.09);
+  --code-bg:#f2f5fc;
+
+  --glass:rgba(255,255,255,.62);
+  --glass-bd:rgba(17,24,40,.07);
+  --e1:0 1px 2px rgba(16,24,40,.05);
+  --e2:0 8px 24px rgba(16,24,40,.08);
+  --e3:0 22px 56px rgba(16,24,40,.12);
+}
+
+/* ---------- the canvas ---------- */
+/* the page background lives on <html> so the fixed aurora layer can sit
+   between it and the content without the body's own fill covering it */
+html{background:var(--bg)}
+body{background:transparent}
+
+/* Ambient tint on every page: strongest at the top edge, gone by mid-scroll, so
+   long reading pages settle onto clean dark instead of a permanent wash. */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 22% -6%, color-mix(in srgb,var(--accent) 46%,transparent), transparent 66%),
+    radial-gradient(38% 32% at 82% -8%, color-mix(in srgb,var(--accent-2) 40%,transparent), transparent 64%);
+  filter:blur(30px) saturate(1.3);opacity:.5;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%);
+          mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%)}
+html[data-theme="light"] body::before{opacity:.5;filter:blur(36px) saturate(1)}
+
+/* film grain: keeps the large flat gradients from banding on cheap panels */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.032;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* multiply over a light canvas darkens fast - the grain has to be far weaker here
+   or the whole page reads grey instead of white */
+html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply}
+
+@keyframes aurora-drift{
+  from{transform:translate3d(0,0,0) scale(1)}
+  to{transform:translate3d(3%,-2.5%,0) scale(1.12)}
+}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:transparent;border-bottom:1px solid var(--border-soft)}
+.siteswitch a{color:var(--ink-mut)}
+.siteswitch a:hover{background:var(--glass);color:var(--ink)}
+.siteswitch a.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  box-shadow:0 3px 14px color-mix(in srgb,var(--accent) 40%,transparent)}
+.sitebar{background:color-mix(in srgb,var(--bg) 62%,transparent);
+  backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);
+  border-bottom:1px solid var(--glass-bd);box-shadow:0 1px 0 rgba(255,255,255,.03),var(--e1)}
+.logo b{background:linear-gradient(115deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{background:var(--glass);border:1px solid var(--glass-bd);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);border-radius:10px}
+.btn:hover{border-color:var(--accent-bd);color:var(--ink);
+  box-shadow:0 4px 16px color-mix(in srgb,var(--accent) 22%,transparent)}
+.btn.on{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,transparent),
+  color-mix(in srgb,var(--accent-2) 18%,transparent));border-color:var(--accent-bd);color:var(--accent)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 55%,transparent),transparent 60%);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-right:1px solid var(--glass-bd)}
+.sb-search input{background:var(--glass);border:1px solid var(--glass-bd);border-radius:11px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sb-search input:focus{border-color:var(--accent-bd);
+  box-shadow:0 0 0 3px var(--accent-soft),0 4px 18px color-mix(in srgb,var(--accent) 20%,transparent)}
+nav a:hover{background:var(--glass);color:var(--ink)}
+nav a.active{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 20%,transparent),transparent 78%);
+  box-shadow:inset 0 0 0 1px var(--accent-bd);color:var(--accent)}
+nav a.active::before{background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 10px var(--accent)}
+.nav-grp{color:var(--ink-mut)}
+
+/* ---------- hero ---------- */
+.hero::before{opacity:.72;filter:blur(38px)}
+.eyebrow{background:var(--glass);border:1px solid var(--glass-bd);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:var(--ink-2);font-weight:700}
+.hero h1{background:linear-gradient(112deg,var(--ink) 4%,
+    color-mix(in srgb,var(--accent) 88%,var(--ink)) 46%,
+    color-mix(in srgb,var(--accent-2) 92%,var(--ink)) 74%,
+    color-mix(in srgb,var(--t-recall) 70%,var(--ink)) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- surfaces: glass everywhere the old sheet used flat fills ---------- */
+.stat,.q,.tcard,.hub-card,.panel,.learn,figure.viz,.tbl-wrap,.flow,.learn-item{
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 72%,transparent));
+  border-color:var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+
+.stat{border-radius:14px}
+.stat::before{height:1.5px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),color-mix(in srgb,var(--tc,var(--accent)) 20%,transparent) 70%,transparent)}
+.stat:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 18%,transparent)}
+.stat-v{background:linear-gradient(150deg,var(--ink),var(--tc,var(--accent)));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 42%,transparent);box-shadow:var(--e2)}
+.q:target{box-shadow:0 0 0 3px var(--accent-soft),var(--e2)}
+.tcard:hover,.hub-card:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 22%,transparent)}
+
+/* the hover affordance was emitting a literal "92" - it wants to be an arrow */
+.tcard::after,.hub-card::after{content:"\2192"}
+
+figure.viz{border-radius:18px}
+pre.code{background:color-mix(in srgb,var(--code-bg) 88%,transparent);
+  border:1px solid var(--glass-bd);border-radius:13px;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.say{background:linear-gradient(100deg,color-mix(in srgb,var(--accent) 14%,transparent),transparent 72%);
+  border-left-color:var(--accent)}
+.kt{background:var(--glass);border-color:var(--glass-bd)}
+.kt:hover{border-color:var(--accent-bd);color:var(--accent)}
+.parthead{background:color-mix(in srgb,var(--bg) 66%,transparent);
+  backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5)}
+th{background:color-mix(in srgb,var(--surface-3) 82%,transparent)}
+
+/* ---------- right-hand "on this page" rail ---------- */
+:root{ --tocw:262px }
+.app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr) var(--tocw)}
+.toc{position:sticky;top:47px;align-self:start;height:calc(100vh - 47px);overflow-y:auto;
+  overscroll-behavior:contain;padding:22px 20px 60px;font-size:12.6px;
+  border-left:1px solid var(--glass-bd)}
+.toc::-webkit-scrollbar{width:7px}
+.toc::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.toc-h{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-mut);margin-bottom:12px}
+.toc-h svg.ic{font-size:13px;color:var(--tc,var(--accent))}
+/* one group per file section; the script shows the one you are reading */
+body.js .toc-g{display:none}
+body.js .toc-g.on{display:block}
+.toc-g > b{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tc,var(--accent));margin:0 0 9px;padding-left:11px}
+.toc-g a{display:block;padding:5px 10px 5px 12px;margin:1px 0;border-radius:7px;color:var(--ink-2);
+  text-decoration:none;line-height:1.42;border-left:2px solid transparent}
+.toc-g a:hover{background:var(--glass);color:var(--ink);text-decoration:none}
+.toc-g a.on{color:var(--accent);border-left-color:var(--accent);font-weight:650;
+  background:linear-gradient(90deg,var(--accent-soft),transparent 80%)}
+.toc-empty{color:var(--ink-mut);font-size:12px;padding-left:12px}
+@media(max-width:1400px){
+  .app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr)}
+  .toc{display:none}
+}
+
+/* ---------- breadcrumb ---------- */
+.crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.2px;color:var(--ink-mut);
+  padding-top:26px}
+.crumb a{color:var(--ink-mut);text-decoration:none}
+.crumb a:hover{color:var(--accent);text-decoration:none}
+.crumb svg.ic{font-size:12px;opacity:.5}
+.crumb b{color:var(--ink-2);font-weight:650}
+.crumb + .hero{padding-top:18px}
+.pnav-t{min-width:0}
+
+/* ---------- previous / next ---------- */
+.pnav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:64px 0 0}
+.pnav a{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:14px;
+  text-decoration:none;color:inherit;border:1px solid var(--glass-bd);
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 86%,transparent),
+    color-mix(in srgb,var(--surface-2) 66%,transparent))}
+.pnav a:hover{text-decoration:none;border-color:var(--accent-bd);box-shadow:var(--e2)}
+.pnav a.next{grid-column:2;justify-content:flex-end;text-align:right}
+.pnav a.prev{grid-column:1}
+.pnav span{display:block;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-mut)}
+.pnav b{display:block;margin-top:4px;font-size:14.5px;letter-spacing:-.02em;color:var(--ink)}
+.pnav svg.ic{font-size:18px;color:var(--accent);flex:none}
+@media(max-width:760px){
+  .pnav{grid-template-columns:1fr}
+  .pnav a.next,.pnav a.prev{grid-column:1}
+}
+
+/* ---------- section headers (shared by the hub and every topic index) ---------- */
+.h-sec-h{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.h-sec-h h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-mut);white-space:nowrap;display:flex;align-items:center;gap:9px;border:0;padding:0}
+.h-sec-h h2 svg.ic{font-size:15px;color:var(--accent);opacity:.9}
+.h-sec-h i{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- icons ---------- */
+.sprite{display:none}
+svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.13em}
+/* the boxed icon tile used by track rows, callouts and nav groups */
+.ic-box{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:44px;height:44px;border-radius:13px;font-size:20px;color:var(--tc,var(--accent));
+  background:linear-gradient(150deg,color-mix(in srgb,var(--tc,var(--accent)) 26%,transparent),
+    color-mix(in srgb,var(--tc,var(--accent)) 8%,transparent));
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.ic-sm{width:30px;height:30px;border-radius:9px;font-size:15px}
+
+/* ---------- topic index: learning-track rows ---------- */
+.trk{display:flex;flex-direction:column;gap:11px;margin:40px 0 0}
+.trk-row{position:relative;display:flex;align-items:center;gap:17px;padding:17px 19px;
+  border-radius:15px;text-decoration:none;color:inherit;overflow:hidden;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--surface) 90%,transparent),
+    color-mix(in srgb,var(--surface-2) 68%,transparent));
+  border:1px solid var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.trk-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tc)}
+.trk-row:hover{text-decoration:none;transform:translateX(3px);
+  border-color:color-mix(in srgb,var(--tc) 46%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc) 18%,transparent)}
+.trk-b{min-width:0;flex:1}
+.trk-b b{display:block;font-size:16.5px;letter-spacing:-.022em;color:var(--ink);font-weight:750}
+.trk-b b i{font-style:normal;color:var(--ink-mut);font-weight:600;margin-right:3px}
+.trk-b p{margin:4px 0 0;font-size:13.2px;line-height:1.5;color:var(--ink-2)}
+.trk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.trk-chips span{font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.trk-row:hover .trk-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+.trk-meta{display:flex;align-items:center;gap:8px;flex:none;font-size:11.5px;
+  font-family:var(--mono);color:var(--tc);white-space:nowrap}
+.trk-meta i{font-style:normal;opacity:.45}
+.trk-go{flex:none;font-size:19px;color:var(--ink-mut);display:inline-flex}
+.trk-row:hover .trk-go{color:var(--tc);transform:translateX(2px)}
+@media(prefers-reduced-motion:no-preference){
+  .trk-row,.trk-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,color .18s ease}
+}
+@media(max-width:820px){
+  .trk-row{flex-wrap:wrap;gap:13px}
+  .trk-meta{order:3;width:100%}
+  .trk-go{display:none}
+}
+
+/* ---------- sidebar nav with icons ---------- */
+.nav-grp{display:flex;align-items:center;gap:8px}
+.nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
+nav a svg.ic{font-size:14px;opacity:.6}
+nav a.active svg.ic{opacity:1}
+/* file = main heading, named part = its only sub-entry */
+nav a.nav-file{margin-top:13px;font-size:13px;font-weight:750;color:var(--ink);align-items:center}
+nav a.nav-file svg.ic{color:var(--tc,var(--accent));opacity:.95}
+nav a.nav-sub{padding-left:30px;font-size:12.2px;position:relative}
+nav a.nav-sub::after{content:"";position:absolute;left:16px;top:50%;width:5px;height:5px;
+  margin-top:-2.5px;border-radius:50%;background:var(--ink-mut);opacity:.5}
+nav a.nav-sub.active::after{background:var(--accent);opacity:1}
+
+/* ---------- callouts with icons ---------- */
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key,.say{position:relative}
+.note-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;font-size:13px;margin-right:8px;vertical-align:-.35em;flex:none}
+.say-h svg.ic{font-size:13px}
+
+/* ---------- topic index: the landing page of each site ---------- */
+/* the reading measure is right for prose but starves a card grid, so an index
+   page widens its column and fits three across */
+.wrap:has(.idx-grid){max-width:1300px}
+.idx-hero{padding:58px 0 4px}
+.idx-hero h1{font-size:clamp(36px,4.8vw,56px);margin:18px 0 16px}
+.idx-hero .lede{font-size:17.5px;max-width:76ch;margin:0}
+
+.idx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;
+  margin:44px 0 0}
+.idx-card{position:relative;display:block;padding:22px 23px 20px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 70%,transparent));
+  border:1px solid var(--glass-bd);text-decoration:none;color:inherit;
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.idx-card::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc),transparent 80%)}
+.idx-card:hover{transform:translateY(-3px);text-decoration:none;
+  border-color:color-mix(in srgb,var(--tc) 48%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc) 20%,transparent)}
+.idx-card-h{display:flex;align-items:center;gap:11px}
+.idx-card-h h3{margin:0;font-size:18.5px;letter-spacing:-.026em;color:var(--ink);font-weight:750}
+.idx-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--tc);
+  box-shadow:0 0 10px var(--tc)}
+.idx-go{margin-left:auto;font-size:16px;color:var(--tc);opacity:0;transform:translateX(-5px);flex:none}
+.idx-card:hover .idx-go{opacity:1;transform:translateX(0)}
+.idx-card p{margin:11px 0 0;font-size:13.4px;line-height:1.6;color:var(--ink-2)}
+.idx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}
+.idx-chips span{font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.idx-card:hover .idx-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+@media(prefers-reduced-motion:no-preference){
+  .idx-card,.idx-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,opacity .18s ease}
+}
+
+/* ---------- file section headers ---------- */
+/* .fh-top's spans had no rules at all, so the name and the count ran together as
+   one unstyled line. It reads as an eyebrow row above the file title. */
+.filehead{margin:56px 0 16px}
+.fh-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px}
+.fh-num{font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--tc,var(--accent));padding:4px 12px;border-radius:999px;
+  background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.fh-count{font-family:var(--mono);font-size:10.5px;color:var(--ink-mut);padding:4px 11px;
+  border-radius:999px;background:var(--glass);border:1px solid var(--glass-bd)}
+.filehead h2{font-size:28px;letter-spacing:-.032em;margin:0}
+
+/* ---------- detail ---------- */
+::selection{background:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--ink)}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-bd);background-clip:padding-box}
+#rprog{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--t-recall));
+  box-shadow:0 0 14px color-mix(in srgb,var(--accent) 70%,transparent)}
+.totop{background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 8px 26px color-mix(in srgb,var(--accent) 45%,transparent)}
+.totop:hover{transform:translateY(-2px)}
+
 </style>
 </head>
 <body>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol><symbol id="i-arrowl" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol><symbol id="i-branch" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol><symbol id="i-bulb" viewBox="0 0 24 24"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2z"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol><symbol id="i-code" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></symbol><symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol><symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 2v6.5L4.2 17A2 2 0 0 0 6 20h12a2 2 0 0 0 1.8-3L15 8.5V2"/><line x1="8" y1="2" x2="16" y2="2"/><line x1="7" y1="14" x2="17" y2="14"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol><symbol id="i-network" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></symbol><symbol id="i-package" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol><symbol id="i-sigma" viewBox="0 0 24 24"><path d="M18 4H6l6 8-6 8h12"/></symbol><symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol><symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol><symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol></svg>
 <div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
   <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw" href="../03_Data_Handling/index.html">03 Data</a><a class="sw" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw on" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw" href="../11_System_Design/index.html">11 Sys Design</a>
 </div></div><div class="sitebar-in">
@@ -523,32 +872,31 @@ body.searching .parthead{opacity:.5}
   <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
   <button class="btn" id="themeBtn">Dark</button>
 </div></div>
-<div class="app" style="--tc:var(--t-agentic)">
+<div class="app has-toc" style="--tc:var(--t-agentic)">
 <aside id="sidebar">
   <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
   <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
-  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><a href="#figs"><span class="qn">&#9635;</span>Diagrams</a><div class="nav-grp">11 &middot; Agentic systems &amp; patterns</div><a href="#f11AgenticSyste-0" data-q="f11AgenticSyste-0"><span class="qn">&bull;</span>Q1. How does the ReAct loop terminate?</a><a href="#f11AgenticSyste-1" data-q="f11AgenticSyste-1"><span class="qn">&bull;</span>Q2. What happens if you don't use the <code>add_messages</code> reducer?</a><a href="#f11AgenticSyste-2" data-q="f11AgenticSyste-2"><span class="qn">&bull;</span>Q3. When should you cap the loop, and why?</a><a href="#f11AgenticSyste-3" data-q="f11AgenticSyste-3"><span class="qn">&bull;</span>Q4. How would you implement a ReAct agent with early exit for high-confidence answers?</a><a href="#f11AgenticSyste-4" data-q="f11AgenticSyste-4"><span class="qn">&bull;</span>Q5. You're building a ReAct agent for a customer support chatbot. Tool calls take 2–5 seconds. How would you optimize?</a><a href="#f11AgenticSyste-5" data-q="f11AgenticSyste-5"><span class="qn">&bull;</span>Q6. When is Reflection better than just asking the model for the answer once?</a><a href="#f11AgenticSyste-6" data-q="f11AgenticSyste-6"><span class="qn">&bull;</span>Q7. What makes a good critic prompt?</a><a href="#f11AgenticSyste-7" data-q="f11AgenticSyste-7"><span class="qn">&bull;</span>Q8. How do you avoid infinite loops in Reflection?</a><a href="#f11AgenticSyste-8" data-q="f11AgenticSyste-8"><span class="qn">&bull;</span>Q9. Design a Reflection loop that learns from critique failures.</a><a href="#f11AgenticSyste-9" data-q="f11AgenticSyste-9"><span class="qn">&bull;</span>Q10. You're using Reflection for code generation. The critic LLM is different from the generator LLM (critic is more detailed, slower). How do you handle this?</a><a href="#f11AgenticSyste-10" data-q="f11AgenticSyste-10"><span class="qn">&bull;</span>Q11. Why would you use Plan-and-Execute instead of pure ReAct?</a><a href="#f11AgenticSyste-11" data-q="f11AgenticSyste-11"><span class="qn">&bull;</span>Q12. What happens if a step in the plan fails? How should the replanner respond?</a><a href="#f11AgenticSyste-12" data-q="f11AgenticSyste-12"><span class="qn">&bull;</span>Q13. Design a Plan-and-Execute system with dynamic replanning.</a><a href="#f11AgenticSyste-13" data-q="f11AgenticSyste-13"><span class="qn">&bull;</span>Q14. You're building a research task: "Investigate whether LLM X is better than LLM Y." The planner produces 5 steps. Step 3 (performance benchmarking) returns no data. How should the replanner handle this?</a><a href="#f11AgenticSyste-14" data-q="f11AgenticSyste-14"><span class="qn">&bull;</span>Q15. What's the difference between a Supervisor and a Router?</a><a href="#f11AgenticSyste-15" data-q="f11AgenticSyste-15"><span class="qn">&bull;</span>Q16. When should the supervisor directly answer instead of delegating?</a><a href="#f11AgenticSyste-16" data-q="f11AgenticSyste-16"><span class="qn">&bull;</span>Q17. Design a Supervisor for a multi-turn conversation where routing decisions might conflict (e.g., user asks both a research AND a math question).</a><a href="#f11AgenticSyste-17" data-q="f11AgenticSyste-17"><span class="qn">&bull;</span>Q18. You add a 10th worker to your Supervisor system. The routing logic becomes complex. How do you keep it maintainable?</a><a href="#f11AgenticSyste-18" data-q="f11AgenticSyste-18"><span class="qn">&bull;</span>Q19. What's the key difference between a Swarm and a Supervisor?</a><a href="#f11AgenticSyste-19" data-q="f11AgenticSyste-19"><span class="qn">&bull;</span>Q20. How does a handoff actually work in LangGraph?</a><a href="#f11AgenticSyste-20" data-q="f11AgenticSyste-20"><span class="qn">&bull;</span>Q21. Why is debugging a Swarm hard without tracing?</a><a href="#f11AgenticSyste-21" data-q="f11AgenticSyste-21"><span class="qn">&bull;</span>Q22. Design a Swarm where agents can "pass the baton" conditionally (only handoff if a condition is met).</a><a href="#f11AgenticSyste-22" data-q="f11AgenticSyste-22"><span class="qn">&bull;</span>Q23. A customer says "I want to refund my order AND report a bug." Your swarm has [support, refunds, bugs]. How do you handle this?</a><div class="nav-grp">12 &middot; Context management</div><a href="#f12ContextManag-23" data-q="f12ContextManag-23"><span class="qn">&bull;</span>Context Window Fundamentals</a><a href="#f12ContextManag-24" data-q="f12ContextManag-24"><span class="qn">&bull;</span>When Context Becomes a Problem</a><a href="#f12ContextManag-25" data-q="f12ContextManag-25"><span class="qn">&bull;</span>Context Management Strategies</a><a href="#f12ContextManag-26" data-q="f12ContextManag-26"><span class="qn">&bull;</span>Summarization Patterns</a><a href="#f12ContextManag-27" data-q="f12ContextManag-27"><span class="qn">&bull;</span>Implementation by Agent Pattern</a><a href="#f12ContextManag-28" data-q="f12ContextManag-28"><span class="qn">&bull;</span>Hierarchical Summarization</a><a href="#f12ContextManag-29" data-q="f12ContextManag-29"><span class="qn">&bull;</span>Interview Questions</a><a href="#f12ContextManag-30" data-q="f12ContextManag-30"><span class="qn">&bull;</span>Production Checklist</a><a href="#f12ContextManag-31" data-q="f12ContextManag-31"><span class="qn">&bull;</span>Final Checklist: Interview Readiness</a><a href="#f12ContextManag-32" data-q="f12ContextManag-32"><span class="qn">&bull;</span>References</a><div class="nav-grp">13 &middot; Topic-coverage playbook</div><a href="#f13TopicCoverag-33" data-q="f13TopicCoverag-33"><span class="qn">&bull;</span>Quick coverage matrix</a><a href="#f13TopicCoverag-34" data-q="f13TopicCoverag-34"><span class="qn">&bull;</span>1. Models &amp; providers</a><a href="#f13TopicCoverag-35" data-q="f13TopicCoverag-35"><span class="qn">&bull;</span>2. Prompts</a><a href="#f13TopicCoverag-36" data-q="f13TopicCoverag-36"><span class="qn">&bull;</span>3. Structured output</a><a href="#f13TopicCoverag-37" data-q="f13TopicCoverag-37"><span class="qn">&bull;</span>4. Composition (the core difference)</a><a href="#f13TopicCoverag-38" data-q="f13TopicCoverag-38"><span class="qn">&bull;</span>5. Tools &amp; tool calling</a><a href="#f13TopicCoverag-39" data-q="f13TopicCoverag-39"><span class="qn">&bull;</span>6. Agents (ReAct)</a><a href="#f13TopicCoverag-40" data-q="f13TopicCoverag-40"><span class="qn">&bull;</span>7. Conversation memory (short-term)</a><a href="#f13TopicCoverag-41" data-q="f13TopicCoverag-41"><span class="qn">&bull;</span>8. Persistence &amp; checkpointing — local vs DB vs <i>after a restart</i> ⭐</a><a href="#f13TopicCoverag-42" data-q="f13TopicCoverag-42"><span class="qn">&bull;</span>9. Long-term memory (cross-conversation facts)</a><a href="#f13TopicCoverag-43" data-q="f13TopicCoverag-43"><span class="qn">&bull;</span>10. RAG / retrieval</a><a href="#f13TopicCoverag-44" data-q="f13TopicCoverag-44"><span class="qn">&bull;</span>11. Streaming</a><a href="#f13TopicCoverag-45" data-q="f13TopicCoverag-45"><span class="qn">&bull;</span>12. Human-in-the-loop</a><a href="#f13TopicCoverag-46" data-q="f13TopicCoverag-46"><span class="qn">&bull;</span>13. Routing / control flow</a><a href="#f13TopicCoverag-47" data-q="f13TopicCoverag-47"><span class="qn">&bull;</span>14. Parallelism</a><a href="#f13TopicCoverag-48" data-q="f13TopicCoverag-48"><span class="qn">&bull;</span>15. Errors, retries &amp; fallbacks</a><a href="#f13TopicCoverag-49" data-q="f13TopicCoverag-49"><span class="qn">&bull;</span>16. Multi-agent</a><a href="#f13TopicCoverag-50" data-q="f13TopicCoverag-50"><span class="qn">&bull;</span>17. Observability / tracing</a><a href="#f13TopicCoverag-51" data-q="f13TopicCoverag-51"><span class="qn">&bull;</span>18. Deployment</a><div class="nav-grp">19 &middot; Orchestrator vs supervisor</div><a href="#f19Orchestrator-52" data-q="f19Orchestrator-52"><span class="qn">&bull;</span>1. The Distinction (interview answer first)</a><a href="#f19Orchestrator-53" data-q="f19Orchestrator-53"><span class="qn">&bull;</span>2. Implementing a Supervisor (LangGraph)</a><a href="#f19Orchestrator-54" data-q="f19Orchestrator-54"><span class="qn">&bull;</span>3. Implementing an Orchestrator-Worker (LangGraph <code>Send</code>)</a><a href="#f19Orchestrator-55" data-q="f19Orchestrator-55"><span class="qn">&bull;</span>4. Adding an Agent AFTER Deployment (the real question)</a><a href="#f19Orchestrator-56" data-q="f19Orchestrator-56"><span class="qn">&bull;</span>5. Interview Q&amp;A</a></nav>
+  <nav><div class="nav-grp"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg>On this page</div><a href="#top" data-t="top"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compass"/></svg>Overview</a><a href="#figs" data-t="figs"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-image"/></svg>Diagrams</a><a class="nav-file" href="#f11AgenticSyste" data-t="f11AgenticSyste"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>11 &middot; Agentic systems &amp; patterns</a><a class="nav-sub" href="#f11AgenticSyste-p0" data-t="f11AgenticSyste-p0">Key Definitions (read first)</a><a class="nav-sub" href="#f11AgenticSyste-p1" data-t="f11AgenticSyste-p1">Pattern Overview Matrix</a><a class="nav-sub" href="#f11AgenticSyste-p2" data-t="f11AgenticSyste-p2">Execution Cycles &amp; Flow Diagrams</a><a class="nav-sub" href="#f11AgenticSyste-p3" data-t="f11AgenticSyste-p3">State Transitions &amp; Guards</a><a class="nav-sub" href="#f11AgenticSyste-p4" data-t="f11AgenticSyste-p4">State Schema Templates</a><a class="nav-sub" href="#f11AgenticSyste-p5" data-t="f11AgenticSyste-p5">Pattern 1: ReAct</a><a class="nav-sub" href="#f11AgenticSyste-p6" data-t="f11AgenticSyste-p6">Pattern 2: Reflection (Reflexion)</a><a class="nav-sub" href="#f11AgenticSyste-p7" data-t="f11AgenticSyste-p7">Pattern 2B: Reflexion (Verbal RL with Episodic Memory)</a><a class="nav-sub" href="#f11AgenticSyste-p8" data-t="f11AgenticSyste-p8">Pattern 3: Plan-and-Execute</a><a class="nav-sub" href="#f11AgenticSyste-p9" data-t="f11AgenticSyste-p9">Pattern 4: Supervisor</a><a class="nav-sub" href="#f11AgenticSyste-p10" data-t="f11AgenticSyste-p10">Pattern 5: Swarm</a><a class="nav-sub" href="#f11AgenticSyste-p11" data-t="f11AgenticSyste-p11">When NOT to Use Agents</a><a class="nav-sub" href="#f11AgenticSyste-p12" data-t="f11AgenticSyste-p12">Interview Questions by Pattern</a><a class="nav-sub" href="#f11AgenticSyste-p13" data-t="f11AgenticSyste-p13">Code Examples &amp; Comparisons</a><a class="nav-sub" href="#f11AgenticSyste-p14" data-t="f11AgenticSyste-p14">Error Handling Flows by Pattern</a><a class="nav-sub" href="#f11AgenticSyste-p15" data-t="f11AgenticSyste-p15">Production Considerations</a><a class="nav-sub" href="#f11AgenticSyste-p16" data-t="f11AgenticSyste-p16">Common Interview Mistakes &amp; How to Avoid Them</a><a class="nav-sub" href="#f11AgenticSyste-p17" data-t="f11AgenticSyste-p17">Quick Reference: Mental Models for the Interview</a><a class="nav-sub" href="#f11AgenticSyste-p18" data-t="f11AgenticSyste-p18">Final Checklist: Before Your Interview</a><a class="nav-sub" href="#f11AgenticSyste-p19" data-t="f11AgenticSyste-p19">References &amp; Further Reading</a><a class="nav-sub" href="#f11AgenticSyste-p20" data-t="f11AgenticSyste-p20">1. What Are Agentic Systems?</a><a class="nav-sub" href="#f11AgenticSyste-p21" data-t="f11AgenticSyste-p21">2. Core Architecture Patterns</a><a class="nav-sub" href="#f11AgenticSyste-p22" data-t="f11AgenticSyste-p22">3. Agent Cognition — Reasoning &amp; Planning</a><a class="nav-sub" href="#f11AgenticSyste-p23" data-t="f11AgenticSyste-p23">4. Tool Use &amp; Function Calling</a><a class="nav-sub" href="#f11AgenticSyste-p24" data-t="f11AgenticSyste-p24">5. Memory Systems</a><a class="nav-sub" href="#f11AgenticSyste-p25" data-t="f11AgenticSyste-p25">6. Multi-Agent Orchestration</a><a class="nav-sub" href="#f11AgenticSyste-p26" data-t="f11AgenticSyste-p26">7. State Management &amp; Workflows</a><a class="nav-sub" href="#f11AgenticSyste-p27" data-t="f11AgenticSyste-p27">8. Retrieval-Augmented Generation (RAG) in Agents</a><a class="nav-sub" href="#f11AgenticSyste-p28" data-t="f11AgenticSyste-p28">9. Guardrails, Safety &amp; Human-in-the-Loop</a><a class="nav-sub" href="#f11AgenticSyste-p29" data-t="f11AgenticSyste-p29">10. Evaluation &amp; Testing</a><a class="nav-sub" href="#f11AgenticSyste-p30" data-t="f11AgenticSyste-p30">11. Production Deployment</a><a class="nav-sub" href="#f11AgenticSyste-p31" data-t="f11AgenticSyste-p31">12. Case Studies — End-to-End Designs</a><a class="nav-sub" href="#f11AgenticSyste-p32" data-t="f11AgenticSyste-p32">13. LATS (Language Agent Tree Search)</a><a class="nav-sub" href="#f11AgenticSyste-p33" data-t="f11AgenticSyste-p33">14. A2A (Agent-to-Agent) Protocol</a><a class="nav-sub" href="#f11AgenticSyste-p34" data-t="f11AgenticSyste-p34">15. Interview Questions &amp; Answers</a><a class="nav-sub" href="#f11AgenticSyste-p35" data-t="f11AgenticSyste-p35">🎯 Agentic Design Decision Cheat Sheet</a><a class="nav-file" href="#f12ContextManag" data-t="f12ContextManag"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>12 &middot; Context management</a><a class="nav-file" href="#f13TopicCoverag" data-t="f13TopicCoverag"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>13 &middot; Topic-coverage playbook</a><a class="nav-file" href="#f19Orchestrator" data-t="f19Orchestrator"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>19 &middot; Orchestrator vs supervisor</a></nav>
 </aside>
 <main><div class="wrap">
 
-<section class="hero" id="top"><div class="eyebrow">08_LangChain_and_LangGraph &middot; Patterns</div>
-<h1>Patterns</h1><p class="lede">Agent patterns, context management, orchestration</p><div class="oneliner"><b>4 files</b> in this section, <b>57 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
-<div class="stats"><div class="stat"><div class="stat-v">4</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">57</div><div class="stat-l">sections</div></div></div></section>
-<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">Agent patterns, context management, orchestration</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>11 &middot; Agentic systems &amp; patterns</b><span class="learn-n">23 sections</span></div><div class="learn-tags"><span>Key Definitions (read first)</span><span>Pattern Overview Matrix</span><span>Execution Cycles &amp; Flow Diagrams</span><span>State Transitions &amp; Guards</span><span>State Schema Templates</span></div></li><li class="learn-item"><div class="learn-top"><b>12 &middot; Context management</b><span class="learn-n">10 sections</span></div><div class="learn-tags"><span>Context Window Fundamentals</span><span>When Context Becomes a Problem</span><span>Context Management Strategies</span><span>Summarization Patterns</span><span>Implementation by Agent Pattern</span></div></li><li class="learn-item"><div class="learn-top"><b>13 &middot; Topic-coverage playbook</b><span class="learn-n">19 sections</span></div><div class="learn-tags"><span>Quick coverage matrix</span><span>Models &amp; providers</span><span>Prompts</span><span>Structured output</span><span>Composition (the core difference)</span></div></li><li class="learn-item"><div class="learn-top"><b>19 &middot; Orchestrator vs supervisor</b><span class="learn-n">5 sections</span></div><div class="learn-tags"><span>The Distinction (interview answer fir…</span><span>Implementing a Supervisor (LangGraph)</span><span>Implementing an Orchestrator-Worker (…</span><span>Adding an Agent AFTER Deployment (the…</span><span>Interview Q&amp;A</span></div></li></ul></section>
+<nav class="crumb"><a href="../index.html">Home</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><a href="index.html">LangChain &amp; LangGraph</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><b>Patterns</b></nav>
+<section class="hero" id="top"><div class="eyebrow">LangChain and LangGraph &middot; Patterns</div>
+<h1>Patterns</h1><p class="lede">Agent patterns, context management, orchestration</p><div class="oneliner"><b>4 files</b> in this section, <b>57 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div></section>
 <section class="sec" id="figs"><figure class="viz"><figcaption><b>DAG vs agent loop &mdash; the control-flow choice under every &ldquo;do I need an agent?&rdquo;</b><span>A DAG is a directed acyclic graph: fixed nodes, fixed edges, guaranteed to terminate</span></figcaption><div class="viz-scroll"><svg viewBox="0 0 920 392" role="img" aria-label="DAG vs agent loop &mdash; the control-flow choice under every &ldquo;do I need an agent?&rdquo;"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-opacity="0.22"/></filter></defs><text x="10" y="22" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-rag)">A &mdash; DAG (WORKFLOW): EDGES FIXED AT BUILD TIME, NO CYCLES</text><rect x="10" y="72" width="104" height="38" rx="10" fill="var(--fig-surface)" stroke="var(--fig-border)" stroke-width="1.5" filter="url(#sh)"/><text x="62" y="95.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Input</text><rect x="160" y="38" width="128" height="38" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><text x="224" y="61.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Parse</text><rect x="160" y="106" width="128" height="38" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><text x="224" y="129.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Fetch</text><rect x="334" y="72" width="128" height="38" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><text x="398" y="95.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Merge</text><rect x="508" y="72" width="134" height="38" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><text x="575" y="95.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Summarise</text><rect x="688" y="72" width="112" height="38" rx="10" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><text x="744" y="95.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Output</text><path d="M114 91 L138 91 L138 57" fill="none" stroke="var(--fig-rag)" stroke-width="1.5"/><line x1="138" y1="57" x2="156" y2="57" stroke="var(--fig-rag)" stroke-width="2" marker-end="url(#a)"/><path d="M114 91 L138 91 L138 125" fill="none" stroke="var(--fig-rag)" stroke-width="1.5"/><line x1="138" y1="125" x2="156" y2="125" stroke="var(--fig-rag)" stroke-width="2" marker-end="url(#a)"/><path d="M288 57 L312 57 L312 91" fill="none" stroke="var(--fig-rag)" stroke-width="1.5"/><path d="M288 125 L312 125 L312 91" fill="none" stroke="var(--fig-rag)" stroke-width="1.5"/><line x1="312" y1="91" x2="330" y2="91" stroke="var(--fig-rag)" stroke-width="2" marker-end="url(#a)"/><line x1="462" y1="91" x2="504" y2="91" stroke="var(--fig-rag)" stroke-width="2" marker-end="url(#a)"/><line x1="642" y1="91" x2="684" y2="91" stroke="var(--fig-good)" stroke-width="2" marker-end="url(#a)"/><text x="160" y="162" text-anchor="start" font-size="10.5" font-weight="600" fill="var(--fig-mut)">fan-out and fan-in run <tspan font-weight='800'>in parallel</tspan>; termination is <tspan font-weight='800'>structural</tspan> &mdash; there is no cycle to run away in</text><text x="10" y="194" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-agentic)">B &mdash; AGENT LOOP: THE EDGE BACK IS THE POINT, AND THE RISK</text><rect x="10" y="232" width="100" height="38" rx="10" fill="var(--fig-surface)" stroke="var(--fig-border)" stroke-width="1.5" filter="url(#sh)"/><text x="60" y="255.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Goal</text><line x1="110" y1="251" x2="152" y2="251" stroke="var(--fig-mut)" stroke-width="2" marker-end="url(#a)"/><rect x="156" y="232" width="122" height="38" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><text x="217" y="255.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Think</text><line x1="278" y1="251" x2="316" y2="251" stroke="var(--fig-agentic)" stroke-width="2" marker-end="url(#a)"/><rect x="320" y="232" width="126" height="38" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><text x="383" y="255.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Act (tool)</text><line x1="446" y1="251" x2="484" y2="251" stroke="var(--fig-agentic)" stroke-width="2" marker-end="url(#a)"/><rect x="488" y="232" width="126" height="38" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><text x="551" y="255.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Observe</text><line x1="614" y1="251" x2="650" y2="251" stroke="var(--fig-agentic)" stroke-width="2" marker-end="url(#a)"/><path d="M710 225 L766 251 L710 277 L654 251 z" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="2" filter="url(#sh)"/><text x="710" y="255" text-anchor="middle" font-size="12" font-weight="700" fill="var(--fig-agentic)">Done?</text><rect x="800" y="232" width="112" height="38" rx="10" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><text x="856" y="255.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Answer</text><line x1="766" y1="251" x2="796" y2="251" stroke="var(--fig-good)" stroke-width="2" marker-end="url(#a)"/><path d="M710 277 L710 310 L217 310" fill="none" stroke="var(--fig-crit)" stroke-width="2" stroke-dasharray="5 4"/><line x1="217" y1="310" x2="217" y2="274" stroke="var(--fig-crit)" stroke-width="2" marker-end="url(#a)"/><text x="272" y="306" text-anchor="start" font-size="10.5" font-weight="600" fill="var(--fig-crit)">no &rarr; loop again &mdash; <tspan font-weight='800'>this edge needs a hard step cap and a guaranteed exit</tspan></text><rect x="10" y="332" width="900" height="50" rx="9" fill="var(--fig-surface-2)" stroke="var(--fig-accent)"/><text x="27" y="353" font-size="11.5" fill="var(--fig-ink-2)"><tspan font-weight="800" fill="var(--fig-accent)">How to choose, out loud:</tspan> if the steps are knowable at build time, use a <tspan font-weight='700'>DAG</tspan> &mdash; cheaper, parallel, testable, and it cannot loop. Reach </text><text x="27" y="370" font-size="11.5" fill="var(--fig-ink-2)">for the cycle only when the next step genuinely depends on what the last one returned.</text></svg></div></figure><figure class="viz"><figcaption><b>Supervisor vs Orchestrator — the two control-flow patterns</b><span>Next step depends on the last result → supervisor. Subtasks independent once planned → orchestrator.</span></figcaption><div class="viz-scroll"><svg viewBox="0 0 920 272" role="img" aria-label="Supervisor vs Orchestrator — the two control-flow patterns"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-mut)"/></marker><marker id="ahb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--t-rag)"/></marker><marker id="aho" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--t-agentic)"/></marker></defs><line x1="460" y1="8" x2="460" y2="266" stroke="var(--border)" stroke-dasharray="4 4"/><text x="8" y="22" text-anchor="start" font-size="11.5" font-weight="800" letter-spacing=".08em" fill="var(--t-rag)">SUPERVISOR — TURN-BY-TURN ROUTER</text><rect x="150" y="38" width="150" height="46" rx="9" fill="var(--surface-2)" stroke="var(--t-rag)" stroke-width="1.5"/><text x="225" y="60" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Supervisor</text><text x="225" y="74" text-anchor="middle" font-size="10" fill="var(--ink-mut)">picks ONE next</text><rect x="16" y="150" width="128" height="44" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="80" y="176" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Researcher</text><path d="M225 84 L80 146" fill="none" stroke="var(--ink-mut)" stroke-width="1.5" marker-end="url(#ah)"/><path d="M80 150 L225 88" fill="none" stroke="var(--ink-mut)" stroke-width="1" stroke-dasharray="3 3"/><rect x="160" y="150" width="128" height="44" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="224" y="176" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Coder</text><path d="M225 84 L224 146" fill="none" stroke="var(--ink-mut)" stroke-width="1.5" marker-end="url(#ah)"/><path d="M224 150 L225 88" fill="none" stroke="var(--ink-mut)" stroke-width="1" stroke-dasharray="3 3"/><rect x="304" y="150" width="128" height="44" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="368" y="176" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Writer</text><path d="M225 84 L368 146" fill="none" stroke="var(--ink-mut)" stroke-width="1.5" marker-end="url(#ah)"/><path d="M368 150 L225 88" fill="none" stroke="var(--ink-mut)" stroke-width="1" stroke-dasharray="3 3"/><path d="M300 61 L392 61" fill="none" stroke="var(--good)" stroke-width="2" marker-end="url(#ah)"/><text x="396" y="65" text-anchor="start" font-size="11" font-weight="800" letter-spacing=".08em" fill="var(--good)">END</text><text x="16" y="216" text-anchor="start" font-size="10.5" font-weight="600" letter-spacing=".08em" fill="var(--ink-mut)">result returns to the supervisor, which decides the NEXT step</text><text x="16" y="234" text-anchor="start" font-size="10.5" font-weight="700" letter-spacing=".08em" fill="var(--t-rag)">Sequential · latency = SUM of hops · 1 router call per hop</text><text x="480" y="22" text-anchor="start" font-size="11.5" font-weight="800" letter-spacing=".08em" fill="var(--t-agentic)">ORCHESTRATOR-WORKER — PLAN, FAN-OUT, FAN-IN</text><rect x="620" y="38" width="150" height="46" rx="9" fill="var(--surface-2)" stroke="var(--t-agentic)" stroke-width="1.5"/><text x="695" y="60" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Planner</text><text x="695" y="74" text-anchor="middle" font-size="10" fill="var(--ink-mut)">splits into N</text><rect x="488" y="116" width="128" height="44" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="552" y="142" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Worker</text><path d="M695 84 L552 112" fill="none" stroke="var(--t-agentic)" stroke-width="1.5" marker-end="url(#aho)"/><path d="M552 160 L695 190" fill="none" stroke="var(--ink-mut)" stroke-width="1.5" marker-end="url(#ah)"/><rect x="632" y="116" width="128" height="44" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="696" y="142" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Worker</text><path d="M695 84 L696 112" fill="none" stroke="var(--t-agentic)" stroke-width="1.5" marker-end="url(#aho)"/><path d="M696 160 L695 190" fill="none" stroke="var(--ink-mut)" stroke-width="1.5" marker-end="url(#ah)"/><rect x="776" y="116" width="128" height="44" rx="9" fill="var(--surface-2)" stroke="var(--border)" stroke-width="1.5"/><text x="840" y="142" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Worker</text><path d="M695 84 L840 112" fill="none" stroke="var(--t-agentic)" stroke-width="1.5" marker-end="url(#aho)"/><path d="M840 160 L695 190" fill="none" stroke="var(--ink-mut)" stroke-width="1.5" marker-end="url(#ah)"/><text x="880" y="104" text-anchor="end" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--t-agentic)">Send × N</text><rect x="620" y="192" width="150" height="44" rx="9" fill="var(--surface-2)" stroke="var(--good)" stroke-width="1.5"/><text x="695" y="213" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Synthesizer</text><text x="695" y="227" text-anchor="middle" font-size="10" fill="var(--ink-mut)">merge results</text><text x="480" y="256" text-anchor="start" font-size="10.5" font-weight="700" letter-spacing=".08em" fill="var(--t-agentic)">Parallel by construction · latency ≈ SLOWEST branch · 1 planner + N workers + 1 join</text></svg></div></figure><figure class="viz"><figcaption><b>Anatomy of an agent</b><span>The loop that separates an agent from a chatbot: plan → act → observe → reflect</span></figcaption><div class="viz-scroll"><svg viewBox="0 0 920 258" role="img" aria-label="Anatomy of an agent"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-mut)"/></marker><marker id="ahb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--t-rag)"/></marker><marker id="aho" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--t-agentic)"/></marker></defs><rect x="352" y="86" width="216" height="70" rx="12" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/><text x="460" y="116" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ink)">LLM Core</text><text x="460" y="134" text-anchor="middle" font-size="10.5" fill="var(--ink-mut)">decides — never executes</text><rect x="8" y="16" width="212" height="52" rx="9" fill="var(--surface-2)" stroke="var(--t-agentic)" stroke-width="1.5"/><text x="114" y="41" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Planner</text><text x="114" y="55" text-anchor="middle" font-size="10" fill="var(--ink-mut)">decompose the goal</text><rect x="8" y="196" width="212" height="52" rx="9" fill="var(--surface-2)" stroke="var(--t-agentic)" stroke-width="1.5"/><text x="114" y="221" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Router</text><text x="114" y="235" text-anchor="middle" font-size="10" fill="var(--ink-mut)">pick the path</text><rect x="700" y="16" width="212" height="52" rx="9" fill="var(--surface-2)" stroke="var(--t-agentic)" stroke-width="1.5"/><text x="806" y="41" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Executor</text><text x="806" y="55" text-anchor="middle" font-size="10" fill="var(--ink-mut)">call the tools</text><rect x="700" y="196" width="212" height="52" rx="9" fill="var(--surface-2)" stroke="var(--t-agentic)" stroke-width="1.5"/><text x="806" y="221" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">Reflection</text><text x="806" y="235" text-anchor="middle" font-size="10" fill="var(--ink-mut)">check the work</text><line x1="220" y1="42" x2="352" y2="90" stroke="var(--ink-mut)" stroke-width="1.5"/><line x1="220" y1="222" x2="352" y2="152" stroke="var(--ink-mut)" stroke-width="1.5"/><line x1="568" y1="90" x2="700" y2="42" stroke="var(--ink-mut)" stroke-width="1.5"/><line x1="568" y1="152" x2="700" y2="222" stroke="var(--ink-mut)" stroke-width="1.5"/><rect x="352" y="8" width="216" height="46" rx="9" fill="var(--surface-2)" stroke="var(--t-recall)" stroke-width="1.5"/><text x="460" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Memory</text><text x="460" y="44" text-anchor="middle" font-size="10" fill="var(--ink-mut)">short-term state · long-term store</text><line x1="460" y1="54" x2="460" y2="82" stroke="var(--ink-mut)" stroke-width="1.5" marker-end="url(#ah)"/><rect x="352" y="200" width="216" height="46" rx="9" fill="var(--surface-2)" stroke="var(--t-rag)" stroke-width="1.5"/><text x="460" y="222" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Tools</text><text x="460" y="236" text-anchor="middle" font-size="10" fill="var(--ink-mut)">APIs · SQL · vector DB · MCP</text><line x1="460" y1="160" x2="460" y2="196" stroke="var(--ink-mut)" stroke-width="1.5" marker-end="url(#ah)"/></svg></div></figure></section>
-<section class="filesec" id="f11AgenticSyste"><header class="filehead"><div class="fh-top"><span class="fh-num">11 &middot; Agentic systems &amp; patterns</span><span class="fh-count">23 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/11_Agentic_Systems_and_Patterns.md">source .md &#8599;</a></div><h2>Agentic Systems &amp; Agent Patterns — Master Reference</h2><div class="note">
+<section class="filesec" id="f11AgenticSyste"><header class="filehead"><div class="fh-top"><span class="fh-num">11 &middot; Agentic systems &amp; patterns</span><span class="fh-count">23 sections</span></div><h2>Agentic Systems &amp; Agent Patterns — Master Reference</h2><div class="note">
 <p><strong>Scope:</strong> the complete agent story in one file.
 <strong>Part I — Agent Pattern Catalog &amp; Interview Guide:</strong> <em>which</em> agent architecture to use, with execution-cycle diagrams, state schemas, when-NOT-to-use, error-handling flows, and 25+ interview questions.
 <strong>Part II — Agentic System Design (Architecture → Production):</strong> cognition &amp; planning, tool use &amp; <abbr title="Model Context Protocol">MCP</abbr>, memory, multi-agent orchestration, state, <abbr title="retrieval-augmented generation">RAG</abbr>, <abbr title="checks around a model that block or rewrite unsafe or malformed input and output">guardrails</abbr>, evaluation, deployment, case studies, LATS, <abbr title="agent-to-agent protocol">A2A</abbr>.</p>
 <p><em>This file merges the former <code>02_Agentic_System_Design.md</code> and <code>11_Agent_Architecture_Patterns.md</code>. Part I is the conceptual + interview view of each pattern; Part II §2 shows the same patterns as </em><em>applied LangChain/LangGraph code</em><em>.</em></p>
-</div></header><div class="parthead"><span>Key Definitions (read first)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="note">
+</div></header><div class="parthead" id="f11AgenticSyste-p0"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>Key Definitions (read first)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="note">
 <div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Term</th><th>Plain-language definition</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>Agent</strong></td><td>An <abbr title="large language model">LLM</abbr> that decides <em>what to do next</em> in a loop — choosing tools/steps rather than following a fixed script.</td></tr><tr class="g0"><td class="c-term"><strong>Agentic system</strong></td><td>The whole app around the agent: tools, memory, state, <abbr title="checks around a model that block or rewrite unsafe or malformed input and output">guardrails</abbr>, orchestration.</td></tr><tr class="g1"><td class="c-term"><strong>ReAct</strong></td><td>Reason + Act loop: think → call a tool → observe → repeat.</td></tr><tr class="g0"><td class="c-term"><strong>Reflection / Reflexion</strong></td><td>The agent critiques its own output and retries; Reflexion adds memory of past failures.</td></tr><tr class="g1"><td class="c-term"><strong>Plan-and-Execute</strong></td><td>Make a multi-step plan first, then carry out each step (cheaper, more controllable than pure ReAct).</td></tr><tr class="g0"><td class="c-term"><strong>Router</strong></td><td>A classifier step that sends the request down the right branch/agent.</td></tr><tr class="g1"><td class="c-term"><strong><abbr title="an agent that routes work to other agents and owns the overall plan">Supervisor</abbr></strong></td><td>A central orchestrator agent that routes work to specialist agents.</td></tr><tr class="g0"><td class="c-term"><strong>Swarm</strong></td><td>Peer agents that hand off to each other directly (no central boss).</td></tr><tr class="g1"><td class="c-term"><strong>Hierarchical</strong></td><td>Supervisors of supervisors — teams of agents for complex tasks.</td></tr><tr class="g0"><td class="c-term"><strong>Tool use / <abbr title="the model emitting a structured request for a function the application then executes">function calling</abbr></strong></td><td>The agent invokes external functions/APIs (often via <abbr title="Model Context Protocol">MCP</abbr>).</td></tr><tr class="g1"><td class="c-term"><strong>Short- vs long-term memory</strong></td><td>This run's working state vs facts persisted across sessions.</td></tr><tr class="g0"><td class="c-term"><strong>Guardrails / <abbr title="human in the loop">HITL</abbr></strong></td><td>Safety limits + human approval gates on dangerous actions.</td></tr><tr class="g1"><td class="c-term"><strong>Recursion / step limit</strong></td><td>A hard cap on loop iterations so an agent can't run forever.</td></tr><tr class="g0"><td class="c-term"><strong>LATS</strong></td><td>Language Agent Tree Search — search over reasoning+action trees.</td></tr><tr class="g1"><td class="c-term"><strong><abbr title="agent-to-agent protocol">A2A</abbr></strong></td><td>Agent-to-Agent protocol for agents communicating across systems.</td></tr></tbody></table></div>
 </div>
 <hr />
 <h1>Part I — Agent Pattern Catalog &amp; Interview Guide</h1>
 <div class="note">
 <p><strong>The single differentiator:</strong> <em>who decides what happens next?</em> That one axis explains every pattern below.</p>
-</div></div><div class="parthead"><span>Pattern Overview Matrix</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="tbl-wrap"><table class="t7"><thead><tr><th>Pattern</th><th>Decider</th><th>Flow</th><th>Use Case</th><th>Latency</th><th>Complexity</th><th>Debugging</th></tr></thead><tbody><tr class="g1"><td><strong>ReAct</strong></td><td>The agent itself</td><td>Loop: think → act → observe → repeat</td><td>Single agent, few tools, unpredictable workflows</td><td>Medium (per decision)</td><td>Low</td><td>Easy (linear loop)</td></tr><tr class="g0"><td><strong>Reflection</strong></td><td>Fixed graph + critic <abbr title="large language model">LLM</abbr></td><td>Loop: generate → critique → revise</td><td>Output quality is the bottleneck</td><td>High (multiple iterations)</td><td>Low</td><td>Straightforward (visible critiques)</td></tr><tr class="g1"><td><strong>Reflexion</strong></td><td>Actor + Evaluator + Self-Reflection</td><td>Outer loop: attempt → score → reflect → <strong>retry</strong> (lessons kept in memory)</td><td>Agent must <em>learn from failed attempts</em> across trials</td><td>Highest (multiple full trials)</td><td>Medium</td><td>Medium (inspect stored reflections)</td></tr><tr class="g0"><td><strong>Plan-and-Execute</strong></td><td>Explicit planner node</td><td>Plan once → execute steps → replan</td><td>Multi-step tasks, long-horizon planning needed</td><td>Low (plan cached)</td><td>Medium</td><td>Medium (plan provides structure)</td></tr><tr class="g1"><td><strong><abbr title="an agent that routes work to other agents and owns the overall plan">Supervisor</abbr></strong></td><td>Central LLM "manager"</td><td>Manager routes to workers sequentially</td><td>Distinct skill domains, routing visibility critical</td><td>Medium (extra LLM call per route)</td><td>Medium</td><td>Easy (central dispatcher)</td></tr><tr class="g0"><td><strong>Swarm</strong></td><td>Whichever agent is active</td><td>Agents hand off directly to peers</td><td>Conversational flows, support tickets, dynamic roles</td><td>Low (direct handoff)</td><td>High</td><td>Hard (no central log without tracing)</td></tr></tbody></table></div></div><div class="parthead"><span>Execution Cycles &amp; Flow Diagrams</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>ReAct Cycle</h3>
+</div></div><div class="parthead" id="f11AgenticSyste-p1"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-code"/></svg>Pattern Overview Matrix</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="tbl-wrap"><table class="t7"><thead><tr><th>Pattern</th><th>Decider</th><th>Flow</th><th>Use Case</th><th>Latency</th><th>Complexity</th><th>Debugging</th></tr></thead><tbody><tr class="g1"><td><strong>ReAct</strong></td><td>The agent itself</td><td>Loop: think → act → observe → repeat</td><td>Single agent, few tools, unpredictable workflows</td><td>Medium (per decision)</td><td>Low</td><td>Easy (linear loop)</td></tr><tr class="g0"><td><strong>Reflection</strong></td><td>Fixed graph + critic <abbr title="large language model">LLM</abbr></td><td>Loop: generate → critique → revise</td><td>Output quality is the bottleneck</td><td>High (multiple iterations)</td><td>Low</td><td>Straightforward (visible critiques)</td></tr><tr class="g1"><td><strong>Reflexion</strong></td><td>Actor + Evaluator + Self-Reflection</td><td>Outer loop: attempt → score → reflect → <strong>retry</strong> (lessons kept in memory)</td><td>Agent must <em>learn from failed attempts</em> across trials</td><td>Highest (multiple full trials)</td><td>Medium</td><td>Medium (inspect stored reflections)</td></tr><tr class="g0"><td><strong>Plan-and-Execute</strong></td><td>Explicit planner node</td><td>Plan once → execute steps → replan</td><td>Multi-step tasks, long-horizon planning needed</td><td>Low (plan cached)</td><td>Medium</td><td>Medium (plan provides structure)</td></tr><tr class="g1"><td><strong><abbr title="an agent that routes work to other agents and owns the overall plan">Supervisor</abbr></strong></td><td>Central LLM "manager"</td><td>Manager routes to workers sequentially</td><td>Distinct skill domains, routing visibility critical</td><td>Medium (extra LLM call per route)</td><td>Medium</td><td>Easy (central dispatcher)</td></tr><tr class="g0"><td><strong>Swarm</strong></td><td>Whichever agent is active</td><td>Agents hand off directly to peers</td><td>Conversational flows, support tickets, dynamic roles</td><td>Low (direct handoff)</td><td>High</td><td>Hard (no central log without tracing)</td></tr></tbody></table></div></div><div class="parthead" id="f11AgenticSyste-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-image"/></svg>Execution Cycles &amp; Flow Diagrams</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>ReAct Cycle</h3>
 <pre class="code" data-lang="mermaid"><code>graph TD
     START["🔴 START"] --&gt; AGENT["🧠 Agent&lt;br/&gt;(invoke LLM)"]
     AGENT --&gt; DECIDE{"Has&lt;br/&gt;tool_calls?"}
@@ -690,8 +1038,8 @@ body.searching .parthead{opacity:.5}
 - <strong>Handoff Mechanism</strong>: Tool returns <code>Command(goto="next_agent")</code>
 - <strong>Persistent State</strong>: Message history flows through all agents
 - <strong>Local Decisions</strong>: Each agent decides independently whether to handoff
-- <strong>Debugging Risk</strong>: No central log; requires distributed tracing (Langfuse)</p></div><div class="parthead"><span>State Transitions &amp; Guards</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Critical Guards by Pattern</h3>
-<div class="tbl-wrap"><table class="t4 t-grouped"><thead><tr><th>Pattern</th><th>Guard</th><th>Purpose</th><th>Example</th></tr></thead><tbody><tr class="g1"><td class="c-grp" rowspan="2"><span class="grp-tag"><strong>ReAct</strong></span></td><td><code>max_iterations</code></td><td>Prevent infinite loops</td><td><code>if iteration &gt;= 15: route to END</code></td></tr><tr class="g1"><td><code>has tool_calls</code></td><td>Detect answer</td><td><code>if not response.tool_calls: route to END</code></td></tr><tr class="g0"><td class="c-grp" rowspan="2"><span class="grp-tag"><strong>Reflection</strong></span></td><td><code>iterations &gt;= cap</code></td><td>Hard limit on refinements</td><td><code>if iterations &gt;= 3: return final answer</code></td></tr><tr class="g0"><td>Quality signal</td><td>Detect "good enough"</td><td><code>if "excellent" in critique: stop early</code></td></tr><tr class="g1"><td class="c-grp" rowspan="2"><span class="grp-tag"><strong>Plan-and-Execute</strong></span></td><td><code>plan empty</code></td><td>Steps exhausted</td><td><code>if not state["plan"]: go to replan</code></td></tr><tr class="g1"><td>Replan decision</td><td>Adapt or continue</td><td><code>if decision == "revise": re-plan</code></td></tr><tr class="g0"><td class="c-grp" rowspan="2"><span class="grp-tag"><strong><abbr title="an agent that routes work to other agents and owns the overall plan">Supervisor</abbr></strong></span></td><td>Classification result</td><td>Route to worker</td><td><code>route_map[intent] → worker</code></td></tr><tr class="g0"><td><code>done</code> flag</td><td>Exit supervisor loop</td><td><code>if done: route to END</code></td></tr><tr class="g1"><td class="c-grp" rowspan="2"><span class="grp-tag"><strong>Swarm</strong></span></td><td><code>active_agent</code></td><td>Track who's active</td><td><code>if handoff triggered: switch active_agent</code></td></tr><tr class="g1"><td>Handoff signal</td><td>Trigger transition</td><td><code>if model calls handoff_tool: use Command(goto=...)</code></td></tr></tbody></table></div></div><div class="parthead"><span>State Schema Templates</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>ReAct State</h3>
+- <strong>Debugging Risk</strong>: No central log; requires distributed tracing (Langfuse)</p></div><div class="parthead" id="f11AgenticSyste-p3"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-shield"/></svg>State Transitions &amp; Guards</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Critical Guards by Pattern</h3>
+<div class="tbl-wrap"><table class="t4 t-grouped"><thead><tr><th>Pattern</th><th>Guard</th><th>Purpose</th><th>Example</th></tr></thead><tbody><tr class="g1"><td class="c-grp" rowspan="2"><span class="grp-tag"><strong>ReAct</strong></span></td><td><code>max_iterations</code></td><td>Prevent infinite loops</td><td><code>if iteration &gt;= 15: route to END</code></td></tr><tr class="g1"><td><code>has tool_calls</code></td><td>Detect answer</td><td><code>if not response.tool_calls: route to END</code></td></tr><tr class="g0"><td class="c-grp" rowspan="2"><span class="grp-tag"><strong>Reflection</strong></span></td><td><code>iterations &gt;= cap</code></td><td>Hard limit on refinements</td><td><code>if iterations &gt;= 3: return final answer</code></td></tr><tr class="g0"><td>Quality signal</td><td>Detect "good enough"</td><td><code>if "excellent" in critique: stop early</code></td></tr><tr class="g1"><td class="c-grp" rowspan="2"><span class="grp-tag"><strong>Plan-and-Execute</strong></span></td><td><code>plan empty</code></td><td>Steps exhausted</td><td><code>if not state["plan"]: go to replan</code></td></tr><tr class="g1"><td>Replan decision</td><td>Adapt or continue</td><td><code>if decision == "revise": re-plan</code></td></tr><tr class="g0"><td class="c-grp" rowspan="2"><span class="grp-tag"><strong><abbr title="an agent that routes work to other agents and owns the overall plan">Supervisor</abbr></strong></span></td><td>Classification result</td><td>Route to worker</td><td><code>route_map[intent] → worker</code></td></tr><tr class="g0"><td><code>done</code> flag</td><td>Exit supervisor loop</td><td><code>if done: route to END</code></td></tr><tr class="g1"><td class="c-grp" rowspan="2"><span class="grp-tag"><strong>Swarm</strong></span></td><td><code>active_agent</code></td><td>Track who's active</td><td><code>if handoff triggered: switch active_agent</code></td></tr><tr class="g1"><td>Handoff signal</td><td>Trigger transition</td><td><code>if model calls handoff_tool: use Command(goto=...)</code></td></tr></tbody></table></div></div><div class="parthead" id="f11AgenticSyste-p4"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>State Schema Templates</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>ReAct State</h3>
 <pre class="code" data-lang="python"><code><span class="kw">class</span> <span class="fn">ReactState</span>(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]  <span class="cmt"># History grows</span>
     iteration: int  <span class="cmt"># Track loop count (for cap)</span></code></pre>
@@ -716,7 +1064,7 @@ body.searching .parthead{opacity:.5}
 <pre class="code" data-lang="python"><code><span class="kw">class</span> <span class="fn">SwarmState</span>(TypedDict):
     messages: list  <span class="cmt"># Shared across agents</span>
     active_agent: Literal[<span class="str">"support"</span>, <span class="str">"refunds"</span>, <span class="str">"escalation"</span>]
-    handoff_count: int  <span class="cmt"># Monitor handoff depth</span></code></pre></div><div class="parthead"><span>Pattern 1: ReAct</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Core Idea</h3>
+    handoff_count: int  <span class="cmt"># Monitor handoff depth</span></code></pre></div><div class="parthead" id="f11AgenticSyste-p5"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>Pattern 1: ReAct</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Core Idea</h3>
 <p><strong>Reason + Act in a loop.</strong> The <abbr title="large language model">LLM</abbr> decides whether to:
 - Call a tool (Act)
 - Return a final answer (Reason)</p>
@@ -795,7 +1143,7 @@ agent = <span class="fn">create_react_agent</span>(llm, tools)</code></pre>
 <li><strong>Why <code>add_messages</code>?</strong> Without the reducer, each new message overwrites the history; the loop breaks because context is lost.</li>
 <li><strong>Stopping condition:</strong> <code>tools_condition</code> checks if the latest AI message has <code>tool_calls</code>; if not, routes to END.</li>
 <li><strong>Latency concern:</strong> Every tool call triggers a new LLM invoke; unpredictable workflows can rack up token cost fast.</li>
-</ul></div><div class="parthead"><span>Pattern 2: Reflection (Reflexion)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Core Idea</h3>
+</ul></div><div class="parthead" id="f11AgenticSyste-p6"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>Pattern 2: Reflection (Reflexion)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Core Idea</h3>
 <p><strong>Output quality as the bottleneck.</strong> A generator drafts an answer; a critic evaluates it; you loop back to regenerate with the critique in context. Stop on a quality signal or a hard iteration cap.</p>
 <p><strong>Reflection vs. Reflexion:</strong>
 - <strong>Reflection</strong>: Critique stays in-context (cheap, conversational, one pass).
@@ -874,7 +1222,7 @@ result = graph.<span class="fn">invoke</span>({
 <li><strong>No hard iteration cap:</strong> Critic keeps finding faults forever (runaway cost, infinite loop).</li>
 <li><strong>Vague critique prompt:</strong> Critic says "improve quality" instead of "fix grammar and reduce jargon" — generator ignores it.</li>
 <li><strong>Ignoring negative signal:</strong> If critique says "good as-is," stop immediately instead of looping.</li>
-</ol></div><div class="parthead"><span>Pattern 2B: Reflexion (Verbal RL with Episodic Memory)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="note">
+</ol></div><div class="parthead" id="f11AgenticSyste-p7"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cpu"/></svg>Pattern 2B: Reflexion (Verbal RL with Episodic Memory)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="note">
 <p>Reflexion is Reflection's bigger sibling. Reflection improves <strong>one answer in one pass</strong>; Reflexion improves <strong>an agent across repeated attempts</strong> by turning each failure into a durable, reusable <em>lesson</em>. (Shinn et al., 2023 — <em>"Reflexion: Language Agents with Verbal Reinforcement Learning"</em>.)</p>
 </div>
 <h3>Core Idea</h3>
@@ -1010,7 +1358,7 @@ result = graph.<span class="fn">invoke</span>({
 <li><strong>Why 'verbal RL'?</strong> The evaluator is the reward; the reflection is the policy update — but expressed as text injected into the next prompt, so no weights change.</li>
 <li><strong>Where does memory live?</strong> A list in graph state for one run; back it with a LangGraph <code>Store</code>/checkpointer to persist lessons across sessions.</li>
 <li><strong>Relation to other patterns:</strong> Reflexion <em>composes</em> — its Actor is usually ReAct; its inner quality step resembles Reflection. It's a meta-loop on top.</li>
-</ul></div><div class="parthead"><span>Pattern 3: Plan-and-Execute</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Core Idea</h3>
+</ul></div><div class="parthead" id="f11AgenticSyste-p8"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>Pattern 3: Plan-and-Execute</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Core Idea</h3>
 <p><strong>Decompose first, then run.</strong> A planner produces an ordered step list up front; an executor (often a ReAct agent) runs each step; a replanner decides whether to continue, revise, or finish.</p>
 <p><strong>Use when:</strong> Planning itself is hard — long-horizon tasks where a pure ReAct loop drifts because it never commits to a structure.</p>
 <p><strong>Classic example:</strong> "Build a 3-chapter book outline, research each chapter, draft each, and compile."</p>
@@ -1152,7 +1500,7 @@ result = graph.<span class="fn">invoke</span>({
 <li>✅ Data pipelines ("extract → clean → transform → load")</li>
 <li>❌ Single-hop tool calls (use ReAct)</li>
 <li>❌ Highly interactive flows (use Swarm)</li>
-</ul></div><div class="parthead"><span>Pattern 4: Supervisor</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Core Idea</h3>
+</ul></div><div class="parthead" id="f11AgenticSyste-p9"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>Pattern 4: Supervisor</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Core Idea</h3>
 <p><strong>Central manager routes to workers.</strong> One <abbr title="large language model">LLM</abbr> reads the request, picks a worker (research agent, math agent, etc.), and reads the result. Workers only see what the <abbr title="an agent that routes work to other agents and owns the overall plan">supervisor</abbr> hands them. Every routing decision is one place—easy to trace, easy to audit.</p>
 <p><strong>Architecture:</strong></p>
 <div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px"><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">User Input</span><span class="ar">&rarr;</span><span class="st">Supervisor LLM</span><span class="ar">&rarr;</span><span class="st">Worker Agent</span><span class="ar">&rarr;</span><span class="st">Supervisor</span><span class="ar">&rarr;</span><span class="st">Answer</span><span class="fl" style="margin:0 0 0 10px">classifies</span></div></div>
@@ -1262,7 +1610,7 @@ result = graph.<span class="fn">invoke</span>({
 <li><strong>Treating it like a swarm:</strong> Supervisor is hierarchical (top-down); swarm is peer-to-peer.</li>
 <li><strong>Vague routing prompt:</strong> Supervisor can't classify if the prompt is ambiguous.</li>
 <li><strong>Workers seeing unfiltered input:</strong> Don't pass the full conversation; give workers only the task they need.</li>
-</ol></div><div class="parthead"><span>Pattern 5: Swarm</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Core Idea</h3>
+</ol></div><div class="parthead" id="f11AgenticSyste-p10"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>Pattern 5: Swarm</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Core Idea</h3>
 <p><strong>Peer-to-peer handoff.</strong> Agents hand control to each other directly via handoff tools. No manager. The active agent persists in state, so a follow-up message goes to whoever's holding the conversation.</p>
 <p><strong>Good for:</strong> Support tickets, customer service, conversational flows where "who should handle this next" is a <em>local</em> decision, not a central plan.</p>
 <p><strong>Architecture:</strong></p>
@@ -1372,7 +1720,7 @@ result = graph.<span class="fn">invoke</span>({
 <h3>When to Use Swarm</h3>
 <div class="tbl-wrap"><table class="t2"><thead><tr><th>✅ Use</th><th>❌ Don't Use</th></tr></thead><tbody><tr class="g1"><td>Support tickets (dynamic roles)</td><td>Predetermined workflow (use <abbr title="an agent that routes work to other agents and owns the overall plan">Supervisor</abbr> or pipeline)</td></tr><tr class="g0"><td>Conversational, back-and-forth flows</td><td>Single straight-line task</td></tr><tr class="g1"><td>Agents are peers (no hierarchy)</td><td>Need central visibility of all routing (use Supervisor)</td></tr></tbody></table></div>
 <h3>Production Caveat</h3>
-<p><strong>Swarms are hard to debug without distributed tracing</strong> (Langfuse, LangSmith). There's no central log of handoff decisions. Every agent logs locally; you need tracing to see the full flow. This is a strong, interview-ready answer: <em>"I'd only run a swarm in production with end-to-end tracing on every handoff."</em></p></div><div class="parthead"><span>When NOT to Use Agents</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>The Senior Differentiator</h3>
+<p><strong>Swarms are hard to debug without distributed tracing</strong> (Langfuse, LangSmith). There's no central log of handoff decisions. Every agent logs locally; you need tracing to see the full flow. This is a strong, interview-ready answer: <em>"I'd only run a swarm in production with end-to-end tracing on every handoff."</em></p></div><div class="parthead" id="f11AgenticSyste-p11"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>When NOT to Use Agents</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>The Senior Differentiator</h3>
 <p>The strongest answer to "what kinds of agents are there" <strong>ends by demoting the question</strong>. Most production systems labeled "agent" shouldn't be agents at all.</p>
 <h3>Category 1: Fixed Sequence of Calls</h3>
 <pre class="code" data-lang="python"><code><span class="cmt"># ❌ Don't build an agent for this:</span>
@@ -1426,7 +1774,7 @@ answer = summarizer.<span class="fn">invoke</span>(docs)</code></pre>
          ├─ Output quality critical? → Reflection
          ├─ Long-horizon, planning-heavy? → Plan-and-Execute
          ├─ Multiple domains, visibility required? → Supervisor
-         └─ Conversational handoffs? → Swarm</pre></div></div><div class="parthead"><span>Interview Questions by Pattern</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>ReAct Pattern Questions</h3>
+         └─ Conversational handoffs? → Swarm</pre></div></div><div class="parthead" id="f11AgenticSyste-p12"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>Interview Questions by Pattern</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>ReAct Pattern Questions</h3>
 <h4>Fundamental</h4></div><article class="q" id="f11AgenticSyste-0"><div class="q-h"><span class="q-n">&bull;</span><h3>Q1. How does the ReAct loop terminate?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f11AgenticSyste-0"><span></span></label></div><div class="q-a"><p><strong>Expected Answer:</strong>
 - The agent (<abbr title="large language model">LLM</abbr>) returns a message without <code>tool_calls</code>.
 - <code>tools_condition</code> detects no tool calls and routes to END.
@@ -1577,7 +1925,7 @@ builder.<span class="fn">add_conditional_edges</span>(<span class="str">"agent"<
 - Option 1: Support agent routes to refunds, then back to support, then to bugs (sequential).
 - Option 2: Create a "coordinator" agent that spins up refunds and bugs in parallel (more complex).
 - Option 3: Escalate to human (safe but slow).
-- <strong>Interview signal:</strong> You understand when a swarm is over its head and need escalation / coordination.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>Code Examples &amp; Comparisons</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Side-by-Side: ReAct vs. Reflection vs. Plan-and-Execute</h3>
+- <strong>Interview signal:</strong> You understand when a swarm is over its head and need escalation / coordination.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f11AgenticSyste-p13"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>Code Examples &amp; Comparisons</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Side-by-Side: ReAct vs. Reflection vs. Plan-and-Execute</h3>
 <div class="tbl-wrap"><table class="t4"><thead><tr><th>Aspect</th><th>ReAct</th><th>Reflection</th><th>Plan-and-Execute</th></tr></thead><tbody><tr class="g1"><td><strong>Loop</strong></td><td>agent → tools → agent → ...</td><td>generator → critic → generator → ...</td><td>plan → execute → replan → execute → ...</td></tr><tr class="g0"><td><strong>Decider</strong></td><td>The agent (<abbr title="large language model">LLM</abbr>)</td><td>Generator + Critic</td><td>Planner upfront + Replanner per step</td></tr><tr class="g1"><td><strong>When to stop</strong></td><td>Model returns no tool calls</td><td>Hard iteration cap or quality signal</td><td>Replanner says "done" or plan exhausted</td></tr><tr class="g0"><td><strong>Latency (best case)</strong></td><td>1 LLM call + 1 tool</td><td>2 LLM calls</td><td>3+ LLM calls (plan + replan)</td></tr><tr class="g1"><td><strong>Latency (worst case)</strong></td><td>Unbounded (runaway loop)</td><td>~2x best (capped iterations)</td><td>~3x best (structured steps)</td></tr><tr class="g0"><td><strong>Cost</strong></td><td>High variance (depends on tools)</td><td><span class="mag">2×</span> + tools</td><td><span class="mag">3×</span> + tools per step</td></tr><tr class="g1"><td><strong>Code complexity</strong></td><td>Low</td><td>Low</td><td>Medium</td></tr><tr class="g0"><td><strong>Debugging</strong></td><td>Easy (linear flow)</td><td>Medium (visible critiques)</td><td>Medium (plan provides structure)</td></tr></tbody></table></div>
 <h3>Choosing the Right Pattern</h3>
 <p><strong>Flowchart:</strong></p>
@@ -1588,7 +1936,7 @@ builder.<span class="fn">add_conditional_edges</span>(<span class="str">"agent"<
    ├─ Output quality is the bottleneck? → Reflection
    ├─ Long multi-step task, planning is hard? → Plan-and-Execute
    ├─ Multiple domain experts, need visible routing? → Supervisor
-   └─ Conversational flow, peers handle different parts? → Swarm</pre></div></div><div class="parthead"><span>Error Handling Flows by Pattern</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>This section shows what happens when things go wrong and how each pattern handles failure scenarios.</p>
+   └─ Conversational flow, peers handle different parts? → Swarm</pre></div></div><div class="parthead" id="f11AgenticSyste-p14"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>Error Handling Flows by Pattern</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>This section shows what happens when things go wrong and how each pattern handles failure scenarios.</p>
 <h3>ReAct: Handling Tool Failures</h3>
 <pre class="code" data-lang="mermaid"><code>graph TD
     START["🔴 START"] --&gt; AGENT["🧠 Agent&lt;br/&gt;(LLM decision)"]
@@ -2024,7 +2372,7 @@ builder.<span class="fn">add_conditional_edges</span>(<span class="str">"agent"<
         summary = summarizer_llm.<span class="fn">invoke</span>(f<span class="str">"Summarize: {old_msgs}"</span>)
         new_msgs = [f<span class="str">"[SUMMARY] {summary.content}"</span>] + state[<span class="str">"messages"</span>][-<span class="num">10</span>:]
         <span class="kw">return</span> {<span class="str">"messages"</span>: new_msgs}
-    <span class="kw">return</span> {}</code></pre></div><div class="parthead"><span>Production Considerations</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Error Handling Across Patterns</h3>
+    <span class="kw">return</span> {}</code></pre></div><div class="parthead" id="f11AgenticSyste-p15"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>Production Considerations</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Error Handling Across Patterns</h3>
 <div class="tbl-wrap"><table class="t3"><thead><tr><th>Pattern</th><th>Key Risk</th><th>Mitigation</th></tr></thead><tbody><tr class="g1"><td>ReAct</td><td>Infinite loop (runaway tokens)</td><td>Hard iteration cap (15–25)</td></tr><tr class="g0"><td>Reflection</td><td>Critic stuck in local optima</td><td>Early-exit signal + cap</td></tr><tr class="g1"><td>Plan-and-Execute</td><td>Step failure cascades</td><td>Graceful skips or re-plan</td></tr><tr class="g0"><td><abbr title="an agent that routes work to other agents and owns the overall plan">Supervisor</abbr></td><td>Routing misclassification</td><td>Fallback to "ask human"</td></tr><tr class="g1"><td>Swarm</td><td>Lost in handoffs (no central log)</td><td>Distributed tracing mandatory</td></tr></tbody></table></div>
 <h3>Monitoring &amp; Observability</h3>
 <p><strong>For each pattern, track:</strong></p>
@@ -2072,7 +2420,7 @@ ReAct (avg): <span class="num">1000</span>–<span class="num">5000</span> token
 Reflection (avg): <span class="num">3000</span>–<span class="num">10000</span> tokens (capped iterations)
 Plan-<span class="kw">and</span>-Execute (avg): <span class="num">2000</span>–<span class="num">6000</span> tokens (structured steps)
 Supervisor (avg): <span class="num">1500</span>–<span class="num">3000</span> tokens (routing + delegation)
-Swarm (avg): <span class="num">2000</span>–<span class="num">8000</span> tokens (depends on handoff depth)</code></pre></div><div class="parthead"><span>Common Interview Mistakes &amp; How to Avoid Them</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Mistake 1: Treating All Patterns as "Agents"</h3>
+Swarm (avg): <span class="num">2000</span>–<span class="num">8000</span> tokens (depends on handoff depth)</code></pre></div><div class="parthead" id="f11AgenticSyste-p16"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>Common Interview Mistakes &amp; How to Avoid Them</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Mistake 1: Treating All Patterns as "Agents"</h3>
 <p><strong>Wrong:</strong> "We built a <abbr title="an agent that routes work to other agents and owns the overall plan">supervisor</abbr> agent with 5 worker agents inside a swarm orchestration."</p>
 <p><strong>Right:</strong> "We built a supervisor graph that routes between 5 ReAct agents. Swarm wouldn't work here because we need centralized visibility."</p>
 <p><strong>Signal:</strong> Be precise about which pattern you're using and why.</p>
@@ -2091,7 +2439,7 @@ Swarm (avg): <span class="num">2000</span>–<span class="num">8000</span> token
 <h3>Mistake 5: Ignoring Debugging/Tracing</h3>
 <p><strong>Wrong:</strong> "Our swarm is working great in production."</p>
 <p><strong>Right:</strong> "Our swarm works, and it's instrumented with Langfuse for distributed tracing. Without it, we wouldn't be able to debug handoff chains."</p>
-<p><strong>Signal:</strong> You've shipped agents to production and know what it takes to support them.</p></div><div class="parthead"><span>Quick Reference: Mental Models for the Interview</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="tbl-wrap"><table class="t3"><thead><tr><th>Pattern</th><th>Mental Model</th><th>Key Insight</th></tr></thead><tbody><tr class="g1"><td><strong>ReAct</strong></td><td>One brain, many tools, loops until done</td><td>The agent decides the next move every step</td></tr><tr class="g0"><td><strong>Reflection</strong></td><td>One brain grades itself and improves</td><td>Quality over speed; pay with tokens</td></tr><tr class="g1"><td><strong>Reflexion</strong></td><td>An agent journals each failure and rereads the journal next attempt</td><td>Verbal <abbr title="reinforcement learning">RL</abbr> — learning lives in memory, not gradients</td></tr><tr class="g0"><td><strong>Plan-and-Execute</strong></td><td>Plan once, execute steps, re-plan if needed</td><td>Structure upfront reduces drift</td></tr><tr class="g1"><td><strong><abbr title="an agent that routes work to other agents and owns the overall plan">Supervisor</abbr></strong></td><td>A boss delegates to specialists</td><td>Visibility and routing auditability matter</td></tr><tr class="g0"><td><strong>Swarm</strong></td><td>Specialists pass the baton directly</td><td>Flexibility, but hard to debug without tracing</td></tr></tbody></table></div></div><div class="parthead"><span>Final Checklist: Before Your Interview</span><i></i></div><div class="q-a" style="margin:0 0 12px"><ul>
+<p><strong>Signal:</strong> You've shipped agents to production and know what it takes to support them.</p></div><div class="parthead" id="f11AgenticSyste-p17"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>Quick Reference: Mental Models for the Interview</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="tbl-wrap"><table class="t3"><thead><tr><th>Pattern</th><th>Mental Model</th><th>Key Insight</th></tr></thead><tbody><tr class="g1"><td><strong>ReAct</strong></td><td>One brain, many tools, loops until done</td><td>The agent decides the next move every step</td></tr><tr class="g0"><td><strong>Reflection</strong></td><td>One brain grades itself and improves</td><td>Quality over speed; pay with tokens</td></tr><tr class="g1"><td><strong>Reflexion</strong></td><td>An agent journals each failure and rereads the journal next attempt</td><td>Verbal <abbr title="reinforcement learning">RL</abbr> — learning lives in memory, not gradients</td></tr><tr class="g0"><td><strong>Plan-and-Execute</strong></td><td>Plan once, execute steps, re-plan if needed</td><td>Structure upfront reduces drift</td></tr><tr class="g1"><td><strong><abbr title="an agent that routes work to other agents and owns the overall plan">Supervisor</abbr></strong></td><td>A boss delegates to specialists</td><td>Visibility and routing auditability matter</td></tr><tr class="g0"><td><strong>Swarm</strong></td><td>Specialists pass the baton directly</td><td>Flexibility, but hard to debug without tracing</td></tr></tbody></table></div></div><div class="parthead" id="f11AgenticSyste-p18"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>Final Checklist: Before Your Interview</span><i></i></div><div class="q-a" style="margin:0 0 12px"><ul>
 <li>[ ] I can explain ReAct from scratch (whiteboard-ready).</li>
 <li>[ ] I understand why <code>add_messages</code> reducer matters in LangGraph.</li>
 <li>[ ] I can name the five patterns and when to use each.</li>
@@ -2102,7 +2450,7 @@ Swarm (avg): <span class="num">2000</span>–<span class="num">8000</span> token
 <li>[ ] I understand distributed tracing for Swarms (Langfuse / LangSmith).</li>
 <li>[ ] I can discuss token cost trade-offs per pattern.</li>
 <li>[ ] I can debug a pattern-specific failure (ask me to explain production issues I've hit).</li>
-</ul></div><div class="parthead"><span>References &amp; Further Reading</span><i></i></div><div class="q-a" style="margin:0 0 12px"><ul>
+</ul></div><div class="parthead" id="f11AgenticSyste-p19"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>References &amp; Further Reading</span><i></i></div><div class="q-a" style="margin:0 0 12px"><ul>
 <li><strong>LangGraph Docs:</strong> https://python.langchain.com/docs/langgraph/</li>
 <li><strong>ReAct Paper:</strong> "ReAct: Synergizing Reasoning and Acting in Language Models" (Yao et al., 2023)</li>
 <li><strong>Supervision Pattern:</strong> LangGraph docs on multi-agent coordination</li>
@@ -2112,7 +2460,7 @@ Swarm (avg): <span class="num">2000</span>–<span class="num">8000</span> token
 <hr />
 <p><strong>Good luck on your interview.</strong> The patterns are tools; the real skill is knowing which tool fits the job and explaining why.</p>
 <hr />
-<h1>Part II — Agentic System Design (Architecture → Production)</h1></div><div class="parthead"><span>1. What Are Agentic Systems?</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Agentic systems</strong> are AI architectures where one or more LLM-powered agents autonomously plan, reason, use tools, and take actions to accomplish complex goals with minimal human intervention. Unlike simple chatbots that respond to single prompts, agentic systems maintain state across multiple steps, make decisions, handle failures, and orchestrate workflows — representing the shift from AI as a tool to AI as a collaborator.</p>
+<h1>Part II — Agentic System Design (Architecture → Production)</h1></div><div class="parthead" id="f11AgenticSyste-p20"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>1. What Are Agentic Systems?</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Agentic systems</strong> are AI architectures where one or more LLM-powered agents autonomously plan, reason, use tools, and take actions to accomplish complex goals with minimal human intervention. Unlike simple chatbots that respond to single prompts, agentic systems maintain state across multiple steps, make decisions, handle failures, and orchestrate workflows — representing the shift from AI as a tool to AI as a collaborator.</p>
 <h3>1.1 Definition</h3>
 <p>An <strong>agentic system</strong> is an AI system that can <strong>perceive</strong> its environment, <strong>reason</strong> about goals, <strong>plan</strong> multi-step actions, <strong>execute</strong> those actions using tools, and <strong>adapt</strong> based on feedback — all with varying degrees of autonomy.</p>
 <div class="diagram"><pre>Traditional LLM App          vs          Agentic System
@@ -2131,7 +2479,7 @@ Swarm (avg): <span class="num">2000</span>–<span class="num">8000</span> token
 <p>Not all "agents" are equal. Systems exist on a spectrum of autonomy:</p>
 <div class="tbl-wrap"><table class="t4"><thead><tr><th>Level</th><th>Name</th><th>Description</th><th>Example</th></tr></thead><tbody><tr class="g1"><td>L0</td><td><strong>Simple <abbr title="large language model">LLM</abbr></strong></td><td>Single prompt → response</td><td>ChatGPT basic Q&amp;A</td></tr><tr class="g0"><td>L1</td><td><strong>Chain</strong></td><td>Fixed sequence of LLM calls</td><td>Summarize → Translate</td></tr><tr class="g1"><td>L2</td><td><strong>Router</strong></td><td>LLM decides which path to take</td><td>Intent classification → handler</td></tr><tr class="g0"><td>L3</td><td><strong>Tool-using Agent</strong></td><td>LLM decides when/which tools to call</td><td>ReAct agent with search, calculator</td></tr><tr class="g1"><td>L4</td><td><strong>Planning Agent</strong></td><td>Decomposes goals, creates plans, self-corrects</td><td>Research assistant with plan-execute loop</td></tr><tr class="g0"><td>L5</td><td><strong>Multi-Agent System</strong></td><td>Multiple specialized agents collaborate</td><td>Software dev team simulation</td></tr><tr class="g1"><td>L6</td><td><strong>Autonomous Agent</strong></td><td>Persistent, self-directed, minimal human oversight</td><td>AutoGPT-style systems</td></tr></tbody></table></div>
 <h3>1.3 When to Use Agents vs Chains</h3>
-<div class="tbl-wrap"><table class="t2"><thead><tr><th>Use Agents When</th><th>Use Chains When</th></tr></thead><tbody><tr class="g1"><td>Problem requires dynamic tool selection</td><td>Steps are predictable and fixed</td></tr><tr class="g0"><td>Number of steps is unknown upfront</td><td>Exactly N steps every time</td></tr><tr class="g1"><td>Self-correction is needed</td><td>Errors are rare or acceptable</td></tr><tr class="g0"><td>Complex reasoning required</td><td>Simple transformation pipeline</td></tr><tr class="g1"><td>Multiple approaches may be needed</td><td>One approach always works</td></tr></tbody></table></div></div><div class="parthead"><span>2. Core Architecture Patterns</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Architecture patterns</strong> define the control flow and decision-making structure of agentic systems. Key patterns include ReAct (interleaved reasoning and acting), Plan-and-Execute (upfront planning with step-by-step execution), Router (dispatching to specialized sub-agents), Reflection (self-critique and correction), and hierarchical multi-agent systems — each suited to different task complexity and reliability requirements.</p>
+<div class="tbl-wrap"><table class="t2"><thead><tr><th>Use Agents When</th><th>Use Chains When</th></tr></thead><tbody><tr class="g1"><td>Problem requires dynamic tool selection</td><td>Steps are predictable and fixed</td></tr><tr class="g0"><td>Number of steps is unknown upfront</td><td>Exactly N steps every time</td></tr><tr class="g1"><td>Self-correction is needed</td><td>Errors are rare or acceptable</td></tr><tr class="g0"><td>Complex reasoning required</td><td>Simple transformation pipeline</td></tr><tr class="g1"><td>Multiple approaches may be needed</td><td>One approach always works</td></tr></tbody></table></div></div><div class="parthead" id="f11AgenticSyste-p21"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-network"/></svg>2. Core Architecture Patterns</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Architecture patterns</strong> define the control flow and decision-making structure of agentic systems. Key patterns include ReAct (interleaved reasoning and acting), Plan-and-Execute (upfront planning with step-by-step execution), Router (dispatching to specialized sub-agents), Reflection (self-critique and correction), and hierarchical multi-agent systems — each suited to different task complexity and reliability requirements.</p>
 <div class="note">
 <p><strong>Part I vs here:</strong> Part I above is the <em>conceptual + interview</em> catalog of these patterns (execution-cycle diagrams, state schemas, pitfalls, Q&amp;A). This section is the <em>applied</em> view — runnable LangChain/LangGraph implementations. <strong>Router</strong> is detailed here (it isn't in the Part I catalog).</p>
 </div>
@@ -2637,7 +2985,7 @@ routing — call one agent, evaluate the result, then decide the next step
 dynamically based on what it received."</code></pre>
 <hr />
 <h3>2.5 Architecture Comparison</h3>
-<div class="tbl-wrap"><table class="t5"><thead><tr><th>Pattern</th><th>Complexity</th><th>Best For</th><th>Latency</th><th>Token Cost</th></tr></thead><tbody><tr class="g1"><td><strong>ReAct</strong></td><td>Low</td><td>Simple tool use, Q&amp;A</td><td>Medium</td><td>Medium</td></tr><tr class="g0"><td><strong>Plan-Execute</strong></td><td>Medium</td><td>Multi-step tasks, research</td><td>High</td><td>High</td></tr><tr class="g1"><td><strong>Reflection</strong></td><td>Medium</td><td>Quality-critical outputs</td><td>High</td><td>High</td></tr><tr class="g0"><td><strong>Router</strong></td><td>Low</td><td>Diverse query types</td><td>Low</td><td>Low</td></tr><tr class="g1"><td><strong>Multi-Agent</strong></td><td>High</td><td>Complex collaborative tasks</td><td>Very High</td><td>Very High</td></tr><tr class="g0"><td><strong><abbr title="directed acyclic graph">DAG</abbr>/Workflow</strong></td><td>Medium</td><td>Deterministic pipelines</td><td>Medium</td><td>Medium</td></tr></tbody></table></div></div><div class="parthead"><span>3. Agent Cognition — Reasoning &amp; Planning</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Agent cognition</strong> encompasses the reasoning and planning strategies that enable <abbr title="large language model">LLM</abbr> agents to decompose complex tasks, think step-by-step, evaluate intermediate results, and self-correct. Techniques like Chain-of-Thought, Tree-of-Thought, ReAct prompting, and reflection loops give agents the ability to handle multi-step problems that exceed the capability of single-prompt interactions.</p>
+<div class="tbl-wrap"><table class="t5"><thead><tr><th>Pattern</th><th>Complexity</th><th>Best For</th><th>Latency</th><th>Token Cost</th></tr></thead><tbody><tr class="g1"><td><strong>ReAct</strong></td><td>Low</td><td>Simple tool use, Q&amp;A</td><td>Medium</td><td>Medium</td></tr><tr class="g0"><td><strong>Plan-Execute</strong></td><td>Medium</td><td>Multi-step tasks, research</td><td>High</td><td>High</td></tr><tr class="g1"><td><strong>Reflection</strong></td><td>Medium</td><td>Quality-critical outputs</td><td>High</td><td>High</td></tr><tr class="g0"><td><strong>Router</strong></td><td>Low</td><td>Diverse query types</td><td>Low</td><td>Low</td></tr><tr class="g1"><td><strong>Multi-Agent</strong></td><td>High</td><td>Complex collaborative tasks</td><td>Very High</td><td>Very High</td></tr><tr class="g0"><td><strong><abbr title="directed acyclic graph">DAG</abbr>/Workflow</strong></td><td>Medium</td><td>Deterministic pipelines</td><td>Medium</td><td>Medium</td></tr></tbody></table></div></div><div class="parthead" id="f11AgenticSyste-p22"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>3. Agent Cognition — Reasoning &amp; Planning</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Agent cognition</strong> encompasses the reasoning and planning strategies that enable <abbr title="large language model">LLM</abbr> agents to decompose complex tasks, think step-by-step, evaluate intermediate results, and self-correct. Techniques like Chain-of-Thought, Tree-of-Thought, ReAct prompting, and reflection loops give agents the ability to handle multi-step problems that exceed the capability of single-prompt interactions.</p>
 <h3>3.1 Reasoning Strategies</h3>
 <pre class="code" data-lang="python"><code><span class="cmt"># ═══════════════ CHAIN OF THOUGHT (CoT) ═══════════════</span>
 cot_prompt = <span class="str">"""Solve this step by step.
@@ -2797,7 +3145,7 @@ initial = <span class="fn">WorldState</span>({<span class="str">"has_raw_files"<
 goal = {<span class="str">"model_deployed"</span>: <span class="kw">True</span>}
 plan = <span class="fn">find_plan</span>(initial, goal, actions)
 <span class="cmt"># → [load_data, clean_data, feature_engineer, train_model, </span>
-<span class="cmt">#    run_tests, evaluate_model, deploy_model]</span></code></pre></div><div class="parthead"><span>4. Tool Use &amp; Function Calling</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Tool use</strong> extends agent capabilities beyond language by allowing LLMs to invoke external functions, APIs, databases, and code interpreters through structured <abbr title="the model emitting a structured request for a function the application then executes">function calling</abbr>. The agent decides which tool to call, formulates the input parameters, executes the tool, and incorporates the result into its reasoning — enabling interaction with the real world.</p>
+<span class="cmt">#    run_tests, evaluate_model, deploy_model]</span></code></pre></div><div class="parthead" id="f11AgenticSyste-p23"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>4. Tool Use &amp; Function Calling</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Tool use</strong> extends agent capabilities beyond language by allowing LLMs to invoke external functions, APIs, databases, and code interpreters through structured <abbr title="the model emitting a structured request for a function the application then executes">function calling</abbr>. The agent decides which tool to call, formulates the input parameters, executes the tool, and incorporates the result into its reasoning — enabling interaction with the real world.</p>
 <h3>4.1 Tool Definition Pattern</h3>
 <pre class="code" data-lang="python"><code><span class="kw">from</span> langchain.tools <span class="kw">import</span> tool
 <span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field
@@ -2970,7 +3318,7 @@ tools_schema = [
 <span class="cmt">#                      ├──→ Confluence MCP Server</span>
 <span class="cmt">#                      ├──→ GitHub MCP Server</span>
 <span class="cmt">#                      ├──→ Slack MCP Server</span>
-<span class="cmt">#                      └──→ Custom MCP Server</span></code></pre></div><div class="parthead"><span>5. Memory Systems</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Memory systems</strong> give agents the ability to persist and retrieve information across conversation turns and sessions. Short-term memory (conversation buffer) maintains recent context, long-term memory (vector stores, knowledge graphs) stores accumulated knowledge, and episodic memory (past interactions) enables learning from experience — each addressing different temporal scales of information.</p>
+<span class="cmt">#                      └──→ Custom MCP Server</span></code></pre></div><div class="parthead" id="f11AgenticSyste-p24"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cpu"/></svg>5. Memory Systems</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Memory systems</strong> give agents the ability to persist and retrieve information across conversation turns and sessions. Short-term memory (conversation buffer) maintains recent context, long-term memory (vector stores, knowledge graphs) stores accumulated knowledge, and episodic memory (past interactions) enables learning from experience — each addressing different temporal scales of information.</p>
 <h3>5.1 Memory Architecture</h3>
 <div class="diagram"><pre>┌────────────────────────────────────────────────────────┐
 │                  AGENT MEMORY SYSTEM                    │
@@ -3109,7 +3457,7 @@ tools_schema = [
         scored.<span class="fn">append</span>((score, mem))
     
     scored.<span class="fn">sort</span>(reverse=<span class="kw">True</span>)
-    <span class="kw">return</span> [mem <span class="kw">for</span> _, mem <span class="kw">in</span> scored[:<span class="num">5</span>]]</code></pre></div><div class="parthead"><span>6. Multi-Agent Orchestration</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Multi-agent orchestration</strong> coordinates multiple specialized agents working together on complex tasks. Topologies include <abbr title="an agent that routes work to other agents and owns the overall plan">supervisor</abbr> (one agent delegates to workers), hierarchical (layered delegation), peer-to-peer (agents negotiate directly), and swarm (emergent collaboration). The key design challenge is balancing agent autonomy with global coherence.</p>
+    <span class="kw">return</span> [mem <span class="kw">for</span> _, mem <span class="kw">in</span> scored[:<span class="num">5</span>]]</code></pre></div><div class="parthead" id="f11AgenticSyste-p25"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>6. Multi-Agent Orchestration</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Multi-agent orchestration</strong> coordinates multiple specialized agents working together on complex tasks. Topologies include <abbr title="an agent that routes work to other agents and owns the overall plan">supervisor</abbr> (one agent delegates to workers), hierarchical (layered delegation), peer-to-peer (agents negotiate directly), and swarm (emergent collaboration). The key design challenge is balancing agent autonomy with global coherence.</p>
 <h3>6.1 Multi-Agent Topologies</h3>
 <p><strong>1 · Hierarchical</strong> (manager delegates, workers report back) — <strong>2 · Sequential</strong> (assembly-line pipeline) — <strong>3 · Collaborative</strong> (peers share findings) — <strong>4 · Debate</strong> (proposer vs critic, a judge decides) — <strong>5 · Swarm</strong> (peers hand off control directly, no manager):</p>
 <pre class="code" data-lang="mermaid"><code>flowchart TB
@@ -3358,7 +3706,7 @@ result = <span class="kw">await</span> app.<span class="fn">ainvoke</span>({
                     sender=sender, receiver=agent_id,
                     type=msg_type, content=content,
                     task_id=<span class="str">"broadcast"</span>
-                ))</code></pre></div><div class="parthead"><span>7. State Management &amp; Workflows</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>State management</strong> provides the backbone for tracking agent progress through multi-step workflows. Using state machines (LangGraph's StateGraph), agents maintain structured state across nodes, enabling deterministic control flow, conditional branching, <abbr title="persisting workflow state so a run can resume from the last good point after a failure">checkpointing</abbr> for recovery, and human-in-the-loop intervention points.</p>
+                ))</code></pre></div><div class="parthead" id="f11AgenticSyste-p26"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>7. State Management &amp; Workflows</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>State management</strong> provides the backbone for tracking agent progress through multi-step workflows. Using state machines (LangGraph's StateGraph), agents maintain structured state across nodes, enabling deterministic control flow, conditional branching, <abbr title="persisting workflow state so a run can resume from the last good point after a failure">checkpointing</abbr> for recovery, and human-in-the-loop intervention points.</p>
 <h3>7.1 LangGraph State Machine</h3>
 <pre class="code" data-lang="python"><code><span class="kw">from</span> langgraph.graph <span class="kw">import</span> StateGraph, START, END
 <span class="kw">from</span> langgraph.checkpoint.memory <span class="kw">import</span> MemorySaver
@@ -3484,7 +3832,7 @@ result = <span class="kw">await</span> app.<span class="fn">ainvoke</span>(
             <span class="kw">lambda</span>: <span class="fn">call_local_llm</span>(state), <span class="cmt"># Fallback 2: Local LLM</span>
         ]
     )
-    <span class="kw">return</span> result</code></pre></div><div class="parthead"><span>8. Retrieval-Augmented Generation (RAG) in Agents</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Agentic <abbr title="retrieval-augmented generation">RAG</abbr></strong> goes beyond simple retrieve-then-generate pipelines by giving agents the ability to dynamically decide when to retrieve, what queries to use, which sources to consult, and whether retrieved context is sufficient. Techniques include query routing, adaptive retrieval, multi-step research, and self-reflective RAG that evaluates and refines retrieval results.</p>
+    <span class="kw">return</span> result</code></pre></div><div class="parthead" id="f11AgenticSyste-p27"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>8. Retrieval-Augmented Generation (RAG) in Agents</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Agentic <abbr title="retrieval-augmented generation">RAG</abbr></strong> goes beyond simple retrieve-then-generate pipelines by giving agents the ability to dynamically decide when to retrieve, what queries to use, which sources to consult, and whether retrieved context is sufficient. Techniques include query routing, adaptive retrieval, multi-step research, and self-reflective RAG that evaluates and refines retrieval results.</p>
 <h3>8.1 Agentic RAG Architecture</h3>
 <div class="diagram"><pre>┌──────────────────────────────────────────────────────┐
 │                 AGENTIC RAG SYSTEM                    │
@@ -3625,7 +3973,7 @@ rag_graph.<span class="fn">add_edge</span>(<span class="str">"generate"</span>, 
 rag_graph.<span class="fn">add_conditional_edges</span>(<span class="str">"check_grounding"</span>, route_after_grounding)
 rag_graph.<span class="fn">add_edge</span>(<span class="str">"transform_query"</span>, <span class="str">"retrieve"</span>)
 
-rag_agent = rag_graph.<span class="fn">compile</span>()</code></pre></div><div class="parthead"><span>9. Guardrails, Safety &amp; Human-in-the-Loop</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong><abbr title="checks around a model that block or rewrite unsafe or malformed input and output">Guardrails</abbr> and safety</strong> mechanisms protect agentic systems from harmful outputs, unintended actions, runaway costs, and security vulnerabilities. Layered defenses include input validation, output filtering, action approval gates, budget limits, sandboxed execution, and human-in-the-loop checkpoints — essential for production deployment where agents interact with real-world systems.</p>
+rag_agent = rag_graph.<span class="fn">compile</span>()</code></pre></div><div class="parthead" id="f11AgenticSyste-p28"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-shield"/></svg>9. Guardrails, Safety &amp; Human-in-the-Loop</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong><abbr title="checks around a model that block or rewrite unsafe or malformed input and output">Guardrails</abbr> and safety</strong> mechanisms protect agentic systems from harmful outputs, unintended actions, runaway costs, and security vulnerabilities. Layered defenses include input validation, output filtering, action approval gates, budget limits, sandboxed execution, and human-in-the-loop checkpoints — essential for production deployment where agents interact with real-world systems.</p>
 <h3>9.1 Guardrail Layers</h3>
 <div class="diagram"><pre>┌──────────────────────────────────────────────────────┐
 │                  GUARDRAIL STACK                      │
@@ -3806,7 +4154,7 @@ Return ONLY the number."""</span>
         guardrail = <span class="fn">InputGuardrail</span>()
         original_len = <span class="fn">len</span>(text)
         redacted = guardrail.<span class="fn">redact_pii</span>(text)
-        <span class="kw">return</span> <span class="fn">len</span>(redacted) == original_len  <span class="cmt"># True if no PII found</span></code></pre></div><div class="parthead"><span>10. Evaluation &amp; Testing</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Agent evaluation</strong> assesses both individual components (<abbr title="large language model">LLM</abbr> responses, tool calls, retrieval quality) and end-to-end task completion across multi-step trajectories. Key challenges include non-determinism (same input → different execution paths), evaluating intermediate reasoning steps, and measuring reliability at scale through automated evaluation frameworks.</p>
+        <span class="kw">return</span> <span class="fn">len</span>(redacted) == original_len  <span class="cmt"># True if no PII found</span></code></pre></div><div class="parthead" id="f11AgenticSyste-p29"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chart"/></svg>10. Evaluation &amp; Testing</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Agent evaluation</strong> assesses both individual components (<abbr title="large language model">LLM</abbr> responses, tool calls, retrieval quality) and end-to-end task completion across multi-step trajectories. Key challenges include non-determinism (same input → different execution paths), evaluating intermediate reasoning steps, and measuring reliability at scale through automated evaluation frameworks.</p>
 <h3>10.1 Agent Evaluation Framework</h3>
 <div class="diagram"><pre>┌──────────────────────────────────────────────────────┐
 │              AGENT EVALUATION DIMENSIONS              │
@@ -3978,7 +4326,7 @@ eval_cases = [
         expected_steps_max=<span class="num">8</span>,
         category=<span class="str">"multi-step"</span>
     ),
-]</code></pre></div><div class="parthead"><span>11. Production Deployment</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Production deployment</strong> of agentic systems requires robust infrastructure for handling non-deterministic, long-running, multi-step workflows. Key concerns include observability (tracing every <abbr title="large language model">LLM</abbr> call, tool invocation, and state transition), cost management (token budgets, caching), fault tolerance (retry strategies, graceful degradation), and scaling patterns (async execution, queue-based orchestration).</p>
+]</code></pre></div><div class="parthead" id="f11AgenticSyste-p30"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>11. Production Deployment</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Production deployment</strong> of agentic systems requires robust infrastructure for handling non-deterministic, long-running, multi-step workflows. Key concerns include observability (tracing every <abbr title="large language model">LLM</abbr> call, tool invocation, and state transition), cost management (token budgets, caching), fault tolerance (retry strategies, graceful degradation), and scaling patterns (async execution, queue-based orchestration).</p>
 <h3>11.1 Production Architecture</h3>
 <div class="diagram"><pre>┌──────────────────────────────────────────────────────────────┐
 │                PRODUCTION AGENT SYSTEM                        │
@@ -4210,7 +4558,7 @@ logger = logging.<span class="fn">getLogger</span>(<span class="str">"agent"</sp
         <span class="str">"""Decide if response should be cached."""</span>
         <span class="cmt"># Cache factual queries, not dynamic ones</span>
         dynamic_keywords = [<span class="str">"today"</span>, <span class="str">"current"</span>, <span class="str">"latest"</span>, <span class="str">"now"</span>, <span class="str">"recent"</span>]
-        <span class="kw">return</span> <span class="kw">not</span> <span class="fn">any</span>(kw <span class="kw">in</span> query.<span class="fn">lower</span>() <span class="kw">for</span> kw <span class="kw">in</span> dynamic_keywords)</code></pre></div><div class="parthead"><span>12. Case Studies — End-to-End Designs</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Case studies</strong> demonstrate complete agentic system designs applied to real-world problems — customer support automation, code generation assistants, research agents, and data analysis pipelines. Each case study covers the architecture pattern selection, tool integration, memory design, evaluation approach, and production considerations for the specific use case.</p>
+        <span class="kw">return</span> <span class="kw">not</span> <span class="fn">any</span>(kw <span class="kw">in</span> query.<span class="fn">lower</span>() <span class="kw">for</span> kw <span class="kw">in</span> dynamic_keywords)</code></pre></div><div class="parthead" id="f11AgenticSyste-p31"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compass"/></svg>12. Case Studies — End-to-End Designs</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Case studies</strong> demonstrate complete agentic system designs applied to real-world problems — customer support automation, code generation assistants, research agents, and data analysis pipelines. Each case study covers the architecture pattern selection, tool integration, memory design, evaluation approach, and production considerations for the specific use case.</p>
 <h3>12.1 Case Study: Customer Support Agent</h3>
 <div class="diagram"><pre>REQUIREMENTS:
 - Handle customer inquiries about orders, returns, billing
@@ -4344,7 +4692,7 @@ GUARDRAILS:
 │  │  - Structured report with        │                │
 │  │    citations, charts, summary    │                │
 │  └──────────────────────────────────┘                │
-└──────────────────────────────────────────────────────┘</pre></div></div><div class="parthead"><span>13. LATS (Language Agent Tree Search)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>LATS</strong> (Zhou et al., 2023) combines <strong>ReAct</strong> (reasoning + acting), <strong>Tree-of-Thought</strong> (branching exploration), and <strong>Monte Carlo Tree Search (MCTS)</strong> into a unified framework for complex agent reasoning.</p>
+└──────────────────────────────────────────────────────┘</pre></div></div><div class="parthead" id="f11AgenticSyste-p32"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>13. LATS (Language Agent Tree Search)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>LATS</strong> (Zhou et al., 2023) combines <strong>ReAct</strong> (reasoning + acting), <strong>Tree-of-Thought</strong> (branching exploration), and <strong>Monte Carlo Tree Search (MCTS)</strong> into a unified framework for complex agent reasoning.</p>
 <h3>Core Idea</h3>
 <p>Instead of following a single reasoning chain (ReAct) or a fixed plan (Plan-and-Execute), LATS <strong>explores multiple action trajectories as a tree</strong>, using LLM-based evaluation and MCTS to guide the search toward the best solution.</p>
 <h3>Algorithm</h3>
@@ -4403,7 +4751,7 @@ GUARDRAILS:
         <span class="kw">if</span> outcome.is_solution:
             <span class="kw">return</span> outcome
     
-    <span class="kw">return</span> tree.<span class="fn">best_trajectory</span>()</code></pre></div><div class="parthead"><span>14. A2A (Agent-to-Agent) Protocol</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong><abbr title="agent-to-agent protocol">A2A</abbr></strong> (Google, 2024) is an open protocol for <strong>agent interoperability</strong> — enabling agents built with different frameworks, by different vendors, to discover each other, communicate, and collaborate on tasks.</p>
+    <span class="kw">return</span> tree.<span class="fn">best_trajectory</span>()</code></pre></div><div class="parthead" id="f11AgenticSyste-p33"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>14. A2A (Agent-to-Agent) Protocol</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong><abbr title="agent-to-agent protocol">A2A</abbr></strong> (Google, 2024) is an open protocol for <strong>agent interoperability</strong> — enabling agents built with different frameworks, by different vendors, to discover each other, communicate, and collaborate on tasks.</p>
 <h3>Why A2A?</h3>
 <p>Today's agent ecosystem is fragmented: LangChain agents can't talk to AutoGen agents, which can't talk to custom agents. A2A provides a <strong>standardized HTTP+JSON protocol</strong> (like REST for agents) for cross-agent communication.</p>
 <h3>Agent Cards — Capability Discovery</h3>
@@ -4476,7 +4824,7 @@ GUARDRAILS:
 └────────────┘  └──────────────┘  └──────────────┘
 
   Each agent: different team, different framework, different LLM
-  A2A enables them to collaborate via standard protocol</pre></div></div><div class="parthead"><span>15. Interview Questions &amp; Answers</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Q1. How would you design an agentic system that can reliably handle complex, multi-step tasks?</h3>
+  A2A enables them to collaborate via standard protocol</pre></div></div><div class="parthead" id="f11AgenticSyste-p34"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>15. Interview Questions &amp; Answers</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Q1. How would you design an agentic system that can reliably handle complex, multi-step tasks?</h3>
 <p><strong>Answer:</strong></p>
 <p>I'd use a <strong>Plan-Execute-Reflect</strong> architecture with these components:</p>
 <ol>
@@ -4614,10 +4962,10 @@ TOOLS:
 - execute_sql(query) → Run SQL on data warehouse
 - execute_python(code) → Sandboxed Python with pandas/matplotlib
 - create_chart(data, chart_type) → Generate visualization
-- save_report(content, format) → Export as PDF/HTML</pre></div></div><div class="parthead"><span>🎯 Agentic Design Decision Cheat Sheet</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="tbl-wrap"><table class="t3"><thead><tr><th>Decision</th><th>Options</th><th>When to Choose</th></tr></thead><tbody><tr class="g1"><td><strong>Framework</strong></td><td>LangGraph / CrewAI / AutoGen</td><td>LangGraph for control, CrewAI for simplicity</td></tr><tr class="g0"><td><strong><abbr title="large language model">LLM</abbr></strong></td><td>GPT-4o / Claude / Local</td><td>GPT-4o for tools, Claude for reasoning, Local for privacy</td></tr><tr class="g1"><td><strong>State</strong></td><td>In-memory / Redis / PostgreSQL</td><td>Redis for speed, PG for persistence</td></tr><tr class="g0"><td><strong>Tools</strong></td><td>Native / <abbr title="Model Context Protocol">MCP</abbr> / API</td><td>MCP for standardization, Native for speed</td></tr><tr class="g1"><td><strong>Memory</strong></td><td>Vector DB / Graph DB / SQL</td><td>Vector for semantic, Graph for relations</td></tr><tr class="g0"><td><strong>Streaming</strong></td><td>SSE / WebSocket / Polling</td><td>SSE for simplicity, WS for bidirectional</td></tr><tr class="g1"><td><strong>Eval</strong></td><td>LLM-as-judge / Human / Programmatic</td><td>Combine all three</td></tr><tr class="g0"><td><strong>Deploy</strong></td><td>Serverless / Container / Edge</td><td>Container for stateful, Serverless for scale</td></tr></tbody></table></div>
+- save_report(content, format) → Export as PDF/HTML</pre></div></div><div class="parthead" id="f11AgenticSyste-p35"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>🎯 Agentic Design Decision Cheat Sheet</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="tbl-wrap"><table class="t3"><thead><tr><th>Decision</th><th>Options</th><th>When to Choose</th></tr></thead><tbody><tr class="g1"><td><strong>Framework</strong></td><td>LangGraph / CrewAI / AutoGen</td><td>LangGraph for control, CrewAI for simplicity</td></tr><tr class="g0"><td><strong><abbr title="large language model">LLM</abbr></strong></td><td>GPT-4o / Claude / Local</td><td>GPT-4o for tools, Claude for reasoning, Local for privacy</td></tr><tr class="g1"><td><strong>State</strong></td><td>In-memory / Redis / PostgreSQL</td><td>Redis for speed, PG for persistence</td></tr><tr class="g0"><td><strong>Tools</strong></td><td>Native / <abbr title="Model Context Protocol">MCP</abbr> / API</td><td>MCP for standardization, Native for speed</td></tr><tr class="g1"><td><strong>Memory</strong></td><td>Vector DB / Graph DB / SQL</td><td>Vector for semantic, Graph for relations</td></tr><tr class="g0"><td><strong>Streaming</strong></td><td>SSE / WebSocket / Polling</td><td>SSE for simplicity, WS for bidirectional</td></tr><tr class="g1"><td><strong>Eval</strong></td><td>LLM-as-judge / Human / Programmatic</td><td>Combine all three</td></tr><tr class="g0"><td><strong>Deploy</strong></td><td>Serverless / Container / Edge</td><td>Container for stateful, Serverless for scale</td></tr></tbody></table></div>
 <hr />
 <p><em>This master reference merges the former </em><em>Agentic System Design</em><em> and </em><em>Agent Architecture Patterns</em><em> notes — Part I (pattern catalog + interview) and Part II (system design → production).</em></p>
-<p><em>Previous: <a href="langgraph.html#f02LangGraphNot">02_LangGraph_Notes.md</a> · <a href="patterns.html#f12ContextManag">12_Context_Management_and_Summarization.md</a> | Next: <a href="../../09_MCP/01_MCP_Notes.md">../09_MCP/01_MCP_Notes.md</a></em></p></div></section><section class="filesec" id="f12ContextManag"><header class="filehead"><div class="fh-top"><span class="fh-num">12 &middot; Context management</span><span class="fh-count">10 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/12_Context_Management_and_Summarization.md">source .md &#8599;</a></div><h2>Context Management &amp; Summarization in Agent Patterns</h2><div class="note">
+<p><em>Previous: <a href="langgraph.html#f02LangGraphNot">02_LangGraph_Notes.md</a> · <a href="patterns.html#f12ContextManag">12_Context_Management_and_Summarization.md</a> | Next: <a href="../../09_MCP/01_MCP_Notes.md">../09_MCP/01_MCP_Notes.md</a></em></p></div></section><section class="filesec" id="f12ContextManag"><header class="filehead"><div class="fh-top"><span class="fh-num">12 &middot; Context management</span><span class="fh-count">10 sections</span></div><h2>Context Management &amp; Summarization in Agent Patterns</h2><div class="note">
 <p><strong>The bottleneck most miss:</strong> Managing message history growth is more critical than the pattern itself.</p>
 </div></header><article class="q" id="f12ContextManag-23"><div class="q-h"><span class="q-n">&bull;</span><h3>Context Window Fundamentals</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ContextManag-23"><span></span></label></div><div class="q-a"><h3>Understanding Token Limits</h3>
 <pre class="code" data-lang="python"><code><span class="cmt"># Model context windows (as of 2024)</span>
@@ -5485,7 +5833,7 @@ Cost for typical conversation:
 <li><strong><abbr title="retrieval-augmented generation">RAG</abbr> Context Compression:</strong> https://arxiv.org/abs/2305.11841</li>
 </ul>
 <hr />
-<p><strong>Key Takeaway:</strong> Context management is often overlooked but becomes the critical bottleneck in production. Summarization is cheaper than restarting, and hierarchical approaches scale to very long conversations.</p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f13TopicCoverag"><header class="filehead"><div class="fh-top"><span class="fh-num">13 &middot; Topic-coverage playbook</span><span class="fh-count">19 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/13_Topic_Coverage_Playbook.md">source .md &#8599;</a></div><h2>Topic Coverage Playbook — LangChain vs LangGraph, by Example</h2><div class="note">
+<p><strong>Key Takeaway:</strong> Context management is often overlooked but becomes the critical bottleneck in production. Summarization is cheaper than restarting, and hierarchical approaches scale to very long conversations.</p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f13TopicCoverag"><header class="filehead"><div class="fh-top"><span class="fh-num">13 &middot; Topic-coverage playbook</span><span class="fh-count">19 sections</span></div><h2>Topic Coverage Playbook — LangChain vs LangGraph, by Example</h2><div class="note">
 <p><strong>Purpose:</strong> for <em>every</em> major topic, see <strong>how it's covered in LangChain</strong> and <strong>how it's covered in LangGraph</strong>, side by side, with a minimal example. Where a topic has variants (e.g. <strong>persistence</strong>: in‑memory vs local file vs DB, and what survives a server restart), the variants are spelled out.</p>
 <p><strong>One-line mental model:</strong> <strong>LangChain = compose a pipeline</strong> (Runnables piped with <code>|</code>). <strong>LangGraph = orchestrate a stateful graph</strong> (nodes + edges + persisted state, with loops). Many topics exist in both, but the <em>mechanism</em> differs.</p>
 </div>
@@ -5681,7 +6029,7 @@ agent = graph.<span class="fn">compile</span>(checkpointer=PostgresSaver.<span c
 <p>Production rule of thumb: <strong>stateless app servers + a shared Postgres checkpointer</strong> = any replica can resume any thread after any restart.</p>
 </div>
 <hr />
-<p><em>Companion to <a href="langchain.html#f01LangChainNot">01_LangChain_Notes.md</a> and <a href="langgraph.html#f02LangGraphNot">02_LangGraph_Notes.md</a>.</em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f19Orchestrator"><header class="filehead"><div class="fh-top"><span class="fh-num">19 &middot; Orchestrator vs supervisor</span><span class="fh-count">5 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/19_Orchestrator_vs_Supervisor.md">source .md &#8599;</a></div><h2>Orchestrator vs Supervisor — and Adding Agents After Deployment</h2><div class="note">
+<p><em>Companion to <a href="langchain.html#f01LangChainNot">01_LangChain_Notes.md</a> and <a href="langgraph.html#f02LangGraphNot">02_LangGraph_Notes.md</a>.</em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f19Orchestrator"><header class="filehead"><div class="fh-top"><span class="fh-num">19 &middot; Orchestrator vs supervisor</span><span class="fh-count">5 sections</span></div><h2>Orchestrator vs Supervisor — and Adding Agents After Deployment</h2><div class="note">
 <p><strong>Scope:</strong> The difference between an <strong>orchestrator</strong> and a <strong><abbr title="an agent that routes work to other agents and owns the overall plan">supervisor</abbr></strong> (people use them interchangeably; interviewers ask for the distinction), how to implement each in LangGraph, and the production question that follows: <strong>"your system is deployed — how do you add one more agent without redeploying?"</strong> The answer is the <strong>agent-registry + generic-executor</strong> pattern, implemented and <em>verified end-to-end against real LangGraph in this repo</em> (stub agents, no API calls — the graph mechanics are what's being proven).</p>
 <p><strong>Companions:</strong> <a href="cookbooks.html#f18AgentImpleme">18_Agent_Implementation_Cookbook.md</a> (minimal supervisor/swarm/hierarchical code) · <a href="patterns.html#f11AgenticSyste">11_Agentic_Systems_and_Patterns.md</a> (deep theory) · <a href="failure.html#f14FailureHandl">14_Failure_Handling_and_Resilience.md</a> (what the orchestrator does when a worker fails).</p>
 </div></header><article class="q" id="f19Orchestrator-52"><div class="q-h"><span class="q-n">&bull;</span><h3>1. The Distinction (interview answer first)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f19Orchestrator-52"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">One-liner</span><span class="kt">router</span><span class="kt">decomposer</span><span class="kt">two distinct control-flow patterns</span><span class="kt">Supervisor</span><span class="kt">Orchestrator-worker</span></div><div class="note n-key">
@@ -5874,8 +6222,10 @@ Supervisor: it's a serial bottleneck — every hop costs a router LLM call, and 
 <hr />
 <p><strong>Related:</strong> <a href="cookbooks.html#f18AgentImpleme">18_Agent_Implementation_Cookbook.md</a> · <a href="patterns.html#f11AgenticSyste">11_Agentic_Systems_and_Patterns.md</a> · <a href="langgraph.html#f02LangGraphNot">02_LangGraph_Notes.md §8</a> (<code>Send</code>/map-reduce) · <a href="failure.html#f14FailureHandl">14_Failure_Handling_and_Resilience.md</a> (worker failure, k-of-N, <abbr title="human in the loop">HITL</abbr>).</p></div><button class="reveal">Reveal answer</button></article></section>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<nav class="pnav"><a class="prev" href="langgraph.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrowl"/></svg><span class="pnav-t"><span>Previous</span><b>LangGraph</b></span></a><a class="next" href="failure.html"><span class="pnav-t"><span>Next</span><b>Failure</b></span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></a></nav>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
 </div></main>
+<aside class="toc" id="toc"><div class="toc-h"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>On this page</div><div class="toc-g" data-for="f11AgenticSyste"><b>11 &middot; Agentic systems &amp; patterns</b><a href="#f11AgenticSyste-0" data-c="f11AgenticSyste-0">Q1. How does the ReAct loop terminate?</a><a href="#f11AgenticSyste-1" data-c="f11AgenticSyste-1">Q2. What happens if you don't use the <code>add_messages</code> reducer?</a><a href="#f11AgenticSyste-2" data-c="f11AgenticSyste-2">Q3. When should you cap the loop, and why?</a><a href="#f11AgenticSyste-3" data-c="f11AgenticSyste-3">Q4. How would you implement a ReAct agent with early exit for high-confidence answers?</a><a href="#f11AgenticSyste-4" data-c="f11AgenticSyste-4">Q5. You're building a ReAct agent for a customer support chatbot. Tool calls take 2–5 seconds. How would you optimize?</a><a href="#f11AgenticSyste-5" data-c="f11AgenticSyste-5">Q6. When is Reflection better than just asking the model for the answer once?</a><a href="#f11AgenticSyste-6" data-c="f11AgenticSyste-6">Q7. What makes a good critic prompt?</a><a href="#f11AgenticSyste-7" data-c="f11AgenticSyste-7">Q8. How do you avoid infinite loops in Reflection?</a><a href="#f11AgenticSyste-8" data-c="f11AgenticSyste-8">Q9. Design a Reflection loop that learns from critique failures.</a><a href="#f11AgenticSyste-9" data-c="f11AgenticSyste-9">Q10. You're using Reflection for code generation. The critic LLM is different from the generator LLM (critic is more detailed, slower). How do you handle this?</a><a href="#f11AgenticSyste-10" data-c="f11AgenticSyste-10">Q11. Why would you use Plan-and-Execute instead of pure ReAct?</a><a href="#f11AgenticSyste-11" data-c="f11AgenticSyste-11">Q12. What happens if a step in the plan fails? How should the replanner respond?</a><a href="#f11AgenticSyste-12" data-c="f11AgenticSyste-12">Q13. Design a Plan-and-Execute system with dynamic replanning.</a><a href="#f11AgenticSyste-13" data-c="f11AgenticSyste-13">Q14. You're building a research task: "Investigate whether LLM X is better than LLM Y." The planner produces 5 steps. Step 3 (performance benchmarking) returns no data. How should the replanner handle this?</a><a href="#f11AgenticSyste-14" data-c="f11AgenticSyste-14">Q15. What's the difference between a Supervisor and a Router?</a><a href="#f11AgenticSyste-15" data-c="f11AgenticSyste-15">Q16. When should the supervisor directly answer instead of delegating?</a><a href="#f11AgenticSyste-16" data-c="f11AgenticSyste-16">Q17. Design a Supervisor for a multi-turn conversation where routing decisions might conflict (e.g., user asks both a research AND a math question).</a><a href="#f11AgenticSyste-17" data-c="f11AgenticSyste-17">Q18. You add a 10th worker to your Supervisor system. The routing logic becomes complex. How do you keep it maintainable?</a><a href="#f11AgenticSyste-18" data-c="f11AgenticSyste-18">Q19. What's the key difference between a Swarm and a Supervisor?</a><a href="#f11AgenticSyste-19" data-c="f11AgenticSyste-19">Q20. How does a handoff actually work in LangGraph?</a><a href="#f11AgenticSyste-20" data-c="f11AgenticSyste-20">Q21. Why is debugging a Swarm hard without tracing?</a><a href="#f11AgenticSyste-21" data-c="f11AgenticSyste-21">Q22. Design a Swarm where agents can "pass the baton" conditionally (only handoff if a condition is met).</a><a href="#f11AgenticSyste-22" data-c="f11AgenticSyste-22">Q23. A customer says "I want to refund my order AND report a bug." Your swarm has [support, refunds, bugs]. How do you handle this?</a></div><div class="toc-g" data-for="f12ContextManag"><b>12 &middot; Context management</b><a href="#f12ContextManag-23" data-c="f12ContextManag-23">Context Window Fundamentals</a><a href="#f12ContextManag-24" data-c="f12ContextManag-24">When Context Becomes a Problem</a><a href="#f12ContextManag-25" data-c="f12ContextManag-25">Context Management Strategies</a><a href="#f12ContextManag-26" data-c="f12ContextManag-26">Summarization Patterns</a><a href="#f12ContextManag-27" data-c="f12ContextManag-27">Implementation by Agent Pattern</a><a href="#f12ContextManag-28" data-c="f12ContextManag-28">Hierarchical Summarization</a><a href="#f12ContextManag-29" data-c="f12ContextManag-29">Interview Questions</a><a href="#f12ContextManag-30" data-c="f12ContextManag-30">Production Checklist</a><a href="#f12ContextManag-31" data-c="f12ContextManag-31">Final Checklist: Interview Readiness</a><a href="#f12ContextManag-32" data-c="f12ContextManag-32">References</a></div><div class="toc-g" data-for="f13TopicCoverag"><b>13 &middot; Topic-coverage playbook</b><a href="#f13TopicCoverag-33" data-c="f13TopicCoverag-33">Quick coverage matrix</a><a href="#f13TopicCoverag-34" data-c="f13TopicCoverag-34">1. Models &amp; providers</a><a href="#f13TopicCoverag-35" data-c="f13TopicCoverag-35">2. Prompts</a><a href="#f13TopicCoverag-36" data-c="f13TopicCoverag-36">3. Structured output</a><a href="#f13TopicCoverag-37" data-c="f13TopicCoverag-37">4. Composition (the core difference)</a><a href="#f13TopicCoverag-38" data-c="f13TopicCoverag-38">5. Tools &amp; tool calling</a><a href="#f13TopicCoverag-39" data-c="f13TopicCoverag-39">6. Agents (ReAct)</a><a href="#f13TopicCoverag-40" data-c="f13TopicCoverag-40">7. Conversation memory (short-term)</a><a href="#f13TopicCoverag-41" data-c="f13TopicCoverag-41">8. Persistence &amp; checkpointing — local vs DB vs <i>after a restart</i> ⭐</a><a href="#f13TopicCoverag-42" data-c="f13TopicCoverag-42">9. Long-term memory (cross-conversation facts)</a><a href="#f13TopicCoverag-43" data-c="f13TopicCoverag-43">10. RAG / retrieval</a><a href="#f13TopicCoverag-44" data-c="f13TopicCoverag-44">11. Streaming</a><a href="#f13TopicCoverag-45" data-c="f13TopicCoverag-45">12. Human-in-the-loop</a><a href="#f13TopicCoverag-46" data-c="f13TopicCoverag-46">13. Routing / control flow</a><a href="#f13TopicCoverag-47" data-c="f13TopicCoverag-47">14. Parallelism</a><a href="#f13TopicCoverag-48" data-c="f13TopicCoverag-48">15. Errors, retries &amp; fallbacks</a><a href="#f13TopicCoverag-49" data-c="f13TopicCoverag-49">16. Multi-agent</a><a href="#f13TopicCoverag-50" data-c="f13TopicCoverag-50">17. Observability / tracing</a><a href="#f13TopicCoverag-51" data-c="f13TopicCoverag-51">18. Deployment</a></div><div class="toc-g" data-for="f19Orchestrator"><b>19 &middot; Orchestrator vs supervisor</b><a href="#f19Orchestrator-52" data-c="f19Orchestrator-52">1. The Distinction (interview answer first)</a><a href="#f19Orchestrator-53" data-c="f19Orchestrator-53">2. Implementing a Supervisor (LangGraph)</a><a href="#f19Orchestrator-54" data-c="f19Orchestrator-54">3. Implementing an Orchestrator-Worker (LangGraph <code>Send</code>)</a><a href="#f19Orchestrator-55" data-c="f19Orchestrator-55">4. Adding an Agent AFTER Deployment (the real question)</a><a href="#f19Orchestrator-56" data-c="f19Orchestrator-56">5. Interview Q&amp;A</a></div></aside>
 </div>
 <button class="totop" id="totop" title="Back to top">&#8593;</button>
 <script>
@@ -5916,29 +6266,44 @@ var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementBy
 qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
 function runSearch(){
   if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
-  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
-    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;});
+  /* a heading survives the filter only while something under it is still showing */
   [].forEach.call(document.querySelectorAll('.parthead'),function(p){
-    if(!v){p.style.display='';return}
-    var vis=false,n=p.nextElementSibling;
-    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
-    p.style.display=vis?'':'none';});
+    var vis=true;
+    if(v){
+      vis=false;
+      var n=p.nextElementSibling;
+      while(n&&!n.classList.contains('parthead')){
+        if(n.classList.contains('q')&&n.style.display!=='none'){vis=true;break}
+        n=n.nextElementSibling;
+      }
+    }
+    p.style.display=vis?'':'none';
+    if(p.id){var l=document.querySelector('nav a[data-t="'+p.id+'"]');
+      if(l)l.style.display=vis?'':'none';}
+  });
   if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
 }
 if(inp)inp.addEventListener('input',runSearch);
 
-var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+/* The sidebar lists main headings only, so scroll tracking follows those headings
+   (data-t -> element id) rather than one entry per question card. */
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-t]'));
+var navTargets=navLinks.map(function(l){return document.getElementById(l.getAttribute('data-t'))});
 var totop=document.getElementById('totop');
 function onScroll(){
   var sc=document.documentElement.scrollTop;
   if(totop)totop.classList.toggle('show',sc>600);
-  var cur=null;
-  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
-    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  var cur=-1;
+  for(var i=0;i<navTargets.length;i++){
+    var el=navTargets[i];
+    if(!el||el.offsetParent===null)continue;
+    if(el.getBoundingClientRect().top<=140)cur=i;else break;
+  }
   navLinks.forEach(function(l){l.classList.remove('active')});
-  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
-    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
-      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+  if(cur>=0){var l=navLinks[cur];
+    l.classList.add('active');var r=l.getBoundingClientRect();
+    if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}
 }
 window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
@@ -5989,6 +6354,43 @@ document.addEventListener('keydown',function(e){
     });
     pre.appendChild(b);
   });
+})();
+
+/* Right-hand rail: reveal the group for the file section being read, and mark the
+   card in view. Scrolling is done on the rail itself - scrollIntoView would drag the
+   window along with it. */
+(function(){
+  var toc=document.getElementById('toc'); if(!toc)return;
+  document.body.classList.add('js');
+  var groups=[].slice.call(toc.querySelectorAll('.toc-g'));
+  if(!groups.length)return;
+  var secs=groups.map(function(g){return document.getElementById(g.getAttribute('data-for'))});
+  var links=groups.map(function(g){return [].slice.call(g.querySelectorAll('a[data-c]'))});
+  var curG=-1;
+  function upd(){
+    var i,g=-1;
+    for(i=0;i<secs.length;i++){
+      var el=secs[i]; if(!el)continue;
+      if(el.getBoundingClientRect().top<=160)g=i; else break;
+    }
+    if(g<0)g=0;
+    if(g!==curG){groups.forEach(function(x,k){x.classList.toggle('on',k===g)});curG=g;}
+    var ls=links[g]||[],act=null;
+    for(i=0;i<ls.length;i++){
+      var t=document.getElementById(ls[i].getAttribute('data-c'));
+      if(!t||t.style.display==='none')continue;
+      if(t.getBoundingClientRect().top<=160)act=ls[i]; else break;
+    }
+    ls.forEach(function(a){a.classList.remove('on')});
+    if(act){
+      act.classList.add('on');
+      var top=act.offsetTop,h=act.offsetHeight;
+      if(top<toc.scrollTop+8||top+h>toc.scrollTop+toc.clientHeight-8)
+        toc.scrollTop=top-toc.clientHeight/2+h/2;
+    }
+  }
+  addEventListener('scroll',upd,{passive:true});
+  addEventListener('resize',upd); upd();
 })();
 
 /* deep link on each question card */

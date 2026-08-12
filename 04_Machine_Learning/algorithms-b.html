@@ -509,9 +509,358 @@ body.searching .parthead{opacity:.5}
 
 @media(max-width:1060px){ .parthead{top:0} }
 
+/* =====================================================================
+   AURORA GLASS
+   The final layer. Everything below re-tints the sheet above it: a deep
+   near-black canvas lit by a fixed gradient mesh, with the chrome and the
+   cards reading as frosted panels floating on top of it.
+   ===================================================================== */
+
+:root{
+  --bg:#070a12; --bg-2:#0a0e18;
+  --surface:#0f131e; --surface-2:#141a27; --surface-3:#1c2333;
+  --border:#232c40; --border-soft:#19202f;
+  --ink:#eaf0fb; --ink-2:#9fabc4; --ink-mut:#6b7690;
+
+  --accent:#7c9dff; --accent-2:#b18cff;
+  --accent-soft:rgba(124,157,255,.15); --accent-bd:rgba(124,157,255,.40);
+  --t-rag:#7c9dff; --t-agentic:#ff9563; --t-recall:#3ed9a4;
+  --t-violet:#b18cff; --t-amber:#f0c274;
+  --good:#3ed9a4; --warn:#f5c451; --crit:#ff6b81;
+  --good-soft:rgba(62,217,164,.12); --warn-soft:rgba(245,196,81,.12);
+  --crit-soft:rgba(255,107,129,.12);
+  --code-bg:#080b13;
+
+  --glass:rgba(255,255,255,.045);
+  --glass-bd:rgba(255,255,255,.075);
+  --e1:0 1px 2px rgba(0,0,0,.40);
+  --e2:0 8px 26px rgba(3,6,15,.55);
+  --e3:0 22px 60px rgba(3,6,15,.68);
+  --radius:16px; --radius-sm:11px;
+}
+html[data-theme="light"]{
+  --bg:#f6f8fe; --bg-2:#eef2fb;
+  --surface:#fff; --surface-2:#fafbff; --surface-3:#eef2fb;
+  --border:#dce3f2; --border-soft:#e9edf8;
+  --ink:#111828; --ink-2:#4c586f; --ink-mut:#7c8699;
+
+  --accent:#4f6fe6; --accent-2:#8b5cf6;
+  --accent-soft:rgba(79,111,230,.10); --accent-bd:rgba(79,111,230,.34);
+  --t-rag:#4f6fe6; --t-agentic:#e0663a; --t-recall:#0f9e74;
+  --t-violet:#8b5cf6; --t-amber:#a9760a;
+  --good:#0f9e74; --warn:#b07d00; --crit:#dc3d55;
+  --good-soft:rgba(15,158,116,.10); --warn-soft:rgba(176,125,0,.11);
+  --crit-soft:rgba(220,61,85,.09);
+  --code-bg:#f2f5fc;
+
+  --glass:rgba(255,255,255,.62);
+  --glass-bd:rgba(17,24,40,.07);
+  --e1:0 1px 2px rgba(16,24,40,.05);
+  --e2:0 8px 24px rgba(16,24,40,.08);
+  --e3:0 22px 56px rgba(16,24,40,.12);
+}
+
+/* ---------- the canvas ---------- */
+/* the page background lives on <html> so the fixed aurora layer can sit
+   between it and the content without the body's own fill covering it */
+html{background:var(--bg)}
+body{background:transparent}
+
+/* Ambient tint on every page: strongest at the top edge, gone by mid-scroll, so
+   long reading pages settle onto clean dark instead of a permanent wash. */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 22% -6%, color-mix(in srgb,var(--accent) 46%,transparent), transparent 66%),
+    radial-gradient(38% 32% at 82% -8%, color-mix(in srgb,var(--accent-2) 40%,transparent), transparent 64%);
+  filter:blur(30px) saturate(1.3);opacity:.5;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%);
+          mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%)}
+html[data-theme="light"] body::before{opacity:.5;filter:blur(36px) saturate(1)}
+
+/* film grain: keeps the large flat gradients from banding on cheap panels */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.032;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* multiply over a light canvas darkens fast - the grain has to be far weaker here
+   or the whole page reads grey instead of white */
+html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply}
+
+@keyframes aurora-drift{
+  from{transform:translate3d(0,0,0) scale(1)}
+  to{transform:translate3d(3%,-2.5%,0) scale(1.12)}
+}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:transparent;border-bottom:1px solid var(--border-soft)}
+.siteswitch a{color:var(--ink-mut)}
+.siteswitch a:hover{background:var(--glass);color:var(--ink)}
+.siteswitch a.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  box-shadow:0 3px 14px color-mix(in srgb,var(--accent) 40%,transparent)}
+.sitebar{background:color-mix(in srgb,var(--bg) 62%,transparent);
+  backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);
+  border-bottom:1px solid var(--glass-bd);box-shadow:0 1px 0 rgba(255,255,255,.03),var(--e1)}
+.logo b{background:linear-gradient(115deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{background:var(--glass);border:1px solid var(--glass-bd);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);border-radius:10px}
+.btn:hover{border-color:var(--accent-bd);color:var(--ink);
+  box-shadow:0 4px 16px color-mix(in srgb,var(--accent) 22%,transparent)}
+.btn.on{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,transparent),
+  color-mix(in srgb,var(--accent-2) 18%,transparent));border-color:var(--accent-bd);color:var(--accent)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 55%,transparent),transparent 60%);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-right:1px solid var(--glass-bd)}
+.sb-search input{background:var(--glass);border:1px solid var(--glass-bd);border-radius:11px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sb-search input:focus{border-color:var(--accent-bd);
+  box-shadow:0 0 0 3px var(--accent-soft),0 4px 18px color-mix(in srgb,var(--accent) 20%,transparent)}
+nav a:hover{background:var(--glass);color:var(--ink)}
+nav a.active{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 20%,transparent),transparent 78%);
+  box-shadow:inset 0 0 0 1px var(--accent-bd);color:var(--accent)}
+nav a.active::before{background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 10px var(--accent)}
+.nav-grp{color:var(--ink-mut)}
+
+/* ---------- hero ---------- */
+.hero::before{opacity:.72;filter:blur(38px)}
+.eyebrow{background:var(--glass);border:1px solid var(--glass-bd);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:var(--ink-2);font-weight:700}
+.hero h1{background:linear-gradient(112deg,var(--ink) 4%,
+    color-mix(in srgb,var(--accent) 88%,var(--ink)) 46%,
+    color-mix(in srgb,var(--accent-2) 92%,var(--ink)) 74%,
+    color-mix(in srgb,var(--t-recall) 70%,var(--ink)) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- surfaces: glass everywhere the old sheet used flat fills ---------- */
+.stat,.q,.tcard,.hub-card,.panel,.learn,figure.viz,.tbl-wrap,.flow,.learn-item{
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 72%,transparent));
+  border-color:var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+
+.stat{border-radius:14px}
+.stat::before{height:1.5px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),color-mix(in srgb,var(--tc,var(--accent)) 20%,transparent) 70%,transparent)}
+.stat:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 18%,transparent)}
+.stat-v{background:linear-gradient(150deg,var(--ink),var(--tc,var(--accent)));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 42%,transparent);box-shadow:var(--e2)}
+.q:target{box-shadow:0 0 0 3px var(--accent-soft),var(--e2)}
+.tcard:hover,.hub-card:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 22%,transparent)}
+
+/* the hover affordance was emitting a literal "92" - it wants to be an arrow */
+.tcard::after,.hub-card::after{content:"\2192"}
+
+figure.viz{border-radius:18px}
+pre.code{background:color-mix(in srgb,var(--code-bg) 88%,transparent);
+  border:1px solid var(--glass-bd);border-radius:13px;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.say{background:linear-gradient(100deg,color-mix(in srgb,var(--accent) 14%,transparent),transparent 72%);
+  border-left-color:var(--accent)}
+.kt{background:var(--glass);border-color:var(--glass-bd)}
+.kt:hover{border-color:var(--accent-bd);color:var(--accent)}
+.parthead{background:color-mix(in srgb,var(--bg) 66%,transparent);
+  backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5)}
+th{background:color-mix(in srgb,var(--surface-3) 82%,transparent)}
+
+/* ---------- right-hand "on this page" rail ---------- */
+:root{ --tocw:262px }
+.app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr) var(--tocw)}
+.toc{position:sticky;top:47px;align-self:start;height:calc(100vh - 47px);overflow-y:auto;
+  overscroll-behavior:contain;padding:22px 20px 60px;font-size:12.6px;
+  border-left:1px solid var(--glass-bd)}
+.toc::-webkit-scrollbar{width:7px}
+.toc::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.toc-h{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-mut);margin-bottom:12px}
+.toc-h svg.ic{font-size:13px;color:var(--tc,var(--accent))}
+/* one group per file section; the script shows the one you are reading */
+body.js .toc-g{display:none}
+body.js .toc-g.on{display:block}
+.toc-g > b{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tc,var(--accent));margin:0 0 9px;padding-left:11px}
+.toc-g a{display:block;padding:5px 10px 5px 12px;margin:1px 0;border-radius:7px;color:var(--ink-2);
+  text-decoration:none;line-height:1.42;border-left:2px solid transparent}
+.toc-g a:hover{background:var(--glass);color:var(--ink);text-decoration:none}
+.toc-g a.on{color:var(--accent);border-left-color:var(--accent);font-weight:650;
+  background:linear-gradient(90deg,var(--accent-soft),transparent 80%)}
+.toc-empty{color:var(--ink-mut);font-size:12px;padding-left:12px}
+@media(max-width:1400px){
+  .app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr)}
+  .toc{display:none}
+}
+
+/* ---------- breadcrumb ---------- */
+.crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.2px;color:var(--ink-mut);
+  padding-top:26px}
+.crumb a{color:var(--ink-mut);text-decoration:none}
+.crumb a:hover{color:var(--accent);text-decoration:none}
+.crumb svg.ic{font-size:12px;opacity:.5}
+.crumb b{color:var(--ink-2);font-weight:650}
+.crumb + .hero{padding-top:18px}
+.pnav-t{min-width:0}
+
+/* ---------- previous / next ---------- */
+.pnav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:64px 0 0}
+.pnav a{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:14px;
+  text-decoration:none;color:inherit;border:1px solid var(--glass-bd);
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 86%,transparent),
+    color-mix(in srgb,var(--surface-2) 66%,transparent))}
+.pnav a:hover{text-decoration:none;border-color:var(--accent-bd);box-shadow:var(--e2)}
+.pnav a.next{grid-column:2;justify-content:flex-end;text-align:right}
+.pnav a.prev{grid-column:1}
+.pnav span{display:block;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-mut)}
+.pnav b{display:block;margin-top:4px;font-size:14.5px;letter-spacing:-.02em;color:var(--ink)}
+.pnav svg.ic{font-size:18px;color:var(--accent);flex:none}
+@media(max-width:760px){
+  .pnav{grid-template-columns:1fr}
+  .pnav a.next,.pnav a.prev{grid-column:1}
+}
+
+/* ---------- section headers (shared by the hub and every topic index) ---------- */
+.h-sec-h{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.h-sec-h h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-mut);white-space:nowrap;display:flex;align-items:center;gap:9px;border:0;padding:0}
+.h-sec-h h2 svg.ic{font-size:15px;color:var(--accent);opacity:.9}
+.h-sec-h i{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- icons ---------- */
+.sprite{display:none}
+svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.13em}
+/* the boxed icon tile used by track rows, callouts and nav groups */
+.ic-box{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:44px;height:44px;border-radius:13px;font-size:20px;color:var(--tc,var(--accent));
+  background:linear-gradient(150deg,color-mix(in srgb,var(--tc,var(--accent)) 26%,transparent),
+    color-mix(in srgb,var(--tc,var(--accent)) 8%,transparent));
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.ic-sm{width:30px;height:30px;border-radius:9px;font-size:15px}
+
+/* ---------- topic index: learning-track rows ---------- */
+.trk{display:flex;flex-direction:column;gap:11px;margin:40px 0 0}
+.trk-row{position:relative;display:flex;align-items:center;gap:17px;padding:17px 19px;
+  border-radius:15px;text-decoration:none;color:inherit;overflow:hidden;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--surface) 90%,transparent),
+    color-mix(in srgb,var(--surface-2) 68%,transparent));
+  border:1px solid var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.trk-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tc)}
+.trk-row:hover{text-decoration:none;transform:translateX(3px);
+  border-color:color-mix(in srgb,var(--tc) 46%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc) 18%,transparent)}
+.trk-b{min-width:0;flex:1}
+.trk-b b{display:block;font-size:16.5px;letter-spacing:-.022em;color:var(--ink);font-weight:750}
+.trk-b b i{font-style:normal;color:var(--ink-mut);font-weight:600;margin-right:3px}
+.trk-b p{margin:4px 0 0;font-size:13.2px;line-height:1.5;color:var(--ink-2)}
+.trk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.trk-chips span{font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.trk-row:hover .trk-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+.trk-meta{display:flex;align-items:center;gap:8px;flex:none;font-size:11.5px;
+  font-family:var(--mono);color:var(--tc);white-space:nowrap}
+.trk-meta i{font-style:normal;opacity:.45}
+.trk-go{flex:none;font-size:19px;color:var(--ink-mut);display:inline-flex}
+.trk-row:hover .trk-go{color:var(--tc);transform:translateX(2px)}
+@media(prefers-reduced-motion:no-preference){
+  .trk-row,.trk-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,color .18s ease}
+}
+@media(max-width:820px){
+  .trk-row{flex-wrap:wrap;gap:13px}
+  .trk-meta{order:3;width:100%}
+  .trk-go{display:none}
+}
+
+/* ---------- sidebar nav with icons ---------- */
+.nav-grp{display:flex;align-items:center;gap:8px}
+.nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
+nav a svg.ic{font-size:14px;opacity:.6}
+nav a.active svg.ic{opacity:1}
+/* file = main heading, named part = its only sub-entry */
+nav a.nav-file{margin-top:13px;font-size:13px;font-weight:750;color:var(--ink);align-items:center}
+nav a.nav-file svg.ic{color:var(--tc,var(--accent));opacity:.95}
+nav a.nav-sub{padding-left:30px;font-size:12.2px;position:relative}
+nav a.nav-sub::after{content:"";position:absolute;left:16px;top:50%;width:5px;height:5px;
+  margin-top:-2.5px;border-radius:50%;background:var(--ink-mut);opacity:.5}
+nav a.nav-sub.active::after{background:var(--accent);opacity:1}
+
+/* ---------- callouts with icons ---------- */
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key,.say{position:relative}
+.note-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;font-size:13px;margin-right:8px;vertical-align:-.35em;flex:none}
+.say-h svg.ic{font-size:13px}
+
+/* ---------- topic index: the landing page of each site ---------- */
+/* the reading measure is right for prose but starves a card grid, so an index
+   page widens its column and fits three across */
+.wrap:has(.idx-grid){max-width:1300px}
+.idx-hero{padding:58px 0 4px}
+.idx-hero h1{font-size:clamp(36px,4.8vw,56px);margin:18px 0 16px}
+.idx-hero .lede{font-size:17.5px;max-width:76ch;margin:0}
+
+.idx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;
+  margin:44px 0 0}
+.idx-card{position:relative;display:block;padding:22px 23px 20px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 70%,transparent));
+  border:1px solid var(--glass-bd);text-decoration:none;color:inherit;
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.idx-card::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc),transparent 80%)}
+.idx-card:hover{transform:translateY(-3px);text-decoration:none;
+  border-color:color-mix(in srgb,var(--tc) 48%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc) 20%,transparent)}
+.idx-card-h{display:flex;align-items:center;gap:11px}
+.idx-card-h h3{margin:0;font-size:18.5px;letter-spacing:-.026em;color:var(--ink);font-weight:750}
+.idx-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--tc);
+  box-shadow:0 0 10px var(--tc)}
+.idx-go{margin-left:auto;font-size:16px;color:var(--tc);opacity:0;transform:translateX(-5px);flex:none}
+.idx-card:hover .idx-go{opacity:1;transform:translateX(0)}
+.idx-card p{margin:11px 0 0;font-size:13.4px;line-height:1.6;color:var(--ink-2)}
+.idx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}
+.idx-chips span{font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.idx-card:hover .idx-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+@media(prefers-reduced-motion:no-preference){
+  .idx-card,.idx-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,opacity .18s ease}
+}
+
+/* ---------- file section headers ---------- */
+/* .fh-top's spans had no rules at all, so the name and the count ran together as
+   one unstyled line. It reads as an eyebrow row above the file title. */
+.filehead{margin:56px 0 16px}
+.fh-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px}
+.fh-num{font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--tc,var(--accent));padding:4px 12px;border-radius:999px;
+  background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.fh-count{font-family:var(--mono);font-size:10.5px;color:var(--ink-mut);padding:4px 11px;
+  border-radius:999px;background:var(--glass);border:1px solid var(--glass-bd)}
+.filehead h2{font-size:28px;letter-spacing:-.032em;margin:0}
+
+/* ---------- detail ---------- */
+::selection{background:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--ink)}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-bd);background-clip:padding-box}
+#rprog{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--t-recall));
+  box-shadow:0 0 14px color-mix(in srgb,var(--accent) 70%,transparent)}
+.totop{background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 8px 26px color-mix(in srgb,var(--accent) 45%,transparent)}
+.totop:hover{transform:translateY(-2px)}
+
 </style>
 </head>
 <body>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol><symbol id="i-arrowl" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol><symbol id="i-branch" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol><symbol id="i-bulb" viewBox="0 0 24 24"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2z"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol><symbol id="i-code" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></symbol><symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol><symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 2v6.5L4.2 17A2 2 0 0 0 6 20h12a2 2 0 0 0 1.8-3L15 8.5V2"/><line x1="8" y1="2" x2="16" y2="2"/><line x1="7" y1="14" x2="17" y2="14"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol><symbol id="i-network" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></symbol><symbol id="i-package" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol><symbol id="i-sigma" viewBox="0 0 24 24"><path d="M18 4H6l6 8-6 8h12"/></symbol><symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol><symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol><symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol></svg>
 <div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
   <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw" href="../03_Data_Handling/index.html">03 Data</a><a class="sw on" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw" href="../11_System_Design/index.html">11 Sys Design</a>
 </div></div><div class="sitebar-in">
@@ -523,20 +872,19 @@ body.searching .parthead{opacity:.5}
   <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
   <button class="btn" id="themeBtn">Dark</button>
 </div></div>
-<div class="app" style="--tc:var(--t-agentic)">
+<div class="app has-toc" style="--tc:var(--t-agentic)">
 <aside id="sidebar">
   <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
   <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
-  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><div class="nav-grp">lasso regression</div><a href="#flassoregressio-0" data-q="flassoregressio-0"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#flassoregressio-1" data-q="flassoregressio-1"><span class="qn">&bull;</span>1. Definition</a><a href="#flassoregressio-2" data-q="flassoregressio-2"><span class="qn">&bull;</span>2. Intuition &amp; how it works — the geometry</a><a href="#flassoregressio-3" data-q="flassoregressio-3"><span class="qn">&bull;</span>3. Mathematical formulation — full derivations</a><a href="#flassoregressio-4" data-q="flassoregressio-4"><span class="qn">&bull;</span>4. Assumptions</a><a href="#flassoregressio-5" data-q="flassoregressio-5"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#flassoregressio-6" data-q="flassoregressio-6"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#flassoregressio-7" data-q="flassoregressio-7"><span class="qn">&bull;</span>7. Complexity</a><a href="#flassoregressio-8" data-q="flassoregressio-8"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#flassoregressio-9" data-q="flassoregressio-9"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#flassoregressio-10" data-q="flassoregressio-10"><span class="qn">&bull;</span>10. Comparison: Lasso vs Ridge vs Elastic Net</a><a href="#flassoregressio-11" data-q="flassoregressio-11"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#flassoregressio-12" data-q="flassoregressio-12"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#flassoregressio-13" data-q="flassoregressio-13"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#flassoregressio-14" data-q="flassoregressio-14"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">lda</div><a href="#fldamd-15" data-q="fldamd-15"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fldamd-16" data-q="fldamd-16"><span class="qn">&bull;</span>1. Definition</a><a href="#fldamd-17" data-q="fldamd-17"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fldamd-18" data-q="fldamd-18"><span class="qn">&bull;</span>3. Mathematical formulation — Fisher's criterion</a><a href="#fldamd-19" data-q="fldamd-19"><span class="qn">&bull;</span>4. Assumptions</a><a href="#fldamd-20" data-q="fldamd-20"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#fldamd-21" data-q="fldamd-21"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fldamd-22" data-q="fldamd-22"><span class="qn">&bull;</span>7. Complexity</a><a href="#fldamd-23" data-q="fldamd-23"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fldamd-24" data-q="fldamd-24"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#fldamd-25" data-q="fldamd-25"><span class="qn">&bull;</span>10. Comparison</a><a href="#fldamd-26" data-q="fldamd-26"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fldamd-27" data-q="fldamd-27"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fldamd-28" data-q="fldamd-28"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fldamd-29" data-q="fldamd-29"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">lightgbm</div><a href="#flightgbmmd-30" data-q="flightgbmmd-30"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#flightgbmmd-31" data-q="flightgbmmd-31"><span class="qn">&bull;</span>1. Definition</a><a href="#flightgbmmd-32" data-q="flightgbmmd-32"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#flightgbmmd-33" data-q="flightgbmmd-33"><span class="qn">&bull;</span>3. Mechanisms (what's distinctive)</a><a href="#flightgbmmd-34" data-q="flightgbmmd-34"><span class="qn">&bull;</span>4. Assumptions</a><a href="#flightgbmmd-35" data-q="flightgbmmd-35"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#flightgbmmd-36" data-q="flightgbmmd-36"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#flightgbmmd-37" data-q="flightgbmmd-37"><span class="qn">&bull;</span>7. Complexity</a><a href="#flightgbmmd-38" data-q="flightgbmmd-38"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#flightgbmmd-39" data-q="flightgbmmd-39"><span class="qn">&bull;</span>9. In scikit-learn (lightgbm's sklearn API)</a><a href="#flightgbmmd-40" data-q="flightgbmmd-40"><span class="qn">&bull;</span>10. Comparison</a><a href="#flightgbmmd-41" data-q="flightgbmmd-41"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#flightgbmmd-42" data-q="flightgbmmd-42"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#flightgbmmd-43" data-q="flightgbmmd-43"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#flightgbmmd-44" data-q="flightgbmmd-44"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">linear regression</div><a href="#flinearregressi-45" data-q="flinearregressi-45"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#flinearregressi-46" data-q="flinearregressi-46"><span class="qn">&bull;</span>1. Definition</a><a href="#flinearregressi-47" data-q="flinearregressi-47"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#flinearregressi-48" data-q="flinearregressi-48"><span class="qn">&bull;</span>3. Mathematical formulation — full derivations</a><a href="#flinearregressi-49" data-q="flinearregressi-49"><span class="qn">&bull;</span>4. Evaluation metrics</a><a href="#flinearregressi-50" data-q="flinearregressi-50"><span class="qn">&bull;</span>5. Assumptions (L·I·N·E + 2)</a><a href="#flinearregressi-51" data-q="flinearregressi-51"><span class="qn">&bull;</span>6. Diagnostics &amp; what happens if assumptions are violated</a><a href="#flinearregressi-52" data-q="flinearregressi-52"><span class="qn">&bull;</span>7. Gauss–Markov theorem (why OLS is special)</a><a href="#flinearregressi-53" data-q="flinearregressi-53"><span class="qn">&bull;</span>8. Advantages &amp; disadvantages</a><a href="#flinearregressi-54" data-q="flinearregressi-54"><span class="qn">&bull;</span>9. Hyperparameters &amp; practical knobs</a><a href="#flinearregressi-55" data-q="flinearregressi-55"><span class="qn">&bull;</span>10. In scikit-learn</a><a href="#flinearregressi-56" data-q="flinearregressi-56"><span class="qn">&bull;</span>11. Comparison with related models</a><a href="#flinearregressi-57" data-q="flinearregressi-57"><span class="qn">&bull;</span>12. When to use / when not to</a><a href="#flinearregressi-58" data-q="flinearregressi-58"><span class="qn">&bull;</span>13. Interview deep dive</a><a href="#flinearregressi-59" data-q="flinearregressi-59"><span class="qn">&bull;</span>14. Common mistakes &amp; best practices</a><a href="#flinearregressi-60" data-q="flinearregressi-60"><span class="qn">&bull;</span>15. One-paragraph summary</a><div class="nav-grp">logistic regression</div><a href="#flogisticregres-61" data-q="flogisticregres-61"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#flogisticregres-62" data-q="flogisticregres-62"><span class="qn">&bull;</span>1. Definition</a><a href="#flogisticregres-63" data-q="flogisticregres-63"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#flogisticregres-64" data-q="flogisticregres-64"><span class="qn">&bull;</span>3. Mathematical formulation — full derivations</a><a href="#flogisticregres-65" data-q="flogisticregres-65"><span class="qn">&bull;</span>4. Evaluation metrics</a><a href="#flogisticregres-66" data-q="flogisticregres-66"><span class="qn">&bull;</span>5. Assumptions</a><a href="#flogisticregres-67" data-q="flogisticregres-67"><span class="qn">&bull;</span>6. If assumptions are violated</a><a href="#flogisticregres-68" data-q="flogisticregres-68"><span class="qn">&bull;</span>7. Advantages &amp; disadvantages</a><a href="#flogisticregres-69" data-q="flogisticregres-69"><span class="qn">&bull;</span>8. Complexity</a><a href="#flogisticregres-70" data-q="flogisticregres-70"><span class="qn">&bull;</span>9. Hyperparameters</a><a href="#flogisticregres-71" data-q="flogisticregres-71"><span class="qn">&bull;</span>10. In scikit-learn</a><a href="#flogisticregres-72" data-q="flogisticregres-72"><span class="qn">&bull;</span>11. Comparison with related models</a><a href="#flogisticregres-73" data-q="flogisticregres-73"><span class="qn">&bull;</span>12. When to use / when not to</a><a href="#flogisticregres-74" data-q="flogisticregres-74"><span class="qn">&bull;</span>13. Interview deep dive</a><a href="#flogisticregres-75" data-q="flogisticregres-75"><span class="qn">&bull;</span>14. Common mistakes &amp; best practices</a><a href="#flogisticregres-76" data-q="flogisticregres-76"><span class="qn">&bull;</span>15. One-paragraph summary</a><div class="nav-grp">naive bayes</div><a href="#fnaivebayesmd-77" data-q="fnaivebayesmd-77"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fnaivebayesmd-78" data-q="fnaivebayesmd-78"><span class="qn">&bull;</span>1. Definition</a><a href="#fnaivebayesmd-79" data-q="fnaivebayesmd-79"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fnaivebayesmd-80" data-q="fnaivebayesmd-80"><span class="qn">&bull;</span>3. Mathematical formulation (with a worked calculation)</a><a href="#fnaivebayesmd-81" data-q="fnaivebayesmd-81"><span class="qn">&bull;</span>4. Variants (pick by feature type)</a><a href="#fnaivebayesmd-82" data-q="fnaivebayesmd-82"><span class="qn">&bull;</span>5. Assumptions</a><a href="#fnaivebayesmd-83" data-q="fnaivebayesmd-83"><span class="qn">&bull;</span>6. If assumptions are violated</a><a href="#fnaivebayesmd-84" data-q="fnaivebayesmd-84"><span class="qn">&bull;</span>7. Advantages &amp; disadvantages</a><a href="#fnaivebayesmd-85" data-q="fnaivebayesmd-85"><span class="qn">&bull;</span>8. Complexity</a><a href="#fnaivebayesmd-86" data-q="fnaivebayesmd-86"><span class="qn">&bull;</span>9. Key hyperparameters</a><a href="#fnaivebayesmd-87" data-q="fnaivebayesmd-87"><span class="qn">&bull;</span>10. In scikit-learn</a><a href="#fnaivebayesmd-88" data-q="fnaivebayesmd-88"><span class="qn">&bull;</span>11. Comparison</a><a href="#fnaivebayesmd-89" data-q="fnaivebayesmd-89"><span class="qn">&bull;</span>12. When to use / when not to</a><a href="#fnaivebayesmd-90" data-q="fnaivebayesmd-90"><span class="qn">&bull;</span>13. Interview deep dive</a><a href="#fnaivebayesmd-91" data-q="fnaivebayesmd-91"><span class="qn">&bull;</span>14. Common mistakes &amp; best practices</a><a href="#fnaivebayesmd-92" data-q="fnaivebayesmd-92"><span class="qn">&bull;</span>15. One-paragraph summary</a><div class="nav-grp">pca</div><a href="#fpcamd-93" data-q="fpcamd-93"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fpcamd-94" data-q="fpcamd-94"><span class="qn">&bull;</span>1. Definition</a><a href="#fpcamd-95" data-q="fpcamd-95"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fpcamd-96" data-q="fpcamd-96"><span class="qn">&bull;</span>3. Mathematical formulation — derivation</a><a href="#fpcamd-97" data-q="fpcamd-97"><span class="qn">&bull;</span>4. Assumptions</a><a href="#fpcamd-98" data-q="fpcamd-98"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#fpcamd-99" data-q="fpcamd-99"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fpcamd-100" data-q="fpcamd-100"><span class="qn">&bull;</span>7. Complexity</a><a href="#fpcamd-101" data-q="fpcamd-101"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fpcamd-102" data-q="fpcamd-102"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#fpcamd-103" data-q="fpcamd-103"><span class="qn">&bull;</span>10. Comparison</a><a href="#fpcamd-104" data-q="fpcamd-104"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fpcamd-105" data-q="fpcamd-105"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fpcamd-106" data-q="fpcamd-106"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fpcamd-107" data-q="fpcamd-107"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">polynomial regression</div><a href="#fpolynomialregr-108" data-q="fpolynomialregr-108"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fpolynomialregr-109" data-q="fpolynomialregr-109"><span class="qn">&bull;</span>1. Definition</a><a href="#fpolynomialregr-110" data-q="fpolynomialregr-110"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fpolynomialregr-111" data-q="fpolynomialregr-111"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#fpolynomialregr-112" data-q="fpolynomialregr-112"><span class="qn">&bull;</span>4. Assumptions</a><a href="#fpolynomialregr-113" data-q="fpolynomialregr-113"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#fpolynomialregr-114" data-q="fpolynomialregr-114"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fpolynomialregr-115" data-q="fpolynomialregr-115"><span class="qn">&bull;</span>7. Complexity</a><a href="#fpolynomialregr-116" data-q="fpolynomialregr-116"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fpolynomialregr-117" data-q="fpolynomialregr-117"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#fpolynomialregr-118" data-q="fpolynomialregr-118"><span class="qn">&bull;</span>10. Comparison</a><a href="#fpolynomialregr-119" data-q="fpolynomialregr-119"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fpolynomialregr-120" data-q="fpolynomialregr-120"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fpolynomialregr-121" data-q="fpolynomialregr-121"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fpolynomialregr-122" data-q="fpolynomialregr-122"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">random forest</div><a href="#frandomforestmd-123" data-q="frandomforestmd-123"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#frandomforestmd-124" data-q="frandomforestmd-124"><span class="qn">&bull;</span>1. Definition</a><a href="#frandomforestmd-125" data-q="frandomforestmd-125"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#frandomforestmd-126" data-q="frandomforestmd-126"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#frandomforestmd-127" data-q="frandomforestmd-127"><span class="qn">&bull;</span>4. Assumptions</a><a href="#frandomforestmd-128" data-q="frandomforestmd-128"><span class="qn">&bull;</span>5. If assumptions (practical limits) are violated</a><a href="#frandomforestmd-129" data-q="frandomforestmd-129"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#frandomforestmd-130" data-q="frandomforestmd-130"><span class="qn">&bull;</span>7. Complexity</a><a href="#frandomforestmd-131" data-q="frandomforestmd-131"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#frandomforestmd-132" data-q="frandomforestmd-132"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#frandomforestmd-133" data-q="frandomforestmd-133"><span class="qn">&bull;</span>10. Comparison</a><a href="#frandomforestmd-134" data-q="frandomforestmd-134"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#frandomforestmd-135" data-q="frandomforestmd-135"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#frandomforestmd-136" data-q="frandomforestmd-136"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#frandomforestmd-137" data-q="frandomforestmd-137"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">ridge regression</div><a href="#fridgeregressio-138" data-q="fridgeregressio-138"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fridgeregressio-139" data-q="fridgeregressio-139"><span class="qn">&bull;</span>1. Definition</a><a href="#fridgeregressio-140" data-q="fridgeregressio-140"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fridgeregressio-141" data-q="fridgeregressio-141"><span class="qn">&bull;</span>3. Mathematical formulation — full derivations</a><a href="#fridgeregressio-142" data-q="fridgeregressio-142"><span class="qn">&bull;</span>4. Assumptions</a><a href="#fridgeregressio-143" data-q="fridgeregressio-143"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#fridgeregressio-144" data-q="fridgeregressio-144"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fridgeregressio-145" data-q="fridgeregressio-145"><span class="qn">&bull;</span>7. Complexity</a><a href="#fridgeregressio-146" data-q="fridgeregressio-146"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fridgeregressio-147" data-q="fridgeregressio-147"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#fridgeregressio-148" data-q="fridgeregressio-148"><span class="qn">&bull;</span>10. Comparison: Ridge vs Lasso vs OLS</a><a href="#fridgeregressio-149" data-q="fridgeregressio-149"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fridgeregressio-150" data-q="fridgeregressio-150"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fridgeregressio-151" data-q="fridgeregressio-151"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fridgeregressio-152" data-q="fridgeregressio-152"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">svm</div><a href="#fsvmmd-153" data-q="fsvmmd-153"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fsvmmd-154" data-q="fsvmmd-154"><span class="qn">&bull;</span>1. Definition</a><a href="#fsvmmd-155" data-q="fsvmmd-155"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fsvmmd-156" data-q="fsvmmd-156"><span class="qn">&bull;</span>3. Mathematical formulation — full derivation</a><a href="#fsvmmd-157" data-q="fsvmmd-157"><span class="qn">&bull;</span>4. Assumptions</a><a href="#fsvmmd-158" data-q="fsvmmd-158"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#fsvmmd-159" data-q="fsvmmd-159"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fsvmmd-160" data-q="fsvmmd-160"><span class="qn">&bull;</span>7. Complexity</a><a href="#fsvmmd-161" data-q="fsvmmd-161"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fsvmmd-162" data-q="fsvmmd-162"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#fsvmmd-163" data-q="fsvmmd-163"><span class="qn">&bull;</span>10. Comparison</a><a href="#fsvmmd-164" data-q="fsvmmd-164"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fsvmmd-165" data-q="fsvmmd-165"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fsvmmd-166" data-q="fsvmmd-166"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fsvmmd-167" data-q="fsvmmd-167"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">tsne</div><a href="#ftsnemd-168" data-q="ftsnemd-168"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#ftsnemd-169" data-q="ftsnemd-169"><span class="qn">&bull;</span>1. Definition</a><a href="#ftsnemd-170" data-q="ftsnemd-170"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#ftsnemd-171" data-q="ftsnemd-171"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#ftsnemd-172" data-q="ftsnemd-172"><span class="qn">&bull;</span>4. Assumptions / properties</a><a href="#ftsnemd-173" data-q="ftsnemd-173"><span class="qn">&bull;</span>5. Pitfalls (the "violations" of naive interpretation)</a><a href="#ftsnemd-174" data-q="ftsnemd-174"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#ftsnemd-175" data-q="ftsnemd-175"><span class="qn">&bull;</span>7. Complexity</a><a href="#ftsnemd-176" data-q="ftsnemd-176"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#ftsnemd-177" data-q="ftsnemd-177"><span class="qn">&bull;</span>9. In scikit-learn</a><a href="#ftsnemd-178" data-q="ftsnemd-178"><span class="qn">&bull;</span>10. Comparison</a><a href="#ftsnemd-179" data-q="ftsnemd-179"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#ftsnemd-180" data-q="ftsnemd-180"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#ftsnemd-181" data-q="ftsnemd-181"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#ftsnemd-182" data-q="ftsnemd-182"><span class="qn">&bull;</span>14. One-paragraph summary</a><div class="nav-grp">xgboost</div><a href="#fxgboostmd-183" data-q="fxgboostmd-183"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fxgboostmd-184" data-q="fxgboostmd-184"><span class="qn">&bull;</span>1. Definition</a><a href="#fxgboostmd-185" data-q="fxgboostmd-185"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fxgboostmd-186" data-q="fxgboostmd-186"><span class="qn">&bull;</span>3. Mathematical formulation (what's actually different)</a><a href="#fxgboostmd-187" data-q="fxgboostmd-187"><span class="qn">&bull;</span>4. Assumptions</a><a href="#fxgboostmd-188" data-q="fxgboostmd-188"><span class="qn">&bull;</span>5. If assumptions are violated</a><a href="#fxgboostmd-189" data-q="fxgboostmd-189"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fxgboostmd-190" data-q="fxgboostmd-190"><span class="qn">&bull;</span>7. Complexity</a><a href="#fxgboostmd-191" data-q="fxgboostmd-191"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fxgboostmd-192" data-q="fxgboostmd-192"><span class="qn">&bull;</span>9. In scikit-learn (xgboost's sklearn API)</a><a href="#fxgboostmd-193" data-q="fxgboostmd-193"><span class="qn">&bull;</span>10. Comparison</a><a href="#fxgboostmd-194" data-q="fxgboostmd-194"><span class="qn">&bull;</span>11. When to use / when not to</a><a href="#fxgboostmd-195" data-q="fxgboostmd-195"><span class="qn">&bull;</span>12. Interview deep dive</a><a href="#fxgboostmd-196" data-q="fxgboostmd-196"><span class="qn">&bull;</span>13. Common mistakes &amp; best practices</a><a href="#fxgboostmd-197" data-q="fxgboostmd-197"><span class="qn">&bull;</span>14. One-paragraph summary</a></nav>
+  <nav><div class="nav-grp"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg>On this page</div><a href="#top" data-t="top"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compass"/></svg>Overview</a><a class="nav-file" href="#flassoregressio" data-t="flassoregressio"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-flask"/></svg>lasso regression</a><a class="nav-file" href="#fldamd" data-t="fldamd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>LDA</a><a class="nav-file" href="#flightgbmmd" data-t="flightgbmmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>lightgbm</a><a class="nav-file" href="#flinearregressi" data-t="flinearregressi"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-flask"/></svg>linear regression</a><a class="nav-file" href="#flogisticregres" data-t="flogisticregres"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-flask"/></svg>logistic regression</a><a class="nav-file" href="#fnaivebayesmd" data-t="fnaivebayesmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>naive bayes</a><a class="nav-file" href="#fpcamd" data-t="fpcamd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>PCA</a><a class="nav-file" href="#fpolynomialregr" data-t="fpolynomialregr"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-flask"/></svg>polynomial regression</a><a class="nav-file" href="#frandomforestmd" data-t="frandomforestmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>random forest</a><a class="nav-file" href="#fridgeregressio" data-t="fridgeregressio"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-flask"/></svg>ridge regression</a><a class="nav-file" href="#fsvmmd" data-t="fsvmmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>SVM</a><a class="nav-file" href="#ftsnemd" data-t="ftsnemd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>TSNE</a><a class="nav-file" href="#fxgboostmd" data-t="fxgboostmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>xgboost</a></nav>
 </aside>
 <main><div class="wrap">
 
-<section class="hero" id="top"><div class="eyebrow">04_Machine_Learning &middot; Algorithms M&ndash;X</div>
-<h1>Algorithms M&ndash;X</h1><p class="lede">The rest of the per-algorithm deep dives</p><div class="oneliner"><b>13 files</b> in this section, <b>198 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
-<div class="stats"><div class="stat"><div class="stat-v">13</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">198</div><div class="stat-l">sections</div></div></div></section>
-<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">The rest of the per-algorithm deep dives</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>lasso regression</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works — the geomet…</span><span>Mathematical formulation — full deriv…</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>lda</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation — Fisher's c…</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>lightgbm</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mechanisms (what's distinctive)</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>linear regression</b><span class="learn-n">16 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation — full deriv…</span><span>Evaluation metrics</span></div></li><li class="learn-item"><div class="learn-top"><b>logistic regression</b><span class="learn-n">16 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation — full deriv…</span><span>Evaluation metrics</span></div></li><li class="learn-item"><div class="learn-top"><b>naive bayes</b><span class="learn-n">16 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation (with a work…</span><span>Variants (pick by feature type)</span></div></li><li class="learn-item"><div class="learn-top"><b>pca</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation — derivation</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>polynomial regression</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>random forest</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>ridge regression</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation — full deriv…</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>svm</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation — full deriv…</span><span>Assumptions</span></div></li><li class="learn-item"><div class="learn-top"><b>tsne</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>Assumptions / properties</span></div></li><li class="learn-item"><div class="learn-top"><b>xgboost</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation (what's actu…</span><span>Assumptions</span></div></li></ul></section>
+<nav class="crumb"><a href="../index.html">Home</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><a href="index.html">Machine Learning</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><b>Algorithms M&ndash;X</b></nav>
+<section class="hero" id="top"><div class="eyebrow">Machine Learning &middot; Algorithms M&ndash;X</div>
+<h1>Algorithms M&ndash;X</h1><p class="lede">The rest of the per-algorithm deep dives</p><div class="oneliner"><b>13 files</b> in this section, <b>198 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div></section>
 
-<section class="filesec" id="flassoregressio"><header class="filehead"><div class="fh-top"><span class="fh-num">lasso regression</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/lasso_regression.md">source .md &#8599;</a></div><h2>Lasso Regression (L1 Regularization)</h2><div class="note">
+<section class="filesec" id="flassoregressio"><header class="filehead"><div class="fh-top"><span class="fh-num">lasso regression</span><span class="fh-count">15 sections</span></div><h2>Lasso Regression (L1 Regularization)</h2><div class="note">
 <p>Linear regression with an L1 penalty that drives some coefficients to <strong>exactly
 zero</strong> — fitting and <strong>selecting features</strong> at the same time.</p>
 </div></header><article class="q" id="flassoregressio-0"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="flassoregressio-0"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">Objective</span><span class="kt">Effect</span><span class="kt">sparse</span><span class="kt">Solved by</span><span class="kt">Mechanism</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Supervised · regression · linear · regularized (L1)</td></tr><tr class="g0"><td><strong>Objective</strong></td><td>$\lVert y-X\beta\rVert^2 + \lambda\lVert\beta\rVert_1$</td></tr><tr class="g1"><td><strong>Effect</strong></td><td><strong>sparse</strong> solution — many coefficients become exactly 0</td></tr><tr class="g0"><td><strong>Solved by</strong></td><td>coordinate descent / LARS (no closed form)</td></tr><tr class="g1"><td><strong>Mechanism</strong></td><td><strong>soft-thresholding</strong> zeroes small coefficients</td></tr><tr class="g0"><td><strong>Headline use</strong></td><td>feature selection, high-dimensional ($p\gg n$) data</td></tr><tr class="g1"><td><strong>Weakness</strong></td><td>unstable with correlated features; caps at $n$ features when $p&gt;n$</td></tr><tr class="g0"><td><strong>Bayesian view</strong></td><td>MAP with <strong>Laplace</strong> prior on $\beta$</td></tr><tr class="g1"><td><strong>sklearn</strong></td><td><code>Lasso</code>, <code>LassoCV</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="flassoregressio-1"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="flassoregressio-1"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">plus</span><span class="kt">absolute</span><span class="kt">sparse</span></div><p>Lasso (Least Absolute Shrinkage and Selection Operator) minimizes RSS <strong>plus</strong>
@@ -639,7 +987,7 @@ correlated features (keeps one arbitrarily) and caps at $n$ selected features wh
 $p&gt;n$ — both fixed by Elastic Net. Standardize and tune $\lambda$ by CV.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-b.html#flinearregressi">Linear Regression</a> ·
-<a href="algorithms-b.html#fridgeregressio">Ridge</a> · <a href="algorithms-a.html#felasticnetmd">Elastic Net</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fldamd"><header class="filehead"><div class="fh-top"><span class="fh-num">lda</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/lda.md">source .md &#8599;</a></div><h2>Linear Discriminant Analysis (LDA)</h2><div class="note">
+<a href="algorithms-b.html#fridgeregressio">Ridge</a> · <a href="algorithms-a.html#felasticnetmd">Elastic Net</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fldamd"><header class="filehead"><div class="fh-top"><span class="fh-num">LDA</span><span class="fh-count">15 sections</span></div><h2>Linear Discriminant Analysis (LDA)</h2><div class="note">
 <p>Supervised dimensionality reduction (and a classifier) that projects data to maximize
 <strong>class separation</strong> — <abbr title="principal component analysis">PCA</abbr>'s label-aware cousin.</p>
 </div></header><article class="q" id="fldamd-15"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fldamd-15"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">and</span><span class="kt">Goal</span><span class="kt">Solves</span><span class="kt">Output dims</span><span class="kt">As classifier</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Supervised · linear dimensionality reduction <strong>and</strong> classifier · generative</td></tr><tr class="g0"><td><strong>Goal</strong></td><td>maximize between-class vs within-class scatter (Fisher's criterion)</td></tr><tr class="g1"><td><strong>Solves</strong></td><td>generalized eigenproblem $S_B\mathbf{w}=\lambda S_W\mathbf{w}$</td></tr><tr class="g0"><td><strong>Output dims</strong></td><td>at most $C-1$ (C = number of classes)</td></tr><tr class="g1"><td><strong>As classifier</strong></td><td>assumes Gaussian classes with <strong>shared covariance</strong> → linear boundary</td></tr><tr class="g0"><td><strong>vs <abbr title="principal component analysis">PCA</abbr></strong></td><td>supervised (separation) vs unsupervised (variance)</td></tr><tr class="g1"><td><strong>sklearn</strong></td><td><code>LinearDiscriminantAnalysis</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fldamd-16"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fldamd-16"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">separates classes</span><span class="kt">classifier</span></div><p><abbr title="linear discriminant analysis">LDA</abbr> finds the linear projection that best <strong>separates classes</strong>: it maximizes the
@@ -705,7 +1053,7 @@ equal-covariance Gaussians (relax to QDA otherwise), needs an invertible $S_W$ (
 shrinkage when $p&gt;n$), and is scale-sensitive.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-b.html#fpcamd">PCA</a> · <a href="algorithms-b.html#flogisticregres">Logistic Regression</a> ·
-<a href="algorithms-b.html#fnaivebayesmd">Naive Bayes</a> · <a href="algorithms-b.html#ftsnemd">t-SNE</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="flightgbmmd"><header class="filehead"><div class="fh-top"><span class="fh-num">lightgbm</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/lightgbm.md">source .md &#8599;</a></div><h2>LightGBM (Light Gradient Boosting Machine)</h2><div class="note">
+<a href="algorithms-b.html#fnaivebayesmd">Naive Bayes</a> · <a href="algorithms-b.html#ftsnemd">t-SNE</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="flightgbmmd"><header class="filehead"><div class="fh-top"><span class="fh-num">lightgbm</span><span class="fh-count">15 sections</span></div><h2>LightGBM (Light Gradient Boosting Machine)</h2><div class="note">
 <p>Gradient boosting built for <strong>speed and scale</strong>: histogram binning, leaf-wise
 growth, and two sampling tricks (GOSS, EFB) that make it fast on millions of rows.</p>
 </div></header><article class="q" id="flightgbmmd-30"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="flightgbmmd-30"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">Speed tricks</span><span class="kt">leaf-wise</span><span class="kt">GOSS</span><span class="kt">EFB</span><span class="kt">vs XGBoost</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Supervised · classification, regression, ranking · boosting</td></tr><tr class="g0"><td><strong>Speed tricks</strong></td><td>histogram bins + <strong>leaf-wise</strong> growth + <strong>GOSS</strong> + <strong>EFB</strong></td></tr><tr class="g1"><td><strong>vs XGBoost</strong></td><td>faster + lower memory on big/high-dim data</td></tr><tr class="g0"><td><strong>Main risk</strong></td><td><strong>overfits small data</strong> (leaf-wise) — control <code>num_leaves</code></td></tr><tr class="g1"><td><strong>Categoricals</strong></td><td>native support</td></tr><tr class="g0"><td><strong>sklearn API</strong></td><td><code>LGBMClassifier</code>, <code>LGBMRegressor</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="flightgbmmd-31"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="flightgbmmd-31"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">histograms</span><span class="kt">leaf-wise</span><span class="kt">GOSS</span><span class="kt">EFB</span></div><p>LightGBM is a gradient-boosting framework that bins continuous features into
@@ -781,7 +1129,7 @@ leaf-wise growth, so the critical knob is <code>num_leaves</code> (with <code>mi
 <abbr title="penalising model complexity so it generalises better">regularization</abbr>), plus early stopping.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-a.html#fgradientboosti">Gradient Boosting</a> · <a href="algorithms-b.html#fxgboostmd">XGBoost</a> ·
-<a href="algorithms-a.html#fcatboostmd">CatBoost</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="flinearregressi"><header class="filehead"><div class="fh-top"><span class="fh-num">linear regression</span><span class="fh-count">16 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/linear_regression.md">source .md &#8599;</a></div><h2>Linear Regression</h2><div class="note">
+<a href="algorithms-a.html#fcatboostmd">CatBoost</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="flinearregressi"><header class="filehead"><div class="fh-top"><span class="fh-num">linear regression</span><span class="fh-count">16 sections</span></div><h2>Linear Regression</h2><div class="note">
 <p>Predict a <strong>continuous</strong> target as a weighted sum of features. The simplest,
 most interpretable supervised model — and the one whose math you are most likely
 to be asked to derive on a whiteboard.</p>
@@ -965,7 +1313,7 @@ cousins Ridge/Lasso/Elastic Net.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-b.html#fridgeregressio">Ridge</a> · <a href="algorithms-b.html#flassoregressio">Lasso</a> ·
 <a href="algorithms-a.html#felasticnetmd">Elastic Net</a> · <a href="algorithms-b.html#fpolynomialregr">Polynomial Regression</a> ·
-<a href="algorithms-b.html#flogisticregres">Logistic Regression</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="flogisticregres"><header class="filehead"><div class="fh-top"><span class="fh-num">logistic regression</span><span class="fh-count">16 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/logistic_regression.md">source .md &#8599;</a></div><h2>Logistic Regression</h2><div class="note">
+<a href="algorithms-b.html#flogisticregres">Logistic Regression</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="flogisticregres"><header class="filehead"><div class="fh-top"><span class="fh-num">logistic regression</span><span class="fh-count">16 sections</span></div><h2>Logistic Regression</h2><div class="note">
 <p>Despite the name, a <strong>classification</strong> algorithm. Models the <em>probability</em> of a
 class by squashing a linear score through the sigmoid — and it's the cleanest
 derivation to know cold for interviews.</p>
@@ -1127,7 +1475,7 @@ linear boundary and fails under perfect separation unless regularized. Judge it 
 log-loss / ROC-/PR-AUC, tune the threshold, and calibrate when probabilities matter.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-b.html#flinearregressi">Linear Regression</a> ·
-<a href="algorithms-b.html#fnaivebayesmd">Naive Bayes</a> · <a href="algorithms-b.html#fldamd"><abbr title="linear discriminant analysis">LDA</abbr></a> · <a href="algorithms-b.html#fsvmmd"><abbr title="support vector machine">SVM</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fnaivebayesmd"><header class="filehead"><div class="fh-top"><span class="fh-num">naive bayes</span><span class="fh-count">16 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/naive_bayes.md">source .md &#8599;</a></div><h2>Naive Bayes</h2><div class="note">
+<a href="algorithms-b.html#fnaivebayesmd">Naive Bayes</a> · <a href="algorithms-b.html#fldamd"><abbr title="linear discriminant analysis">LDA</abbr></a> · <a href="algorithms-b.html#fsvmmd"><abbr title="support vector machine">SVM</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fnaivebayesmd"><header class="filehead"><div class="fh-top"><span class="fh-num">naive bayes</span><span class="fh-count">16 sections</span></div><h2>Naive Bayes</h2><div class="note">
 <p>A probabilistic classifier built straight from Bayes' theorem with one bold
 simplifying assumption: features are conditionally independent given the class.
 Fast, and surprisingly strong on text.</p>
@@ -1207,7 +1555,7 @@ assumption is usually false, which hurts probability calibration more than
 classification accuracy. It's the generative counterpart of logistic regression.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-b.html#flogisticregres">Logistic Regression</a> · <a href="algorithms-a.html#fknnmd"><abbr title="k-nearest neighbours">KNN</abbr></a> ·
-<a href="algorithms-b.html#fsvmmd"><abbr title="support vector machine">SVM</abbr></a> · <a href="algorithms-b.html#fldamd"><abbr title="linear discriminant analysis">LDA</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fpcamd"><header class="filehead"><div class="fh-top"><span class="fh-num">pca</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/pca.md">source .md &#8599;</a></div><h2>PCA (Principal Component Analysis)</h2><div class="note">
+<a href="algorithms-b.html#fsvmmd"><abbr title="support vector machine">SVM</abbr></a> · <a href="algorithms-b.html#fldamd"><abbr title="linear discriminant analysis">LDA</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fpcamd"><header class="filehead"><div class="fh-top"><span class="fh-num">PCA</span><span class="fh-count">15 sections</span></div><h2>PCA (Principal Component Analysis)</h2><div class="note">
 <p>Rotate the data onto new axes ordered by how much variance they capture, then keep
 the top few. The default <strong>linear</strong> dimensionality reducer.</p>
 </div></header><article class="q" id="fpcamd-93"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fpcamd-93"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">Goal</span><span class="kt">maximum variance</span><span class="kt">Components</span><span class="kt">Ordering</span><span class="kt">Must do</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Unsupervised · linear dimensionality reduction / feature extraction</td></tr><tr class="g0"><td><strong>Goal</strong></td><td>find orthogonal directions of <strong>maximum variance</strong></td></tr><tr class="g1"><td><strong>Components</strong></td><td>eigenvectors of the covariance matrix (= right singular vectors of $X$)</td></tr><tr class="g0"><td><strong>Ordering</strong></td><td>by eigenvalue (variance explained)</td></tr><tr class="g1"><td><strong>Must do</strong></td><td><strong>center</strong> (and usually <strong>standardize</strong>) features</td></tr><tr class="g0"><td><strong>Complexity</strong></td><td>$O(np^2 + p^3)$ (or truncated SVD)</td></tr><tr class="g1"><td><strong>sklearn</strong></td><td><code>PCA</code>, <code>TruncatedSVD</code>, <code>KernelPCA</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fpcamd-94"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fpcamd-94"><span></span></label></div><div class="q-a"><p><abbr title="principal component analysis">PCA</abbr> finds a new orthogonal coordinate system (the <strong>principal components</strong>) such that the
@@ -1282,7 +1630,7 @@ visualization, but it is <strong>linear</strong>, <strong>unsupervised</strong> 
 low-variance directions — use <abbr title="linear discriminant analysis">LDA</abbr>), scale-sensitive (standardize), and yields less
 interpretable mixed features; use Kernel PCA / t-SNE / UMAP for non-linear structure.</p>
 <hr />
-<p><strong>Related:</strong> <a href="algorithms-b.html#fldamd">LDA</a> · <a href="algorithms-b.html#ftsnemd">t-SNE</a> · UMAP · <a href="algorithms-a.html#fkmeansmd">K-Means</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fpolynomialregr"><header class="filehead"><div class="fh-top"><span class="fh-num">polynomial regression</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/polynomial_regression.md">source .md &#8599;</a></div><h2>Polynomial Regression</h2><div class="note">
+<p><strong>Related:</strong> <a href="algorithms-b.html#fldamd">LDA</a> · <a href="algorithms-b.html#ftsnemd">t-SNE</a> · UMAP · <a href="algorithms-a.html#fkmeansmd">K-Means</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fpolynomialregr"><header class="filehead"><div class="fh-top"><span class="fh-num">polynomial regression</span><span class="fh-count">15 sections</span></div><h2>Polynomial Regression</h2><div class="note">
 <p>Fit curves with a linear model by adding powers and products of the features. Still
 "linear regression" — just on transformed inputs.</p>
 </div></header><article class="q" id="fpolynomialregr-108"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fpolynomialregr-108"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">Model</span><span class="kt">Fit by</span><span class="kt">Main dial</span><span class="kt">degree</span><span class="kt">Feature blow-up</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Supervised · regression · linear in parameters, non-linear in features</td></tr><tr class="g0"><td><strong>Model</strong></td><td>$\hat y=\beta_0+\beta_1 x+\beta_2 x^2+\dots+\beta_d x^d$ (+ interactions)</td></tr><tr class="g1"><td><strong>Fit by</strong></td><td>OLS on expanded features $\Phi=[1,x,x^2,\dots]$</td></tr><tr class="g0"><td><strong>Main dial</strong></td><td>polynomial <strong>degree</strong> $d$ (bias–variance)</td></tr><tr class="g1"><td><strong>Feature blow-up</strong></td><td>$\binom{p+d}{d}$ terms</td></tr><tr class="g0"><td><strong>Big risks</strong></td><td><abbr title="a model that fits the training data&#x27;s noise and generalises worse than a simpler one would">overfitting</abbr> (Runge oscillation), terrible extrapolation</td></tr><tr class="g1"><td><strong>sklearn</strong></td><td><code>PolynomialFeatures</code> + <code>LinearRegression</code>/<code>Ridge</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fpolynomialregr-109"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fpolynomialregr-109"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">non-linear in $x$</span><span class="kt">linear in the coefficients $\beta$</span></div><p>Polynomial regression models the target as a polynomial of the features and is fit as
@@ -1353,7 +1701,7 @@ extrapolates poorly, so scale features, cross-validate the degree, regularize wi
 Ridge/Lasso, and prefer splines/GAMs for smooth flexible curves.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-b.html#flinearregressi">Linear Regression</a> ·
-<a href="algorithms-b.html#fridgeregressio">Ridge</a> · <a href="algorithms-b.html#flassoregressio">Lasso</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="frandomforestmd"><header class="filehead"><div class="fh-top"><span class="fh-num">random forest</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/random_forest.md">source .md &#8599;</a></div><h2>Random Forest</h2><div class="note">
+<a href="algorithms-b.html#fridgeregressio">Ridge</a> · <a href="algorithms-b.html#flassoregressio">Lasso</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="frandomforestmd"><header class="filehead"><div class="fh-top"><span class="fh-num">random forest</span><span class="fh-count">15 sections</span></div><h2>Random Forest</h2><div class="note">
 <p>Hundreds of decorrelated decision trees voting together. Bagging + random feature
 selection turns a high-variance tree into one of the most reliable off-the-shelf
 models.</p>
@@ -1437,7 +1785,7 @@ interpretable, can't extrapolate, and is often edged out by gradient boosting on
 tabular accuracy.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-a.html#fdecisiontreesm">Decision Trees</a> · <a href="algorithms-a.html#fadaboostmd">AdaBoost</a> ·
-<a href="algorithms-a.html#fgradientboosti">Gradient Boosting</a> · <a href="algorithms-b.html#fxgboostmd">XGBoost</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fridgeregressio"><header class="filehead"><div class="fh-top"><span class="fh-num">ridge regression</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/ridge_regression.md">source .md &#8599;</a></div><h2>Ridge Regression (L2 Regularization)</h2><div class="note">
+<a href="algorithms-a.html#fgradientboosti">Gradient Boosting</a> · <a href="algorithms-b.html#fxgboostmd">XGBoost</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fridgeregressio"><header class="filehead"><div class="fh-top"><span class="fh-num">ridge regression</span><span class="fh-count">15 sections</span></div><h2>Ridge Regression (L2 Regularization)</h2><div class="note">
 <p>Linear regression with a penalty on large coefficients. Trades a little bias for
 a lot less variance — the standard cure for multicollinearity and <abbr title="a model that fits the training data&#x27;s noise and generalises worse than a simpler one would">overfitting</abbr>.</p>
 </div></header><article class="q" id="fridgeregressio-138"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fridgeregressio-138"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">Objective</span><span class="kt">Closed form</span><span class="kt">Effect</span><span class="kt">Headline use</span><span class="kt">Must do</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Supervised · regression · linear · regularized (L2)</td></tr><tr class="g0"><td><strong>Objective</strong></td><td>$\lVert y-X\beta\rVert^2 + \lambda\lVert\beta\rVert_2^2$</td></tr><tr class="g1"><td><strong>Closed form</strong></td><td>$\hat\beta=(X^\top X+\lambda I)^{-1}X^\top y$ — always invertible</td></tr><tr class="g0"><td><strong>Effect</strong></td><td>shrinks coefficients toward 0 (never exactly 0)</td></tr><tr class="g1"><td><strong>Headline use</strong></td><td>multicollinearity, $p&gt;n$, <abbr title="a model that fits the training data&#x27;s noise and generalises worse than a simpler one would">overfitting</abbr></td></tr><tr class="g0"><td><strong>Must do</strong></td><td><strong>standardize features</strong>; don't penalize the intercept</td></tr><tr class="g1"><td><strong>Bayesian view</strong></td><td>MAP with Gaussian prior $\beta\sim\mathcal N(0,\tfrac{\sigma^2}{\lambda}I)$</td></tr><tr class="g0"><td><strong>sklearn</strong></td><td><code>Ridge</code>, <code>RidgeCV</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fridgeregressio-139"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fridgeregressio-139"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">L2 penalty</span><span class="kt">plus</span></div><p>Ridge regression is OLS with an <strong>L2 penalty</strong>: minimize residual sum of squares
@@ -1544,7 +1892,7 @@ lower variance but <strong>never zeros coefficients</strong> (no selection — u
 and is scale-sensitive, so always standardize and tune $\lambda$ by <abbr title="splitting data into folds and training repeatedly so the score is not one lucky split">cross-validation</abbr>.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-b.html#flinearregressi">Linear Regression</a> ·
-<a href="algorithms-b.html#flassoregressio">Lasso</a> · <a href="algorithms-a.html#felasticnetmd">Elastic Net</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fsvmmd"><header class="filehead"><div class="fh-top"><span class="fh-num">svm</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/svm.md">source .md &#8599;</a></div><h2>Support Vector Machine (SVM / SVR)</h2><div class="note">
+<a href="algorithms-b.html#flassoregressio">Lasso</a> · <a href="algorithms-a.html#felasticnetmd">Elastic Net</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fsvmmd"><header class="filehead"><div class="fh-top"><span class="fh-num">SVM</span><span class="fh-count">15 sections</span></div><h2>Support Vector Machine (SVM / SVR)</h2><div class="note">
 <p>Find the decision boundary with the <strong>widest margin</strong>. The kernel trick lets it
 bend that boundary into arbitrarily complex shapes without ever leaving the math
 of a linear model.</p>
@@ -1656,7 +2004,7 @@ poorly ($O(n^2$–$n^3)$), needs feature scaling, lacks native probabilities, an
 sensitive to C/gamma — use LinearSVC/<abbr title="stochastic gradient descent">SGD</abbr> for large data.</p>
 <hr />
 <p><strong>Related:</strong> <a href="algorithms-b.html#flogisticregres">Logistic Regression</a> · <a href="algorithms-a.html#fknnmd"><abbr title="k-nearest neighbours">KNN</abbr></a> ·
-<a href="algorithms-a.html#fdecisiontreesm">Decision Trees</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="ftsnemd"><header class="filehead"><div class="fh-top"><span class="fh-num">tsne</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/tsne.md">source .md &#8599;</a></div><h2>t-SNE (t-Distributed Stochastic Neighbor Embedding)</h2><div class="note">
+<a href="algorithms-a.html#fdecisiontreesm">Decision Trees</a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="ftsnemd"><header class="filehead"><div class="fh-top"><span class="fh-num">TSNE</span><span class="fh-count">15 sections</span></div><h2>t-SNE (t-Distributed Stochastic Neighbor Embedding)</h2><div class="note">
 <p>A non-linear technique that turns high-dimensional data into a 2-D/3-D map by
 preserving <strong>local neighborhoods</strong>. The go-to for <em>visualizing</em> clusters — not for
 general dimensionality reduction.</p>
@@ -1719,7 +2067,7 @@ pre-reduction), and can't embed new points — so it's a visualization tool, not
 dimensionality reducer; reach for UMAP when you need speed, global structure, or new-point
 transforms.</p>
 <hr />
-<p><strong>Related:</strong> UMAP · <a href="algorithms-b.html#fpcamd">PCA</a> · <a href="algorithms-b.html#fldamd"><abbr title="linear discriminant analysis">LDA</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fxgboostmd"><header class="filehead"><div class="fh-top"><span class="fh-num">xgboost</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../04_Machine_Learning/Algorithms/xgboost.md">source .md &#8599;</a></div><h2>XGBoost (Extreme Gradient Boosting)</h2><div class="note">
+<p><strong>Related:</strong> UMAP · <a href="algorithms-b.html#fpcamd">PCA</a> · <a href="algorithms-b.html#fldamd"><abbr title="linear discriminant analysis">LDA</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fxgboostmd"><header class="filehead"><div class="fh-top"><span class="fh-num">xgboost</span><span class="fh-count">15 sections</span></div><h2>XGBoost (Extreme Gradient Boosting)</h2><div class="note">
 <p>Gradient boosting, re-engineered: a <strong>regularized</strong> objective solved with a
 <strong>second-order</strong> (Newton) approximation, plus systems tricks that made it the
 Kaggle workhorse.</p>
@@ -1820,8 +2168,10 @@ low learning rate with early stopping and depth/<code>min_child_weight</code>/<c
 <p><strong>Related:</strong> <a href="algorithms-a.html#fgradientboosti">Gradient Boosting</a> · <a href="algorithms-b.html#flightgbmmd">LightGBM</a> ·
 <a href="algorithms-a.html#fcatboostmd">CatBoost</a> · <a href="algorithms-b.html#frandomforestmd">Random Forest</a></p></div><button class="reveal">Reveal answer</button></article></section>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<nav class="pnav"><a class="prev" href="algorithms-a.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrowl"/></svg><span class="pnav-t"><span>Previous</span><b>Algorithms A&ndash;L</b></span></a><a class="next" href="special.html"><span class="pnav-t"><span>Next</span><b>Specialised</b></span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></a></nav>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
 </div></main>
+<aside class="toc" id="toc"><div class="toc-h"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>On this page</div><div class="toc-g" data-for="flassoregressio"><b>lasso regression</b><a href="#flassoregressio-0" data-c="flassoregressio-0">TL;DR (quick reference)</a><a href="#flassoregressio-1" data-c="flassoregressio-1">1. Definition</a><a href="#flassoregressio-2" data-c="flassoregressio-2">2. Intuition &amp; how it works — the geometry</a><a href="#flassoregressio-3" data-c="flassoregressio-3">3. Mathematical formulation — full derivations</a><a href="#flassoregressio-4" data-c="flassoregressio-4">4. Assumptions</a><a href="#flassoregressio-5" data-c="flassoregressio-5">5. If assumptions are violated</a><a href="#flassoregressio-6" data-c="flassoregressio-6">6. Advantages &amp; disadvantages</a><a href="#flassoregressio-7" data-c="flassoregressio-7">7. Complexity</a><a href="#flassoregressio-8" data-c="flassoregressio-8">8. Key hyperparameters</a><a href="#flassoregressio-9" data-c="flassoregressio-9">9. In scikit-learn</a><a href="#flassoregressio-10" data-c="flassoregressio-10">10. Comparison: Lasso vs Ridge vs Elastic Net</a><a href="#flassoregressio-11" data-c="flassoregressio-11">11. When to use / when not to</a><a href="#flassoregressio-12" data-c="flassoregressio-12">12. Interview deep dive</a><a href="#flassoregressio-13" data-c="flassoregressio-13">13. Common mistakes &amp; best practices</a><a href="#flassoregressio-14" data-c="flassoregressio-14">14. One-paragraph summary</a></div><div class="toc-g" data-for="fldamd"><b>LDA</b><a href="#fldamd-15" data-c="fldamd-15">TL;DR (quick reference)</a><a href="#fldamd-16" data-c="fldamd-16">1. Definition</a><a href="#fldamd-17" data-c="fldamd-17">2. Intuition &amp; how it works</a><a href="#fldamd-18" data-c="fldamd-18">3. Mathematical formulation — Fisher's criterion</a><a href="#fldamd-19" data-c="fldamd-19">4. Assumptions</a><a href="#fldamd-20" data-c="fldamd-20">5. If assumptions are violated</a><a href="#fldamd-21" data-c="fldamd-21">6. Advantages &amp; disadvantages</a><a href="#fldamd-22" data-c="fldamd-22">7. Complexity</a><a href="#fldamd-23" data-c="fldamd-23">8. Key hyperparameters</a><a href="#fldamd-24" data-c="fldamd-24">9. In scikit-learn</a><a href="#fldamd-25" data-c="fldamd-25">10. Comparison</a><a href="#fldamd-26" data-c="fldamd-26">11. When to use / when not to</a><a href="#fldamd-27" data-c="fldamd-27">12. Interview deep dive</a><a href="#fldamd-28" data-c="fldamd-28">13. Common mistakes &amp; best practices</a><a href="#fldamd-29" data-c="fldamd-29">14. One-paragraph summary</a></div><div class="toc-g" data-for="flightgbmmd"><b>lightgbm</b><a href="#flightgbmmd-30" data-c="flightgbmmd-30">TL;DR (quick reference)</a><a href="#flightgbmmd-31" data-c="flightgbmmd-31">1. Definition</a><a href="#flightgbmmd-32" data-c="flightgbmmd-32">2. Intuition &amp; how it works</a><a href="#flightgbmmd-33" data-c="flightgbmmd-33">3. Mechanisms (what's distinctive)</a><a href="#flightgbmmd-34" data-c="flightgbmmd-34">4. Assumptions</a><a href="#flightgbmmd-35" data-c="flightgbmmd-35">5. If assumptions are violated</a><a href="#flightgbmmd-36" data-c="flightgbmmd-36">6. Advantages &amp; disadvantages</a><a href="#flightgbmmd-37" data-c="flightgbmmd-37">7. Complexity</a><a href="#flightgbmmd-38" data-c="flightgbmmd-38">8. Key hyperparameters</a><a href="#flightgbmmd-39" data-c="flightgbmmd-39">9. In scikit-learn (lightgbm's sklearn API)</a><a href="#flightgbmmd-40" data-c="flightgbmmd-40">10. Comparison</a><a href="#flightgbmmd-41" data-c="flightgbmmd-41">11. When to use / when not to</a><a href="#flightgbmmd-42" data-c="flightgbmmd-42">12. Interview deep dive</a><a href="#flightgbmmd-43" data-c="flightgbmmd-43">13. Common mistakes &amp; best practices</a><a href="#flightgbmmd-44" data-c="flightgbmmd-44">14. One-paragraph summary</a></div><div class="toc-g" data-for="flinearregressi"><b>linear regression</b><a href="#flinearregressi-45" data-c="flinearregressi-45">TL;DR (quick reference)</a><a href="#flinearregressi-46" data-c="flinearregressi-46">1. Definition</a><a href="#flinearregressi-47" data-c="flinearregressi-47">2. Intuition &amp; how it works</a><a href="#flinearregressi-48" data-c="flinearregressi-48">3. Mathematical formulation — full derivations</a><a href="#flinearregressi-49" data-c="flinearregressi-49">4. Evaluation metrics</a><a href="#flinearregressi-50" data-c="flinearregressi-50">5. Assumptions (L·I·N·E + 2)</a><a href="#flinearregressi-51" data-c="flinearregressi-51">6. Diagnostics &amp; what happens if assumptions are violated</a><a href="#flinearregressi-52" data-c="flinearregressi-52">7. Gauss–Markov theorem (why OLS is special)</a><a href="#flinearregressi-53" data-c="flinearregressi-53">8. Advantages &amp; disadvantages</a><a href="#flinearregressi-54" data-c="flinearregressi-54">9. Hyperparameters &amp; practical knobs</a><a href="#flinearregressi-55" data-c="flinearregressi-55">10. In scikit-learn</a><a href="#flinearregressi-56" data-c="flinearregressi-56">11. Comparison with related models</a><a href="#flinearregressi-57" data-c="flinearregressi-57">12. When to use / when not to</a><a href="#flinearregressi-58" data-c="flinearregressi-58">13. Interview deep dive</a><a href="#flinearregressi-59" data-c="flinearregressi-59">14. Common mistakes &amp; best practices</a><a href="#flinearregressi-60" data-c="flinearregressi-60">15. One-paragraph summary</a></div><div class="toc-g" data-for="flogisticregres"><b>logistic regression</b><a href="#flogisticregres-61" data-c="flogisticregres-61">TL;DR (quick reference)</a><a href="#flogisticregres-62" data-c="flogisticregres-62">1. Definition</a><a href="#flogisticregres-63" data-c="flogisticregres-63">2. Intuition &amp; how it works</a><a href="#flogisticregres-64" data-c="flogisticregres-64">3. Mathematical formulation — full derivations</a><a href="#flogisticregres-65" data-c="flogisticregres-65">4. Evaluation metrics</a><a href="#flogisticregres-66" data-c="flogisticregres-66">5. Assumptions</a><a href="#flogisticregres-67" data-c="flogisticregres-67">6. If assumptions are violated</a><a href="#flogisticregres-68" data-c="flogisticregres-68">7. Advantages &amp; disadvantages</a><a href="#flogisticregres-69" data-c="flogisticregres-69">8. Complexity</a><a href="#flogisticregres-70" data-c="flogisticregres-70">9. Hyperparameters</a><a href="#flogisticregres-71" data-c="flogisticregres-71">10. In scikit-learn</a><a href="#flogisticregres-72" data-c="flogisticregres-72">11. Comparison with related models</a><a href="#flogisticregres-73" data-c="flogisticregres-73">12. When to use / when not to</a><a href="#flogisticregres-74" data-c="flogisticregres-74">13. Interview deep dive</a><a href="#flogisticregres-75" data-c="flogisticregres-75">14. Common mistakes &amp; best practices</a><a href="#flogisticregres-76" data-c="flogisticregres-76">15. One-paragraph summary</a></div><div class="toc-g" data-for="fnaivebayesmd"><b>naive bayes</b><a href="#fnaivebayesmd-77" data-c="fnaivebayesmd-77">TL;DR (quick reference)</a><a href="#fnaivebayesmd-78" data-c="fnaivebayesmd-78">1. Definition</a><a href="#fnaivebayesmd-79" data-c="fnaivebayesmd-79">2. Intuition &amp; how it works</a><a href="#fnaivebayesmd-80" data-c="fnaivebayesmd-80">3. Mathematical formulation (with a worked calculation)</a><a href="#fnaivebayesmd-81" data-c="fnaivebayesmd-81">4. Variants (pick by feature type)</a><a href="#fnaivebayesmd-82" data-c="fnaivebayesmd-82">5. Assumptions</a><a href="#fnaivebayesmd-83" data-c="fnaivebayesmd-83">6. If assumptions are violated</a><a href="#fnaivebayesmd-84" data-c="fnaivebayesmd-84">7. Advantages &amp; disadvantages</a><a href="#fnaivebayesmd-85" data-c="fnaivebayesmd-85">8. Complexity</a><a href="#fnaivebayesmd-86" data-c="fnaivebayesmd-86">9. Key hyperparameters</a><a href="#fnaivebayesmd-87" data-c="fnaivebayesmd-87">10. In scikit-learn</a><a href="#fnaivebayesmd-88" data-c="fnaivebayesmd-88">11. Comparison</a><a href="#fnaivebayesmd-89" data-c="fnaivebayesmd-89">12. When to use / when not to</a><a href="#fnaivebayesmd-90" data-c="fnaivebayesmd-90">13. Interview deep dive</a><a href="#fnaivebayesmd-91" data-c="fnaivebayesmd-91">14. Common mistakes &amp; best practices</a><a href="#fnaivebayesmd-92" data-c="fnaivebayesmd-92">15. One-paragraph summary</a></div><div class="toc-g" data-for="fpcamd"><b>PCA</b><a href="#fpcamd-93" data-c="fpcamd-93">TL;DR (quick reference)</a><a href="#fpcamd-94" data-c="fpcamd-94">1. Definition</a><a href="#fpcamd-95" data-c="fpcamd-95">2. Intuition &amp; how it works</a><a href="#fpcamd-96" data-c="fpcamd-96">3. Mathematical formulation — derivation</a><a href="#fpcamd-97" data-c="fpcamd-97">4. Assumptions</a><a href="#fpcamd-98" data-c="fpcamd-98">5. If assumptions are violated</a><a href="#fpcamd-99" data-c="fpcamd-99">6. Advantages &amp; disadvantages</a><a href="#fpcamd-100" data-c="fpcamd-100">7. Complexity</a><a href="#fpcamd-101" data-c="fpcamd-101">8. Key hyperparameters</a><a href="#fpcamd-102" data-c="fpcamd-102">9. In scikit-learn</a><a href="#fpcamd-103" data-c="fpcamd-103">10. Comparison</a><a href="#fpcamd-104" data-c="fpcamd-104">11. When to use / when not to</a><a href="#fpcamd-105" data-c="fpcamd-105">12. Interview deep dive</a><a href="#fpcamd-106" data-c="fpcamd-106">13. Common mistakes &amp; best practices</a><a href="#fpcamd-107" data-c="fpcamd-107">14. One-paragraph summary</a></div><div class="toc-g" data-for="fpolynomialregr"><b>polynomial regression</b><a href="#fpolynomialregr-108" data-c="fpolynomialregr-108">TL;DR (quick reference)</a><a href="#fpolynomialregr-109" data-c="fpolynomialregr-109">1. Definition</a><a href="#fpolynomialregr-110" data-c="fpolynomialregr-110">2. Intuition &amp; how it works</a><a href="#fpolynomialregr-111" data-c="fpolynomialregr-111">3. Mathematical formulation</a><a href="#fpolynomialregr-112" data-c="fpolynomialregr-112">4. Assumptions</a><a href="#fpolynomialregr-113" data-c="fpolynomialregr-113">5. If assumptions are violated</a><a href="#fpolynomialregr-114" data-c="fpolynomialregr-114">6. Advantages &amp; disadvantages</a><a href="#fpolynomialregr-115" data-c="fpolynomialregr-115">7. Complexity</a><a href="#fpolynomialregr-116" data-c="fpolynomialregr-116">8. Key hyperparameters</a><a href="#fpolynomialregr-117" data-c="fpolynomialregr-117">9. In scikit-learn</a><a href="#fpolynomialregr-118" data-c="fpolynomialregr-118">10. Comparison</a><a href="#fpolynomialregr-119" data-c="fpolynomialregr-119">11. When to use / when not to</a><a href="#fpolynomialregr-120" data-c="fpolynomialregr-120">12. Interview deep dive</a><a href="#fpolynomialregr-121" data-c="fpolynomialregr-121">13. Common mistakes &amp; best practices</a><a href="#fpolynomialregr-122" data-c="fpolynomialregr-122">14. One-paragraph summary</a></div><div class="toc-g" data-for="frandomforestmd"><b>random forest</b><a href="#frandomforestmd-123" data-c="frandomforestmd-123">TL;DR (quick reference)</a><a href="#frandomforestmd-124" data-c="frandomforestmd-124">1. Definition</a><a href="#frandomforestmd-125" data-c="frandomforestmd-125">2. Intuition &amp; how it works</a><a href="#frandomforestmd-126" data-c="frandomforestmd-126">3. Mathematical formulation</a><a href="#frandomforestmd-127" data-c="frandomforestmd-127">4. Assumptions</a><a href="#frandomforestmd-128" data-c="frandomforestmd-128">5. If assumptions (practical limits) are violated</a><a href="#frandomforestmd-129" data-c="frandomforestmd-129">6. Advantages &amp; disadvantages</a><a href="#frandomforestmd-130" data-c="frandomforestmd-130">7. Complexity</a><a href="#frandomforestmd-131" data-c="frandomforestmd-131">8. Key hyperparameters</a><a href="#frandomforestmd-132" data-c="frandomforestmd-132">9. In scikit-learn</a><a href="#frandomforestmd-133" data-c="frandomforestmd-133">10. Comparison</a><a href="#frandomforestmd-134" data-c="frandomforestmd-134">11. When to use / when not to</a><a href="#frandomforestmd-135" data-c="frandomforestmd-135">12. Interview deep dive</a><a href="#frandomforestmd-136" data-c="frandomforestmd-136">13. Common mistakes &amp; best practices</a><a href="#frandomforestmd-137" data-c="frandomforestmd-137">14. One-paragraph summary</a></div><div class="toc-g" data-for="fridgeregressio"><b>ridge regression</b><a href="#fridgeregressio-138" data-c="fridgeregressio-138">TL;DR (quick reference)</a><a href="#fridgeregressio-139" data-c="fridgeregressio-139">1. Definition</a><a href="#fridgeregressio-140" data-c="fridgeregressio-140">2. Intuition &amp; how it works</a><a href="#fridgeregressio-141" data-c="fridgeregressio-141">3. Mathematical formulation — full derivations</a><a href="#fridgeregressio-142" data-c="fridgeregressio-142">4. Assumptions</a><a href="#fridgeregressio-143" data-c="fridgeregressio-143">5. If assumptions are violated</a><a href="#fridgeregressio-144" data-c="fridgeregressio-144">6. Advantages &amp; disadvantages</a><a href="#fridgeregressio-145" data-c="fridgeregressio-145">7. Complexity</a><a href="#fridgeregressio-146" data-c="fridgeregressio-146">8. Key hyperparameters</a><a href="#fridgeregressio-147" data-c="fridgeregressio-147">9. In scikit-learn</a><a href="#fridgeregressio-148" data-c="fridgeregressio-148">10. Comparison: Ridge vs Lasso vs OLS</a><a href="#fridgeregressio-149" data-c="fridgeregressio-149">11. When to use / when not to</a><a href="#fridgeregressio-150" data-c="fridgeregressio-150">12. Interview deep dive</a><a href="#fridgeregressio-151" data-c="fridgeregressio-151">13. Common mistakes &amp; best practices</a><a href="#fridgeregressio-152" data-c="fridgeregressio-152">14. One-paragraph summary</a></div><div class="toc-g" data-for="fsvmmd"><b>SVM</b><a href="#fsvmmd-153" data-c="fsvmmd-153">TL;DR (quick reference)</a><a href="#fsvmmd-154" data-c="fsvmmd-154">1. Definition</a><a href="#fsvmmd-155" data-c="fsvmmd-155">2. Intuition &amp; how it works</a><a href="#fsvmmd-156" data-c="fsvmmd-156">3. Mathematical formulation — full derivation</a><a href="#fsvmmd-157" data-c="fsvmmd-157">4. Assumptions</a><a href="#fsvmmd-158" data-c="fsvmmd-158">5. If assumptions are violated</a><a href="#fsvmmd-159" data-c="fsvmmd-159">6. Advantages &amp; disadvantages</a><a href="#fsvmmd-160" data-c="fsvmmd-160">7. Complexity</a><a href="#fsvmmd-161" data-c="fsvmmd-161">8. Key hyperparameters</a><a href="#fsvmmd-162" data-c="fsvmmd-162">9. In scikit-learn</a><a href="#fsvmmd-163" data-c="fsvmmd-163">10. Comparison</a><a href="#fsvmmd-164" data-c="fsvmmd-164">11. When to use / when not to</a><a href="#fsvmmd-165" data-c="fsvmmd-165">12. Interview deep dive</a><a href="#fsvmmd-166" data-c="fsvmmd-166">13. Common mistakes &amp; best practices</a><a href="#fsvmmd-167" data-c="fsvmmd-167">14. One-paragraph summary</a></div><div class="toc-g" data-for="ftsnemd"><b>TSNE</b><a href="#ftsnemd-168" data-c="ftsnemd-168">TL;DR (quick reference)</a><a href="#ftsnemd-169" data-c="ftsnemd-169">1. Definition</a><a href="#ftsnemd-170" data-c="ftsnemd-170">2. Intuition &amp; how it works</a><a href="#ftsnemd-171" data-c="ftsnemd-171">3. Mathematical formulation</a><a href="#ftsnemd-172" data-c="ftsnemd-172">4. Assumptions / properties</a><a href="#ftsnemd-173" data-c="ftsnemd-173">5. Pitfalls (the "violations" of naive interpretation)</a><a href="#ftsnemd-174" data-c="ftsnemd-174">6. Advantages &amp; disadvantages</a><a href="#ftsnemd-175" data-c="ftsnemd-175">7. Complexity</a><a href="#ftsnemd-176" data-c="ftsnemd-176">8. Key hyperparameters</a><a href="#ftsnemd-177" data-c="ftsnemd-177">9. In scikit-learn</a><a href="#ftsnemd-178" data-c="ftsnemd-178">10. Comparison</a><a href="#ftsnemd-179" data-c="ftsnemd-179">11. When to use / when not to</a><a href="#ftsnemd-180" data-c="ftsnemd-180">12. Interview deep dive</a><a href="#ftsnemd-181" data-c="ftsnemd-181">13. Common mistakes &amp; best practices</a><a href="#ftsnemd-182" data-c="ftsnemd-182">14. One-paragraph summary</a></div><div class="toc-g" data-for="fxgboostmd"><b>xgboost</b><a href="#fxgboostmd-183" data-c="fxgboostmd-183">TL;DR (quick reference)</a><a href="#fxgboostmd-184" data-c="fxgboostmd-184">1. Definition</a><a href="#fxgboostmd-185" data-c="fxgboostmd-185">2. Intuition &amp; how it works</a><a href="#fxgboostmd-186" data-c="fxgboostmd-186">3. Mathematical formulation (what's actually different)</a><a href="#fxgboostmd-187" data-c="fxgboostmd-187">4. Assumptions</a><a href="#fxgboostmd-188" data-c="fxgboostmd-188">5. If assumptions are violated</a><a href="#fxgboostmd-189" data-c="fxgboostmd-189">6. Advantages &amp; disadvantages</a><a href="#fxgboostmd-190" data-c="fxgboostmd-190">7. Complexity</a><a href="#fxgboostmd-191" data-c="fxgboostmd-191">8. Key hyperparameters</a><a href="#fxgboostmd-192" data-c="fxgboostmd-192">9. In scikit-learn (xgboost's sklearn API)</a><a href="#fxgboostmd-193" data-c="fxgboostmd-193">10. Comparison</a><a href="#fxgboostmd-194" data-c="fxgboostmd-194">11. When to use / when not to</a><a href="#fxgboostmd-195" data-c="fxgboostmd-195">12. Interview deep dive</a><a href="#fxgboostmd-196" data-c="fxgboostmd-196">13. Common mistakes &amp; best practices</a><a href="#fxgboostmd-197" data-c="fxgboostmd-197">14. One-paragraph summary</a></div></aside>
 </div>
 <button class="totop" id="totop" title="Back to top">&#8593;</button>
 <script>
@@ -1862,29 +2212,44 @@ var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementBy
 qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
 function runSearch(){
   if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
-  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
-    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;});
+  /* a heading survives the filter only while something under it is still showing */
   [].forEach.call(document.querySelectorAll('.parthead'),function(p){
-    if(!v){p.style.display='';return}
-    var vis=false,n=p.nextElementSibling;
-    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
-    p.style.display=vis?'':'none';});
+    var vis=true;
+    if(v){
+      vis=false;
+      var n=p.nextElementSibling;
+      while(n&&!n.classList.contains('parthead')){
+        if(n.classList.contains('q')&&n.style.display!=='none'){vis=true;break}
+        n=n.nextElementSibling;
+      }
+    }
+    p.style.display=vis?'':'none';
+    if(p.id){var l=document.querySelector('nav a[data-t="'+p.id+'"]');
+      if(l)l.style.display=vis?'':'none';}
+  });
   if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
 }
 if(inp)inp.addEventListener('input',runSearch);
 
-var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+/* The sidebar lists main headings only, so scroll tracking follows those headings
+   (data-t -> element id) rather than one entry per question card. */
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-t]'));
+var navTargets=navLinks.map(function(l){return document.getElementById(l.getAttribute('data-t'))});
 var totop=document.getElementById('totop');
 function onScroll(){
   var sc=document.documentElement.scrollTop;
   if(totop)totop.classList.toggle('show',sc>600);
-  var cur=null;
-  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
-    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  var cur=-1;
+  for(var i=0;i<navTargets.length;i++){
+    var el=navTargets[i];
+    if(!el||el.offsetParent===null)continue;
+    if(el.getBoundingClientRect().top<=140)cur=i;else break;
+  }
   navLinks.forEach(function(l){l.classList.remove('active')});
-  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
-    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
-      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+  if(cur>=0){var l=navLinks[cur];
+    l.classList.add('active');var r=l.getBoundingClientRect();
+    if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}
 }
 window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
@@ -1935,6 +2300,43 @@ document.addEventListener('keydown',function(e){
     });
     pre.appendChild(b);
   });
+})();
+
+/* Right-hand rail: reveal the group for the file section being read, and mark the
+   card in view. Scrolling is done on the rail itself - scrollIntoView would drag the
+   window along with it. */
+(function(){
+  var toc=document.getElementById('toc'); if(!toc)return;
+  document.body.classList.add('js');
+  var groups=[].slice.call(toc.querySelectorAll('.toc-g'));
+  if(!groups.length)return;
+  var secs=groups.map(function(g){return document.getElementById(g.getAttribute('data-for'))});
+  var links=groups.map(function(g){return [].slice.call(g.querySelectorAll('a[data-c]'))});
+  var curG=-1;
+  function upd(){
+    var i,g=-1;
+    for(i=0;i<secs.length;i++){
+      var el=secs[i]; if(!el)continue;
+      if(el.getBoundingClientRect().top<=160)g=i; else break;
+    }
+    if(g<0)g=0;
+    if(g!==curG){groups.forEach(function(x,k){x.classList.toggle('on',k===g)});curG=g;}
+    var ls=links[g]||[],act=null;
+    for(i=0;i<ls.length;i++){
+      var t=document.getElementById(ls[i].getAttribute('data-c'));
+      if(!t||t.style.display==='none')continue;
+      if(t.getBoundingClientRect().top<=160)act=ls[i]; else break;
+    }
+    ls.forEach(function(a){a.classList.remove('on')});
+    if(act){
+      act.classList.add('on');
+      var top=act.offsetTop,h=act.offsetHeight;
+      if(top<toc.scrollTop+8||top+h>toc.scrollTop+toc.clientHeight-8)
+        toc.scrollTop=top-toc.clientHeight/2+h/2;
+    }
+  }
+  addEventListener('scroll',upd,{passive:true});
+  addEventListener('resize',upd); upd();
 })();
 
 /* deep link on each question card */

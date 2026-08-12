@@ -509,9 +509,358 @@ body.searching .parthead{opacity:.5}
 
 @media(max-width:1060px){ .parthead{top:0} }
 
+/* =====================================================================
+   AURORA GLASS
+   The final layer. Everything below re-tints the sheet above it: a deep
+   near-black canvas lit by a fixed gradient mesh, with the chrome and the
+   cards reading as frosted panels floating on top of it.
+   ===================================================================== */
+
+:root{
+  --bg:#070a12; --bg-2:#0a0e18;
+  --surface:#0f131e; --surface-2:#141a27; --surface-3:#1c2333;
+  --border:#232c40; --border-soft:#19202f;
+  --ink:#eaf0fb; --ink-2:#9fabc4; --ink-mut:#6b7690;
+
+  --accent:#7c9dff; --accent-2:#b18cff;
+  --accent-soft:rgba(124,157,255,.15); --accent-bd:rgba(124,157,255,.40);
+  --t-rag:#7c9dff; --t-agentic:#ff9563; --t-recall:#3ed9a4;
+  --t-violet:#b18cff; --t-amber:#f0c274;
+  --good:#3ed9a4; --warn:#f5c451; --crit:#ff6b81;
+  --good-soft:rgba(62,217,164,.12); --warn-soft:rgba(245,196,81,.12);
+  --crit-soft:rgba(255,107,129,.12);
+  --code-bg:#080b13;
+
+  --glass:rgba(255,255,255,.045);
+  --glass-bd:rgba(255,255,255,.075);
+  --e1:0 1px 2px rgba(0,0,0,.40);
+  --e2:0 8px 26px rgba(3,6,15,.55);
+  --e3:0 22px 60px rgba(3,6,15,.68);
+  --radius:16px; --radius-sm:11px;
+}
+html[data-theme="light"]{
+  --bg:#f6f8fe; --bg-2:#eef2fb;
+  --surface:#fff; --surface-2:#fafbff; --surface-3:#eef2fb;
+  --border:#dce3f2; --border-soft:#e9edf8;
+  --ink:#111828; --ink-2:#4c586f; --ink-mut:#7c8699;
+
+  --accent:#4f6fe6; --accent-2:#8b5cf6;
+  --accent-soft:rgba(79,111,230,.10); --accent-bd:rgba(79,111,230,.34);
+  --t-rag:#4f6fe6; --t-agentic:#e0663a; --t-recall:#0f9e74;
+  --t-violet:#8b5cf6; --t-amber:#a9760a;
+  --good:#0f9e74; --warn:#b07d00; --crit:#dc3d55;
+  --good-soft:rgba(15,158,116,.10); --warn-soft:rgba(176,125,0,.11);
+  --crit-soft:rgba(220,61,85,.09);
+  --code-bg:#f2f5fc;
+
+  --glass:rgba(255,255,255,.62);
+  --glass-bd:rgba(17,24,40,.07);
+  --e1:0 1px 2px rgba(16,24,40,.05);
+  --e2:0 8px 24px rgba(16,24,40,.08);
+  --e3:0 22px 56px rgba(16,24,40,.12);
+}
+
+/* ---------- the canvas ---------- */
+/* the page background lives on <html> so the fixed aurora layer can sit
+   between it and the content without the body's own fill covering it */
+html{background:var(--bg)}
+body{background:transparent}
+
+/* Ambient tint on every page: strongest at the top edge, gone by mid-scroll, so
+   long reading pages settle onto clean dark instead of a permanent wash. */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 22% -6%, color-mix(in srgb,var(--accent) 46%,transparent), transparent 66%),
+    radial-gradient(38% 32% at 82% -8%, color-mix(in srgb,var(--accent-2) 40%,transparent), transparent 64%);
+  filter:blur(30px) saturate(1.3);opacity:.5;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%);
+          mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%)}
+html[data-theme="light"] body::before{opacity:.5;filter:blur(36px) saturate(1)}
+
+/* film grain: keeps the large flat gradients from banding on cheap panels */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.032;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* multiply over a light canvas darkens fast - the grain has to be far weaker here
+   or the whole page reads grey instead of white */
+html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply}
+
+@keyframes aurora-drift{
+  from{transform:translate3d(0,0,0) scale(1)}
+  to{transform:translate3d(3%,-2.5%,0) scale(1.12)}
+}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:transparent;border-bottom:1px solid var(--border-soft)}
+.siteswitch a{color:var(--ink-mut)}
+.siteswitch a:hover{background:var(--glass);color:var(--ink)}
+.siteswitch a.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  box-shadow:0 3px 14px color-mix(in srgb,var(--accent) 40%,transparent)}
+.sitebar{background:color-mix(in srgb,var(--bg) 62%,transparent);
+  backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);
+  border-bottom:1px solid var(--glass-bd);box-shadow:0 1px 0 rgba(255,255,255,.03),var(--e1)}
+.logo b{background:linear-gradient(115deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{background:var(--glass);border:1px solid var(--glass-bd);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);border-radius:10px}
+.btn:hover{border-color:var(--accent-bd);color:var(--ink);
+  box-shadow:0 4px 16px color-mix(in srgb,var(--accent) 22%,transparent)}
+.btn.on{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,transparent),
+  color-mix(in srgb,var(--accent-2) 18%,transparent));border-color:var(--accent-bd);color:var(--accent)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 55%,transparent),transparent 60%);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-right:1px solid var(--glass-bd)}
+.sb-search input{background:var(--glass);border:1px solid var(--glass-bd);border-radius:11px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sb-search input:focus{border-color:var(--accent-bd);
+  box-shadow:0 0 0 3px var(--accent-soft),0 4px 18px color-mix(in srgb,var(--accent) 20%,transparent)}
+nav a:hover{background:var(--glass);color:var(--ink)}
+nav a.active{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 20%,transparent),transparent 78%);
+  box-shadow:inset 0 0 0 1px var(--accent-bd);color:var(--accent)}
+nav a.active::before{background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 10px var(--accent)}
+.nav-grp{color:var(--ink-mut)}
+
+/* ---------- hero ---------- */
+.hero::before{opacity:.72;filter:blur(38px)}
+.eyebrow{background:var(--glass);border:1px solid var(--glass-bd);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:var(--ink-2);font-weight:700}
+.hero h1{background:linear-gradient(112deg,var(--ink) 4%,
+    color-mix(in srgb,var(--accent) 88%,var(--ink)) 46%,
+    color-mix(in srgb,var(--accent-2) 92%,var(--ink)) 74%,
+    color-mix(in srgb,var(--t-recall) 70%,var(--ink)) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- surfaces: glass everywhere the old sheet used flat fills ---------- */
+.stat,.q,.tcard,.hub-card,.panel,.learn,figure.viz,.tbl-wrap,.flow,.learn-item{
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 72%,transparent));
+  border-color:var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+
+.stat{border-radius:14px}
+.stat::before{height:1.5px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),color-mix(in srgb,var(--tc,var(--accent)) 20%,transparent) 70%,transparent)}
+.stat:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 18%,transparent)}
+.stat-v{background:linear-gradient(150deg,var(--ink),var(--tc,var(--accent)));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 42%,transparent);box-shadow:var(--e2)}
+.q:target{box-shadow:0 0 0 3px var(--accent-soft),var(--e2)}
+.tcard:hover,.hub-card:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 22%,transparent)}
+
+/* the hover affordance was emitting a literal "92" - it wants to be an arrow */
+.tcard::after,.hub-card::after{content:"\2192"}
+
+figure.viz{border-radius:18px}
+pre.code{background:color-mix(in srgb,var(--code-bg) 88%,transparent);
+  border:1px solid var(--glass-bd);border-radius:13px;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.say{background:linear-gradient(100deg,color-mix(in srgb,var(--accent) 14%,transparent),transparent 72%);
+  border-left-color:var(--accent)}
+.kt{background:var(--glass);border-color:var(--glass-bd)}
+.kt:hover{border-color:var(--accent-bd);color:var(--accent)}
+.parthead{background:color-mix(in srgb,var(--bg) 66%,transparent);
+  backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5)}
+th{background:color-mix(in srgb,var(--surface-3) 82%,transparent)}
+
+/* ---------- right-hand "on this page" rail ---------- */
+:root{ --tocw:262px }
+.app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr) var(--tocw)}
+.toc{position:sticky;top:47px;align-self:start;height:calc(100vh - 47px);overflow-y:auto;
+  overscroll-behavior:contain;padding:22px 20px 60px;font-size:12.6px;
+  border-left:1px solid var(--glass-bd)}
+.toc::-webkit-scrollbar{width:7px}
+.toc::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.toc-h{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-mut);margin-bottom:12px}
+.toc-h svg.ic{font-size:13px;color:var(--tc,var(--accent))}
+/* one group per file section; the script shows the one you are reading */
+body.js .toc-g{display:none}
+body.js .toc-g.on{display:block}
+.toc-g > b{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tc,var(--accent));margin:0 0 9px;padding-left:11px}
+.toc-g a{display:block;padding:5px 10px 5px 12px;margin:1px 0;border-radius:7px;color:var(--ink-2);
+  text-decoration:none;line-height:1.42;border-left:2px solid transparent}
+.toc-g a:hover{background:var(--glass);color:var(--ink);text-decoration:none}
+.toc-g a.on{color:var(--accent);border-left-color:var(--accent);font-weight:650;
+  background:linear-gradient(90deg,var(--accent-soft),transparent 80%)}
+.toc-empty{color:var(--ink-mut);font-size:12px;padding-left:12px}
+@media(max-width:1400px){
+  .app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr)}
+  .toc{display:none}
+}
+
+/* ---------- breadcrumb ---------- */
+.crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.2px;color:var(--ink-mut);
+  padding-top:26px}
+.crumb a{color:var(--ink-mut);text-decoration:none}
+.crumb a:hover{color:var(--accent);text-decoration:none}
+.crumb svg.ic{font-size:12px;opacity:.5}
+.crumb b{color:var(--ink-2);font-weight:650}
+.crumb + .hero{padding-top:18px}
+.pnav-t{min-width:0}
+
+/* ---------- previous / next ---------- */
+.pnav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:64px 0 0}
+.pnav a{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:14px;
+  text-decoration:none;color:inherit;border:1px solid var(--glass-bd);
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 86%,transparent),
+    color-mix(in srgb,var(--surface-2) 66%,transparent))}
+.pnav a:hover{text-decoration:none;border-color:var(--accent-bd);box-shadow:var(--e2)}
+.pnav a.next{grid-column:2;justify-content:flex-end;text-align:right}
+.pnav a.prev{grid-column:1}
+.pnav span{display:block;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-mut)}
+.pnav b{display:block;margin-top:4px;font-size:14.5px;letter-spacing:-.02em;color:var(--ink)}
+.pnav svg.ic{font-size:18px;color:var(--accent);flex:none}
+@media(max-width:760px){
+  .pnav{grid-template-columns:1fr}
+  .pnav a.next,.pnav a.prev{grid-column:1}
+}
+
+/* ---------- section headers (shared by the hub and every topic index) ---------- */
+.h-sec-h{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.h-sec-h h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-mut);white-space:nowrap;display:flex;align-items:center;gap:9px;border:0;padding:0}
+.h-sec-h h2 svg.ic{font-size:15px;color:var(--accent);opacity:.9}
+.h-sec-h i{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- icons ---------- */
+.sprite{display:none}
+svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.13em}
+/* the boxed icon tile used by track rows, callouts and nav groups */
+.ic-box{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:44px;height:44px;border-radius:13px;font-size:20px;color:var(--tc,var(--accent));
+  background:linear-gradient(150deg,color-mix(in srgb,var(--tc,var(--accent)) 26%,transparent),
+    color-mix(in srgb,var(--tc,var(--accent)) 8%,transparent));
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.ic-sm{width:30px;height:30px;border-radius:9px;font-size:15px}
+
+/* ---------- topic index: learning-track rows ---------- */
+.trk{display:flex;flex-direction:column;gap:11px;margin:40px 0 0}
+.trk-row{position:relative;display:flex;align-items:center;gap:17px;padding:17px 19px;
+  border-radius:15px;text-decoration:none;color:inherit;overflow:hidden;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--surface) 90%,transparent),
+    color-mix(in srgb,var(--surface-2) 68%,transparent));
+  border:1px solid var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.trk-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tc)}
+.trk-row:hover{text-decoration:none;transform:translateX(3px);
+  border-color:color-mix(in srgb,var(--tc) 46%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc) 18%,transparent)}
+.trk-b{min-width:0;flex:1}
+.trk-b b{display:block;font-size:16.5px;letter-spacing:-.022em;color:var(--ink);font-weight:750}
+.trk-b b i{font-style:normal;color:var(--ink-mut);font-weight:600;margin-right:3px}
+.trk-b p{margin:4px 0 0;font-size:13.2px;line-height:1.5;color:var(--ink-2)}
+.trk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.trk-chips span{font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.trk-row:hover .trk-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+.trk-meta{display:flex;align-items:center;gap:8px;flex:none;font-size:11.5px;
+  font-family:var(--mono);color:var(--tc);white-space:nowrap}
+.trk-meta i{font-style:normal;opacity:.45}
+.trk-go{flex:none;font-size:19px;color:var(--ink-mut);display:inline-flex}
+.trk-row:hover .trk-go{color:var(--tc);transform:translateX(2px)}
+@media(prefers-reduced-motion:no-preference){
+  .trk-row,.trk-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,color .18s ease}
+}
+@media(max-width:820px){
+  .trk-row{flex-wrap:wrap;gap:13px}
+  .trk-meta{order:3;width:100%}
+  .trk-go{display:none}
+}
+
+/* ---------- sidebar nav with icons ---------- */
+.nav-grp{display:flex;align-items:center;gap:8px}
+.nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
+nav a svg.ic{font-size:14px;opacity:.6}
+nav a.active svg.ic{opacity:1}
+/* file = main heading, named part = its only sub-entry */
+nav a.nav-file{margin-top:13px;font-size:13px;font-weight:750;color:var(--ink);align-items:center}
+nav a.nav-file svg.ic{color:var(--tc,var(--accent));opacity:.95}
+nav a.nav-sub{padding-left:30px;font-size:12.2px;position:relative}
+nav a.nav-sub::after{content:"";position:absolute;left:16px;top:50%;width:5px;height:5px;
+  margin-top:-2.5px;border-radius:50%;background:var(--ink-mut);opacity:.5}
+nav a.nav-sub.active::after{background:var(--accent);opacity:1}
+
+/* ---------- callouts with icons ---------- */
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key,.say{position:relative}
+.note-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;font-size:13px;margin-right:8px;vertical-align:-.35em;flex:none}
+.say-h svg.ic{font-size:13px}
+
+/* ---------- topic index: the landing page of each site ---------- */
+/* the reading measure is right for prose but starves a card grid, so an index
+   page widens its column and fits three across */
+.wrap:has(.idx-grid){max-width:1300px}
+.idx-hero{padding:58px 0 4px}
+.idx-hero h1{font-size:clamp(36px,4.8vw,56px);margin:18px 0 16px}
+.idx-hero .lede{font-size:17.5px;max-width:76ch;margin:0}
+
+.idx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;
+  margin:44px 0 0}
+.idx-card{position:relative;display:block;padding:22px 23px 20px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 70%,transparent));
+  border:1px solid var(--glass-bd);text-decoration:none;color:inherit;
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.idx-card::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc),transparent 80%)}
+.idx-card:hover{transform:translateY(-3px);text-decoration:none;
+  border-color:color-mix(in srgb,var(--tc) 48%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc) 20%,transparent)}
+.idx-card-h{display:flex;align-items:center;gap:11px}
+.idx-card-h h3{margin:0;font-size:18.5px;letter-spacing:-.026em;color:var(--ink);font-weight:750}
+.idx-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--tc);
+  box-shadow:0 0 10px var(--tc)}
+.idx-go{margin-left:auto;font-size:16px;color:var(--tc);opacity:0;transform:translateX(-5px);flex:none}
+.idx-card:hover .idx-go{opacity:1;transform:translateX(0)}
+.idx-card p{margin:11px 0 0;font-size:13.4px;line-height:1.6;color:var(--ink-2)}
+.idx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}
+.idx-chips span{font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.idx-card:hover .idx-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+@media(prefers-reduced-motion:no-preference){
+  .idx-card,.idx-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,opacity .18s ease}
+}
+
+/* ---------- file section headers ---------- */
+/* .fh-top's spans had no rules at all, so the name and the count ran together as
+   one unstyled line. It reads as an eyebrow row above the file title. */
+.filehead{margin:56px 0 16px}
+.fh-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px}
+.fh-num{font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--tc,var(--accent));padding:4px 12px;border-radius:999px;
+  background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.fh-count{font-family:var(--mono);font-size:10.5px;color:var(--ink-mut);padding:4px 11px;
+  border-radius:999px;background:var(--glass);border:1px solid var(--glass-bd)}
+.filehead h2{font-size:28px;letter-spacing:-.032em;margin:0}
+
+/* ---------- detail ---------- */
+::selection{background:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--ink)}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-bd);background-clip:padding-box}
+#rprog{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--t-recall));
+  box-shadow:0 0 14px color-mix(in srgb,var(--accent) 70%,transparent)}
+.totop{background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 8px 26px color-mix(in srgb,var(--accent) 45%,transparent)}
+.totop:hover{transform:translateY(-2px)}
+
 </style>
 </head>
 <body>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol><symbol id="i-arrowl" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol><symbol id="i-branch" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol><symbol id="i-bulb" viewBox="0 0 24 24"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2z"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol><symbol id="i-code" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></symbol><symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol><symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 2v6.5L4.2 17A2 2 0 0 0 6 20h12a2 2 0 0 0 1.8-3L15 8.5V2"/><line x1="8" y1="2" x2="16" y2="2"/><line x1="7" y1="14" x2="17" y2="14"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol><symbol id="i-network" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></symbol><symbol id="i-package" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol><symbol id="i-sigma" viewBox="0 0 24 24"><path d="M18 4H6l6 8-6 8h12"/></symbol><symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol><symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol><symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol></svg>
 <div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
   <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw" href="../03_Data_Handling/index.html">03 Data</a><a class="sw" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw on" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw" href="../11_System_Design/index.html">11 Sys Design</a>
 </div></div><div class="sitebar-in">
@@ -523,20 +872,19 @@ body.searching .parthead{opacity:.5}
   <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
   <button class="btn" id="themeBtn">Dark</button>
 </div></div>
-<div class="app" style="--tc:var(--t-agentic)">
+<div class="app has-toc" style="--tc:var(--t-agentic)">
 <aside id="sidebar">
   <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
   <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
-  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><div class="nav-grp">Linux and Git</div><a href="#f05LinuxandGitm-0" data-q="f05LinuxandGitm-0"><span class="qn">&bull;</span>1. Linux File System</a><a href="#f05LinuxandGitm-1" data-q="f05LinuxandGitm-1"><span class="qn">&bull;</span>2. File Operations &amp; Permissions</a><a href="#f05LinuxandGitm-2" data-q="f05LinuxandGitm-2"><span class="qn">&bull;</span>3. Process Management</a><a href="#f05LinuxandGitm-3" data-q="f05LinuxandGitm-3"><span class="qn">&bull;</span>4. Systemd &amp; Services</a><a href="#f05LinuxandGitm-4" data-q="f05LinuxandGitm-4"><span class="qn">&bull;</span>5. Cron Jobs</a><a href="#f05LinuxandGitm-5" data-q="f05LinuxandGitm-5"><span class="qn">&bull;</span>6. Networking</a><a href="#f05LinuxandGitm-6" data-q="f05LinuxandGitm-6"><span class="qn">&bull;</span>7. Shell Scripting</a><a href="#f05LinuxandGitm-7" data-q="f05LinuxandGitm-7"><span class="qn">&bull;</span>8. Makefile</a><a href="#f05LinuxandGitm-8" data-q="f05LinuxandGitm-8"><span class="qn">&bull;</span>9. SSH &amp; Remote</a><a href="#f05LinuxandGitm-9" data-q="f05LinuxandGitm-9"><span class="qn">&bull;</span>10. Git Fundamentals</a><a href="#f05LinuxandGitm-10" data-q="f05LinuxandGitm-10"><span class="qn">&bull;</span>11. Branching &amp; Merging</a><a href="#f05LinuxandGitm-11" data-q="f05LinuxandGitm-11"><span class="qn">&bull;</span>12. Advanced Git</a><a href="#f05LinuxandGitm-12" data-q="f05LinuxandGitm-12"><span class="qn">&bull;</span>13. Pre-commit Hooks</a><a href="#f05LinuxandGitm-13" data-q="f05LinuxandGitm-13"><span class="qn">&bull;</span>14. Interview Deep Dive</a><div class="nav-grp">docker and docker compose guide</div><a href="#fdockeranddocke-14" data-q="fdockeranddocke-14"><span class="qn">&bull;</span>Why Docker?</a><a href="#fdockeranddocke-15" data-q="fdockeranddocke-15"><span class="qn">&bull;</span>Key Terminology</a><a href="#fdockeranddocke-16" data-q="fdockeranddocke-16"><span class="qn">&bull;</span>Windows / Mac</a><a href="#fdockeranddocke-17" data-q="fdockeranddocke-17"><span class="qn">&bull;</span>Linux (Ubuntu)</a><a href="#fdockeranddocke-18" data-q="fdockeranddocke-18"><span class="qn">&bull;</span>Verify Installation</a><a href="#fdockeranddocke-19" data-q="fdockeranddocke-19"><span class="qn">&bull;</span>5.1 Pulling Images</a><a href="#fdockeranddocke-20" data-q="fdockeranddocke-20"><span class="qn">&bull;</span>5.2 Image Tags</a><a href="#fdockeranddocke-21" data-q="fdockeranddocke-21"><span class="qn">&bull;</span>5.3 Image Layers</a><a href="#fdockeranddocke-22" data-q="fdockeranddocke-22"><span class="qn">&bull;</span>5.4 Managing Images</a><a href="#fdockeranddocke-23" data-q="fdockeranddocke-23"><span class="qn">&bull;</span>6.1 Running Containers</a><a href="#fdockeranddocke-24" data-q="fdockeranddocke-24"><span class="qn">&bull;</span>6.2 Container Lifecycle</a><a href="#fdockeranddocke-25" data-q="fdockeranddocke-25"><span class="qn">&bull;</span>6.3 Interacting with Containers</a><a href="#fdockeranddocke-26" data-q="fdockeranddocke-26"><span class="qn">&bull;</span>7.1 Dockerfile Instructions</a><a href="#fdockeranddocke-27" data-q="fdockeranddocke-27"><span class="qn">&bull;</span>7.2 Python FastAPI Dockerfile</a><a href="#fdockeranddocke-28" data-q="fdockeranddocke-28"><span class="qn">&bull;</span>7.3 Node.js Dockerfile</a><a href="#fdockeranddocke-29" data-q="fdockeranddocke-29"><span class="qn">&bull;</span>7.4 Building &amp; Running</a><a href="#fdockeranddocke-30" data-q="fdockeranddocke-30"><span class="qn">&bull;</span>7.5 CMD vs ENTRYPOINT</a><a href="#fdockeranddocke-31" data-q="fdockeranddocke-31"><span class="qn">&bull;</span>7.6 .dockerignore</a><a href="#fdockeranddocke-32" data-q="fdockeranddocke-32"><span class="qn">&bull;</span>8.1 Network Types</a><a href="#fdockeranddocke-33" data-q="fdockeranddocke-33"><span class="qn">&bull;</span>8.2 Container Communication</a><a href="#fdockeranddocke-34" data-q="fdockeranddocke-34"><span class="qn">&bull;</span>8.3 Network Commands</a><a href="#fdockeranddocke-35" data-q="fdockeranddocke-35"><span class="qn">&bull;</span>9.1 Why Volumes?</a><a href="#fdockeranddocke-36" data-q="fdockeranddocke-36"><span class="qn">&bull;</span>9.2 Volume Types</a><a href="#fdockeranddocke-37" data-q="fdockeranddocke-37"><span class="qn">&bull;</span>9.3 Volume Commands</a><a href="#fdockeranddocke-38" data-q="fdockeranddocke-38"><span class="qn">&bull;</span>9.4 Bind Mount for Development</a><a href="#fdockeranddocke-39" data-q="fdockeranddocke-39"><span class="qn">&bull;</span>10.1 What Is Docker Compose?</a><a href="#fdockeranddocke-40" data-q="fdockeranddocke-40"><span class="qn">&bull;</span>10.2 docker-compose.yml Structure</a><a href="#fdockeranddocke-41" data-q="fdockeranddocke-41"><span class="qn">&bull;</span>10.3 Compose Commands</a><a href="#fdockeranddocke-42" data-q="fdockeranddocke-42"><span class="qn">&bull;</span>10.4 Environment Variables</a><a href="#fdockeranddocke-43" data-q="fdockeranddocke-43"><span class="qn">&bull;</span>10.5 Profiles (Conditional Services)</a><a href="#fdockeranddocke-44" data-q="fdockeranddocke-44"><span class="qn">&bull;</span>10.6 Health Checks</a><a href="#fdockeranddocke-45" data-q="fdockeranddocke-45"><span class="qn">&bull;</span>11.1 Python Multi-Stage</a><a href="#fdockeranddocke-46" data-q="fdockeranddocke-46"><span class="qn">&bull;</span>11.2 Node.js Multi-Stage</a><a href="#fdockeranddocke-47" data-q="fdockeranddocke-47"><span class="qn">&bull;</span>11.3 Size Comparison</a><a href="#fdockeranddocke-48" data-q="fdockeranddocke-48"><span class="qn">&bull;</span>12.1 Dockerfile Best Practices</a><a href="#fdockeranddocke-49" data-q="fdockeranddocke-49"><span class="qn">&bull;</span>12.2 Security Best Practices</a><a href="#fdockeranddocke-50" data-q="fdockeranddocke-50"><span class="qn">&bull;</span>12.3 Production Checklist</a><a href="#fdockeranddocke-51" data-q="fdockeranddocke-51"><span class="qn">&bull;</span>13.1 FastAPI + PostgreSQL + Redis</a><a href="#fdockeranddocke-52" data-q="fdockeranddocke-52"><span class="qn">&bull;</span>13.2 Full-Stack: React + FastAPI + PostgreSQL</a><a href="#fdockeranddocke-53" data-q="fdockeranddocke-53"><span class="qn">&bull;</span>13.3 Development vs Production Compose</a><a href="#fdockeranddocke-54" data-q="fdockeranddocke-54"><span class="qn">&bull;</span>Images</a><a href="#fdockeranddocke-55" data-q="fdockeranddocke-55"><span class="qn">&bull;</span>Containers</a><a href="#fdockeranddocke-56" data-q="fdockeranddocke-56"><span class="qn">&bull;</span>Compose</a><a href="#fdockeranddocke-57" data-q="fdockeranddocke-57"><span class="qn">&bull;</span>System</a><a href="#fdockeranddocke-58" data-q="fdockeranddocke-58"><span class="qn">&bull;</span>Fundamentals</a><a href="#fdockeranddocke-59" data-q="fdockeranddocke-59"><span class="qn">&bull;</span>Dockerfile</a><a href="#fdockeranddocke-60" data-q="fdockeranddocke-60"><span class="qn">&bull;</span>Networking &amp; Volumes</a><a href="#fdockeranddocke-61" data-q="fdockeranddocke-61"><span class="qn">&bull;</span>Docker Compose</a><a href="#fdockeranddocke-62" data-q="fdockeranddocke-62"><span class="qn">&bull;</span>Production &amp; Security</a><div class="nav-grp">gRPC vs REST</div><a href="#f07gRPCvsRESTmd-63" data-q="f07gRPCvsRESTmd-63"><span class="qn">&bull;</span>What is REST?</a><a href="#f07gRPCvsRESTmd-64" data-q="f07gRPCvsRESTmd-64"><span class="qn">&bull;</span>What is gRPC?</a><a href="#f07gRPCvsRESTmd-65" data-q="f07gRPCvsRESTmd-65"><span class="qn">&bull;</span>Side-by-Side Comparison</a><a href="#f07gRPCvsRESTmd-66" data-q="f07gRPCvsRESTmd-66"><span class="qn">&bull;</span>Performance</a><a href="#f07gRPCvsRESTmd-67" data-q="f07gRPCvsRESTmd-67"><span class="qn">&bull;</span>Streaming Modes (gRPC only)</a><a href="#f07gRPCvsRESTmd-68" data-q="f07gRPCvsRESTmd-68"><span class="qn">&bull;</span>When to Use REST</a><a href="#f07gRPCvsRESTmd-69" data-q="f07gRPCvsRESTmd-69"><span class="qn">&bull;</span>When to Use gRPC</a><a href="#f07gRPCvsRESTmd-70" data-q="f07gRPCvsRESTmd-70"><span class="qn">&bull;</span>Common Architecture Pattern</a><a href="#f07gRPCvsRESTmd-71" data-q="f07gRPCvsRESTmd-71"><span class="qn">&bull;</span>Code Comparison</a><a href="#f07gRPCvsRESTmd-72" data-q="f07gRPCvsRESTmd-72"><span class="qn">&bull;</span>Pros &amp; Cons Summary</a><a href="#f07gRPCvsRESTmd-73" data-q="f07gRPCvsRESTmd-73"><span class="qn">&bull;</span>Decision Checklist</a><a href="#f07gRPCvsRESTmd-74" data-q="f07gRPCvsRESTmd-74"><span class="qn">&bull;</span>Key Takeaway</a></nav>
+  <nav><div class="nav-grp"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg>On this page</div><a href="#top" data-t="top"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compass"/></svg>Overview</a><a class="nav-file" href="#f05LinuxandGitm" data-t="f05LinuxandGitm"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>Linux and Git</a><a class="nav-file" href="#fdockeranddocke" data-t="fdockeranddocke"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>docker and docker compose guide</a><a class="nav-sub" href="#fdockeranddocke-p0" data-t="fdockeranddocke-p0">1. What Is Docker?</a><a class="nav-sub" href="#fdockeranddocke-p1" data-t="fdockeranddocke-p1">2. Docker vs Virtual Machines</a><a class="nav-sub" href="#fdockeranddocke-p2" data-t="fdockeranddocke-p2">3. Core Concepts</a><a class="nav-sub" href="#fdockeranddocke-p3" data-t="fdockeranddocke-p3">4. Installation</a><a class="nav-sub" href="#fdockeranddocke-p4" data-t="fdockeranddocke-p4">5. Docker Images</a><a class="nav-sub" href="#fdockeranddocke-p5" data-t="fdockeranddocke-p5">6. Docker Containers</a><a class="nav-sub" href="#fdockeranddocke-p6" data-t="fdockeranddocke-p6">7. Dockerfile — Building Custom Images</a><a class="nav-sub" href="#fdockeranddocke-p7" data-t="fdockeranddocke-p7">8. Docker Networking</a><a class="nav-sub" href="#fdockeranddocke-p8" data-t="fdockeranddocke-p8">9. Docker Volumes — Persistent Data</a><a class="nav-sub" href="#fdockeranddocke-p9" data-t="fdockeranddocke-p9">10. Docker Compose</a><a class="nav-sub" href="#fdockeranddocke-p10" data-t="fdockeranddocke-p10">11. Multi-Stage Builds</a><a class="nav-sub" href="#fdockeranddocke-p11" data-t="fdockeranddocke-p11">12. Docker Best Practices</a><a class="nav-sub" href="#fdockeranddocke-p12" data-t="fdockeranddocke-p12">13. Real-World Projects</a><a class="nav-sub" href="#fdockeranddocke-p13" data-t="fdockeranddocke-p13">14. Docker Commands Cheat Sheet</a><a class="nav-sub" href="#fdockeranddocke-p14" data-t="fdockeranddocke-p14">15. Interview Questions &amp; Answers</a><a class="nav-file" href="#f07gRPCvsRESTmd" data-t="f07gRPCvsRESTmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>gRPC vs REST</a></nav>
 </aside>
 <main><div class="wrap">
 
-<section class="hero" id="top"><div class="eyebrow">10_MLOps_and_Deployment &middot; Infra & Tools</div>
-<h1>Infra & Tools</h1><p class="lede">Linux, Git, Docker, gRPC vs REST</p><div class="oneliner"><b>3 files</b> in this section, <b>75 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
-<div class="stats"><div class="stat"><div class="stat-v">3</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">75</div><div class="stat-l">sections</div></div></div></section>
-<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">Linux, Git, Docker, gRPC vs REST</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>Linux and Git</b><span class="learn-n">14 sections</span></div><div class="learn-tags"><span>Linux File System</span><span>File Operations &amp; Permissions</span><span>Process Management</span><span>Systemd &amp; Services</span><span>Cron Jobs</span></div></li><li class="learn-item"><div class="learn-top"><b>docker and docker compose guide</b><span class="learn-n">49 sections</span></div><div class="learn-tags"><span>What Is Docker?</span><span>Docker vs Virtual Machines</span><span>Core Concepts</span><span>Installation</span><span>Docker Images</span></div></li><li class="learn-item"><div class="learn-top"><b>gRPC vs REST</b><span class="learn-n">12 sections</span></div><div class="learn-tags"><span>What is REST?</span><span>What is gRPC?</span><span>Side-by-Side Comparison</span><span>Performance</span><span>Streaming Modes (gRPC only)</span></div></li></ul></section>
+<nav class="crumb"><a href="../index.html">Home</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><a href="index.html">MLOps &amp; Deployment</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><b>Infra & Tools</b></nav>
+<section class="hero" id="top"><div class="eyebrow">MLOps and Deployment &middot; Infra & Tools</div>
+<h1>Infra & Tools</h1><p class="lede">Linux, Git, Docker, gRPC vs REST</p><div class="oneliner"><b>3 files</b> in this section, <b>75 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div></section>
 
-<section class="filesec" id="f05LinuxandGitm"><header class="filehead"><div class="fh-top"><span class="fh-num">Linux and Git</span><span class="fh-count">14 sections</span><a class="fh-src" href="../../10_MLOps_and_Deployment/05_Linux_and_Git.md">source .md &#8599;</a></div><h2>Linux &amp; Git Essentials — Complete Engineering Reference</h2><div class="note">
+<section class="filesec" id="f05LinuxandGitm"><header class="filehead"><div class="fh-top"><span class="fh-num">Linux and Git</span><span class="fh-count">14 sections</span></div><h2>Linux &amp; Git Essentials — Complete Engineering Reference</h2><div class="note">
 <p><strong>Scope:</strong> Linux file system, permissions, process management, systemd, cron jobs, networking (curl, wget, netstat, ss), shell scripting, Makefile, SSH, Git fundamentals, branching strategies, merging/rebasing, git bisect, git worktree, pre-commit hooks, advanced Git patterns, interview Q&amp;A.</p>
 </div></header><article class="q" id="f05LinuxandGitm-0"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Linux File System</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f05LinuxandGitm-0"><span></span></label></div><div class="q-a"><p>The Linux file system follows a hierarchical directory structure rooted at <code>/</code>, with standardized paths for binaries (<code>/bin</code>, <code>/usr/bin</code>), configuration (<code>/etc</code>), user data (<code>/home</code>), logs (<code>/var/log</code>), and temporary files (<code>/tmp</code>). Understanding this layout and the essential navigation commands is fundamental to working effectively in any Linux-based development or production environment.</p>
 <div class="diagram"><pre>/               Root of everything
@@ -958,12 +1306,12 @@ fi</code></pre></div><button class="reveal">Reveal answer</button></article><art
 <h3>Q8: How do you prevent sensitive data from being committed to Git?</h3>
 <p><strong>A:</strong> Layered defense: (1) <strong><code>.gitignore</code></strong>: Exclude <code>.env</code>, credentials, API keys, model weights, data files. (2) <strong>Pre-commit hooks</strong>: <code>detect-secrets</code> hook scans for API keys/passwords. <code>check-added-large-files</code> prevents data file commits. (3) <strong><code>.gitattributes</code></strong>: Configure Git LFS for large files if needed. (4) <strong>Environment variables</strong>: Never hardcode secrets — use <code>.env</code> files (gitignored) or secret managers. (5) <strong>If already committed</strong>: <code>git filter-repo</code> to rewrite history (not just delete — it's in history). Rotate any exposed credentials immediately. (6) <strong>GitHub</strong>: Enable secret scanning alerts and push protection.</p>
 <hr />
-<p><em>Previous: <a href="../../01_Python/25_FastAPI/FastAPI_Detailed.md">FastAPI_Detailed.md</a> | Next: <a href="mlops.html#f06SDLCmd">06_SDLC.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fdockeranddocke"><header class="filehead"><div class="fh-top"><span class="fh-num">docker and docker compose guide</span><span class="fh-count">49 sections</span><a class="fh-src" href="../../10_MLOps_and_Deployment/docker-and-docker-compose-guide.md">source .md &#8599;</a></div><h2>Docker &amp; Docker Compose — Complete Guide</h2></header><div class="parthead"><span>1. What Is Docker?</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Docker is a platform that packages applications and their dependencies into <strong>containers</strong> — lightweight, portable, self-sufficient units that run consistently anywhere.</p>
+<p><em>Previous: <a href="../../01_Python/25_FastAPI/FastAPI_Detailed.md">FastAPI_Detailed.md</a> | Next: <a href="mlops.html#f06SDLCmd">06_SDLC.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fdockeranddocke"><header class="filehead"><div class="fh-top"><span class="fh-num">docker and docker compose guide</span><span class="fh-count">49 sections</span></div><h2>Docker &amp; Docker Compose — Complete Guide</h2></header><div class="parthead" id="fdockeranddocke-p0"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>1. What Is Docker?</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Docker is a platform that packages applications and their dependencies into <strong>containers</strong> — lightweight, portable, self-sufficient units that run consistently anywhere.</p>
 <div class="diagram"><pre>"It works on my machine"          →  "It works in a container"
                                        (which runs ANYWHERE)
 
 Developer's Laptop  →  Container  →  CI/CD Server  →  Production Server
-     Same container, same behavior, everywhere.</pre></div></div><article class="q" id="fdockeranddocke-14"><div class="q-h"><span class="q-n">&bull;</span><h3>Why Docker?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-14"><span></span></label></div><div class="q-a"><div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Problem</th><th>Docker Solution</th></tr></thead><tbody><tr class="g1"><td class="c-term">"Works on my machine"</td><td>Identical environment everywhere</td></tr><tr class="g0"><td class="c-term">Dependency conflicts (Python 3.8 vs 3.11)</td><td>Each container has its own dependencies</td></tr><tr class="g1"><td class="c-term">Slow setup for new developers</td><td><code>docker compose up</code> → running in seconds</td></tr><tr class="g0"><td class="c-term">Environment inconsistency</td><td>Image = immutable snapshot</td></tr><tr class="g1"><td class="c-term">Resource waste (VMs are heavy)</td><td>Containers share OS kernel = lightweight</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>2. Docker vs Virtual Machines</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="diagram"><pre>Virtual Machine:                     Docker Container:
+     Same container, same behavior, everywhere.</pre></div></div><article class="q" id="fdockeranddocke-14"><div class="q-h"><span class="q-n">&bull;</span><h3>Why Docker?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-14"><span></span></label></div><div class="q-a"><div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Problem</th><th>Docker Solution</th></tr></thead><tbody><tr class="g1"><td class="c-term">"Works on my machine"</td><td>Identical environment everywhere</td></tr><tr class="g0"><td class="c-term">Dependency conflicts (Python 3.8 vs 3.11)</td><td>Each container has its own dependencies</td></tr><tr class="g1"><td class="c-term">Slow setup for new developers</td><td><code>docker compose up</code> → running in seconds</td></tr><tr class="g0"><td class="c-term">Environment inconsistency</td><td>Image = immutable snapshot</td></tr><tr class="g1"><td class="c-term">Resource waste (VMs are heavy)</td><td>Containers share OS kernel = lightweight</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fdockeranddocke-p1"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>2. Docker vs Virtual Machines</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="diagram"><pre>Virtual Machine:                     Docker Container:
 ┌─────────────────┐                  ┌─────────────────┐
 │     App A       │                  │     App A       │
 │   Libraries     │                  │   Libraries     │
@@ -980,7 +1328,7 @@ Developer's Laptop  →  Container  →  CI/CD Server  →  Production Server
 ├─────────────────┤
 │   Hardware      │
 └─────────────────┘</pre></div>
-<div class="tbl-wrap"><table class="t3"><thead><tr><th>Feature</th><th>Virtual Machine</th><th>Docker Container</th></tr></thead><tbody><tr class="g1"><td><strong>Size</strong></td><td>GBs (includes full OS)</td><td>MBs (shares host OS kernel)</td></tr><tr class="g0"><td><strong>Startup</strong></td><td>Minutes</td><td>Seconds</td></tr><tr class="g1"><td><strong>Performance</strong></td><td>Near-native but heavier</td><td>Near-native, minimal overhead</td></tr><tr class="g0"><td><strong>Isolation</strong></td><td>Full (hardware-level)</td><td>Process-level (shared kernel)</td></tr><tr class="g1"><td><strong>OS Support</strong></td><td>Any OS on any host</td><td>Same OS family as host</td></tr><tr class="g0"><td><strong>Use Case</strong></td><td>Different OS needs</td><td>Application packaging</td></tr></tbody></table></div></div><div class="parthead"><span>3. Core Concepts</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="diagram"><pre>┌──────────────────────────────────────────────┐
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Feature</th><th>Virtual Machine</th><th>Docker Container</th></tr></thead><tbody><tr class="g1"><td><strong>Size</strong></td><td>GBs (includes full OS)</td><td>MBs (shares host OS kernel)</td></tr><tr class="g0"><td><strong>Startup</strong></td><td>Minutes</td><td>Seconds</td></tr><tr class="g1"><td><strong>Performance</strong></td><td>Near-native but heavier</td><td>Near-native, minimal overhead</td></tr><tr class="g0"><td><strong>Isolation</strong></td><td>Full (hardware-level)</td><td>Process-level (shared kernel)</td></tr><tr class="g1"><td><strong>OS Support</strong></td><td>Any OS on any host</td><td>Same OS family as host</td></tr><tr class="g0"><td><strong>Use Case</strong></td><td>Different OS needs</td><td>Application packaging</td></tr></tbody></table></div></div><div class="parthead" id="fdockeranddocke-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-code"/></svg>3. Core Concepts</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="diagram"><pre>┌──────────────────────────────────────────────┐
 │                  Docker Hub                   │  ← Public registry
 │              (registry.hub.docker.com)        │     (like npm/PyPI for images)
 └──────────────────────┬───────────────────────┘
@@ -995,7 +1343,7 @@ Developer's Laptop  →  Container  →  CI/CD Server  →  Production Server
 ┌──────────────────────────────────────────────┐
 │             Docker Container                  │  ← Running instance
 │  (Writable layer on top of image)            │     (like an object)
-└──────────────────────────────────────────────┘</pre></div></div><article class="q" id="fdockeranddocke-15"><div class="q-h"><span class="q-n">&bull;</span><h3>Key Terminology</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-15"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Image</span><span class="kt">Container</span><span class="kt">Dockerfile</span><span class="kt">Registry</span><span class="kt">Volume</span><span class="kt">Network</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Term</th><th>Description</th><th>Analogy</th></tr></thead><tbody><tr class="g1"><td><strong>Image</strong></td><td>Read-only template with application + dependencies</td><td>Recipe</td></tr><tr class="g0"><td><strong>Container</strong></td><td>Running instance of an image</td><td>Dish cooked from recipe</td></tr><tr class="g1"><td><strong>Dockerfile</strong></td><td>Instructions to build an image</td><td>Recipe steps</td></tr><tr class="g0"><td><strong>Registry</strong></td><td>Storage for images (Docker Hub, ECR, GCR)</td><td>Cookbook library</td></tr><tr class="g1"><td><strong>Volume</strong></td><td>Persistent data storage outside container</td><td>External hard drive</td></tr><tr class="g0"><td><strong>Network</strong></td><td>Communication channel between containers</td><td>Phone network</td></tr><tr class="g1"><td><strong>Compose</strong></td><td>Multi-container orchestration tool</td><td>Kitchen manager</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>4. Installation</span><i></i></div><article class="q" id="fdockeranddocke-16"><div class="q-h"><span class="q-n">&bull;</span><h3>Windows / Mac</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-16"><span></span></label></div><div class="q-a"><p>Download <strong>Docker Desktop</strong> from <a href="https://www.docker.com/products/docker-desktop/">docker.com</a></p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fdockeranddocke-17"><div class="q-h"><span class="q-n">&bull;</span><h3>Linux (Ubuntu)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-17"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Install Docker Engine</span>
+└──────────────────────────────────────────────┘</pre></div></div><article class="q" id="fdockeranddocke-15"><div class="q-h"><span class="q-n">&bull;</span><h3>Key Terminology</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-15"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Image</span><span class="kt">Container</span><span class="kt">Dockerfile</span><span class="kt">Registry</span><span class="kt">Volume</span><span class="kt">Network</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Term</th><th>Description</th><th>Analogy</th></tr></thead><tbody><tr class="g1"><td><strong>Image</strong></td><td>Read-only template with application + dependencies</td><td>Recipe</td></tr><tr class="g0"><td><strong>Container</strong></td><td>Running instance of an image</td><td>Dish cooked from recipe</td></tr><tr class="g1"><td><strong>Dockerfile</strong></td><td>Instructions to build an image</td><td>Recipe steps</td></tr><tr class="g0"><td><strong>Registry</strong></td><td>Storage for images (Docker Hub, ECR, GCR)</td><td>Cookbook library</td></tr><tr class="g1"><td><strong>Volume</strong></td><td>Persistent data storage outside container</td><td>External hard drive</td></tr><tr class="g0"><td><strong>Network</strong></td><td>Communication channel between containers</td><td>Phone network</td></tr><tr class="g1"><td><strong>Compose</strong></td><td>Multi-container orchestration tool</td><td>Kitchen manager</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fdockeranddocke-p3"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>4. Installation</span><i></i></div><article class="q" id="fdockeranddocke-16"><div class="q-h"><span class="q-n">&bull;</span><h3>Windows / Mac</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-16"><span></span></label></div><div class="q-a"><p>Download <strong>Docker Desktop</strong> from <a href="https://www.docker.com/products/docker-desktop/">docker.com</a></p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fdockeranddocke-17"><div class="q-h"><span class="q-n">&bull;</span><h3>Linux (Ubuntu)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-17"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Install Docker Engine</span>
 sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
@@ -1004,7 +1352,7 @@ docker --version
 docker compose version
 
 <span class="cmt"># Run without sudo</span>
-sudo usermod -aG docker $USER</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="fdockeranddocke-18"><div class="q-h"><span class="q-n">&bull;</span><h3>Verify Installation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-18"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code>docker run hello-world</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>5. Docker Images</span><i></i></div><article class="q" id="fdockeranddocke-19"><div class="q-h"><span class="q-n">&bull;</span><h3>5.1 Pulling Images</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-19"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Pull from Docker Hub</span>
+sudo usermod -aG docker $USER</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="fdockeranddocke-18"><div class="q-h"><span class="q-n">&bull;</span><h3>Verify Installation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-18"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code>docker run hello-world</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fdockeranddocke-p4"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>5. Docker Images</span><i></i></div><article class="q" id="fdockeranddocke-19"><div class="q-h"><span class="q-n">&bull;</span><h3>5.1 Pulling Images</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-19"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Pull from Docker Hub</span>
 docker pull python:<span class="num">3</span>.<span class="num">11</span>-slim
 docker pull node:<span class="num">20</span>-alpine
 docker pull postgres:<span class="num">15</span>
@@ -1037,7 +1385,7 @@ docker image prune -a
 docker inspect python:<span class="num">3</span>.<span class="num">11</span>-slim
 
 <span class="cmt"># Image history (layers)</span>
-docker history python:<span class="num">3</span>.<span class="num">11</span>-slim</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>6. Docker Containers</span><i></i></div><article class="q" id="fdockeranddocke-23"><div class="q-h"><span class="q-n">&bull;</span><h3>6.1 Running Containers</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-23"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Basic run</span>
+docker history python:<span class="num">3</span>.<span class="num">11</span>-slim</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fdockeranddocke-p5"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>6. Docker Containers</span><i></i></div><article class="q" id="fdockeranddocke-23"><div class="q-h"><span class="q-n">&bull;</span><h3>6.1 Running Containers</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-23"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Basic run</span>
 docker run python:<span class="num">3</span>.<span class="num">11</span>-slim python -c <span class="str">"print('Hello Docker!')"</span>
 
 <span class="cmt"># Interactive mode (-it)</span>
@@ -1090,7 +1438,7 @@ docker cp my-container:/app/output.txt ./
 
 <span class="cmt"># Resource usage</span>
 docker stats
-docker stats my-postgres</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>7. Dockerfile — Building Custom Images</span><i></i></div><article class="q" id="fdockeranddocke-26"><div class="q-h"><span class="q-n">&bull;</span><h3>7.1 Dockerfile Instructions</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-26"><span></span></label></div><div class="q-a"><div class="tbl-wrap"><table class="t3"><thead><tr><th>Instruction</th><th>Purpose</th><th>Example</th></tr></thead><tbody><tr class="g1"><td><code>FROM</code></td><td>Base image</td><td><code>FROM python:3.11-slim</code></td></tr><tr class="g0"><td><code>WORKDIR</code></td><td>Set working directory</td><td><code>WORKDIR /app</code></td></tr><tr class="g1"><td><code>COPY</code></td><td>Copy files from host</td><td><code>COPY . /app</code></td></tr><tr class="g0"><td><code>ADD</code></td><td>Copy + extract archives + URLs</td><td><code>ADD archive.tar.gz /app</code></td></tr><tr class="g1"><td><code>RUN</code></td><td>Execute command during build</td><td><code>RUN pip install -r requirements.txt</code></td></tr><tr class="g0"><td><code>CMD</code></td><td>Default command when container starts</td><td><code>CMD ["python", "main.py"]</code></td></tr><tr class="g1"><td><code>ENTRYPOINT</code></td><td>Fixed command (CMD becomes arguments)</td><td><code>ENTRYPOINT ["python"]</code></td></tr><tr class="g0"><td><code>ENV</code></td><td>Set environment variable</td><td><code>ENV APP_ENV=production</code></td></tr><tr class="g1"><td><code>EXPOSE</code></td><td>Document which port the app uses</td><td><code>EXPOSE 8000</code></td></tr><tr class="g0"><td><code>VOLUME</code></td><td>Create mount point for data</td><td><code>VOLUME /data</code></td></tr><tr class="g1"><td><code>ARG</code></td><td>Build-time variable</td><td><code>ARG VERSION=1.0</code></td></tr><tr class="g0"><td><code>USER</code></td><td>Run as non-root user</td><td><code>USER appuser</code></td></tr><tr class="g1"><td><code>HEALTHCHECK</code></td><td>Container health monitoring</td><td><code>HEALTHCHECK CMD curl -f http://localhost/</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fdockeranddocke-27"><div class="q-h"><span class="q-n">&bull;</span><h3>7.2 Python FastAPI Dockerfile</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-27"><span></span></label></div><div class="q-a"><pre class="code" data-lang="dockerfile"><code># ---- Stage: Production ----
+docker stats my-postgres</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fdockeranddocke-p6"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>7. Dockerfile — Building Custom Images</span><i></i></div><article class="q" id="fdockeranddocke-26"><div class="q-h"><span class="q-n">&bull;</span><h3>7.1 Dockerfile Instructions</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-26"><span></span></label></div><div class="q-a"><div class="tbl-wrap"><table class="t3"><thead><tr><th>Instruction</th><th>Purpose</th><th>Example</th></tr></thead><tbody><tr class="g1"><td><code>FROM</code></td><td>Base image</td><td><code>FROM python:3.11-slim</code></td></tr><tr class="g0"><td><code>WORKDIR</code></td><td>Set working directory</td><td><code>WORKDIR /app</code></td></tr><tr class="g1"><td><code>COPY</code></td><td>Copy files from host</td><td><code>COPY . /app</code></td></tr><tr class="g0"><td><code>ADD</code></td><td>Copy + extract archives + URLs</td><td><code>ADD archive.tar.gz /app</code></td></tr><tr class="g1"><td><code>RUN</code></td><td>Execute command during build</td><td><code>RUN pip install -r requirements.txt</code></td></tr><tr class="g0"><td><code>CMD</code></td><td>Default command when container starts</td><td><code>CMD ["python", "main.py"]</code></td></tr><tr class="g1"><td><code>ENTRYPOINT</code></td><td>Fixed command (CMD becomes arguments)</td><td><code>ENTRYPOINT ["python"]</code></td></tr><tr class="g0"><td><code>ENV</code></td><td>Set environment variable</td><td><code>ENV APP_ENV=production</code></td></tr><tr class="g1"><td><code>EXPOSE</code></td><td>Document which port the app uses</td><td><code>EXPOSE 8000</code></td></tr><tr class="g0"><td><code>VOLUME</code></td><td>Create mount point for data</td><td><code>VOLUME /data</code></td></tr><tr class="g1"><td><code>ARG</code></td><td>Build-time variable</td><td><code>ARG VERSION=1.0</code></td></tr><tr class="g0"><td><code>USER</code></td><td>Run as non-root user</td><td><code>USER appuser</code></td></tr><tr class="g1"><td><code>HEALTHCHECK</code></td><td>Container health monitoring</td><td><code>HEALTHCHECK CMD curl -f http://localhost/</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fdockeranddocke-27"><div class="q-h"><span class="q-n">&bull;</span><h3>7.2 Python FastAPI Dockerfile</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-27"><span></span></label></div><div class="q-a"><pre class="code" data-lang="dockerfile"><code># ---- Stage: Production ----
 FROM python:3.11-slim
 
 # Prevent Python from writing .pyc files and enable unbuffered output
@@ -1173,7 +1521,7 @@ node_modules/
 .pytest_cache
 .coverage
 docker-compose*.yml
-Dockerfile</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>8. Docker Networking</span><i></i></div><article class="q" id="fdockeranddocke-32"><div class="q-h"><span class="q-n">&bull;</span><h3>8.1 Network Types</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-32"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">bridge</span><span class="kt">host</span><span class="kt">none</span><span class="kt">overlay</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Type</th><th>Description</th><th>Use Case</th></tr></thead><tbody><tr class="g1"><td><strong>bridge</strong></td><td>Default network for containers on same host</td><td>Single-host apps</td></tr><tr class="g0"><td><strong>host</strong></td><td>Container uses host's network directly</td><td>Performance-critical</td></tr><tr class="g1"><td><strong>none</strong></td><td>No network access</td><td>Security isolation</td></tr><tr class="g0"><td><strong>overlay</strong></td><td>Multi-host networking (Swarm)</td><td>Docker Swarm clusters</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fdockeranddocke-33"><div class="q-h"><span class="q-n">&bull;</span><h3>8.2 Container Communication</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-33"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Create a custom network</span>
+Dockerfile</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fdockeranddocke-p7"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>8. Docker Networking</span><i></i></div><article class="q" id="fdockeranddocke-32"><div class="q-h"><span class="q-n">&bull;</span><h3>8.1 Network Types</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-32"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">bridge</span><span class="kt">host</span><span class="kt">none</span><span class="kt">overlay</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Type</th><th>Description</th><th>Use Case</th></tr></thead><tbody><tr class="g1"><td><strong>bridge</strong></td><td>Default network for containers on same host</td><td>Single-host apps</td></tr><tr class="g0"><td><strong>host</strong></td><td>Container uses host's network directly</td><td>Performance-critical</td></tr><tr class="g1"><td><strong>none</strong></td><td>No network access</td><td>Security isolation</td></tr><tr class="g0"><td><strong>overlay</strong></td><td>Multi-host networking (Swarm)</td><td>Docker Swarm clusters</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fdockeranddocke-33"><div class="q-h"><span class="q-n">&bull;</span><h3>8.2 Container Communication</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-33"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># Create a custom network</span>
 docker network create my-network
 
 <span class="cmt"># Run containers on the same network</span>
@@ -1187,7 +1535,7 @@ docker run -d --name api --network my-network my-app
 docker network create my-net               <span class="cmt"># Create network</span>
 docker network inspect my-net              <span class="cmt"># View details</span>
 docker network connect my-net my-container <span class="cmt"># Connect container to network</span>
-docker network rm my-net                   <span class="cmt"># Remove network</span></code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>9. Docker Volumes — Persistent Data</span><i></i></div><article class="q" id="fdockeranddocke-35"><div class="q-h"><span class="q-n">&bull;</span><h3>9.1 Why Volumes?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-35"><span></span></label></div><div class="q-a"><div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px"><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">Container destroyed</span><span class="ar">&rarr;</span><span class="st">data LOST</span><span class="fl" style="margin:0 0 0 10px">writable layer is gone</span></div><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">Volume mounted</span><span class="ar">&rarr;</span><span class="st">data PERSISTS</span><span class="fl" style="margin:0 0 0 10px">stored outside container</span></div></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fdockeranddocke-36"><div class="q-h"><span class="q-n">&bull;</span><h3>9.2 Volume Types</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-36"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># 1. Named Volume (managed by Docker) — Recommended</span>
+docker network rm my-net                   <span class="cmt"># Remove network</span></code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fdockeranddocke-p8"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>9. Docker Volumes — Persistent Data</span><i></i></div><article class="q" id="fdockeranddocke-35"><div class="q-h"><span class="q-n">&bull;</span><h3>9.1 Why Volumes?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-35"><span></span></label></div><div class="q-a"><div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px"><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">Container destroyed</span><span class="ar">&rarr;</span><span class="st">data LOST</span><span class="fl" style="margin:0 0 0 10px">writable layer is gone</span></div><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">Volume mounted</span><span class="ar">&rarr;</span><span class="st">data PERSISTS</span><span class="fl" style="margin:0 0 0 10px">stored outside container</span></div></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fdockeranddocke-36"><div class="q-h"><span class="q-n">&bull;</span><h3>9.2 Volume Types</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-36"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code><span class="cmt"># 1. Named Volume (managed by Docker) — Recommended</span>
 docker run -d -v pgdata:/var/lib/postgresql/data postgres:<span class="num">15</span>
 
 <span class="cmt"># 2. Bind Mount (host directory)</span>
@@ -1204,7 +1552,7 @@ docker run -d \
   -p <span class="num">8000</span>:<span class="num">8000</span> \
   -v $(pwd):/app \
   my-fastapi-app \
-  uvicorn main:app --reload --host <span class="num">0</span>.<span class="num">0</span>.<span class="num">0</span>.<span class="num">0</span></code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>10. Docker Compose</span><i></i></div><article class="q" id="fdockeranddocke-39"><div class="q-h"><span class="q-n">&bull;</span><h3>10.1 What Is Docker Compose?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-39"><span></span></label></div><div class="q-a"><p>Docker Compose defines and runs <strong>multi-container applications</strong> using a single YAML file.</p>
+  uvicorn main:app --reload --host <span class="num">0</span>.<span class="num">0</span>.<span class="num">0</span>.<span class="num">0</span></code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fdockeranddocke-p9"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>10. Docker Compose</span><i></i></div><article class="q" id="fdockeranddocke-39"><div class="q-h"><span class="q-n">&bull;</span><h3>10.1 What Is Docker Compose?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-39"><span></span></label></div><div class="q-a"><p>Docker Compose defines and runs <strong>multi-container applications</strong> using a single YAML file.</p>
 <div class="diagram"><pre>Without Compose:                    With Compose:
 ─────────────────                   ─────────────
 docker network create ...           docker compose up
@@ -1383,7 +1731,7 @@ docker compose --profile debug up          <span class="cmt"># api + db + pgadmi
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>11. Multi-Stage Builds</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Reduce final image size by separating build and runtime stages.</p></div><article class="q" id="fdockeranddocke-45"><div class="q-h"><span class="q-n">&bull;</span><h3>11.1 Python Multi-Stage</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-45"><span></span></label></div><div class="q-a"><pre class="code" data-lang="dockerfile"><code># ---- Stage 1: Builder ----
+      retries: 5</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fdockeranddocke-p10"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>11. Multi-Stage Builds</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Reduce final image size by separating build and runtime stages.</p></div><article class="q" id="fdockeranddocke-45"><div class="q-h"><span class="q-n">&bull;</span><h3>11.1 Python Multi-Stage</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-45"><span></span></label></div><div class="q-a"><pre class="code" data-lang="dockerfile"><code># ---- Stage 1: Builder ----
 FROM python:3.11-slim AS builder
 
 WORKDIR /app
@@ -1419,7 +1767,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 EXPOSE 3000
 CMD ["node", "dist/server.js"]</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="fdockeranddocke-47"><div class="q-h"><span class="q-n">&bull;</span><h3>11.3 Size Comparison</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-47"><span></span></label></div><div class="q-a"><pre class="code"><code>Without multi-stage:     ~1.2 GB  (includes build tools, dev deps)
-With multi-stage:        ~150 MB  (only runtime + production deps)</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>12. Docker Best Practices</span><i></i></div><article class="q" id="fdockeranddocke-48"><div class="q-h"><span class="q-n">&bull;</span><h3>12.1 Dockerfile Best Practices</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-48"><span></span></label></div><div class="q-a"><pre class="code" data-lang="dockerfile"><code># ✅ 1. Use specific base image tags (not 'latest')
+With multi-stage:        ~150 MB  (only runtime + production deps)</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fdockeranddocke-p11"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-target"/></svg>12. Docker Best Practices</span><i></i></div><article class="q" id="fdockeranddocke-48"><div class="q-h"><span class="q-n">&bull;</span><h3>12.1 Dockerfile Best Practices</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-48"><span></span></label></div><div class="q-a"><pre class="code" data-lang="dockerfile"><code># ✅ 1. Use specific base image tags (not 'latest')
 FROM python:3.11-slim    # Good
 # FROM python:latest     # Bad — unpredictable
 
@@ -1454,7 +1802,7 @@ LABEL maintainer="team@example.com" \
 □ Logs go to stdout/stderr (not files)
 □ Graceful shutdown handling (SIGTERM)
 □ Secrets via environment or Docker secrets
-□ Image scanning in CI/CD pipeline</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>13. Real-World Projects</span><i></i></div><article class="q" id="fdockeranddocke-51"><div class="q-h"><span class="q-n">&bull;</span><h3>13.1 FastAPI + PostgreSQL + Redis</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-51"><span></span></label></div><div class="q-a"><pre class="code" data-lang="yaml"><code># docker-compose.yml
+□ Image scanning in CI/CD pipeline</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fdockeranddocke-p12"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>13. Real-World Projects</span><i></i></div><article class="q" id="fdockeranddocke-51"><div class="q-h"><span class="q-n">&bull;</span><h3>13.1 FastAPI + PostgreSQL + Redis</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-51"><span></span></label></div><div class="q-a"><pre class="code" data-lang="yaml"><code># docker-compose.yml
 version: "3.8"
 
 services:
@@ -1603,7 +1951,7 @@ services:
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 <span class="cmt"># Production</span>
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>14. Docker Commands Cheat Sheet</span><i></i></div><article class="q" id="fdockeranddocke-54"><div class="q-h"><span class="q-n">&bull;</span><h3>Images</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-54"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code>docker build -t name:tag .              <span class="cmt"># Build image</span>
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fdockeranddocke-p13"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>14. Docker Commands Cheat Sheet</span><i></i></div><article class="q" id="fdockeranddocke-54"><div class="q-h"><span class="q-n">&bull;</span><h3>Images</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-54"><span></span></label></div><div class="q-a"><pre class="code" data-lang="bash"><code>docker build -t name:tag .              <span class="cmt"># Build image</span>
 docker images                           <span class="cmt"># List images</span>
 docker rmi image_name                   <span class="cmt"># Remove image</span>
 docker image prune -a                   <span class="cmt"># Remove unused images</span>
@@ -1637,7 +1985,7 @@ docker compose config                  <span class="cmt"># Validate compose file
 docker system prune                    <span class="cmt"># Clean everything unused</span>
 docker system prune -a --volumes       <span class="cmt"># Nuclear clean (⚠️)</span>
 docker info                            <span class="cmt"># System info</span>
-docker version                         <span class="cmt"># Version info</span></code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>15. Interview Questions &amp; Answers</span><i></i></div><article class="q" id="fdockeranddocke-58"><div class="q-h"><span class="q-n">&bull;</span><h3>Fundamentals</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-58"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Image</span><span class="kt">Container</span><span class="kt">Q4: What is a Dockerfile?</span><span class="kt">before</span></div><p><strong>Q1: What is Docker and why do we use it?</strong></p>
+docker version                         <span class="cmt"># Version info</span></code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="fdockeranddocke-p14"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>15. Interview Questions &amp; Answers</span><i></i></div><article class="q" id="fdockeranddocke-58"><div class="q-h"><span class="q-n">&bull;</span><h3>Fundamentals</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fdockeranddocke-58"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Image</span><span class="kt">Container</span><span class="kt">Q4: What is a Dockerfile?</span><span class="kt">before</span></div><p><strong>Q1: What is Docker and why do we use it?</strong></p>
 <p>Docker is a containerization platform that packages applications with their dependencies into isolated, portable containers. Benefits: consistent environments, fast deployment, resource efficiency, microservice enablement, and simplified CI/CD pipelines.</p>
 <hr />
 <p><strong>Q2: What is the difference between a Docker image and a container?</strong></p>
@@ -1734,7 +2082,7 @@ docker stats                            <span class="cmt"># Check resource usage
 <hr />
 <div class="note">
 <p><strong>End of Docker Guide</strong> — From basics to production-ready multi-container applications.</p>
-</div></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f07gRPCvsRESTmd"><header class="filehead"><div class="fh-top"><span class="fh-num">gRPC vs REST</span><span class="fh-count">12 sections</span><a class="fh-src" href="../../10_MLOps_and_Deployment/07_gRPC_vs_REST.md">source .md &#8599;</a></div><h2>gRPC vs REST — Complete Comparison Guide</h2></header><article class="q" id="f07gRPCvsRESTmd-63"><div class="q-h"><span class="q-n">&bull;</span><h3>What is REST?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07gRPCvsRESTmd-63"><span></span></label></div><div class="q-a"><p><strong>REST</strong> (Representational State Transfer) is an architectural style for building APIs over HTTP. It uses standard HTTP methods and JSON (or XML) to transfer data between client and server.</p>
+</div></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f07gRPCvsRESTmd"><header class="filehead"><div class="fh-top"><span class="fh-num">gRPC vs REST</span><span class="fh-count">12 sections</span></div><h2>gRPC vs REST — Complete Comparison Guide</h2></header><article class="q" id="f07gRPCvsRESTmd-63"><div class="q-h"><span class="q-n">&bull;</span><h3>What is REST?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07gRPCvsRESTmd-63"><span></span></label></div><div class="q-a"><p><strong>REST</strong> (Representational State Transfer) is an architectural style for building APIs over HTTP. It uses standard HTTP methods and JSON (or XML) to transfer data between client and server.</p>
 <ul>
 <li>Introduced by Roy Fielding in 2000</li>
 <li>Built on top of HTTP/1.1</li>
@@ -1884,8 +2232,10 @@ Not sure? → Use REST externally + gRPC internally</pre></div></div><button cla
 <hr />
 <p><em>References: Google gRPC Documentation, Roy Fielding's REST Dissertation (2000), Protocol Buffers Language Guide</em></p></div><button class="reveal">Reveal answer</button></article></section>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<nav class="pnav"><a class="prev" href="mlops.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrowl"/></svg><span class="pnav-t"><span>Previous</span><b>MLOps</b></span></a><a class="next" href="scenarios.html"><span class="pnav-t"><span>Next</span><b>Scenarios</b></span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></a></nav>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
 </div></main>
+<aside class="toc" id="toc"><div class="toc-h"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>On this page</div><div class="toc-g" data-for="f05LinuxandGitm"><b>Linux and Git</b><a href="#f05LinuxandGitm-0" data-c="f05LinuxandGitm-0">1. Linux File System</a><a href="#f05LinuxandGitm-1" data-c="f05LinuxandGitm-1">2. File Operations &amp; Permissions</a><a href="#f05LinuxandGitm-2" data-c="f05LinuxandGitm-2">3. Process Management</a><a href="#f05LinuxandGitm-3" data-c="f05LinuxandGitm-3">4. Systemd &amp; Services</a><a href="#f05LinuxandGitm-4" data-c="f05LinuxandGitm-4">5. Cron Jobs</a><a href="#f05LinuxandGitm-5" data-c="f05LinuxandGitm-5">6. Networking</a><a href="#f05LinuxandGitm-6" data-c="f05LinuxandGitm-6">7. Shell Scripting</a><a href="#f05LinuxandGitm-7" data-c="f05LinuxandGitm-7">8. Makefile</a><a href="#f05LinuxandGitm-8" data-c="f05LinuxandGitm-8">9. SSH &amp; Remote</a><a href="#f05LinuxandGitm-9" data-c="f05LinuxandGitm-9">10. Git Fundamentals</a><a href="#f05LinuxandGitm-10" data-c="f05LinuxandGitm-10">11. Branching &amp; Merging</a><a href="#f05LinuxandGitm-11" data-c="f05LinuxandGitm-11">12. Advanced Git</a><a href="#f05LinuxandGitm-12" data-c="f05LinuxandGitm-12">13. Pre-commit Hooks</a><a href="#f05LinuxandGitm-13" data-c="f05LinuxandGitm-13">14. Interview Deep Dive</a></div><div class="toc-g" data-for="fdockeranddocke"><b>docker and docker compose guide</b><a href="#fdockeranddocke-14" data-c="fdockeranddocke-14">Why Docker?</a><a href="#fdockeranddocke-15" data-c="fdockeranddocke-15">Key Terminology</a><a href="#fdockeranddocke-16" data-c="fdockeranddocke-16">Windows / Mac</a><a href="#fdockeranddocke-17" data-c="fdockeranddocke-17">Linux (Ubuntu)</a><a href="#fdockeranddocke-18" data-c="fdockeranddocke-18">Verify Installation</a><a href="#fdockeranddocke-19" data-c="fdockeranddocke-19">5.1 Pulling Images</a><a href="#fdockeranddocke-20" data-c="fdockeranddocke-20">5.2 Image Tags</a><a href="#fdockeranddocke-21" data-c="fdockeranddocke-21">5.3 Image Layers</a><a href="#fdockeranddocke-22" data-c="fdockeranddocke-22">5.4 Managing Images</a><a href="#fdockeranddocke-23" data-c="fdockeranddocke-23">6.1 Running Containers</a><a href="#fdockeranddocke-24" data-c="fdockeranddocke-24">6.2 Container Lifecycle</a><a href="#fdockeranddocke-25" data-c="fdockeranddocke-25">6.3 Interacting with Containers</a><a href="#fdockeranddocke-26" data-c="fdockeranddocke-26">7.1 Dockerfile Instructions</a><a href="#fdockeranddocke-27" data-c="fdockeranddocke-27">7.2 Python FastAPI Dockerfile</a><a href="#fdockeranddocke-28" data-c="fdockeranddocke-28">7.3 Node.js Dockerfile</a><a href="#fdockeranddocke-29" data-c="fdockeranddocke-29">7.4 Building &amp; Running</a><a href="#fdockeranddocke-30" data-c="fdockeranddocke-30">7.5 CMD vs ENTRYPOINT</a><a href="#fdockeranddocke-31" data-c="fdockeranddocke-31">7.6 .dockerignore</a><a href="#fdockeranddocke-32" data-c="fdockeranddocke-32">8.1 Network Types</a><a href="#fdockeranddocke-33" data-c="fdockeranddocke-33">8.2 Container Communication</a><a href="#fdockeranddocke-34" data-c="fdockeranddocke-34">8.3 Network Commands</a><a href="#fdockeranddocke-35" data-c="fdockeranddocke-35">9.1 Why Volumes?</a><a href="#fdockeranddocke-36" data-c="fdockeranddocke-36">9.2 Volume Types</a><a href="#fdockeranddocke-37" data-c="fdockeranddocke-37">9.3 Volume Commands</a><a href="#fdockeranddocke-38" data-c="fdockeranddocke-38">9.4 Bind Mount for Development</a><a href="#fdockeranddocke-39" data-c="fdockeranddocke-39">10.1 What Is Docker Compose?</a><a href="#fdockeranddocke-40" data-c="fdockeranddocke-40">10.2 docker-compose.yml Structure</a><a href="#fdockeranddocke-41" data-c="fdockeranddocke-41">10.3 Compose Commands</a><a href="#fdockeranddocke-42" data-c="fdockeranddocke-42">10.4 Environment Variables</a><a href="#fdockeranddocke-43" data-c="fdockeranddocke-43">10.5 Profiles (Conditional Services)</a><a href="#fdockeranddocke-44" data-c="fdockeranddocke-44">10.6 Health Checks</a><a href="#fdockeranddocke-45" data-c="fdockeranddocke-45">11.1 Python Multi-Stage</a><a href="#fdockeranddocke-46" data-c="fdockeranddocke-46">11.2 Node.js Multi-Stage</a><a href="#fdockeranddocke-47" data-c="fdockeranddocke-47">11.3 Size Comparison</a><a href="#fdockeranddocke-48" data-c="fdockeranddocke-48">12.1 Dockerfile Best Practices</a><a href="#fdockeranddocke-49" data-c="fdockeranddocke-49">12.2 Security Best Practices</a><a href="#fdockeranddocke-50" data-c="fdockeranddocke-50">12.3 Production Checklist</a><a href="#fdockeranddocke-51" data-c="fdockeranddocke-51">13.1 FastAPI + PostgreSQL + Redis</a><a href="#fdockeranddocke-52" data-c="fdockeranddocke-52">13.2 Full-Stack: React + FastAPI + PostgreSQL</a><a href="#fdockeranddocke-53" data-c="fdockeranddocke-53">13.3 Development vs Production Compose</a><a href="#fdockeranddocke-54" data-c="fdockeranddocke-54">Images</a><a href="#fdockeranddocke-55" data-c="fdockeranddocke-55">Containers</a><a href="#fdockeranddocke-56" data-c="fdockeranddocke-56">Compose</a><a href="#fdockeranddocke-57" data-c="fdockeranddocke-57">System</a><a href="#fdockeranddocke-58" data-c="fdockeranddocke-58">Fundamentals</a><a href="#fdockeranddocke-59" data-c="fdockeranddocke-59">Dockerfile</a><a href="#fdockeranddocke-60" data-c="fdockeranddocke-60">Networking &amp; Volumes</a><a href="#fdockeranddocke-61" data-c="fdockeranddocke-61">Docker Compose</a><a href="#fdockeranddocke-62" data-c="fdockeranddocke-62">Production &amp; Security</a></div><div class="toc-g" data-for="f07gRPCvsRESTmd"><b>gRPC vs REST</b><a href="#f07gRPCvsRESTmd-63" data-c="f07gRPCvsRESTmd-63">What is REST?</a><a href="#f07gRPCvsRESTmd-64" data-c="f07gRPCvsRESTmd-64">What is gRPC?</a><a href="#f07gRPCvsRESTmd-65" data-c="f07gRPCvsRESTmd-65">Side-by-Side Comparison</a><a href="#f07gRPCvsRESTmd-66" data-c="f07gRPCvsRESTmd-66">Performance</a><a href="#f07gRPCvsRESTmd-67" data-c="f07gRPCvsRESTmd-67">Streaming Modes (gRPC only)</a><a href="#f07gRPCvsRESTmd-68" data-c="f07gRPCvsRESTmd-68">When to Use REST</a><a href="#f07gRPCvsRESTmd-69" data-c="f07gRPCvsRESTmd-69">When to Use gRPC</a><a href="#f07gRPCvsRESTmd-70" data-c="f07gRPCvsRESTmd-70">Common Architecture Pattern</a><a href="#f07gRPCvsRESTmd-71" data-c="f07gRPCvsRESTmd-71">Code Comparison</a><a href="#f07gRPCvsRESTmd-72" data-c="f07gRPCvsRESTmd-72">Pros &amp; Cons Summary</a><a href="#f07gRPCvsRESTmd-73" data-c="f07gRPCvsRESTmd-73">Decision Checklist</a><a href="#f07gRPCvsRESTmd-74" data-c="f07gRPCvsRESTmd-74">Key Takeaway</a></div></aside>
 </div>
 <button class="totop" id="totop" title="Back to top">&#8593;</button>
 <script>
@@ -1926,29 +2276,44 @@ var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementBy
 qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
 function runSearch(){
   if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
-  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
-    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;});
+  /* a heading survives the filter only while something under it is still showing */
   [].forEach.call(document.querySelectorAll('.parthead'),function(p){
-    if(!v){p.style.display='';return}
-    var vis=false,n=p.nextElementSibling;
-    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
-    p.style.display=vis?'':'none';});
+    var vis=true;
+    if(v){
+      vis=false;
+      var n=p.nextElementSibling;
+      while(n&&!n.classList.contains('parthead')){
+        if(n.classList.contains('q')&&n.style.display!=='none'){vis=true;break}
+        n=n.nextElementSibling;
+      }
+    }
+    p.style.display=vis?'':'none';
+    if(p.id){var l=document.querySelector('nav a[data-t="'+p.id+'"]');
+      if(l)l.style.display=vis?'':'none';}
+  });
   if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
 }
 if(inp)inp.addEventListener('input',runSearch);
 
-var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+/* The sidebar lists main headings only, so scroll tracking follows those headings
+   (data-t -> element id) rather than one entry per question card. */
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-t]'));
+var navTargets=navLinks.map(function(l){return document.getElementById(l.getAttribute('data-t'))});
 var totop=document.getElementById('totop');
 function onScroll(){
   var sc=document.documentElement.scrollTop;
   if(totop)totop.classList.toggle('show',sc>600);
-  var cur=null;
-  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
-    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  var cur=-1;
+  for(var i=0;i<navTargets.length;i++){
+    var el=navTargets[i];
+    if(!el||el.offsetParent===null)continue;
+    if(el.getBoundingClientRect().top<=140)cur=i;else break;
+  }
   navLinks.forEach(function(l){l.classList.remove('active')});
-  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
-    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
-      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+  if(cur>=0){var l=navLinks[cur];
+    l.classList.add('active');var r=l.getBoundingClientRect();
+    if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}
 }
 window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
@@ -1999,6 +2364,43 @@ document.addEventListener('keydown',function(e){
     });
     pre.appendChild(b);
   });
+})();
+
+/* Right-hand rail: reveal the group for the file section being read, and mark the
+   card in view. Scrolling is done on the rail itself - scrollIntoView would drag the
+   window along with it. */
+(function(){
+  var toc=document.getElementById('toc'); if(!toc)return;
+  document.body.classList.add('js');
+  var groups=[].slice.call(toc.querySelectorAll('.toc-g'));
+  if(!groups.length)return;
+  var secs=groups.map(function(g){return document.getElementById(g.getAttribute('data-for'))});
+  var links=groups.map(function(g){return [].slice.call(g.querySelectorAll('a[data-c]'))});
+  var curG=-1;
+  function upd(){
+    var i,g=-1;
+    for(i=0;i<secs.length;i++){
+      var el=secs[i]; if(!el)continue;
+      if(el.getBoundingClientRect().top<=160)g=i; else break;
+    }
+    if(g<0)g=0;
+    if(g!==curG){groups.forEach(function(x,k){x.classList.toggle('on',k===g)});curG=g;}
+    var ls=links[g]||[],act=null;
+    for(i=0;i<ls.length;i++){
+      var t=document.getElementById(ls[i].getAttribute('data-c'));
+      if(!t||t.style.display==='none')continue;
+      if(t.getBoundingClientRect().top<=160)act=ls[i]; else break;
+    }
+    ls.forEach(function(a){a.classList.remove('on')});
+    if(act){
+      act.classList.add('on');
+      var top=act.offsetTop,h=act.offsetHeight;
+      if(top<toc.scrollTop+8||top+h>toc.scrollTop+toc.clientHeight-8)
+        toc.scrollTop=top-toc.clientHeight/2+h/2;
+    }
+  }
+  addEventListener('scroll',upd,{passive:true});
+  addEventListener('resize',upd); upd();
 })();
 
 /* deep link on each question card */

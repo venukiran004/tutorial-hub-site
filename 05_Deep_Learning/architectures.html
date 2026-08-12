@@ -509,9 +509,358 @@ body.searching .parthead{opacity:.5}
 
 @media(max-width:1060px){ .parthead{top:0} }
 
+/* =====================================================================
+   AURORA GLASS
+   The final layer. Everything below re-tints the sheet above it: a deep
+   near-black canvas lit by a fixed gradient mesh, with the chrome and the
+   cards reading as frosted panels floating on top of it.
+   ===================================================================== */
+
+:root{
+  --bg:#070a12; --bg-2:#0a0e18;
+  --surface:#0f131e; --surface-2:#141a27; --surface-3:#1c2333;
+  --border:#232c40; --border-soft:#19202f;
+  --ink:#eaf0fb; --ink-2:#9fabc4; --ink-mut:#6b7690;
+
+  --accent:#7c9dff; --accent-2:#b18cff;
+  --accent-soft:rgba(124,157,255,.15); --accent-bd:rgba(124,157,255,.40);
+  --t-rag:#7c9dff; --t-agentic:#ff9563; --t-recall:#3ed9a4;
+  --t-violet:#b18cff; --t-amber:#f0c274;
+  --good:#3ed9a4; --warn:#f5c451; --crit:#ff6b81;
+  --good-soft:rgba(62,217,164,.12); --warn-soft:rgba(245,196,81,.12);
+  --crit-soft:rgba(255,107,129,.12);
+  --code-bg:#080b13;
+
+  --glass:rgba(255,255,255,.045);
+  --glass-bd:rgba(255,255,255,.075);
+  --e1:0 1px 2px rgba(0,0,0,.40);
+  --e2:0 8px 26px rgba(3,6,15,.55);
+  --e3:0 22px 60px rgba(3,6,15,.68);
+  --radius:16px; --radius-sm:11px;
+}
+html[data-theme="light"]{
+  --bg:#f6f8fe; --bg-2:#eef2fb;
+  --surface:#fff; --surface-2:#fafbff; --surface-3:#eef2fb;
+  --border:#dce3f2; --border-soft:#e9edf8;
+  --ink:#111828; --ink-2:#4c586f; --ink-mut:#7c8699;
+
+  --accent:#4f6fe6; --accent-2:#8b5cf6;
+  --accent-soft:rgba(79,111,230,.10); --accent-bd:rgba(79,111,230,.34);
+  --t-rag:#4f6fe6; --t-agentic:#e0663a; --t-recall:#0f9e74;
+  --t-violet:#8b5cf6; --t-amber:#a9760a;
+  --good:#0f9e74; --warn:#b07d00; --crit:#dc3d55;
+  --good-soft:rgba(15,158,116,.10); --warn-soft:rgba(176,125,0,.11);
+  --crit-soft:rgba(220,61,85,.09);
+  --code-bg:#f2f5fc;
+
+  --glass:rgba(255,255,255,.62);
+  --glass-bd:rgba(17,24,40,.07);
+  --e1:0 1px 2px rgba(16,24,40,.05);
+  --e2:0 8px 24px rgba(16,24,40,.08);
+  --e3:0 22px 56px rgba(16,24,40,.12);
+}
+
+/* ---------- the canvas ---------- */
+/* the page background lives on <html> so the fixed aurora layer can sit
+   between it and the content without the body's own fill covering it */
+html{background:var(--bg)}
+body{background:transparent}
+
+/* Ambient tint on every page: strongest at the top edge, gone by mid-scroll, so
+   long reading pages settle onto clean dark instead of a permanent wash. */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 22% -6%, color-mix(in srgb,var(--accent) 46%,transparent), transparent 66%),
+    radial-gradient(38% 32% at 82% -8%, color-mix(in srgb,var(--accent-2) 40%,transparent), transparent 64%);
+  filter:blur(30px) saturate(1.3);opacity:.5;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%);
+          mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%)}
+html[data-theme="light"] body::before{opacity:.5;filter:blur(36px) saturate(1)}
+
+/* film grain: keeps the large flat gradients from banding on cheap panels */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.032;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* multiply over a light canvas darkens fast - the grain has to be far weaker here
+   or the whole page reads grey instead of white */
+html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply}
+
+@keyframes aurora-drift{
+  from{transform:translate3d(0,0,0) scale(1)}
+  to{transform:translate3d(3%,-2.5%,0) scale(1.12)}
+}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:transparent;border-bottom:1px solid var(--border-soft)}
+.siteswitch a{color:var(--ink-mut)}
+.siteswitch a:hover{background:var(--glass);color:var(--ink)}
+.siteswitch a.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  box-shadow:0 3px 14px color-mix(in srgb,var(--accent) 40%,transparent)}
+.sitebar{background:color-mix(in srgb,var(--bg) 62%,transparent);
+  backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);
+  border-bottom:1px solid var(--glass-bd);box-shadow:0 1px 0 rgba(255,255,255,.03),var(--e1)}
+.logo b{background:linear-gradient(115deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{background:var(--glass);border:1px solid var(--glass-bd);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);border-radius:10px}
+.btn:hover{border-color:var(--accent-bd);color:var(--ink);
+  box-shadow:0 4px 16px color-mix(in srgb,var(--accent) 22%,transparent)}
+.btn.on{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,transparent),
+  color-mix(in srgb,var(--accent-2) 18%,transparent));border-color:var(--accent-bd);color:var(--accent)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 55%,transparent),transparent 60%);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-right:1px solid var(--glass-bd)}
+.sb-search input{background:var(--glass);border:1px solid var(--glass-bd);border-radius:11px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sb-search input:focus{border-color:var(--accent-bd);
+  box-shadow:0 0 0 3px var(--accent-soft),0 4px 18px color-mix(in srgb,var(--accent) 20%,transparent)}
+nav a:hover{background:var(--glass);color:var(--ink)}
+nav a.active{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 20%,transparent),transparent 78%);
+  box-shadow:inset 0 0 0 1px var(--accent-bd);color:var(--accent)}
+nav a.active::before{background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 10px var(--accent)}
+.nav-grp{color:var(--ink-mut)}
+
+/* ---------- hero ---------- */
+.hero::before{opacity:.72;filter:blur(38px)}
+.eyebrow{background:var(--glass);border:1px solid var(--glass-bd);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:var(--ink-2);font-weight:700}
+.hero h1{background:linear-gradient(112deg,var(--ink) 4%,
+    color-mix(in srgb,var(--accent) 88%,var(--ink)) 46%,
+    color-mix(in srgb,var(--accent-2) 92%,var(--ink)) 74%,
+    color-mix(in srgb,var(--t-recall) 70%,var(--ink)) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- surfaces: glass everywhere the old sheet used flat fills ---------- */
+.stat,.q,.tcard,.hub-card,.panel,.learn,figure.viz,.tbl-wrap,.flow,.learn-item{
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 72%,transparent));
+  border-color:var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+
+.stat{border-radius:14px}
+.stat::before{height:1.5px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),color-mix(in srgb,var(--tc,var(--accent)) 20%,transparent) 70%,transparent)}
+.stat:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 18%,transparent)}
+.stat-v{background:linear-gradient(150deg,var(--ink),var(--tc,var(--accent)));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 42%,transparent);box-shadow:var(--e2)}
+.q:target{box-shadow:0 0 0 3px var(--accent-soft),var(--e2)}
+.tcard:hover,.hub-card:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 22%,transparent)}
+
+/* the hover affordance was emitting a literal "92" - it wants to be an arrow */
+.tcard::after,.hub-card::after{content:"\2192"}
+
+figure.viz{border-radius:18px}
+pre.code{background:color-mix(in srgb,var(--code-bg) 88%,transparent);
+  border:1px solid var(--glass-bd);border-radius:13px;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.say{background:linear-gradient(100deg,color-mix(in srgb,var(--accent) 14%,transparent),transparent 72%);
+  border-left-color:var(--accent)}
+.kt{background:var(--glass);border-color:var(--glass-bd)}
+.kt:hover{border-color:var(--accent-bd);color:var(--accent)}
+.parthead{background:color-mix(in srgb,var(--bg) 66%,transparent);
+  backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5)}
+th{background:color-mix(in srgb,var(--surface-3) 82%,transparent)}
+
+/* ---------- right-hand "on this page" rail ---------- */
+:root{ --tocw:262px }
+.app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr) var(--tocw)}
+.toc{position:sticky;top:47px;align-self:start;height:calc(100vh - 47px);overflow-y:auto;
+  overscroll-behavior:contain;padding:22px 20px 60px;font-size:12.6px;
+  border-left:1px solid var(--glass-bd)}
+.toc::-webkit-scrollbar{width:7px}
+.toc::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.toc-h{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-mut);margin-bottom:12px}
+.toc-h svg.ic{font-size:13px;color:var(--tc,var(--accent))}
+/* one group per file section; the script shows the one you are reading */
+body.js .toc-g{display:none}
+body.js .toc-g.on{display:block}
+.toc-g > b{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tc,var(--accent));margin:0 0 9px;padding-left:11px}
+.toc-g a{display:block;padding:5px 10px 5px 12px;margin:1px 0;border-radius:7px;color:var(--ink-2);
+  text-decoration:none;line-height:1.42;border-left:2px solid transparent}
+.toc-g a:hover{background:var(--glass);color:var(--ink);text-decoration:none}
+.toc-g a.on{color:var(--accent);border-left-color:var(--accent);font-weight:650;
+  background:linear-gradient(90deg,var(--accent-soft),transparent 80%)}
+.toc-empty{color:var(--ink-mut);font-size:12px;padding-left:12px}
+@media(max-width:1400px){
+  .app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr)}
+  .toc{display:none}
+}
+
+/* ---------- breadcrumb ---------- */
+.crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.2px;color:var(--ink-mut);
+  padding-top:26px}
+.crumb a{color:var(--ink-mut);text-decoration:none}
+.crumb a:hover{color:var(--accent);text-decoration:none}
+.crumb svg.ic{font-size:12px;opacity:.5}
+.crumb b{color:var(--ink-2);font-weight:650}
+.crumb + .hero{padding-top:18px}
+.pnav-t{min-width:0}
+
+/* ---------- previous / next ---------- */
+.pnav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:64px 0 0}
+.pnav a{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:14px;
+  text-decoration:none;color:inherit;border:1px solid var(--glass-bd);
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 86%,transparent),
+    color-mix(in srgb,var(--surface-2) 66%,transparent))}
+.pnav a:hover{text-decoration:none;border-color:var(--accent-bd);box-shadow:var(--e2)}
+.pnav a.next{grid-column:2;justify-content:flex-end;text-align:right}
+.pnav a.prev{grid-column:1}
+.pnav span{display:block;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-mut)}
+.pnav b{display:block;margin-top:4px;font-size:14.5px;letter-spacing:-.02em;color:var(--ink)}
+.pnav svg.ic{font-size:18px;color:var(--accent);flex:none}
+@media(max-width:760px){
+  .pnav{grid-template-columns:1fr}
+  .pnav a.next,.pnav a.prev{grid-column:1}
+}
+
+/* ---------- section headers (shared by the hub and every topic index) ---------- */
+.h-sec-h{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.h-sec-h h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-mut);white-space:nowrap;display:flex;align-items:center;gap:9px;border:0;padding:0}
+.h-sec-h h2 svg.ic{font-size:15px;color:var(--accent);opacity:.9}
+.h-sec-h i{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- icons ---------- */
+.sprite{display:none}
+svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.13em}
+/* the boxed icon tile used by track rows, callouts and nav groups */
+.ic-box{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:44px;height:44px;border-radius:13px;font-size:20px;color:var(--tc,var(--accent));
+  background:linear-gradient(150deg,color-mix(in srgb,var(--tc,var(--accent)) 26%,transparent),
+    color-mix(in srgb,var(--tc,var(--accent)) 8%,transparent));
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.ic-sm{width:30px;height:30px;border-radius:9px;font-size:15px}
+
+/* ---------- topic index: learning-track rows ---------- */
+.trk{display:flex;flex-direction:column;gap:11px;margin:40px 0 0}
+.trk-row{position:relative;display:flex;align-items:center;gap:17px;padding:17px 19px;
+  border-radius:15px;text-decoration:none;color:inherit;overflow:hidden;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--surface) 90%,transparent),
+    color-mix(in srgb,var(--surface-2) 68%,transparent));
+  border:1px solid var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.trk-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tc)}
+.trk-row:hover{text-decoration:none;transform:translateX(3px);
+  border-color:color-mix(in srgb,var(--tc) 46%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc) 18%,transparent)}
+.trk-b{min-width:0;flex:1}
+.trk-b b{display:block;font-size:16.5px;letter-spacing:-.022em;color:var(--ink);font-weight:750}
+.trk-b b i{font-style:normal;color:var(--ink-mut);font-weight:600;margin-right:3px}
+.trk-b p{margin:4px 0 0;font-size:13.2px;line-height:1.5;color:var(--ink-2)}
+.trk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.trk-chips span{font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.trk-row:hover .trk-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+.trk-meta{display:flex;align-items:center;gap:8px;flex:none;font-size:11.5px;
+  font-family:var(--mono);color:var(--tc);white-space:nowrap}
+.trk-meta i{font-style:normal;opacity:.45}
+.trk-go{flex:none;font-size:19px;color:var(--ink-mut);display:inline-flex}
+.trk-row:hover .trk-go{color:var(--tc);transform:translateX(2px)}
+@media(prefers-reduced-motion:no-preference){
+  .trk-row,.trk-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,color .18s ease}
+}
+@media(max-width:820px){
+  .trk-row{flex-wrap:wrap;gap:13px}
+  .trk-meta{order:3;width:100%}
+  .trk-go{display:none}
+}
+
+/* ---------- sidebar nav with icons ---------- */
+.nav-grp{display:flex;align-items:center;gap:8px}
+.nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
+nav a svg.ic{font-size:14px;opacity:.6}
+nav a.active svg.ic{opacity:1}
+/* file = main heading, named part = its only sub-entry */
+nav a.nav-file{margin-top:13px;font-size:13px;font-weight:750;color:var(--ink);align-items:center}
+nav a.nav-file svg.ic{color:var(--tc,var(--accent));opacity:.95}
+nav a.nav-sub{padding-left:30px;font-size:12.2px;position:relative}
+nav a.nav-sub::after{content:"";position:absolute;left:16px;top:50%;width:5px;height:5px;
+  margin-top:-2.5px;border-radius:50%;background:var(--ink-mut);opacity:.5}
+nav a.nav-sub.active::after{background:var(--accent);opacity:1}
+
+/* ---------- callouts with icons ---------- */
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key,.say{position:relative}
+.note-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;font-size:13px;margin-right:8px;vertical-align:-.35em;flex:none}
+.say-h svg.ic{font-size:13px}
+
+/* ---------- topic index: the landing page of each site ---------- */
+/* the reading measure is right for prose but starves a card grid, so an index
+   page widens its column and fits three across */
+.wrap:has(.idx-grid){max-width:1300px}
+.idx-hero{padding:58px 0 4px}
+.idx-hero h1{font-size:clamp(36px,4.8vw,56px);margin:18px 0 16px}
+.idx-hero .lede{font-size:17.5px;max-width:76ch;margin:0}
+
+.idx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;
+  margin:44px 0 0}
+.idx-card{position:relative;display:block;padding:22px 23px 20px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 70%,transparent));
+  border:1px solid var(--glass-bd);text-decoration:none;color:inherit;
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.idx-card::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc),transparent 80%)}
+.idx-card:hover{transform:translateY(-3px);text-decoration:none;
+  border-color:color-mix(in srgb,var(--tc) 48%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc) 20%,transparent)}
+.idx-card-h{display:flex;align-items:center;gap:11px}
+.idx-card-h h3{margin:0;font-size:18.5px;letter-spacing:-.026em;color:var(--ink);font-weight:750}
+.idx-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--tc);
+  box-shadow:0 0 10px var(--tc)}
+.idx-go{margin-left:auto;font-size:16px;color:var(--tc);opacity:0;transform:translateX(-5px);flex:none}
+.idx-card:hover .idx-go{opacity:1;transform:translateX(0)}
+.idx-card p{margin:11px 0 0;font-size:13.4px;line-height:1.6;color:var(--ink-2)}
+.idx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}
+.idx-chips span{font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.idx-card:hover .idx-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+@media(prefers-reduced-motion:no-preference){
+  .idx-card,.idx-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,opacity .18s ease}
+}
+
+/* ---------- file section headers ---------- */
+/* .fh-top's spans had no rules at all, so the name and the count ran together as
+   one unstyled line. It reads as an eyebrow row above the file title. */
+.filehead{margin:56px 0 16px}
+.fh-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px}
+.fh-num{font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--tc,var(--accent));padding:4px 12px;border-radius:999px;
+  background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.fh-count{font-family:var(--mono);font-size:10.5px;color:var(--ink-mut);padding:4px 11px;
+  border-radius:999px;background:var(--glass);border:1px solid var(--glass-bd)}
+.filehead h2{font-size:28px;letter-spacing:-.032em;margin:0}
+
+/* ---------- detail ---------- */
+::selection{background:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--ink)}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-bd);background-clip:padding-box}
+#rprog{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--t-recall));
+  box-shadow:0 0 14px color-mix(in srgb,var(--accent) 70%,transparent)}
+.totop{background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 8px 26px color-mix(in srgb,var(--accent) 45%,transparent)}
+.totop:hover{transform:translateY(-2px)}
+
 </style>
 </head>
 <body>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol><symbol id="i-arrowl" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol><symbol id="i-branch" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol><symbol id="i-bulb" viewBox="0 0 24 24"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2z"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol><symbol id="i-code" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></symbol><symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol><symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 2v6.5L4.2 17A2 2 0 0 0 6 20h12a2 2 0 0 0 1.8-3L15 8.5V2"/><line x1="8" y1="2" x2="16" y2="2"/><line x1="7" y1="14" x2="17" y2="14"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol><symbol id="i-network" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></symbol><symbol id="i-package" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol><symbol id="i-sigma" viewBox="0 0 24 24"><path d="M18 4H6l6 8-6 8h12"/></symbol><symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol><symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol><symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol></svg>
 <div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
   <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw" href="../03_Data_Handling/index.html">03 Data</a><a class="sw" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw on" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw" href="../11_System_Design/index.html">11 Sys Design</a>
 </div></div><div class="sitebar-in">
@@ -523,20 +872,19 @@ body.searching .parthead{opacity:.5}
   <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
   <button class="btn" id="themeBtn">Dark</button>
 </div></div>
-<div class="app" style="--tc:var(--t-rag)">
+<div class="app has-toc" style="--tc:var(--t-rag)">
 <aside id="sidebar">
   <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
   <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
-  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><div class="nav-grp">ann</div><a href="#fannmd-0" data-q="fannmd-0"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fannmd-1" data-q="fannmd-1"><span class="qn">&bull;</span>1. Definition</a><a href="#fannmd-2" data-q="fannmd-2"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fannmd-3" data-q="fannmd-3"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#fannmd-4" data-q="fannmd-4"><span class="qn">&bull;</span>4. Key components</a><a href="#fannmd-5" data-q="fannmd-5"><span class="qn">&bull;</span>5. Failure modes &amp; fixes</a><a href="#fannmd-6" data-q="fannmd-6"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fannmd-7" data-q="fannmd-7"><span class="qn">&bull;</span>7. Complexity &amp; parameter count</a><a href="#fannmd-8" data-q="fannmd-8"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fannmd-9" data-q="fannmd-9"><span class="qn">&bull;</span>9. In PyTorch</a><a href="#fannmd-10" data-q="fannmd-10"><span class="qn">&bull;</span>10. Comparison</a><a href="#fannmd-11" data-q="fannmd-11"><span class="qn">&bull;</span>11. Interview deep dive</a><a href="#fannmd-12" data-q="fannmd-12"><span class="qn">&bull;</span>12. Common mistakes &amp; best practices</a><a href="#fannmd-13" data-q="fannmd-13"><span class="qn">&bull;</span>13. One-paragraph summary</a><div class="nav-grp">cnn</div><a href="#fcnnmd-14" data-q="fcnnmd-14"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fcnnmd-15" data-q="fcnnmd-15"><span class="qn">&bull;</span>1. Definition</a><a href="#fcnnmd-16" data-q="fcnnmd-16"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fcnnmd-17" data-q="fcnnmd-17"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#fcnnmd-18" data-q="fcnnmd-18"><span class="qn">&bull;</span>4. Architecture lineage (key milestones)</a><a href="#fcnnmd-19" data-q="fcnnmd-19"><span class="qn">&bull;</span>5. Failure modes &amp; fixes</a><a href="#fcnnmd-20" data-q="fcnnmd-20"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fcnnmd-21" data-q="fcnnmd-21"><span class="qn">&bull;</span>7. Complexity &amp; parameter count</a><a href="#fcnnmd-22" data-q="fcnnmd-22"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fcnnmd-23" data-q="fcnnmd-23"><span class="qn">&bull;</span>9. In PyTorch</a><a href="#fcnnmd-24" data-q="fcnnmd-24"><span class="qn">&bull;</span>10. Comparison</a><a href="#fcnnmd-25" data-q="fcnnmd-25"><span class="qn">&bull;</span>11. Interview deep dive</a><a href="#fcnnmd-26" data-q="fcnnmd-26"><span class="qn">&bull;</span>12. Common mistakes &amp; best practices</a><a href="#fcnnmd-27" data-q="fcnnmd-27"><span class="qn">&bull;</span>13. One-paragraph summary</a><div class="nav-grp">gru</div><a href="#fgrumd-28" data-q="fgrumd-28"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#fgrumd-29" data-q="fgrumd-29"><span class="qn">&bull;</span>1. Definition</a><a href="#fgrumd-30" data-q="fgrumd-30"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#fgrumd-31" data-q="fgrumd-31"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#fgrumd-32" data-q="fgrumd-32"><span class="qn">&bull;</span>4. GRU vs LSTM (the canonical comparison)</a><a href="#fgrumd-33" data-q="fgrumd-33"><span class="qn">&bull;</span>5. Failure modes &amp; fixes</a><a href="#fgrumd-34" data-q="fgrumd-34"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#fgrumd-35" data-q="fgrumd-35"><span class="qn">&bull;</span>7. Complexity &amp; parameter count</a><a href="#fgrumd-36" data-q="fgrumd-36"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#fgrumd-37" data-q="fgrumd-37"><span class="qn">&bull;</span>9. In PyTorch</a><a href="#fgrumd-38" data-q="fgrumd-38"><span class="qn">&bull;</span>10. Comparison</a><a href="#fgrumd-39" data-q="fgrumd-39"><span class="qn">&bull;</span>11. Interview deep dive</a><a href="#fgrumd-40" data-q="fgrumd-40"><span class="qn">&bull;</span>12. Common mistakes &amp; best practices</a><a href="#fgrumd-41" data-q="fgrumd-41"><span class="qn">&bull;</span>13. One-paragraph summary</a><div class="nav-grp">lstm</div><a href="#flstmmd-42" data-q="flstmmd-42"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#flstmmd-43" data-q="flstmmd-43"><span class="qn">&bull;</span>1. Definition</a><a href="#flstmmd-44" data-q="flstmmd-44"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#flstmmd-45" data-q="flstmmd-45"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#flstmmd-46" data-q="flstmmd-46"><span class="qn">&bull;</span>4. Variants</a><a href="#flstmmd-47" data-q="flstmmd-47"><span class="qn">&bull;</span>5. Failure modes &amp; fixes</a><a href="#flstmmd-48" data-q="flstmmd-48"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#flstmmd-49" data-q="flstmmd-49"><span class="qn">&bull;</span>7. Complexity &amp; parameter count</a><a href="#flstmmd-50" data-q="flstmmd-50"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#flstmmd-51" data-q="flstmmd-51"><span class="qn">&bull;</span>9. In PyTorch</a><a href="#flstmmd-52" data-q="flstmmd-52"><span class="qn">&bull;</span>10. Comparison</a><a href="#flstmmd-53" data-q="flstmmd-53"><span class="qn">&bull;</span>11. Interview deep dive</a><a href="#flstmmd-54" data-q="flstmmd-54"><span class="qn">&bull;</span>12. Common mistakes &amp; best practices</a><a href="#flstmmd-55" data-q="flstmmd-55"><span class="qn">&bull;</span>13. One-paragraph summary</a><div class="nav-grp">rnn</div><a href="#frnnmd-56" data-q="frnnmd-56"><span class="qn">&bull;</span>TL;DR (quick reference)</a><a href="#frnnmd-57" data-q="frnnmd-57"><span class="qn">&bull;</span>1. Definition</a><a href="#frnnmd-58" data-q="frnnmd-58"><span class="qn">&bull;</span>2. Intuition &amp; how it works</a><a href="#frnnmd-59" data-q="frnnmd-59"><span class="qn">&bull;</span>3. Mathematical formulation</a><a href="#frnnmd-60" data-q="frnnmd-60"><span class="qn">&bull;</span>4. Variants</a><a href="#frnnmd-61" data-q="frnnmd-61"><span class="qn">&bull;</span>5. Failure modes &amp; fixes</a><a href="#frnnmd-62" data-q="frnnmd-62"><span class="qn">&bull;</span>6. Advantages &amp; disadvantages</a><a href="#frnnmd-63" data-q="frnnmd-63"><span class="qn">&bull;</span>7. Complexity &amp; parameter count</a><a href="#frnnmd-64" data-q="frnnmd-64"><span class="qn">&bull;</span>8. Key hyperparameters</a><a href="#frnnmd-65" data-q="frnnmd-65"><span class="qn">&bull;</span>9. In PyTorch</a><a href="#frnnmd-66" data-q="frnnmd-66"><span class="qn">&bull;</span>10. Comparison</a><a href="#frnnmd-67" data-q="frnnmd-67"><span class="qn">&bull;</span>11. Interview deep dive</a><a href="#frnnmd-68" data-q="frnnmd-68"><span class="qn">&bull;</span>12. Common mistakes &amp; best practices</a><a href="#frnnmd-69" data-q="frnnmd-69"><span class="qn">&bull;</span>13. One-paragraph summary</a><div class="nav-grp">rnn lstm gru transformer guide</div><a href="#frnnlstmgrutran-70" data-q="frnnlstmgrutran-70"><span class="qn">&bull;</span>Why do we need special architectures for sequences?</a><a href="#frnnlstmgrutran-71" data-q="frnnlstmgrutran-71"><span class="qn">&bull;</span>2.1 What Is an ANN?</a><a href="#frnnlstmgrutran-72" data-q="frnnlstmgrutran-72"><span class="qn">&bull;</span>2.2 How a Single Neuron Works</a><a href="#frnnlstmgrutran-73" data-q="frnnlstmgrutran-73"><span class="qn">&bull;</span>2.3 Activation Functions</a><a href="#frnnlstmgrutran-74" data-q="frnnlstmgrutran-74"><span class="qn">&bull;</span>2.4 Forward Propagation</a><a href="#frnnlstmgrutran-75" data-q="frnnlstmgrutran-75"><span class="qn">&bull;</span>2.5 Loss Functions</a><a href="#frnnlstmgrutran-76" data-q="frnnlstmgrutran-76"><span class="qn">&bull;</span>2.6 Backpropagation</a><a href="#frnnlstmgrutran-77" data-q="frnnlstmgrutran-77"><span class="qn">&bull;</span>2.7 Optimizers</a><a href="#frnnlstmgrutran-78" data-q="frnnlstmgrutran-78"><span class="qn">&bull;</span>2.8 Regularization (Preventing Overfitting)</a><a href="#frnnlstmgrutran-79" data-q="frnnlstmgrutran-79"><span class="qn">&bull;</span>2.9 ANN in PyTorch (Complete Example)</a><a href="#frnnlstmgrutran-80" data-q="frnnlstmgrutran-80"><span class="qn">&bull;</span>2.10 ANN vs CNN vs RNN</a><a href="#frnnlstmgrutran-81" data-q="frnnlstmgrutran-81"><span class="qn">&bull;</span>2.1 Concept</a><a href="#frnnlstmgrutran-82" data-q="frnnlstmgrutran-82"><span class="qn">&bull;</span>2.2 Mathematical Formulation</a><a href="#frnnlstmgrutran-83" data-q="frnnlstmgrutran-83"><span class="qn">&bull;</span>2.3 Real-Time Example: Next Character Prediction</a><a href="#frnnlstmgrutran-84" data-q="frnnlstmgrutran-84"><span class="qn">&bull;</span>2.4 Problems with Vanilla RNN</a><a href="#frnnlstmgrutran-85" data-q="frnnlstmgrutran-85"><span class="qn">&bull;</span>2.5 RNN in PyTorch</a><a href="#frnnlstmgrutran-86" data-q="frnnlstmgrutran-86"><span class="qn">&bull;</span>2.6 Types of RNN Architectures</a><a href="#frnnlstmgrutran-87" data-q="frnnlstmgrutran-87"><span class="qn">&bull;</span>3.1 Motivation</a><a href="#frnnlstmgrutran-88" data-q="frnnlstmgrutran-88"><span class="qn">&bull;</span>3.2 Architecture</a><a href="#frnnlstmgrutran-89" data-q="frnnlstmgrutran-89"><span class="qn">&bull;</span>3.3 The Three Gates + Cell State</a><a href="#frnnlstmgrutran-90" data-q="frnnlstmgrutran-90"><span class="qn">&bull;</span>3.4 Complete Walkthrough: Sentiment Analysis</a><a href="#frnnlstmgrutran-91" data-q="frnnlstmgrutran-91"><span class="qn">&bull;</span>3.5 Why LSTM Solves Vanishing Gradient</a><a href="#frnnlstmgrutran-92" data-q="frnnlstmgrutran-92"><span class="qn">&bull;</span>3.6 LSTM in PyTorch</a><a href="#frnnlstmgrutran-93" data-q="frnnlstmgrutran-93"><span class="qn">&bull;</span>3.7 Bidirectional LSTM</a><a href="#frnnlstmgrutran-94" data-q="frnnlstmgrutran-94"><span class="qn">&bull;</span>4.1 Motivation</a><a href="#frnnlstmgrutran-95" data-q="frnnlstmgrutran-95"><span class="qn">&bull;</span>4.2 Architecture</a><a href="#frnnlstmgrutran-96" data-q="frnnlstmgrutran-96"><span class="qn">&bull;</span>4.3 Mathematical Formulation</a><a href="#frnnlstmgrutran-97" data-q="frnnlstmgrutran-97"><span class="qn">&bull;</span>4.4 LSTM vs GRU Comparison</a><a href="#frnnlstmgrutran-98" data-q="frnnlstmgrutran-98"><span class="qn">&bull;</span>4.5 Real-Time Example: Weather Prediction</a><a href="#frnnlstmgrutran-99" data-q="frnnlstmgrutran-99"><span class="qn">&bull;</span>4.6 GRU in PyTorch</a><a href="#frnnlstmgrutran-100" data-q="frnnlstmgrutran-100"><span class="qn">&bull;</span>5.1 Motivation: The Problems with RNN/LSTM/GRU</a><a href="#frnnlstmgrutran-101" data-q="frnnlstmgrutran-101"><span class="qn">&bull;</span>5.2 High-Level Architecture</a><a href="#frnnlstmgrutran-102" data-q="frnnlstmgrutran-102"><span class="qn">&bull;</span>5.3 Self-Attention Mechanism — The Core Innovation</a><a href="#frnnlstmgrutran-103" data-q="frnnlstmgrutran-103"><span class="qn">&bull;</span>5.4 Multi-Head Attention</a><a href="#frnnlstmgrutran-104" data-q="frnnlstmgrutran-104"><span class="qn">&bull;</span>5.5 Positional Encoding</a><a href="#frnnlstmgrutran-105" data-q="frnnlstmgrutran-105"><span class="qn">&bull;</span>5.6 Encoder Block</a><a href="#frnnlstmgrutran-106" data-q="frnnlstmgrutran-106"><span class="qn">&bull;</span>5.7 Decoder Block</a><a href="#frnnlstmgrutran-107" data-q="frnnlstmgrutran-107"><span class="qn">&bull;</span>5.8 Masked Self-Attention (Causal Mask)</a><a href="#frnnlstmgrutran-108" data-q="frnnlstmgrutran-108"><span class="qn">&bull;</span>5.9 Transformer in PyTorch</a><a href="#frnnlstmgrutran-109" data-q="frnnlstmgrutran-109"><span class="qn">&bull;</span>5.10 Real-Time Example: Translation ("I love AI" → "मुझे AI पसंद है")</a><a href="#frnnlstmgrutran-110" data-q="frnnlstmgrutran-110"><span class="qn">&bull;</span>Architecture Comparison</a><a href="#frnnlstmgrutran-111" data-q="frnnlstmgrutran-111"><span class="qn">&bull;</span>When to Use What</a><a href="#frnnlstmgrutran-112" data-q="frnnlstmgrutran-112"><span class="qn">&bull;</span>Parameter Count Example (hidden_size=256, input_size=128)</a><a href="#frnnlstmgrutran-113" data-q="frnnlstmgrutran-113"><span class="qn">&bull;</span>Fundamentals</a><a href="#frnnlstmgrutran-114" data-q="frnnlstmgrutran-114"><span class="qn">&bull;</span>LSTM</a><a href="#frnnlstmgrutran-115" data-q="frnnlstmgrutran-115"><span class="qn">&bull;</span>GRU</a><a href="#frnnlstmgrutran-116" data-q="frnnlstmgrutran-116"><span class="qn">&bull;</span>Transformer</a><a href="#frnnlstmgrutran-117" data-q="frnnlstmgrutran-117"><span class="qn">&bull;</span>Comparison &amp; Advanced</a></nav>
+  <nav><div class="nav-grp"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg>On this page</div><a href="#top" data-t="top"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compass"/></svg>Overview</a><a class="nav-file" href="#fannmd" data-t="fannmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>ANN</a><a class="nav-file" href="#fcnnmd" data-t="fcnnmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-layers"/></svg>CNN</a><a class="nav-file" href="#fgrumd" data-t="fgrumd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>GRU</a><a class="nav-file" href="#flstmmd" data-t="flstmmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-layers"/></svg>LSTM</a><a class="nav-file" href="#frnnmd" data-t="frnnmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-layers"/></svg>RNN</a><a class="nav-file" href="#frnnlstmgrutran" data-t="frnnlstmgrutran"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-message"/></svg>rnn lstm gru transformer guide</a><a class="nav-sub" href="#frnnlstmgrutran-p0" data-t="frnnlstmgrutran-p0">1. Sequential Data Problem</a><a class="nav-sub" href="#frnnlstmgrutran-p1" data-t="frnnlstmgrutran-p1">2. ANN (Artificial Neural Network)</a><a class="nav-sub" href="#frnnlstmgrutran-p2" data-t="frnnlstmgrutran-p2">3. RNN (Recurrent Neural Network)</a><a class="nav-sub" href="#frnnlstmgrutran-p3" data-t="frnnlstmgrutran-p3">4. LSTM (Long Short-Term Memory)</a><a class="nav-sub" href="#frnnlstmgrutran-p4" data-t="frnnlstmgrutran-p4">5. GRU (Gated Recurrent Unit)</a><a class="nav-sub" href="#frnnlstmgrutran-p5" data-t="frnnlstmgrutran-p5">6. Transformer</a><a class="nav-sub" href="#frnnlstmgrutran-p6" data-t="frnnlstmgrutran-p6">7. Comparison Summary</a><a class="nav-sub" href="#frnnlstmgrutran-p7" data-t="frnnlstmgrutran-p7">8. Real-Time Project: House Price Prediction (ANN)</a><a class="nav-sub" href="#frnnlstmgrutran-p8" data-t="frnnlstmgrutran-p8">9. Real-Time Project: Sentiment Analysis (All 4 Models)</a><a class="nav-sub" href="#frnnlstmgrutran-p9" data-t="frnnlstmgrutran-p9">10. Real-Time Project: Stock Price Prediction (RNN/LSTM/GRU)</a><a class="nav-sub" href="#frnnlstmgrutran-p10" data-t="frnnlstmgrutran-p10">11. Real-Time Project: Machine Translation (Transformer)</a><a class="nav-sub" href="#frnnlstmgrutran-p11" data-t="frnnlstmgrutran-p11">12. Interview Questions &amp; Answers</a></nav>
 </aside>
 <main><div class="wrap">
 
-<section class="hero" id="top"><div class="eyebrow">05_Deep_Learning &middot; Architectures</div>
-<h1>Architectures</h1><p class="lede">ANN, CNN, RNN, LSTM, GRU &mdash; one file each</p><div class="oneliner"><b>6 files</b> in this section, <b>118 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
-<div class="stats"><div class="stat"><div class="stat-v">6</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">118</div><div class="stat-l">sections</div></div></div></section>
-<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">ANN, CNN, RNN, LSTM, GRU &mdash; one file each</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>ann</b><span class="learn-n">14 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>Key components</span></div></li><li class="learn-item"><div class="learn-top"><b>cnn</b><span class="learn-n">14 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>Architecture lineage (key milestones)</span></div></li><li class="learn-item"><div class="learn-top"><b>gru</b><span class="learn-n">14 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>GRU vs LSTM (the canonical comparison)</span></div></li><li class="learn-item"><div class="learn-top"><b>lstm</b><span class="learn-n">14 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>Variants</span></div></li><li class="learn-item"><div class="learn-top"><b>rnn</b><span class="learn-n">14 sections</span></div><div class="learn-tags"><span>TL;DR (quick reference)</span><span>Definition</span><span>Intuition &amp; how it works</span><span>Mathematical formulation</span><span>Variants</span></div></li><li class="learn-item"><div class="learn-top"><b>rnn lstm gru transformer guide</b><span class="learn-n">48 sections</span></div><div class="learn-tags"><span>Sequential Data Problem</span><span>ANN (Artificial Neural Network)</span><span>RNN (Recurrent Neural Network)</span><span>LSTM (Long Short-Term Memory)</span><span>GRU (Gated Recurrent Unit)</span></div></li></ul></section>
+<nav class="crumb"><a href="../index.html">Home</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><a href="index.html">Deep Learning</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><b>Architectures</b></nav>
+<section class="hero" id="top"><div class="eyebrow">Deep Learning &middot; Architectures</div>
+<h1>Architectures</h1><p class="lede">ANN, CNN, RNN, LSTM, GRU &mdash; one file each</p><div class="oneliner"><b>6 files</b> in this section, <b>118 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div></section>
 
-<section class="filesec" id="fannmd"><header class="filehead"><div class="fh-top"><span class="fh-num">ann</span><span class="fh-count">14 sections</span><a class="fh-src" href="../../05_Deep_Learning/Architectures/ann.md">source .md &#8599;</a></div><h2>ANN — Artificial Neural Network (Perceptron → MLP)</h2><div class="note">
+<section class="filesec" id="fannmd"><header class="filehead"><div class="fh-top"><span class="fh-num">ANN</span><span class="fh-count">14 sections</span></div><h2>ANN — Artificial Neural Network (Perceptron → MLP)</h2><div class="note">
 <p>Stack layers of weighted sums + non-linearities to approximate almost any function.
 The foundation everything else (<abbr title="convolutional neural network">CNN</abbr>, <abbr title="recurrent neural network">RNN</abbr>, Transformers) is built on.</p>
 </div></header><article class="q" id="fannmd-0"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fannmd-0"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">Unit</span><span class="kt">Structure</span><span class="kt">Trained by</span><span class="kt">backpropagation</span><span class="kt">Why it works</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Supervised (mostly) · classification &amp; regression · parametric · non-linear</td></tr><tr class="g0"><td><strong>Unit</strong></td><td>neuron: $a=\phi(\mathbf{w}^\top\mathbf{x}+b)$</td></tr><tr class="g1"><td><strong>Structure</strong></td><td>input → hidden layers (non-linear) → output</td></tr><tr class="g0"><td><strong>Trained by</strong></td><td><strong>backpropagation</strong> + gradient descent</td></tr><tr class="g1"><td><strong>Why it works</strong></td><td><strong>universal approximation</strong> — one hidden layer can approximate any continuous function</td></tr><tr class="g0"><td><strong>Must have</strong></td><td>a <strong>non-linear</strong> activation (else it collapses to linear)</td></tr><tr class="g1"><td><strong>Key risks</strong></td><td><abbr title="a model that fits the training data&#x27;s noise and generalises worse than a simpler one would">overfitting</abbr>, vanishing/exploding gradients, dead ReLUs</td></tr><tr class="g0"><td><strong>PyTorch</strong></td><td><code>nn.Linear</code> + activation in <code>nn.Sequential</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fannmd-1"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fannmd-1"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">feedforward network</span><span class="kt">neurons</span><span class="kt">activation</span><span class="kt">backpropagation</span></div><p>An Artificial Neural Network (a.k.a. <strong>feedforward network</strong> / <strong>multilayer perceptron,
@@ -654,7 +1002,7 @@ vanishing/exploding gradients (fixed by ReLU/normalization/residuals/good init) 
 <abbr title="a model that fits the training data&#x27;s noise and generalises worse than a simpler one would">overfitting</abbr> (fixed by dropout/weight decay/early stopping). It underpins CNNs, RNNs, and
 Transformers, but is data/compute-hungry and a black box.</p>
 <hr />
-<p><strong>Related:</strong> <a href="architectures.html#fcnnmd"><abbr title="convolutional neural network">CNN</abbr></a> · <a href="architectures.html#frnnmd"><abbr title="recurrent neural network">RNN</abbr></a> · <a href="architectures.html#flstmmd"><abbr title="long short-term memory">LSTM</abbr></a> · <a href="architectures.html#fgrumd"><abbr title="gated recurrent unit">GRU</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fcnnmd"><header class="filehead"><div class="fh-top"><span class="fh-num">cnn</span><span class="fh-count">14 sections</span><a class="fh-src" href="../../05_Deep_Learning/Architectures/cnn.md">source .md &#8599;</a></div><h2>CNN — Convolutional Neural Network</h2><div class="note">
+<p><strong>Related:</strong> <a href="architectures.html#fcnnmd"><abbr title="convolutional neural network">CNN</abbr></a> · <a href="architectures.html#frnnmd"><abbr title="recurrent neural network">RNN</abbr></a> · <a href="architectures.html#flstmmd"><abbr title="long short-term memory">LSTM</abbr></a> · <a href="architectures.html#fgrumd"><abbr title="gated recurrent unit">GRU</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fcnnmd"><header class="filehead"><div class="fh-top"><span class="fh-num">CNN</span><span class="fh-count">14 sections</span></div><h2>CNN — Convolutional Neural Network</h2><div class="note">
 <p>Slide small learnable filters over a grid (image) to detect local patterns, sharing
 weights everywhere. The workhorse of computer vision.</p>
 </div></header><article class="q" id="fcnnmd-14"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fcnnmd-14"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">Core op</span><span class="kt">convolution</span><span class="kt">Two key ideas</span><span class="kt">local receptive fields</span><span class="kt">weight sharing</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Supervised (mostly) · grid/spatial data (images, audio spectrograms)</td></tr><tr class="g0"><td><strong>Core op</strong></td><td><strong>convolution</strong> — slide a filter, compute dot products → feature map</td></tr><tr class="g1"><td><strong>Two key ideas</strong></td><td><strong>local receptive fields</strong> + <strong>weight sharing</strong> (translation equivariance)</td></tr><tr class="g0"><td><strong>Output size</strong></td><td>$O=\lfloor\frac{W-K+2P}{S}\rfloor+1$</td></tr><tr class="g1"><td><strong>Conv params</strong></td><td>$(K\cdot K\cdot C_{in}+1)\cdot C_{out}$ — tiny vs fully-connected</td></tr><tr class="g0"><td><strong>Building blocks</strong></td><td>conv → activation → pooling, repeated; then a classifier head</td></tr><tr class="g1"><td><strong>PyTorch</strong></td><td><code>nn.Conv2d</code>, <code>nn.MaxPool2d</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fcnnmd-15"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fcnnmd-15"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">convolutional layers</span><span class="kt">feature maps</span><span class="kt">hierarchy</span></div><p>A <abbr title="convolutional neural network">CNN</abbr> is a neural network that uses <strong>convolutional layers</strong>: small filters (kernels) that
@@ -744,7 +1092,7 @@ the chief challenges are <abbr title="a model that fits the training data&#x27;s
 (residual connections + BatchNorm). CNNs dominate vision, now complemented by Vision
 Transformers.</p>
 <hr />
-<p><strong>Related:</strong> <a href="architectures.html#fannmd"><abbr title="approximate nearest neighbour">ANN</abbr></a> · <a href="architectures.html#frnnmd"><abbr title="recurrent neural network">RNN</abbr></a> · <a href="architectures.html#flstmmd"><abbr title="long short-term memory">LSTM</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fgrumd"><header class="filehead"><div class="fh-top"><span class="fh-num">gru</span><span class="fh-count">14 sections</span><a class="fh-src" href="../../05_Deep_Learning/Architectures/gru.md">source .md &#8599;</a></div><h2>GRU — Gated Recurrent Unit</h2><div class="note">
+<p><strong>Related:</strong> <a href="architectures.html#fannmd"><abbr title="approximate nearest neighbour">ANN</abbr></a> · <a href="architectures.html#frnnmd"><abbr title="recurrent neural network">RNN</abbr></a> · <a href="architectures.html#flstmmd"><abbr title="long short-term memory">LSTM</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fgrumd"><header class="filehead"><div class="fh-top"><span class="fh-num">GRU</span><span class="fh-count">14 sections</span></div><h2>GRU — Gated Recurrent Unit</h2><div class="note">
 <p>A streamlined <abbr title="long short-term memory">LSTM</abbr>: <strong>two</strong> gates, no separate cell state. Fewer parameters, faster to
 train, and usually just as good.</p>
 </div></header><article class="q" id="fgrumd-28"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fgrumd-28"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">Gates</span><span class="kt">update</span><span class="kt">reset</span><span class="kt">interpolation</span><span class="kt">vs LSTM</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Supervised · sequential data · gated recurrent network</td></tr><tr class="g0"><td><strong>Gates</strong></td><td><strong>update</strong> $z$ and <strong>reset</strong> $r$ (vs <abbr title="long short-term memory">LSTM</abbr>'s 3)</td></tr><tr class="g1"><td><strong>No</strong></td><td>separate cell state — merges cell &amp; hidden into one $h_t$</td></tr><tr class="g0"><td><strong>Update</strong></td><td>$h_t=(1-z_t)\odot h_{t-1}+z_t\odot\tilde h_t$ — a gated <strong>interpolation</strong></td></tr><tr class="g1"><td><strong>vs LSTM</strong></td><td><span class="mag">~25%</span> fewer params, faster; often comparable accuracy</td></tr><tr class="g0"><td><strong>Params</strong></td><td>$3H(H+D+1)$</td></tr><tr class="g1"><td><strong>PyTorch</strong></td><td><code>nn.GRU</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fgrumd-29"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fgrumd-29"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">simpler</span><span class="kt">update</span><span class="kt">reset</span><span class="kt">no separate cell state</span></div><p>A <abbr title="gated recurrent unit">GRU</abbr> is a gated recurrent unit that, like the <a href="architectures.html#flstmmd"><abbr title="long short-term memory">LSTM</abbr></a>, controls memory with gates
@@ -817,7 +1165,7 @@ vanilla RNN's vanishing-gradient problem like the LSTM does, but with <span clas
 ($3H(H+D+1)$) and faster training. Accuracy is typically comparable to the LSTM (benchmark
 both), while both remain sequential and are surpassed by Transformers for long-context tasks.</p>
 <hr />
-<p><strong>Related:</strong> <a href="architectures.html#flstmmd">LSTM</a> · <a href="architectures.html#frnnmd">RNN</a> · <a href="architectures.html#fannmd"><abbr title="approximate nearest neighbour">ANN</abbr></a> · <a href="architectures.html#fcnnmd"><abbr title="convolutional neural network">CNN</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="flstmmd"><header class="filehead"><div class="fh-top"><span class="fh-num">lstm</span><span class="fh-count">14 sections</span><a class="fh-src" href="../../05_Deep_Learning/Architectures/lstm.md">source .md &#8599;</a></div><h2>LSTM — Long Short-Term Memory</h2><div class="note">
+<p><strong>Related:</strong> <a href="architectures.html#flstmmd">LSTM</a> · <a href="architectures.html#frnnmd">RNN</a> · <a href="architectures.html#fannmd"><abbr title="approximate nearest neighbour">ANN</abbr></a> · <a href="architectures.html#fcnnmd"><abbr title="convolutional neural network">CNN</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="flstmmd"><header class="filehead"><div class="fh-top"><span class="fh-num">LSTM</span><span class="fh-count">14 sections</span></div><h2>LSTM — Long Short-Term Memory</h2><div class="note">
 <p>A gated <abbr title="recurrent neural network">RNN</abbr> with a protected <strong>cell state</strong> and three gates that decide what to remember,
 add, and output — finally letting recurrent nets learn <strong>long-range</strong> dependencies.</p>
 </div></header><article class="q" id="flstmmd-42"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="flstmmd-42"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">Fixes</span><span class="kt">vanishing-gradient</span><span class="kt">Memory</span><span class="kt">cell state</span><span class="kt">Gates</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Supervised · sequential data · gated recurrent network</td></tr><tr class="g0"><td><strong>Fixes</strong></td><td>the vanilla <a href="architectures.html#frnnmd"><abbr title="recurrent neural network">RNN</abbr></a>'s <strong>vanishing-gradient</strong> problem</td></tr><tr class="g1"><td><strong>Memory</strong></td><td>a <strong>cell state</strong> $C_t$ — an additive "conveyor belt" of information</td></tr><tr class="g0"><td><strong>Gates</strong></td><td><strong>forget</strong> $f$, <strong>input</strong> $i$, <strong>output</strong> $o$ (+ candidate $\tilde C$)</td></tr><tr class="g1"><td><strong>Cell update</strong></td><td>$C_t=f_t\odot C_{t-1}+i_t\odot\tilde C_t$ — the key equation</td></tr><tr class="g0"><td><strong>Params</strong></td><td>$4H(H+D+1)$ (4 gates)</td></tr><tr class="g1"><td><strong>PyTorch</strong></td><td><code>nn.LSTM</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="flstmmd-43"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="flstmmd-43"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">cell state</span><span class="kt">gates</span><span class="kt">additive</span></div><p>An <abbr title="long short-term memory">LSTM</abbr> is a recurrent unit that augments the hidden state with a separate <strong>cell state</strong>
@@ -903,7 +1251,7 @@ by initializing the forget-gate bias near 1). The costs are more parameters ($4H
 no parallelism over time, so Transformers now lead on long-context tasks while GRUs offer a
 lighter alternative.</p>
 <hr />
-<p><strong>Related:</strong> <a href="architectures.html#fgrumd"><abbr title="gated recurrent unit">GRU</abbr></a> · <a href="architectures.html#frnnmd">RNN</a> · <a href="architectures.html#fannmd"><abbr title="approximate nearest neighbour">ANN</abbr></a> · <a href="architectures.html#fcnnmd"><abbr title="convolutional neural network">CNN</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="frnnmd"><header class="filehead"><div class="fh-top"><span class="fh-num">rnn</span><span class="fh-count">14 sections</span><a class="fh-src" href="../../05_Deep_Learning/Architectures/rnn.md">source .md &#8599;</a></div><h2>RNN — Recurrent Neural Network</h2><div class="note">
+<p><strong>Related:</strong> <a href="architectures.html#fgrumd"><abbr title="gated recurrent unit">GRU</abbr></a> · <a href="architectures.html#frnnmd">RNN</a> · <a href="architectures.html#fannmd"><abbr title="approximate nearest neighbour">ANN</abbr></a> · <a href="architectures.html#fcnnmd"><abbr title="convolutional neural network">CNN</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="frnnmd"><header class="filehead"><div class="fh-top"><span class="fh-num">RNN</span><span class="fh-count">14 sections</span></div><h2>RNN — Recurrent Neural Network</h2><div class="note">
 <p>Process sequences one step at a time, carrying a <strong>hidden state</strong> as memory. The
 foundation for sequential data — and the cautionary tale that motivated <abbr title="long short-term memory">LSTM</abbr>/<abbr title="gated recurrent unit">GRU</abbr>.</p>
 </div></header><article class="q" id="frnnmd-56"><div class="q-h"><span class="q-n">&bull;</span><h3>TL;DR (quick reference)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnmd-56"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Type</span><span class="kt">sequential</span><span class="kt">Core</span><span class="kt">Memory</span><span class="kt">Trained by</span><span class="kt">Fatal flaw</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th></th><th></th></tr></thead><tbody><tr class="g1"><td><strong>Type</strong></td><td>Supervised · <strong>sequential</strong> data (text, time series, speech)</td></tr><tr class="g0"><td><strong>Core</strong></td><td>$h_t=\tanh(W_{xh}x_t + W_{hh}h_{t-1}+b)$ — recurrence with shared weights</td></tr><tr class="g1"><td><strong>Memory</strong></td><td>the hidden state $h_t$ summarizes the past</td></tr><tr class="g0"><td><strong>Trained by</strong></td><td><strong>Backpropagation Through Time (BPTT)</strong></td></tr><tr class="g1"><td><strong>Fatal flaw</strong></td><td><strong>vanishing/exploding gradients</strong> → can't learn long dependencies</td></tr><tr class="g0"><td><strong>Fixes</strong></td><td>gradient clipping (explode), <strong><a href="architectures.html#flstmmd"><abbr title="long short-term memory">LSTM</abbr></a>/<a href="architectures.html#fgrumd"><abbr title="gated recurrent unit">GRU</abbr></a></strong> (vanish)</td></tr><tr class="g1"><td><strong>PyTorch</strong></td><td><code>nn.RNN</code></td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnmd-57"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Definition</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnmd-57"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">loop</span><span class="kt">hidden state</span><span class="kt">same weights</span><span class="kt">variable-length</span></div><p>An <abbr title="recurrent neural network">RNN</abbr> is a neural network with a <strong>loop</strong>: at each time step it combines the current input
@@ -986,9 +1334,9 @@ gradient clipping (explode) and the gated <strong><abbr title="long short-term m
 sequential (no parallelism over time), which is why <strong>Transformers</strong> now dominate long-range
 sequence modeling.</p>
 <hr />
-<p><strong>Related:</strong> <a href="architectures.html#flstmmd">LSTM</a> · <a href="architectures.html#fgrumd">GRU</a> · <a href="architectures.html#fannmd"><abbr title="approximate nearest neighbour">ANN</abbr></a> · <a href="architectures.html#fcnnmd"><abbr title="convolutional neural network">CNN</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="frnnlstmgrutran"><header class="filehead"><div class="fh-top"><span class="fh-num">rnn lstm gru transformer guide</span><span class="fh-count">48 sections</span><a class="fh-src" href="../../05_Deep_Learning/rnn-lstm-gru-transformer-guide.md">source .md &#8599;</a></div><h2>ANN, RNN, LSTM, GRU &amp; Transformer — Complete Guide with Real-Time Examples</h2></header><div class="parthead"><span>1. Sequential Data Problem</span><i></i></div><article class="q" id="frnnlstmgrutran-70"><div class="q-h"><span class="q-n">&bull;</span><h3>Why do we need special architectures for sequences?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-70"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">sequential dependencies</span><span class="kt">bank</span></div><p>Traditional neural networks (MLPs/CNNs) treat each input independently. But many real-world problems have <strong>sequential dependencies</strong>:</p>
+<p><strong>Related:</strong> <a href="architectures.html#flstmmd">LSTM</a> · <a href="architectures.html#fgrumd">GRU</a> · <a href="architectures.html#fannmd"><abbr title="approximate nearest neighbour">ANN</abbr></a> · <a href="architectures.html#fcnnmd"><abbr title="convolutional neural network">CNN</abbr></a></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="frnnlstmgrutran"><header class="filehead"><div class="fh-top"><span class="fh-num">rnn lstm gru transformer guide</span><span class="fh-count">48 sections</span></div><h2>ANN, RNN, LSTM, GRU &amp; Transformer — Complete Guide with Real-Time Examples</h2></header><div class="parthead" id="frnnlstmgrutran-p0"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-target"/></svg>1. Sequential Data Problem</span><i></i></div><article class="q" id="frnnlstmgrutran-70"><div class="q-h"><span class="q-n">&bull;</span><h3>Why do we need special architectures for sequences?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-70"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">sequential dependencies</span><span class="kt">bank</span></div><p>Traditional neural networks (MLPs/CNNs) treat each input independently. But many real-world problems have <strong>sequential dependencies</strong>:</p>
 <div class="tbl-wrap"><table class="t3"><thead><tr><th>Domain</th><th>Example</th><th>Why sequence matters</th></tr></thead><tbody><tr class="g1"><td><abbr title="natural language processing">NLP</abbr></td><td>"I went to the <strong>bank</strong> to deposit money"</td><td>Word meaning depends on context</td></tr><tr class="g0"><td>Time Series</td><td>Stock prices</td><td>Today's price depends on yesterday's</td></tr><tr class="g1"><td>Speech</td><td>Audio waveforms</td><td>Phonemes depend on preceding sounds</td></tr><tr class="g0"><td>Video</td><td>Action recognition</td><td>Current frame depends on previous frames</td></tr><tr class="g1"><td>Music</td><td>Melody generation</td><td>Next note depends on previous notes</td></tr></tbody></table></div>
-<div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px"><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="fl">Traditional NN</span><span class="st">Input</span><span class="ar">&rarr;</span><span class="st">[Hidden]</span><span class="ar">&rarr;</span><span class="st">Output</span><span class="fl" style="margin:0 0 0 10px">no memory</span></div><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="fl">Sequential Model</span><span class="st">Input₁</span><span class="ar">&rarr;</span><span class="st">[Hidden₁]</span><span class="ar">&rarr;</span><span class="st">Output₁</span></div><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">Input₂</span><span class="ar">&rarr;</span><span class="st">[Hidden₁ + Hidden₂]</span><span class="ar">&rarr;</span><span class="st">Output₂</span><span class="fl" style="margin:0 0 0 10px">carries memory</span></div><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">Input₃</span><span class="ar">&rarr;</span><span class="st">[Hidden₂ + Hidden₃]</span><span class="ar">&rarr;</span><span class="st">Output₃</span></div></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>2. ANN (Artificial Neural Network)</span><i></i></div><article class="q" id="frnnlstmgrutran-71"><div class="q-h"><span class="q-n">&bull;</span><h3>2.1 What Is an ANN?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-71"><span></span></label></div><div class="q-a"><p>An Artificial Neural Network is the <strong>foundation</strong> of all deep learning. It is a feed-forward network of interconnected neurons organized in layers.</p>
+<div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px"><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="fl">Traditional NN</span><span class="st">Input</span><span class="ar">&rarr;</span><span class="st">[Hidden]</span><span class="ar">&rarr;</span><span class="st">Output</span><span class="fl" style="margin:0 0 0 10px">no memory</span></div><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="fl">Sequential Model</span><span class="st">Input₁</span><span class="ar">&rarr;</span><span class="st">[Hidden₁]</span><span class="ar">&rarr;</span><span class="st">Output₁</span></div><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">Input₂</span><span class="ar">&rarr;</span><span class="st">[Hidden₁ + Hidden₂]</span><span class="ar">&rarr;</span><span class="st">Output₂</span><span class="fl" style="margin:0 0 0 10px">carries memory</span></div><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">Input₃</span><span class="ar">&rarr;</span><span class="st">[Hidden₂ + Hidden₃]</span><span class="ar">&rarr;</span><span class="st">Output₃</span></div></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="frnnlstmgrutran-p1"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-layers"/></svg>2. ANN (Artificial Neural Network)</span><i></i></div><article class="q" id="frnnlstmgrutran-71"><div class="q-h"><span class="q-n">&bull;</span><h3>2.1 What Is an ANN?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-71"><span></span></label></div><div class="q-a"><p>An Artificial Neural Network is the <strong>foundation</strong> of all deep learning. It is a feed-forward network of interconnected neurons organized in layers.</p>
 <div class="diagram"><pre>  Input Layer       Hidden Layer(s)      Output Layer
   (features)        (learned patterns)   (prediction)
 
@@ -1104,7 +1452,7 @@ CNN (Convolutional):    Input → [Conv + Pool Layers] → Output
 
 RNN (Recurrent):        Input₁→₂→₃ → [Recurrent Layers] → Output
                         Best for: Sequences, time series
-                        Learns temporal patterns (order matters)</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>3. RNN (Recurrent Neural Network)</span><i></i></div><article class="q" id="frnnlstmgrutran-81"><div class="q-h"><span class="q-n">&bull;</span><h3>2.1 Concept</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-81"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">one element at a time</span><span class="kt">hidden state</span></div><p>An <abbr title="recurrent neural network">RNN</abbr> processes sequences <strong>one element at a time</strong>, maintaining a <strong>hidden state</strong> that acts as memory.</p>
+                        Learns temporal patterns (order matters)</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="frnnlstmgrutran-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-layers"/></svg>3. RNN (Recurrent Neural Network)</span><i></i></div><article class="q" id="frnnlstmgrutran-81"><div class="q-h"><span class="q-n">&bull;</span><h3>2.1 Concept</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-81"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">one element at a time</span><span class="kt">hidden state</span></div><p>An <abbr title="recurrent neural network">RNN</abbr> processes sequences <strong>one element at a time</strong>, maintaining a <strong>hidden state</strong> that acts as memory.</p>
 <div class="diagram"><pre>         ┌──────────┐     ┌──────────┐     ┌──────────┐
   x₁ ──→ │  RNN Cell │──→ │  RNN Cell │──→ │  RNN Cell │──→ ...
          │    h₁     │  h₁│    h₂     │  h₂│    h₃     │
@@ -1170,7 +1518,7 @@ Output: Predict 'o' from h₄</pre></div></div><button class="reveal">Reveal ans
 <span class="cmt"># Usage</span>
 model = <span class="fn">SimpleRNN</span>(input_size=<span class="num">10</span>, hidden_size=<span class="num">64</span>, output_size=<span class="num">2</span>)
 x = torch.<span class="fn">randn</span>(<span class="num">32</span>, <span class="num">20</span>, <span class="num">10</span>)  <span class="cmt"># batch=32, seq_len=20, features=10</span>
-output = <span class="fn">model</span>(x)             <span class="cmt"># shape: (32, 2)</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-86"><div class="q-h"><span class="q-n">&bull;</span><h3>2.6 Types of RNN Architectures</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-86"><span></span></label></div><div class="q-a"><ol class="steplist"><li>One-to-One:     x → [<abbr title="recurrent neural network">RNN</abbr>] → y           (Standard NN, not really RNN)</li><li>One-to-Many:    x → [RNN] → y₁, y₂, y₃  (Image captioning)</li><li>Many-to-One:    x₁, x₂, x₃ → [RNN] → y  (Sentiment analysis)</li><li>Many-to-Many:   x₁, x₂ → [RNN] → y₁, y₂  (Machine translation) (Encoder-Decoder)</li><li>Many-to-Many:   x₁, x₂, x₃ → y₁, y₂, y₃  (Named entity recognition) (Synced)</li></ol></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>4. LSTM (Long Short-Term Memory)</span><i></i></div><article class="q" id="frnnlstmgrutran-87"><div class="q-h"><span class="q-n">&bull;</span><h3>3.1 Motivation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-87"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">vanishing gradient problem</span><span class="kt">cell state</span><span class="kt">gates</span></div><p><abbr title="long short-term memory">LSTM</abbr> was designed to solve the <strong>vanishing gradient problem</strong>. It introduces a <strong>cell state</strong> (long-term memory highway) and <strong>gates</strong> to control information flow.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-88"><div class="q-h"><span class="q-n">&bull;</span><h3>3.2 Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-88"><span></span></label></div><div class="q-a"><div class="diagram"><pre>                        Cell State (Cₜ)
+output = <span class="fn">model</span>(x)             <span class="cmt"># shape: (32, 2)</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-86"><div class="q-h"><span class="q-n">&bull;</span><h3>2.6 Types of RNN Architectures</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-86"><span></span></label></div><div class="q-a"><ol class="steplist"><li>One-to-One:     x → [<abbr title="recurrent neural network">RNN</abbr>] → y           (Standard NN, not really RNN)</li><li>One-to-Many:    x → [RNN] → y₁, y₂, y₃  (Image captioning)</li><li>Many-to-One:    x₁, x₂, x₃ → [RNN] → y  (Sentiment analysis)</li><li>Many-to-Many:   x₁, x₂ → [RNN] → y₁, y₂  (Machine translation) (Encoder-Decoder)</li><li>Many-to-Many:   x₁, x₂, x₃ → y₁, y₂, y₃  (Named entity recognition) (Synced)</li></ol></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="frnnlstmgrutran-p3"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cpu"/></svg>4. LSTM (Long Short-Term Memory)</span><i></i></div><article class="q" id="frnnlstmgrutran-87"><div class="q-h"><span class="q-n">&bull;</span><h3>3.1 Motivation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-87"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">vanishing gradient problem</span><span class="kt">cell state</span><span class="kt">gates</span></div><p><abbr title="long short-term memory">LSTM</abbr> was designed to solve the <strong>vanishing gradient problem</strong>. It introduces a <strong>cell state</strong> (long-term memory highway) and <strong>gates</strong> to control information flow.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-88"><div class="q-h"><span class="q-n">&bull;</span><h3>3.2 Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-88"><span></span></label></div><div class="q-a"><div class="diagram"><pre>                        Cell State (Cₜ)
             ─────────────────────────────────────→
                   ↑ ×          ↑ +           
                   │            │             
@@ -1248,7 +1596,7 @@ LSTM:  Cₜ = fₜ⊙Cₜ₋₁ + iₜ⊙C̃ₜ       ← ADDITIVE, gradient flo
 
 <span class="cmt"># Usage</span>
 model = <span class="fn">LSTMClassifier</span>(vocab_size=<span class="num">10000</span>, embed_dim=<span class="num">128</span>, hidden_dim=<span class="num">256</span>, output_dim=<span class="num">2</span>)</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-93"><div class="q-h"><span class="q-n">&bull;</span><h3>3.7 Bidirectional LSTM</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-93"><span></span></label></div><div class="q-a"><div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px"><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="fl">Forward</span><span class="st">The</span><span class="ar">&rarr;</span><span class="st">movie</span><span class="ar">&rarr;</span><span class="st">was</span><span class="ar">&rarr;</span><span class="st">great</span><span class="ar">&rarr;</span><span class="st">h_forward</span></div><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="fl">Backward</span><span class="st">great</span><span class="ar">&rarr;</span><span class="st">was</span><span class="ar">&rarr;</span><span class="st">movie</span><span class="ar">&rarr;</span><span class="st">The</span><span class="ar">&rarr;</span><span class="st">h_backward</span></div><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="fl">Final</span><span class="st">[h_forward ; h_backward]</span><span class="ar">&rarr;</span><span class="st">richer representation</span></div></div>
-<p>Use case: When full sequence is available (text classification, <abbr title="named entity recognition">NER</abbr>). <strong>Not</strong> suitable for real-time/autoregressive generation.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>5. GRU (Gated Recurrent Unit)</span><i></i></div><article class="q" id="frnnlstmgrutran-94"><div class="q-h"><span class="q-n">&bull;</span><h3>4.1 Motivation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-94"><span></span></label></div><div class="q-a"><p><abbr title="gated recurrent unit">GRU</abbr> simplifies <abbr title="long short-term memory">LSTM</abbr> by merging the forget and input gates into a single <strong>update gate</strong> and combining cell state + hidden state. Fewer parameters → faster training with similar performance.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-95"><div class="q-h"><span class="q-n">&bull;</span><h3>4.2 Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-95"><span></span></label></div><div class="q-a"><div class="diagram"><pre>         ┌───────────────────────────────────────┐
+<p>Use case: When full sequence is available (text classification, <abbr title="named entity recognition">NER</abbr>). <strong>Not</strong> suitable for real-time/autoregressive generation.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="frnnlstmgrutran-p4"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>5. GRU (Gated Recurrent Unit)</span><i></i></div><article class="q" id="frnnlstmgrutran-94"><div class="q-h"><span class="q-n">&bull;</span><h3>4.1 Motivation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-94"><span></span></label></div><div class="q-a"><p><abbr title="gated recurrent unit">GRU</abbr> simplifies <abbr title="long short-term memory">LSTM</abbr> by merging the forget and input gates into a single <strong>update gate</strong> and combining cell state + hidden state. Fewer parameters → faster training with similar performance.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-95"><div class="q-h"><span class="q-n">&bull;</span><h3>4.2 Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-95"><span></span></label></div><div class="q-a"><div class="diagram"><pre>         ┌───────────────────────────────────────┐
          │              GRU Cell                  │
          │                                       │
   xₜ ──→ │   ┌────────┐    ┌────────┐            │
@@ -1308,7 +1656,7 @@ Prediction: ~15°C (cold trend learned)</pre></div></div><button class="reveal">
 <span class="cmt"># Usage: 7 days of weather features → predict next day's temp</span>
 model = <span class="fn">GRUPredictor</span>(input_size=<span class="num">5</span>, hidden_size=<span class="num">64</span>, output_size=<span class="num">1</span>)
 x = torch.<span class="fn">randn</span>(<span class="num">16</span>, <span class="num">7</span>, <span class="num">5</span>)  <span class="cmt"># batch=16, seq_len=7, features=5 (temp, humidity, etc.)</span>
-pred = <span class="fn">model</span>(x)              <span class="cmt"># shape: (16, 1)</span></code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>6. Transformer</span><i></i></div><article class="q" id="frnnlstmgrutran-100"><div class="q-h"><span class="q-n">&bull;</span><h3>5.1 Motivation: The Problems with RNN/LSTM/GRU</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-100"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Sequential processing</span><span class="kt">Long-range dependency</span><span class="kt">Training speed</span><span class="kt">Information bottleneck</span><span class="kt">Transformer&#x27;s solution</span><span class="kt">all tokens simultaneously</span></div><div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Problem</th><th>Detail</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>Sequential processing</strong></td><td>Can't parallelize — must process token by token</td></tr><tr class="g0"><td class="c-term"><strong>Long-range dependency</strong></td><td>Even <abbr title="long short-term memory">LSTM</abbr> struggles with 500+ tokens</td></tr><tr class="g1"><td class="c-term"><strong>Training speed</strong></td><td>Slow due to sequential nature</td></tr><tr class="g0"><td class="c-term"><strong>Information bottleneck</strong></td><td>Entire sequence compressed into fixed-size hidden state</td></tr></tbody></table></div>
+pred = <span class="fn">model</span>(x)              <span class="cmt"># shape: (16, 1)</span></code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="frnnlstmgrutran-p5"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-message"/></svg>6. Transformer</span><i></i></div><article class="q" id="frnnlstmgrutran-100"><div class="q-h"><span class="q-n">&bull;</span><h3>5.1 Motivation: The Problems with RNN/LSTM/GRU</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-100"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Sequential processing</span><span class="kt">Long-range dependency</span><span class="kt">Training speed</span><span class="kt">Information bottleneck</span><span class="kt">Transformer&#x27;s solution</span><span class="kt">all tokens simultaneously</span></div><div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Problem</th><th>Detail</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>Sequential processing</strong></td><td>Can't parallelize — must process token by token</td></tr><tr class="g0"><td class="c-term"><strong>Long-range dependency</strong></td><td>Even <abbr title="long short-term memory">LSTM</abbr> struggles with 500+ tokens</td></tr><tr class="g1"><td class="c-term"><strong>Training speed</strong></td><td>Slow due to sequential nature</td></tr><tr class="g0"><td class="c-term"><strong>Information bottleneck</strong></td><td>Entire sequence compressed into fixed-size hidden state</td></tr></tbody></table></div>
 <p><strong>Transformer's solution:</strong> Process <strong>all tokens simultaneously</strong> using <strong>Self-Attention</strong>.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-101"><div class="q-h"><span class="q-n">&bull;</span><h3>5.2 High-Level Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-101"><span></span></label></div><div class="q-a"><div class="diagram"><pre>              ┌─────────────────────────────────────┐
               │           TRANSFORMER                │
               │                                     │
@@ -1500,11 +1848,11 @@ DECODER generates Hindi word by word:
   Step 2: &lt;start&gt; मुझे → Cross-attend → predict "AI"
   Step 3: &lt;start&gt; मुझे AI → Cross-attend → predict "पसंद"
   Step 4: &lt;start&gt; मुझे AI पसंद → Cross-attend → predict "है"
-  Step 5: &lt;start&gt; मुझे AI पसंद है → predict &lt;end&gt; → STOP</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>7. Comparison Summary</span><i></i></div><article class="q" id="frnnlstmgrutran-110"><div class="q-h"><span class="q-n">&bull;</span><h3>Architecture Comparison</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-110"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Year</span><span class="kt">Memory mechanism</span><span class="kt">Gates</span><span class="kt">Parameters</span><span class="kt">Long-range deps</span><span class="kt">Parallelizable</span></div><div class="tbl-wrap"><table class="t5"><thead><tr><th>Feature</th><th><abbr title="recurrent neural network">RNN</abbr></th><th><abbr title="long short-term memory">LSTM</abbr></th><th><abbr title="gated recurrent unit">GRU</abbr></th><th>Transformer</th></tr></thead><tbody><tr class="g1"><td><strong>Year</strong></td><td>1986</td><td>1997</td><td>2014</td><td>2017</td></tr><tr class="g0"><td><strong>Memory mechanism</strong></td><td>Hidden state</td><td>Cell state + Hidden state</td><td>Hidden state (improved)</td><td>Attention (no recurrence)</td></tr><tr class="g1"><td><strong>Gates</strong></td><td>None</td><td>3 (forget, input, output)</td><td>2 (reset, update)</td><td>None (attention heads)</td></tr><tr class="g0"><td><strong>Parameters</strong></td><td>Fewest</td><td>Most (among RNN family)</td><td><span class="mag">~75%</span> of LSTM</td><td>Most overall</td></tr><tr class="g1"><td><strong>Long-range deps</strong></td><td>Poor</td><td>Good</td><td>Good</td><td>Excellent</td></tr><tr class="g0"><td><strong>Parallelizable</strong></td><td>No</td><td>No</td><td>No</td><td>Yes</td></tr><tr class="g1"><td><strong>Training speed</strong></td><td>Slow</td><td>Slower</td><td>Medium</td><td>Fast (GPU-friendly)</td></tr><tr class="g0"><td><strong>Vanishing gradient</strong></td><td>Severe</td><td>Solved</td><td>Solved</td><td>N/A</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-111"><div class="q-h"><span class="q-n">&bull;</span><h3>When to Use What</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-111"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">RNN</span><span class="kt">LSTM</span><span class="kt">GRU</span><span class="kt">Transformer</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th>Model</th><th>Best For</th></tr></thead><tbody><tr class="g1"><td><strong><abbr title="recurrent neural network">RNN</abbr></strong></td><td>Very short sequences, simple tasks, educational purposes</td></tr><tr class="g0"><td><strong><abbr title="long short-term memory">LSTM</abbr></strong></td><td>Medium-long sequences, time series, when order matters a lot</td></tr><tr class="g1"><td><strong><abbr title="gated recurrent unit">GRU</abbr></strong></td><td>Same as LSTM but need faster training / less data</td></tr><tr class="g0"><td><strong>Transformer</strong></td><td>Long sequences, large datasets, <abbr title="natural language processing">NLP</abbr>, any task with enough compute</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-112"><div class="q-h"><span class="q-n">&bull;</span><h3>Parameter Count Example (hidden_size=256, input_size=128)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-112"><span></span></label></div><div class="q-a"><pre class="code"><code>RNN:         1 × (256² + 256×128 + 256) = 98,560
+  Step 5: &lt;start&gt; मुझे AI पसंद है → predict &lt;end&gt; → STOP</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="frnnlstmgrutran-p6"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>7. Comparison Summary</span><i></i></div><article class="q" id="frnnlstmgrutran-110"><div class="q-h"><span class="q-n">&bull;</span><h3>Architecture Comparison</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-110"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Year</span><span class="kt">Memory mechanism</span><span class="kt">Gates</span><span class="kt">Parameters</span><span class="kt">Long-range deps</span><span class="kt">Parallelizable</span></div><div class="tbl-wrap"><table class="t5"><thead><tr><th>Feature</th><th><abbr title="recurrent neural network">RNN</abbr></th><th><abbr title="long short-term memory">LSTM</abbr></th><th><abbr title="gated recurrent unit">GRU</abbr></th><th>Transformer</th></tr></thead><tbody><tr class="g1"><td><strong>Year</strong></td><td>1986</td><td>1997</td><td>2014</td><td>2017</td></tr><tr class="g0"><td><strong>Memory mechanism</strong></td><td>Hidden state</td><td>Cell state + Hidden state</td><td>Hidden state (improved)</td><td>Attention (no recurrence)</td></tr><tr class="g1"><td><strong>Gates</strong></td><td>None</td><td>3 (forget, input, output)</td><td>2 (reset, update)</td><td>None (attention heads)</td></tr><tr class="g0"><td><strong>Parameters</strong></td><td>Fewest</td><td>Most (among RNN family)</td><td><span class="mag">~75%</span> of LSTM</td><td>Most overall</td></tr><tr class="g1"><td><strong>Long-range deps</strong></td><td>Poor</td><td>Good</td><td>Good</td><td>Excellent</td></tr><tr class="g0"><td><strong>Parallelizable</strong></td><td>No</td><td>No</td><td>No</td><td>Yes</td></tr><tr class="g1"><td><strong>Training speed</strong></td><td>Slow</td><td>Slower</td><td>Medium</td><td>Fast (GPU-friendly)</td></tr><tr class="g0"><td><strong>Vanishing gradient</strong></td><td>Severe</td><td>Solved</td><td>Solved</td><td>N/A</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-111"><div class="q-h"><span class="q-n">&bull;</span><h3>When to Use What</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-111"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">RNN</span><span class="kt">LSTM</span><span class="kt">GRU</span><span class="kt">Transformer</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th>Model</th><th>Best For</th></tr></thead><tbody><tr class="g1"><td><strong><abbr title="recurrent neural network">RNN</abbr></strong></td><td>Very short sequences, simple tasks, educational purposes</td></tr><tr class="g0"><td><strong><abbr title="long short-term memory">LSTM</abbr></strong></td><td>Medium-long sequences, time series, when order matters a lot</td></tr><tr class="g1"><td><strong><abbr title="gated recurrent unit">GRU</abbr></strong></td><td>Same as LSTM but need faster training / less data</td></tr><tr class="g0"><td><strong>Transformer</strong></td><td>Long sequences, large datasets, <abbr title="natural language processing">NLP</abbr>, any task with enough compute</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-112"><div class="q-h"><span class="q-n">&bull;</span><h3>Parameter Count Example (hidden_size=256, input_size=128)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-112"><span></span></label></div><div class="q-a"><pre class="code"><code>RNN:         1 × (256² + 256×128 + 256) = 98,560
 LSTM:        4 × (256² + 256×128 + 256) = 394,240
 GRU:         3 × (256² + 256×128 + 256) = 295,680
 Transformer: Much more (attention + FFN + embeddings)
-             ~10M+ for a small model</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>8. Real-Time Project: House Price Prediction (ANN)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><pre class="code" data-lang="python"><code><span class="str">"""
+             ~10M+ for a small model</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="frnnlstmgrutran-p7"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>8. Real-Time Project: House Price Prediction (ANN)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><pre class="code" data-lang="python"><code><span class="str">"""
 House Price Prediction using ANN
 Real-world regression problem with tabular data.
 Run: pip install torch numpy scikit-learn
@@ -1631,7 +1979,7 @@ model.<span class="fn">eval</span>()
     actual = y_test_t[i].<span class="fn">item</span>()
     predicted = predictions[i].<span class="fn">item</span>()
     <span class="fn">print</span>(f<span class="str">"  Actual: ${actual*100000:.0f} | Predicted: ${predicted*100000:.0f} | "</span>
-          f<span class="str">"Error: ${abs(actual-predicted)*100000:.0f}"</span>)</code></pre></div><div class="parthead"><span>9. Real-Time Project: Sentiment Analysis (All 4 Models)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>A complete, runnable project comparing all four architectures on IMDB movie reviews.</p>
+          f<span class="str">"Error: ${abs(actual-predicted)*100000:.0f}"</span>)</code></pre></div><div class="parthead" id="frnnlstmgrutran-p8"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>9. Real-Time Project: Sentiment Analysis (All 4 Models)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>A complete, runnable project comparing all four architectures on IMDB movie reviews.</p>
 <pre class="code" data-lang="python"><code><span class="str">"""
 Sentiment Analysis on IMDB Reviews — RNN vs LSTM vs GRU vs Transformer
 Run: pip install torch torchtext torchdata
@@ -1837,7 +2185,7 @@ models = {
 test_review = <span class="str">"This was an amazing and wonderful movie experience"</span>
 <span class="fn">print</span>(f<span class="str">"\nReview: '{test_review}'"</span>)
 <span class="kw">for</span> name, model <span class="kw">in</span> models.<span class="fn">items</span>():
-    <span class="fn">print</span>(f<span class="str">"  {name}: {predict_sentiment(model, test_review, vocab)}"</span>)</code></pre></div><div class="parthead"><span>10. Real-Time Project: Stock Price Prediction (RNN/LSTM/GRU)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><pre class="code" data-lang="python"><code><span class="str">"""
+    <span class="fn">print</span>(f<span class="str">"  {name}: {predict_sentiment(model, test_review, vocab)}"</span>)</code></pre></div><div class="parthead" id="frnnlstmgrutran-p9"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-layers"/></svg>10. Real-Time Project: Stock Price Prediction (RNN/LSTM/GRU)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><pre class="code" data-lang="python"><code><span class="str">"""
 Stock Price Prediction using LSTM/GRU
 Uses sliding window of past 60 days to predict next day's closing price.
 Run: pip install torch numpy matplotlib
@@ -1965,7 +2313,7 @@ gru_rmse, gru_mae = <span class="fn">evaluate</span>(gru_model, X_test, y_test)
 
 <span class="fn">print</span>(f<span class="str">"\nResults:"</span>)
 <span class="fn">print</span>(f<span class="str">"  LSTM — RMSE: {lstm_rmse:.4f}, MAE: ${lstm_mae:.2f}"</span>)
-<span class="fn">print</span>(f<span class="str">"  GRU  — RMSE: {gru_rmse:.4f}, MAE: ${gru_mae:.2f}"</span>)</code></pre></div><div class="parthead"><span>11. Real-Time Project: Machine Translation (Transformer)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><pre class="code" data-lang="python"><code><span class="str">"""
+<span class="fn">print</span>(f<span class="str">"  GRU  — RMSE: {gru_rmse:.4f}, MAE: ${gru_mae:.2f}"</span>)</code></pre></div><div class="parthead" id="frnnlstmgrutran-p10"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-message"/></svg>11. Real-Time Project: Machine Translation (Transformer)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><pre class="code" data-lang="python"><code><span class="str">"""
 Simple English → French Translator using Transformer (Seq2Seq)
 Demonstrates Encoder-Decoder architecture from scratch.
 """</span>
@@ -2121,7 +2469,7 @@ test_sentences = [<span class="str">"i am a student"</span>, <span class="str">"
 <span class="kw">for</span> sent <span class="kw">in</span> test_sentences:
     translation = <span class="fn">translate</span>(model, sent, en_vocab, fr_vocab, fr_idx2word)
     <span class="fn">print</span>(f<span class="str">"  EN: {sent}"</span>)
-    <span class="fn">print</span>(f<span class="str">"  FR: {translation}\n"</span>)</code></pre></div><div class="parthead"><span>12. Interview Questions &amp; Answers</span><i></i></div><article class="q" id="frnnlstmgrutran-113"><div class="q-h"><span class="q-n">&bull;</span><h3>Fundamentals</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-113"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Forward propagation</span><span class="kt">Loss calculation</span><span class="kt">Backpropagation</span><span class="kt">Weight update</span><span class="kt">2+ hidden layers</span><span class="kt">hierarchical features</span></div><p><strong>Q0: What is an <abbr title="approximate nearest neighbour">ANN</abbr> and how does it learn?</strong></p>
+    <span class="fn">print</span>(f<span class="str">"  FR: {translation}\n"</span>)</code></pre></div><div class="parthead" id="frnnlstmgrutran-p11"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>12. Interview Questions &amp; Answers</span><i></i></div><article class="q" id="frnnlstmgrutran-113"><div class="q-h"><span class="q-n">&bull;</span><h3>Fundamentals</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-113"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Forward propagation</span><span class="kt">Loss calculation</span><span class="kt">Backpropagation</span><span class="kt">Weight update</span><span class="kt">2+ hidden layers</span><span class="kt">hierarchical features</span></div><p><strong>Q0: What is an <abbr title="approximate nearest neighbour">ANN</abbr> and how does it learn?</strong></p>
 <p>An ANN is a network of artificial neurons organized in layers (input → hidden → output). It learns through:
 1. <strong>Forward propagation</strong>: Input data flows through the network, producing predictions.
 2. <strong>Loss calculation</strong>: Compare predictions with actual values.
@@ -2307,8 +2655,10 @@ Pre-LayerNorm is more stable for deep models and is used in GPT-2, LLaMA, etc.</
 <p><strong>End of Guide</strong> — Covers <abbr title="approximate nearest neighbour">ANN</abbr> → RNN → LSTM → GRU → Transformer theory, math, code, and interview prep.</p>
 </div></div><button class="reveal">Reveal answer</button></article></section>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<nav class="pnav"><a class="prev" href="fundamentals.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrowl"/></svg><span class="pnav-t"><span>Previous</span><b>Fundamentals</b></span></a><a class="next" href="practice-a.html"><span class="pnav-t"><span>Next</span><b>Practice 1</b></span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></a></nav>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
 </div></main>
+<aside class="toc" id="toc"><div class="toc-h"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>On this page</div><div class="toc-g" data-for="fannmd"><b>ANN</b><a href="#fannmd-0" data-c="fannmd-0">TL;DR (quick reference)</a><a href="#fannmd-1" data-c="fannmd-1">1. Definition</a><a href="#fannmd-2" data-c="fannmd-2">2. Intuition &amp; how it works</a><a href="#fannmd-3" data-c="fannmd-3">3. Mathematical formulation</a><a href="#fannmd-4" data-c="fannmd-4">4. Key components</a><a href="#fannmd-5" data-c="fannmd-5">5. Failure modes &amp; fixes</a><a href="#fannmd-6" data-c="fannmd-6">6. Advantages &amp; disadvantages</a><a href="#fannmd-7" data-c="fannmd-7">7. Complexity &amp; parameter count</a><a href="#fannmd-8" data-c="fannmd-8">8. Key hyperparameters</a><a href="#fannmd-9" data-c="fannmd-9">9. In PyTorch</a><a href="#fannmd-10" data-c="fannmd-10">10. Comparison</a><a href="#fannmd-11" data-c="fannmd-11">11. Interview deep dive</a><a href="#fannmd-12" data-c="fannmd-12">12. Common mistakes &amp; best practices</a><a href="#fannmd-13" data-c="fannmd-13">13. One-paragraph summary</a></div><div class="toc-g" data-for="fcnnmd"><b>CNN</b><a href="#fcnnmd-14" data-c="fcnnmd-14">TL;DR (quick reference)</a><a href="#fcnnmd-15" data-c="fcnnmd-15">1. Definition</a><a href="#fcnnmd-16" data-c="fcnnmd-16">2. Intuition &amp; how it works</a><a href="#fcnnmd-17" data-c="fcnnmd-17">3. Mathematical formulation</a><a href="#fcnnmd-18" data-c="fcnnmd-18">4. Architecture lineage (key milestones)</a><a href="#fcnnmd-19" data-c="fcnnmd-19">5. Failure modes &amp; fixes</a><a href="#fcnnmd-20" data-c="fcnnmd-20">6. Advantages &amp; disadvantages</a><a href="#fcnnmd-21" data-c="fcnnmd-21">7. Complexity &amp; parameter count</a><a href="#fcnnmd-22" data-c="fcnnmd-22">8. Key hyperparameters</a><a href="#fcnnmd-23" data-c="fcnnmd-23">9. In PyTorch</a><a href="#fcnnmd-24" data-c="fcnnmd-24">10. Comparison</a><a href="#fcnnmd-25" data-c="fcnnmd-25">11. Interview deep dive</a><a href="#fcnnmd-26" data-c="fcnnmd-26">12. Common mistakes &amp; best practices</a><a href="#fcnnmd-27" data-c="fcnnmd-27">13. One-paragraph summary</a></div><div class="toc-g" data-for="fgrumd"><b>GRU</b><a href="#fgrumd-28" data-c="fgrumd-28">TL;DR (quick reference)</a><a href="#fgrumd-29" data-c="fgrumd-29">1. Definition</a><a href="#fgrumd-30" data-c="fgrumd-30">2. Intuition &amp; how it works</a><a href="#fgrumd-31" data-c="fgrumd-31">3. Mathematical formulation</a><a href="#fgrumd-32" data-c="fgrumd-32">4. GRU vs LSTM (the canonical comparison)</a><a href="#fgrumd-33" data-c="fgrumd-33">5. Failure modes &amp; fixes</a><a href="#fgrumd-34" data-c="fgrumd-34">6. Advantages &amp; disadvantages</a><a href="#fgrumd-35" data-c="fgrumd-35">7. Complexity &amp; parameter count</a><a href="#fgrumd-36" data-c="fgrumd-36">8. Key hyperparameters</a><a href="#fgrumd-37" data-c="fgrumd-37">9. In PyTorch</a><a href="#fgrumd-38" data-c="fgrumd-38">10. Comparison</a><a href="#fgrumd-39" data-c="fgrumd-39">11. Interview deep dive</a><a href="#fgrumd-40" data-c="fgrumd-40">12. Common mistakes &amp; best practices</a><a href="#fgrumd-41" data-c="fgrumd-41">13. One-paragraph summary</a></div><div class="toc-g" data-for="flstmmd"><b>LSTM</b><a href="#flstmmd-42" data-c="flstmmd-42">TL;DR (quick reference)</a><a href="#flstmmd-43" data-c="flstmmd-43">1. Definition</a><a href="#flstmmd-44" data-c="flstmmd-44">2. Intuition &amp; how it works</a><a href="#flstmmd-45" data-c="flstmmd-45">3. Mathematical formulation</a><a href="#flstmmd-46" data-c="flstmmd-46">4. Variants</a><a href="#flstmmd-47" data-c="flstmmd-47">5. Failure modes &amp; fixes</a><a href="#flstmmd-48" data-c="flstmmd-48">6. Advantages &amp; disadvantages</a><a href="#flstmmd-49" data-c="flstmmd-49">7. Complexity &amp; parameter count</a><a href="#flstmmd-50" data-c="flstmmd-50">8. Key hyperparameters</a><a href="#flstmmd-51" data-c="flstmmd-51">9. In PyTorch</a><a href="#flstmmd-52" data-c="flstmmd-52">10. Comparison</a><a href="#flstmmd-53" data-c="flstmmd-53">11. Interview deep dive</a><a href="#flstmmd-54" data-c="flstmmd-54">12. Common mistakes &amp; best practices</a><a href="#flstmmd-55" data-c="flstmmd-55">13. One-paragraph summary</a></div><div class="toc-g" data-for="frnnmd"><b>RNN</b><a href="#frnnmd-56" data-c="frnnmd-56">TL;DR (quick reference)</a><a href="#frnnmd-57" data-c="frnnmd-57">1. Definition</a><a href="#frnnmd-58" data-c="frnnmd-58">2. Intuition &amp; how it works</a><a href="#frnnmd-59" data-c="frnnmd-59">3. Mathematical formulation</a><a href="#frnnmd-60" data-c="frnnmd-60">4. Variants</a><a href="#frnnmd-61" data-c="frnnmd-61">5. Failure modes &amp; fixes</a><a href="#frnnmd-62" data-c="frnnmd-62">6. Advantages &amp; disadvantages</a><a href="#frnnmd-63" data-c="frnnmd-63">7. Complexity &amp; parameter count</a><a href="#frnnmd-64" data-c="frnnmd-64">8. Key hyperparameters</a><a href="#frnnmd-65" data-c="frnnmd-65">9. In PyTorch</a><a href="#frnnmd-66" data-c="frnnmd-66">10. Comparison</a><a href="#frnnmd-67" data-c="frnnmd-67">11. Interview deep dive</a><a href="#frnnmd-68" data-c="frnnmd-68">12. Common mistakes &amp; best practices</a><a href="#frnnmd-69" data-c="frnnmd-69">13. One-paragraph summary</a></div><div class="toc-g" data-for="frnnlstmgrutran"><b>rnn lstm gru transformer guide</b><a href="#frnnlstmgrutran-70" data-c="frnnlstmgrutran-70">Why do we need special architectures for sequences?</a><a href="#frnnlstmgrutran-71" data-c="frnnlstmgrutran-71">2.1 What Is an ANN?</a><a href="#frnnlstmgrutran-72" data-c="frnnlstmgrutran-72">2.2 How a Single Neuron Works</a><a href="#frnnlstmgrutran-73" data-c="frnnlstmgrutran-73">2.3 Activation Functions</a><a href="#frnnlstmgrutran-74" data-c="frnnlstmgrutran-74">2.4 Forward Propagation</a><a href="#frnnlstmgrutran-75" data-c="frnnlstmgrutran-75">2.5 Loss Functions</a><a href="#frnnlstmgrutran-76" data-c="frnnlstmgrutran-76">2.6 Backpropagation</a><a href="#frnnlstmgrutran-77" data-c="frnnlstmgrutran-77">2.7 Optimizers</a><a href="#frnnlstmgrutran-78" data-c="frnnlstmgrutran-78">2.8 Regularization (Preventing Overfitting)</a><a href="#frnnlstmgrutran-79" data-c="frnnlstmgrutran-79">2.9 ANN in PyTorch (Complete Example)</a><a href="#frnnlstmgrutran-80" data-c="frnnlstmgrutran-80">2.10 ANN vs CNN vs RNN</a><a href="#frnnlstmgrutran-81" data-c="frnnlstmgrutran-81">2.1 Concept</a><a href="#frnnlstmgrutran-82" data-c="frnnlstmgrutran-82">2.2 Mathematical Formulation</a><a href="#frnnlstmgrutran-83" data-c="frnnlstmgrutran-83">2.3 Real-Time Example: Next Character Prediction</a><a href="#frnnlstmgrutran-84" data-c="frnnlstmgrutran-84">2.4 Problems with Vanilla RNN</a><a href="#frnnlstmgrutran-85" data-c="frnnlstmgrutran-85">2.5 RNN in PyTorch</a><a href="#frnnlstmgrutran-86" data-c="frnnlstmgrutran-86">2.6 Types of RNN Architectures</a><a href="#frnnlstmgrutran-87" data-c="frnnlstmgrutran-87">3.1 Motivation</a><a href="#frnnlstmgrutran-88" data-c="frnnlstmgrutran-88">3.2 Architecture</a><a href="#frnnlstmgrutran-89" data-c="frnnlstmgrutran-89">3.3 The Three Gates + Cell State</a><a href="#frnnlstmgrutran-90" data-c="frnnlstmgrutran-90">3.4 Complete Walkthrough: Sentiment Analysis</a><a href="#frnnlstmgrutran-91" data-c="frnnlstmgrutran-91">3.5 Why LSTM Solves Vanishing Gradient</a><a href="#frnnlstmgrutran-92" data-c="frnnlstmgrutran-92">3.6 LSTM in PyTorch</a><a href="#frnnlstmgrutran-93" data-c="frnnlstmgrutran-93">3.7 Bidirectional LSTM</a><a href="#frnnlstmgrutran-94" data-c="frnnlstmgrutran-94">4.1 Motivation</a><a href="#frnnlstmgrutran-95" data-c="frnnlstmgrutran-95">4.2 Architecture</a><a href="#frnnlstmgrutran-96" data-c="frnnlstmgrutran-96">4.3 Mathematical Formulation</a><a href="#frnnlstmgrutran-97" data-c="frnnlstmgrutran-97">4.4 LSTM vs GRU Comparison</a><a href="#frnnlstmgrutran-98" data-c="frnnlstmgrutran-98">4.5 Real-Time Example: Weather Prediction</a><a href="#frnnlstmgrutran-99" data-c="frnnlstmgrutran-99">4.6 GRU in PyTorch</a><a href="#frnnlstmgrutran-100" data-c="frnnlstmgrutran-100">5.1 Motivation: The Problems with RNN/LSTM/GRU</a><a href="#frnnlstmgrutran-101" data-c="frnnlstmgrutran-101">5.2 High-Level Architecture</a><a href="#frnnlstmgrutran-102" data-c="frnnlstmgrutran-102">5.3 Self-Attention Mechanism — The Core Innovation</a><a href="#frnnlstmgrutran-103" data-c="frnnlstmgrutran-103">5.4 Multi-Head Attention</a><a href="#frnnlstmgrutran-104" data-c="frnnlstmgrutran-104">5.5 Positional Encoding</a><a href="#frnnlstmgrutran-105" data-c="frnnlstmgrutran-105">5.6 Encoder Block</a><a href="#frnnlstmgrutran-106" data-c="frnnlstmgrutran-106">5.7 Decoder Block</a><a href="#frnnlstmgrutran-107" data-c="frnnlstmgrutran-107">5.8 Masked Self-Attention (Causal Mask)</a><a href="#frnnlstmgrutran-108" data-c="frnnlstmgrutran-108">5.9 Transformer in PyTorch</a><a href="#frnnlstmgrutran-109" data-c="frnnlstmgrutran-109">5.10 Real-Time Example: Translation ("I love AI" → "मुझे AI पसंद है")</a><a href="#frnnlstmgrutran-110" data-c="frnnlstmgrutran-110">Architecture Comparison</a><a href="#frnnlstmgrutran-111" data-c="frnnlstmgrutran-111">When to Use What</a><a href="#frnnlstmgrutran-112" data-c="frnnlstmgrutran-112">Parameter Count Example (hidden_size=256, input_size=128)</a><a href="#frnnlstmgrutran-113" data-c="frnnlstmgrutran-113">Fundamentals</a><a href="#frnnlstmgrutran-114" data-c="frnnlstmgrutran-114">LSTM</a><a href="#frnnlstmgrutran-115" data-c="frnnlstmgrutran-115">GRU</a><a href="#frnnlstmgrutran-116" data-c="frnnlstmgrutran-116">Transformer</a><a href="#frnnlstmgrutran-117" data-c="frnnlstmgrutran-117">Comparison &amp; Advanced</a></div></aside>
 </div>
 <button class="totop" id="totop" title="Back to top">&#8593;</button>
 <script>
@@ -2349,29 +2699,44 @@ var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementBy
 qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
 function runSearch(){
   if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
-  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
-    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;});
+  /* a heading survives the filter only while something under it is still showing */
   [].forEach.call(document.querySelectorAll('.parthead'),function(p){
-    if(!v){p.style.display='';return}
-    var vis=false,n=p.nextElementSibling;
-    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
-    p.style.display=vis?'':'none';});
+    var vis=true;
+    if(v){
+      vis=false;
+      var n=p.nextElementSibling;
+      while(n&&!n.classList.contains('parthead')){
+        if(n.classList.contains('q')&&n.style.display!=='none'){vis=true;break}
+        n=n.nextElementSibling;
+      }
+    }
+    p.style.display=vis?'':'none';
+    if(p.id){var l=document.querySelector('nav a[data-t="'+p.id+'"]');
+      if(l)l.style.display=vis?'':'none';}
+  });
   if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
 }
 if(inp)inp.addEventListener('input',runSearch);
 
-var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+/* The sidebar lists main headings only, so scroll tracking follows those headings
+   (data-t -> element id) rather than one entry per question card. */
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-t]'));
+var navTargets=navLinks.map(function(l){return document.getElementById(l.getAttribute('data-t'))});
 var totop=document.getElementById('totop');
 function onScroll(){
   var sc=document.documentElement.scrollTop;
   if(totop)totop.classList.toggle('show',sc>600);
-  var cur=null;
-  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
-    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  var cur=-1;
+  for(var i=0;i<navTargets.length;i++){
+    var el=navTargets[i];
+    if(!el||el.offsetParent===null)continue;
+    if(el.getBoundingClientRect().top<=140)cur=i;else break;
+  }
   navLinks.forEach(function(l){l.classList.remove('active')});
-  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
-    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
-      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+  if(cur>=0){var l=navLinks[cur];
+    l.classList.add('active');var r=l.getBoundingClientRect();
+    if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}
 }
 window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
@@ -2422,6 +2787,43 @@ document.addEventListener('keydown',function(e){
     });
     pre.appendChild(b);
   });
+})();
+
+/* Right-hand rail: reveal the group for the file section being read, and mark the
+   card in view. Scrolling is done on the rail itself - scrollIntoView would drag the
+   window along with it. */
+(function(){
+  var toc=document.getElementById('toc'); if(!toc)return;
+  document.body.classList.add('js');
+  var groups=[].slice.call(toc.querySelectorAll('.toc-g'));
+  if(!groups.length)return;
+  var secs=groups.map(function(g){return document.getElementById(g.getAttribute('data-for'))});
+  var links=groups.map(function(g){return [].slice.call(g.querySelectorAll('a[data-c]'))});
+  var curG=-1;
+  function upd(){
+    var i,g=-1;
+    for(i=0;i<secs.length;i++){
+      var el=secs[i]; if(!el)continue;
+      if(el.getBoundingClientRect().top<=160)g=i; else break;
+    }
+    if(g<0)g=0;
+    if(g!==curG){groups.forEach(function(x,k){x.classList.toggle('on',k===g)});curG=g;}
+    var ls=links[g]||[],act=null;
+    for(i=0;i<ls.length;i++){
+      var t=document.getElementById(ls[i].getAttribute('data-c'));
+      if(!t||t.style.display==='none')continue;
+      if(t.getBoundingClientRect().top<=160)act=ls[i]; else break;
+    }
+    ls.forEach(function(a){a.classList.remove('on')});
+    if(act){
+      act.classList.add('on');
+      var top=act.offsetTop,h=act.offsetHeight;
+      if(top<toc.scrollTop+8||top+h>toc.scrollTop+toc.clientHeight-8)
+        toc.scrollTop=top-toc.clientHeight/2+h/2;
+    }
+  }
+  addEventListener('scroll',upd,{passive:true});
+  addEventListener('resize',upd); upd();
 })();
 
 /* deep link on each question card */

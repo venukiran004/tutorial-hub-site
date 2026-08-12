@@ -509,9 +509,358 @@ body.searching .parthead{opacity:.5}
 
 @media(max-width:1060px){ .parthead{top:0} }
 
+/* =====================================================================
+   AURORA GLASS
+   The final layer. Everything below re-tints the sheet above it: a deep
+   near-black canvas lit by a fixed gradient mesh, with the chrome and the
+   cards reading as frosted panels floating on top of it.
+   ===================================================================== */
+
+:root{
+  --bg:#070a12; --bg-2:#0a0e18;
+  --surface:#0f131e; --surface-2:#141a27; --surface-3:#1c2333;
+  --border:#232c40; --border-soft:#19202f;
+  --ink:#eaf0fb; --ink-2:#9fabc4; --ink-mut:#6b7690;
+
+  --accent:#7c9dff; --accent-2:#b18cff;
+  --accent-soft:rgba(124,157,255,.15); --accent-bd:rgba(124,157,255,.40);
+  --t-rag:#7c9dff; --t-agentic:#ff9563; --t-recall:#3ed9a4;
+  --t-violet:#b18cff; --t-amber:#f0c274;
+  --good:#3ed9a4; --warn:#f5c451; --crit:#ff6b81;
+  --good-soft:rgba(62,217,164,.12); --warn-soft:rgba(245,196,81,.12);
+  --crit-soft:rgba(255,107,129,.12);
+  --code-bg:#080b13;
+
+  --glass:rgba(255,255,255,.045);
+  --glass-bd:rgba(255,255,255,.075);
+  --e1:0 1px 2px rgba(0,0,0,.40);
+  --e2:0 8px 26px rgba(3,6,15,.55);
+  --e3:0 22px 60px rgba(3,6,15,.68);
+  --radius:16px; --radius-sm:11px;
+}
+html[data-theme="light"]{
+  --bg:#f6f8fe; --bg-2:#eef2fb;
+  --surface:#fff; --surface-2:#fafbff; --surface-3:#eef2fb;
+  --border:#dce3f2; --border-soft:#e9edf8;
+  --ink:#111828; --ink-2:#4c586f; --ink-mut:#7c8699;
+
+  --accent:#4f6fe6; --accent-2:#8b5cf6;
+  --accent-soft:rgba(79,111,230,.10); --accent-bd:rgba(79,111,230,.34);
+  --t-rag:#4f6fe6; --t-agentic:#e0663a; --t-recall:#0f9e74;
+  --t-violet:#8b5cf6; --t-amber:#a9760a;
+  --good:#0f9e74; --warn:#b07d00; --crit:#dc3d55;
+  --good-soft:rgba(15,158,116,.10); --warn-soft:rgba(176,125,0,.11);
+  --crit-soft:rgba(220,61,85,.09);
+  --code-bg:#f2f5fc;
+
+  --glass:rgba(255,255,255,.62);
+  --glass-bd:rgba(17,24,40,.07);
+  --e1:0 1px 2px rgba(16,24,40,.05);
+  --e2:0 8px 24px rgba(16,24,40,.08);
+  --e3:0 22px 56px rgba(16,24,40,.12);
+}
+
+/* ---------- the canvas ---------- */
+/* the page background lives on <html> so the fixed aurora layer can sit
+   between it and the content without the body's own fill covering it */
+html{background:var(--bg)}
+body{background:transparent}
+
+/* Ambient tint on every page: strongest at the top edge, gone by mid-scroll, so
+   long reading pages settle onto clean dark instead of a permanent wash. */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 22% -6%, color-mix(in srgb,var(--accent) 46%,transparent), transparent 66%),
+    radial-gradient(38% 32% at 82% -8%, color-mix(in srgb,var(--accent-2) 40%,transparent), transparent 64%);
+  filter:blur(30px) saturate(1.3);opacity:.5;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%);
+          mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%)}
+html[data-theme="light"] body::before{opacity:.5;filter:blur(36px) saturate(1)}
+
+/* film grain: keeps the large flat gradients from banding on cheap panels */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.032;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* multiply over a light canvas darkens fast - the grain has to be far weaker here
+   or the whole page reads grey instead of white */
+html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply}
+
+@keyframes aurora-drift{
+  from{transform:translate3d(0,0,0) scale(1)}
+  to{transform:translate3d(3%,-2.5%,0) scale(1.12)}
+}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:transparent;border-bottom:1px solid var(--border-soft)}
+.siteswitch a{color:var(--ink-mut)}
+.siteswitch a:hover{background:var(--glass);color:var(--ink)}
+.siteswitch a.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  box-shadow:0 3px 14px color-mix(in srgb,var(--accent) 40%,transparent)}
+.sitebar{background:color-mix(in srgb,var(--bg) 62%,transparent);
+  backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);
+  border-bottom:1px solid var(--glass-bd);box-shadow:0 1px 0 rgba(255,255,255,.03),var(--e1)}
+.logo b{background:linear-gradient(115deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{background:var(--glass);border:1px solid var(--glass-bd);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);border-radius:10px}
+.btn:hover{border-color:var(--accent-bd);color:var(--ink);
+  box-shadow:0 4px 16px color-mix(in srgb,var(--accent) 22%,transparent)}
+.btn.on{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,transparent),
+  color-mix(in srgb,var(--accent-2) 18%,transparent));border-color:var(--accent-bd);color:var(--accent)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 55%,transparent),transparent 60%);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-right:1px solid var(--glass-bd)}
+.sb-search input{background:var(--glass);border:1px solid var(--glass-bd);border-radius:11px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sb-search input:focus{border-color:var(--accent-bd);
+  box-shadow:0 0 0 3px var(--accent-soft),0 4px 18px color-mix(in srgb,var(--accent) 20%,transparent)}
+nav a:hover{background:var(--glass);color:var(--ink)}
+nav a.active{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 20%,transparent),transparent 78%);
+  box-shadow:inset 0 0 0 1px var(--accent-bd);color:var(--accent)}
+nav a.active::before{background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 10px var(--accent)}
+.nav-grp{color:var(--ink-mut)}
+
+/* ---------- hero ---------- */
+.hero::before{opacity:.72;filter:blur(38px)}
+.eyebrow{background:var(--glass);border:1px solid var(--glass-bd);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:var(--ink-2);font-weight:700}
+.hero h1{background:linear-gradient(112deg,var(--ink) 4%,
+    color-mix(in srgb,var(--accent) 88%,var(--ink)) 46%,
+    color-mix(in srgb,var(--accent-2) 92%,var(--ink)) 74%,
+    color-mix(in srgb,var(--t-recall) 70%,var(--ink)) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- surfaces: glass everywhere the old sheet used flat fills ---------- */
+.stat,.q,.tcard,.hub-card,.panel,.learn,figure.viz,.tbl-wrap,.flow,.learn-item{
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 72%,transparent));
+  border-color:var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+
+.stat{border-radius:14px}
+.stat::before{height:1.5px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),color-mix(in srgb,var(--tc,var(--accent)) 20%,transparent) 70%,transparent)}
+.stat:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 18%,transparent)}
+.stat-v{background:linear-gradient(150deg,var(--ink),var(--tc,var(--accent)));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 42%,transparent);box-shadow:var(--e2)}
+.q:target{box-shadow:0 0 0 3px var(--accent-soft),var(--e2)}
+.tcard:hover,.hub-card:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 22%,transparent)}
+
+/* the hover affordance was emitting a literal "92" - it wants to be an arrow */
+.tcard::after,.hub-card::after{content:"\2192"}
+
+figure.viz{border-radius:18px}
+pre.code{background:color-mix(in srgb,var(--code-bg) 88%,transparent);
+  border:1px solid var(--glass-bd);border-radius:13px;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.say{background:linear-gradient(100deg,color-mix(in srgb,var(--accent) 14%,transparent),transparent 72%);
+  border-left-color:var(--accent)}
+.kt{background:var(--glass);border-color:var(--glass-bd)}
+.kt:hover{border-color:var(--accent-bd);color:var(--accent)}
+.parthead{background:color-mix(in srgb,var(--bg) 66%,transparent);
+  backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5)}
+th{background:color-mix(in srgb,var(--surface-3) 82%,transparent)}
+
+/* ---------- right-hand "on this page" rail ---------- */
+:root{ --tocw:262px }
+.app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr) var(--tocw)}
+.toc{position:sticky;top:47px;align-self:start;height:calc(100vh - 47px);overflow-y:auto;
+  overscroll-behavior:contain;padding:22px 20px 60px;font-size:12.6px;
+  border-left:1px solid var(--glass-bd)}
+.toc::-webkit-scrollbar{width:7px}
+.toc::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.toc-h{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-mut);margin-bottom:12px}
+.toc-h svg.ic{font-size:13px;color:var(--tc,var(--accent))}
+/* one group per file section; the script shows the one you are reading */
+body.js .toc-g{display:none}
+body.js .toc-g.on{display:block}
+.toc-g > b{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tc,var(--accent));margin:0 0 9px;padding-left:11px}
+.toc-g a{display:block;padding:5px 10px 5px 12px;margin:1px 0;border-radius:7px;color:var(--ink-2);
+  text-decoration:none;line-height:1.42;border-left:2px solid transparent}
+.toc-g a:hover{background:var(--glass);color:var(--ink);text-decoration:none}
+.toc-g a.on{color:var(--accent);border-left-color:var(--accent);font-weight:650;
+  background:linear-gradient(90deg,var(--accent-soft),transparent 80%)}
+.toc-empty{color:var(--ink-mut);font-size:12px;padding-left:12px}
+@media(max-width:1400px){
+  .app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr)}
+  .toc{display:none}
+}
+
+/* ---------- breadcrumb ---------- */
+.crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.2px;color:var(--ink-mut);
+  padding-top:26px}
+.crumb a{color:var(--ink-mut);text-decoration:none}
+.crumb a:hover{color:var(--accent);text-decoration:none}
+.crumb svg.ic{font-size:12px;opacity:.5}
+.crumb b{color:var(--ink-2);font-weight:650}
+.crumb + .hero{padding-top:18px}
+.pnav-t{min-width:0}
+
+/* ---------- previous / next ---------- */
+.pnav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:64px 0 0}
+.pnav a{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:14px;
+  text-decoration:none;color:inherit;border:1px solid var(--glass-bd);
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 86%,transparent),
+    color-mix(in srgb,var(--surface-2) 66%,transparent))}
+.pnav a:hover{text-decoration:none;border-color:var(--accent-bd);box-shadow:var(--e2)}
+.pnav a.next{grid-column:2;justify-content:flex-end;text-align:right}
+.pnav a.prev{grid-column:1}
+.pnav span{display:block;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-mut)}
+.pnav b{display:block;margin-top:4px;font-size:14.5px;letter-spacing:-.02em;color:var(--ink)}
+.pnav svg.ic{font-size:18px;color:var(--accent);flex:none}
+@media(max-width:760px){
+  .pnav{grid-template-columns:1fr}
+  .pnav a.next,.pnav a.prev{grid-column:1}
+}
+
+/* ---------- section headers (shared by the hub and every topic index) ---------- */
+.h-sec-h{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.h-sec-h h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-mut);white-space:nowrap;display:flex;align-items:center;gap:9px;border:0;padding:0}
+.h-sec-h h2 svg.ic{font-size:15px;color:var(--accent);opacity:.9}
+.h-sec-h i{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- icons ---------- */
+.sprite{display:none}
+svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.13em}
+/* the boxed icon tile used by track rows, callouts and nav groups */
+.ic-box{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:44px;height:44px;border-radius:13px;font-size:20px;color:var(--tc,var(--accent));
+  background:linear-gradient(150deg,color-mix(in srgb,var(--tc,var(--accent)) 26%,transparent),
+    color-mix(in srgb,var(--tc,var(--accent)) 8%,transparent));
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.ic-sm{width:30px;height:30px;border-radius:9px;font-size:15px}
+
+/* ---------- topic index: learning-track rows ---------- */
+.trk{display:flex;flex-direction:column;gap:11px;margin:40px 0 0}
+.trk-row{position:relative;display:flex;align-items:center;gap:17px;padding:17px 19px;
+  border-radius:15px;text-decoration:none;color:inherit;overflow:hidden;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--surface) 90%,transparent),
+    color-mix(in srgb,var(--surface-2) 68%,transparent));
+  border:1px solid var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.trk-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tc)}
+.trk-row:hover{text-decoration:none;transform:translateX(3px);
+  border-color:color-mix(in srgb,var(--tc) 46%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc) 18%,transparent)}
+.trk-b{min-width:0;flex:1}
+.trk-b b{display:block;font-size:16.5px;letter-spacing:-.022em;color:var(--ink);font-weight:750}
+.trk-b b i{font-style:normal;color:var(--ink-mut);font-weight:600;margin-right:3px}
+.trk-b p{margin:4px 0 0;font-size:13.2px;line-height:1.5;color:var(--ink-2)}
+.trk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.trk-chips span{font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.trk-row:hover .trk-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+.trk-meta{display:flex;align-items:center;gap:8px;flex:none;font-size:11.5px;
+  font-family:var(--mono);color:var(--tc);white-space:nowrap}
+.trk-meta i{font-style:normal;opacity:.45}
+.trk-go{flex:none;font-size:19px;color:var(--ink-mut);display:inline-flex}
+.trk-row:hover .trk-go{color:var(--tc);transform:translateX(2px)}
+@media(prefers-reduced-motion:no-preference){
+  .trk-row,.trk-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,color .18s ease}
+}
+@media(max-width:820px){
+  .trk-row{flex-wrap:wrap;gap:13px}
+  .trk-meta{order:3;width:100%}
+  .trk-go{display:none}
+}
+
+/* ---------- sidebar nav with icons ---------- */
+.nav-grp{display:flex;align-items:center;gap:8px}
+.nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
+nav a svg.ic{font-size:14px;opacity:.6}
+nav a.active svg.ic{opacity:1}
+/* file = main heading, named part = its only sub-entry */
+nav a.nav-file{margin-top:13px;font-size:13px;font-weight:750;color:var(--ink);align-items:center}
+nav a.nav-file svg.ic{color:var(--tc,var(--accent));opacity:.95}
+nav a.nav-sub{padding-left:30px;font-size:12.2px;position:relative}
+nav a.nav-sub::after{content:"";position:absolute;left:16px;top:50%;width:5px;height:5px;
+  margin-top:-2.5px;border-radius:50%;background:var(--ink-mut);opacity:.5}
+nav a.nav-sub.active::after{background:var(--accent);opacity:1}
+
+/* ---------- callouts with icons ---------- */
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key,.say{position:relative}
+.note-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;font-size:13px;margin-right:8px;vertical-align:-.35em;flex:none}
+.say-h svg.ic{font-size:13px}
+
+/* ---------- topic index: the landing page of each site ---------- */
+/* the reading measure is right for prose but starves a card grid, so an index
+   page widens its column and fits three across */
+.wrap:has(.idx-grid){max-width:1300px}
+.idx-hero{padding:58px 0 4px}
+.idx-hero h1{font-size:clamp(36px,4.8vw,56px);margin:18px 0 16px}
+.idx-hero .lede{font-size:17.5px;max-width:76ch;margin:0}
+
+.idx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;
+  margin:44px 0 0}
+.idx-card{position:relative;display:block;padding:22px 23px 20px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 70%,transparent));
+  border:1px solid var(--glass-bd);text-decoration:none;color:inherit;
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.idx-card::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc),transparent 80%)}
+.idx-card:hover{transform:translateY(-3px);text-decoration:none;
+  border-color:color-mix(in srgb,var(--tc) 48%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc) 20%,transparent)}
+.idx-card-h{display:flex;align-items:center;gap:11px}
+.idx-card-h h3{margin:0;font-size:18.5px;letter-spacing:-.026em;color:var(--ink);font-weight:750}
+.idx-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--tc);
+  box-shadow:0 0 10px var(--tc)}
+.idx-go{margin-left:auto;font-size:16px;color:var(--tc);opacity:0;transform:translateX(-5px);flex:none}
+.idx-card:hover .idx-go{opacity:1;transform:translateX(0)}
+.idx-card p{margin:11px 0 0;font-size:13.4px;line-height:1.6;color:var(--ink-2)}
+.idx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}
+.idx-chips span{font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.idx-card:hover .idx-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+@media(prefers-reduced-motion:no-preference){
+  .idx-card,.idx-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,opacity .18s ease}
+}
+
+/* ---------- file section headers ---------- */
+/* .fh-top's spans had no rules at all, so the name and the count ran together as
+   one unstyled line. It reads as an eyebrow row above the file title. */
+.filehead{margin:56px 0 16px}
+.fh-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px}
+.fh-num{font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--tc,var(--accent));padding:4px 12px;border-radius:999px;
+  background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.fh-count{font-family:var(--mono);font-size:10.5px;color:var(--ink-mut);padding:4px 11px;
+  border-radius:999px;background:var(--glass);border:1px solid var(--glass-bd)}
+.filehead h2{font-size:28px;letter-spacing:-.032em;margin:0}
+
+/* ---------- detail ---------- */
+::selection{background:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--ink)}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-bd);background-clip:padding-box}
+#rprog{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--t-recall));
+  box-shadow:0 0 14px color-mix(in srgb,var(--accent) 70%,transparent)}
+.totop{background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 8px 26px color-mix(in srgb,var(--accent) 45%,transparent)}
+.totop:hover{transform:translateY(-2px)}
+
 </style>
 </head>
 <body>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol><symbol id="i-arrowl" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol><symbol id="i-branch" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol><symbol id="i-bulb" viewBox="0 0 24 24"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2z"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol><symbol id="i-code" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></symbol><symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol><symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 2v6.5L4.2 17A2 2 0 0 0 6 20h12a2 2 0 0 0 1.8-3L15 8.5V2"/><line x1="8" y1="2" x2="16" y2="2"/><line x1="7" y1="14" x2="17" y2="14"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol><symbol id="i-network" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></symbol><symbol id="i-package" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol><symbol id="i-sigma" viewBox="0 0 24 24"><path d="M18 4H6l6 8-6 8h12"/></symbol><symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol><symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol><symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol></svg>
 <div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
   <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw" href="../03_Data_Handling/index.html">03 Data</a><a class="sw" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw on" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw" href="../11_System_Design/index.html">11 Sys Design</a>
 </div></div><div class="sitebar-in">
@@ -523,20 +872,19 @@ body.searching .parthead{opacity:.5}
   <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
   <button class="btn" id="themeBtn">Dark</button>
 </div></div>
-<div class="app" style="--tc:var(--t-recall)">
+<div class="app has-toc" style="--tc:var(--t-recall)">
 <aside id="sidebar">
   <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
   <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
-  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><a href="#figs"><span class="qn">&#9635;</span>Diagrams</a><div class="nav-grp">03 &middot; Fine-tuning (LoRA/QLoRA)</div><a href="#f03FineTuningLL-0" data-q="f03FineTuningLL-0"><span class="qn">&bull;</span>Key Definitions (read first)</a><a href="#f03FineTuningLL-1" data-q="f03FineTuningLL-1"><span class="qn">&bull;</span>1. What is fine-tuning?</a><a href="#f03FineTuningLL-2" data-q="f03FineTuningLL-2"><span class="qn">&bull;</span>2. Why fine-tune? (vs RAG &amp; prompt engineering)</a><a href="#f03FineTuningLL-3" data-q="f03FineTuningLL-3"><span class="qn">&bull;</span>3. How LoRA works — the one idea</a><a href="#f03FineTuningLL-4" data-q="f03FineTuningLL-4"><span class="qn">&bull;</span>4. The formula (and why <code>α/r</code>)</a><a href="#f03FineTuningLL-5" data-q="f03FineTuningLL-5"><span class="qn">&bull;</span>5. QLoRA — why it fits on one GPU</a><a href="#f03FineTuningLL-6" data-q="f03FineTuningLL-6"><span class="qn">&bull;</span>6. What happens during training</a><a href="#f03FineTuningLL-7" data-q="f03FineTuningLL-7"><span class="qn">&bull;</span>7. One complete example (step by step)</a><a href="#f03FineTuningLL-8" data-q="f03FineTuningLL-8"><span class="qn">&bull;</span>8. The settings that matter</a><a href="#f03FineTuningLL-9" data-q="f03FineTuningLL-9"><span class="qn">&bull;</span>9. Quick FAQ</a><div class="nav-grp">07 &middot; Training &amp; alignment</div><a href="#f07LLMTraininga-10" data-q="f07LLMTraininga-10"><span class="qn">&bull;</span>1. The optimum of the RLHF objective is a reweighted reference policy:</a><a href="#f07LLMTraininga-11" data-q="f07LLMTraininga-11"><span class="qn">&bull;</span>2. Invert it — solve for the reward:</a><a href="#f07LLMTraininga-12" data-q="f07LLMTraininga-12"><span class="qn">&bull;</span>Q1. Walk me through how a base model becomes ChatGPT.</a><a href="#f07LLMTraininga-13" data-q="f07LLMTraininga-13"><span class="qn">&bull;</span>Q2. Why not just do more SFT instead of RLHF/DPO?</a><a href="#f07LLMTraininga-14" data-q="f07LLMTraininga-14"><span class="qn">&bull;</span>Q3. Explain DPO's derivation.</a><a href="#f07LLMTraininga-15" data-q="f07LLMTraininga-15"><span class="qn">&bull;</span>Q4. What does β control in DPO, and what happens at the extremes?</a><a href="#f07LLMTraininga-16" data-q="f07LLMTraininga-16"><span class="qn">&bull;</span>Q5. Why does GRPO drop the value network, and what breaks if the group is homogeneous?</a><a href="#f07LLMTraininga-17" data-q="f07LLMTraininga-17"><span class="qn">&bull;</span>Q6. Your RLHF model scores great on the reward model but users say it got worse. Diagnose.</a><a href="#f07LLMTraininga-18" data-q="f07LLMTraininga-18"><span class="qn">&bull;</span>Q7. When would you use RLVR over DPO?</a><a href="#f07LLMTraininga-19" data-q="f07LLMTraininga-19"><span class="qn">&bull;</span>Q8. You fine-tuned on domain data and the model got worse at everything else. What now?</a><a href="#f07LLMTraininga-20" data-q="f07LLMTraininga-20"><span class="qn">&bull;</span>Q9. What's the difference between alignment and guardrails?</a><a href="#f07LLMTraininga-21" data-q="f07LLMTraininga-21"><span class="qn">&bull;</span>Q10. Rapid fire.</a></nav>
+  <nav><div class="nav-grp"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg>On this page</div><a href="#top" data-t="top"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compass"/></svg>Overview</a><a href="#figs" data-t="figs"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-image"/></svg>Diagrams</a><a class="nav-file" href="#f03FineTuningLL" data-t="f03FineTuningLL"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>03 &middot; Fine-tuning (LoRA/QLoRA)</a><a class="nav-file" href="#f07LLMTraininga" data-t="f07LLMTraininga"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>07 &middot; Training &amp; alignment</a><a class="nav-sub" href="#f07LLMTraininga-p0" data-t="f07LLMTraininga-p0">Key Definitions (read first)</a><a class="nav-sub" href="#f07LLMTraininga-p1" data-t="f07LLMTraininga-p1">0. The one idea</a><a class="nav-sub" href="#f07LLMTraininga-p2" data-t="f07LLMTraininga-p2">1. Stage 1 — Pretraining</a><a class="nav-sub" href="#f07LLMTraininga-p3" data-t="f07LLMTraininga-p3">2. Stage 2 — Supervised Fine-Tuning (SFT)</a><a class="nav-sub" href="#f07LLMTraininga-p4" data-t="f07LLMTraininga-p4">3. Stage 3a — The Reward Model</a><a class="nav-sub" href="#f07LLMTraininga-p5" data-t="f07LLMTraininga-p5">4. Stage 3b — RLHF with PPO</a><a class="nav-sub" href="#f07LLMTraininga-p6" data-t="f07LLMTraininga-p6">5. DPO — deleting the reward model</a><a class="nav-sub" href="#f07LLMTraininga-p7" data-t="f07LLMTraininga-p7">6. The DPO family — ORPO, KTO, SimPO, IPO</a><a class="nav-sub" href="#f07LLMTraininga-p8" data-t="f07LLMTraininga-p8">7. GRPO — deleting the critic</a><a class="nav-sub" href="#f07LLMTraininga-p9" data-t="f07LLMTraininga-p9">8. RLVR &amp; reasoning models</a><a class="nav-sub" href="#f07LLMTraininga-p10" data-t="f07LLMTraininga-p10">9. Test-time compute — the second scaling axis</a><a class="nav-sub" href="#f07LLMTraininga-p11" data-t="f07LLMTraininga-p11">10. Reward hacking &amp; overoptimization</a><a class="nav-sub" href="#f07LLMTraininga-p12" data-t="f07LLMTraininga-p12">11. RLAIF &amp; Constitutional AI</a><a class="nav-sub" href="#f07LLMTraininga-p13" data-t="f07LLMTraininga-p13">12. Distillation &amp; model merging</a><a class="nav-sub" href="#f07LLMTraininga-p14" data-t="f07LLMTraininga-p14">13. Choosing a method — decision guide</a><a class="nav-sub" href="#f07LLMTraininga-p15" data-t="f07LLMTraininga-p15">14. Evaluating an aligned model</a><a class="nav-sub" href="#f07LLMTraininga-p16" data-t="f07LLMTraininga-p16">15. Interview Deep Dive</a><a class="nav-sub" href="#f07LLMTraininga-p17" data-t="f07LLMTraininga-p17">Related</a></nav>
 </aside>
 <main><div class="wrap">
 
-<section class="hero" id="top"><div class="eyebrow">07_GenAI_and_LLMs &middot; Training</div>
-<h1>Training</h1><p class="lede">Fine-tuning, low-rank adaptation (LoRA), supervised fine-tuning (SFT), reinforcement learning from human feedback (RLHF), direct preference optimization (DPO), GRPO</p><div class="oneliner"><b>2 files</b> in this section, <b>22 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
-<div class="stats"><div class="stat"><div class="stat-v">2</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">22</div><div class="stat-l">sections</div></div></div></section>
-<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">Fine-tuning, low-rank adaptation (LoRA), supervised fine-tuning (SFT), reinforcement learning from human feedback (RLHF), direct preference optimization (DPO), GRPO</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>03 &middot; Fine-tuning (LoRA/QLoRA)</b><span class="learn-n">10 sections</span></div><div class="learn-tags"><span>Key Definitions (read first)</span><span>What is fine-tuning?</span><span>Why fine-tune? (vs RAG &amp; prompt engin…</span><span>How LoRA works — the one idea</span><span>The formula (and why `α/r`)</span></div></li><li class="learn-item"><div class="learn-top"><b>07 &middot; Training &amp; alignment</b><span class="learn-n">12 sections</span></div><div class="learn-tags"><span>Key Definitions (read first)</span><span>The one idea</span><span>Stage 1 — Pretraining</span><span>Stage 2 — Supervised Fine-Tuning (SFT)</span><span>Stage 3a — The Reward Model</span></div></li></ul></section>
+<nav class="crumb"><a href="../index.html">Home</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><a href="index.html">Generative AI &amp; LLMs</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><b>Training</b></nav>
+<section class="hero" id="top"><div class="eyebrow">GenAI and LLMs &middot; Training</div>
+<h1>Training</h1><p class="lede">Fine-tuning, low-rank adaptation (LoRA), supervised fine-tuning (SFT), reinforcement learning from human feedback (RLHF), direct preference optimization (DPO), GRPO</p><div class="oneliner"><b>2 files</b> in this section, <b>22 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div></section>
 <section class="sec" id="figs"><figure class="viz"><figcaption><b>Test-time compute &mdash; buying accuracy at inference instead of training</b><span>The second scaling axis: same weights, more thinking</span></figcaption><div class="viz-scroll"><svg viewBox="0 0 920 300" role="img" aria-label="Test-time compute &mdash; buying accuracy at inference instead of training"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-opacity="0.22"/></filter></defs><text x="10" y="22" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">ONE MODEL, FOUR WAYS TO SPEND MORE COMPUTE ON A HARD QUESTION</text><rect x="10" y="36" width="212" height="52" rx="10" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><text x="116" y="60.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Single pass</text><text x="116" y="74" text-anchor="middle" font-size="10" fill="var(--fig-mut)">generate once</text><rect x="76" y="94" width="80" height="20" rx="10" fill="var(--fig-surface-3)" stroke="var(--fig-good)"/><text x="116" y="108" text-anchor="middle" font-size="10.5" font-family="monospace" font-weight="800" fill="var(--fig-good)">1&times;</text><rect x="238" y="36" width="212" height="52" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><text x="344" y="60.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Longer CoT</text><text x="344" y="74" text-anchor="middle" font-size="10" fill="var(--fig-mut)">more thinking tokens</text><rect x="304" y="94" width="80" height="20" rx="10" fill="var(--fig-surface-3)" stroke="var(--fig-rag)"/><text x="344" y="108" text-anchor="middle" font-size="10.5" font-family="monospace" font-weight="800" fill="var(--fig-rag)">2&ndash;20&times;</text><rect x="466" y="36" width="212" height="52" rx="10" fill="var(--fig-surface)" stroke="var(--fig-accent)" stroke-width="1.5" filter="url(#sh)"/><text x="572" y="60.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Self-consistency</text><text x="572" y="74" text-anchor="middle" font-size="10" fill="var(--fig-mut)">sample N, majority vote</text><rect x="532" y="94" width="80" height="20" rx="10" fill="var(--fig-surface-3)" stroke="var(--fig-accent)"/><text x="572" y="108" text-anchor="middle" font-size="10.5" font-family="monospace" font-weight="800" fill="var(--fig-accent)">N&times;</text><rect x="694" y="36" width="212" height="52" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><text x="800" y="60.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Best-of-N</text><text x="800" y="74" text-anchor="middle" font-size="10" fill="var(--fig-mut)">sample N, verifier picks</text><rect x="760" y="94" width="80" height="20" rx="10" fill="var(--fig-surface-3)" stroke="var(--fig-agentic)"/><text x="800" y="108" text-anchor="middle" font-size="10.5" font-family="monospace" font-weight="800" fill="var(--fig-agentic)">N&times; + judge</text><text x="10" y="132" text-anchor="start" font-size="10" font-weight="600" fill="var(--fig-mut)">cost &rarr;</text><rect x="70" y="124" width="840" height="7" rx="3.5" fill="url(#grad)"/><defs><linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="var(--fig-good)"/><stop offset="1" stop-color="var(--fig-crit)"/></linearGradient></defs><text x="10" y="164" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">THE TRADE-OFF, WITH NUMBERS</text><rect x="10" y="176" width="440" height="52" rx="10" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><text x="230" y="200.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Small model + self-consistency@8</text><text x="230" y="214" text-anchor="middle" font-size="10" fill="var(--fig-mut)">~78% accuracy &middot; 8&times; cost</text><rect x="470" y="176" width="440" height="52" rx="10" fill="var(--fig-surface)" stroke="var(--fig-warn)" stroke-width="1.5" filter="url(#sh)"/><text x="690" y="200.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Large model, single sample</text><text x="690" y="214" text-anchor="middle" font-size="10" fill="var(--fig-mut)">~85% accuracy &middot; 20&times; cost</text><rect x="10" y="240" width="900" height="50" rx="9" fill="var(--fig-surface-2)" stroke="var(--fig-accent)"/><text x="27" y="261" font-size="11.5" fill="var(--fig-ink-2)"><tspan font-weight="800" fill="var(--fig-accent)">How to use it:</tspan> test-time compute is the cheapest quality lever you own because it needs <tspan font-weight='700'>no retraining</tspan> &mdash; but it trades latency for </text><text x="27" y="278" font-size="11.5" fill="var(--fig-ink-2)">accuracy, so it belongs on the hard tail of your traffic, not on every request.</text></svg></div></figure></section>
-<section class="filesec" id="f03FineTuningLL"><header class="filehead"><div class="fh-top"><span class="fh-num">03 &middot; Fine-tuning (LoRA/QLoRA)</span><span class="fh-count">10 sections</span><a class="fh-src" href="../../07_GenAI_and_LLMs/03_Fine_Tuning_LLM.md">source .md &#8599;</a></div><h2>Fine-Tuning LLMs with LoRA &amp; QLoRA — Simple Guide</h2><div class="note">
+<section class="filesec" id="f03FineTuningLL"><header class="filehead"><div class="fh-top"><span class="fh-num">03 &middot; Fine-tuning (LoRA/QLoRA)</span><span class="fh-count">10 sections</span></div><h2>Fine-Tuning LLMs with LoRA &amp; QLoRA — Simple Guide</h2><div class="note">
 <p>The simplest path to understanding fine-tuning: <strong>what</strong> it is, <strong>why</strong> you'd use it (instead of <abbr title="retrieval-augmented generation">RAG</abbr> or prompting), the <strong>one formula</strong> that matters (and why the <code>α/r</code> part exists), and <strong>one</strong> complete example you can actually run.</p>
 </div></header><article class="q" id="f03FineTuningLL-0"><div class="q-h"><span class="q-n">&bull;</span><h3>Key Definitions (read first)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03FineTuningLL-0"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Fine-tuning</span><span class="kt">Base vs instruct model</span><span class="kt">Full fine-tuning</span><span class="kt">PEFT</span><span class="kt">LoRA</span><span class="kt">Rank (r)</span></div><div class="note">
 <div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Term</th><th>Plain-language definition</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>Fine-tuning</strong></td><td>Continue training a model on your examples so a new <em>behavior</em> (style/format/skill) becomes baked into the weights.</td></tr><tr class="g0"><td class="c-term"><strong>Base vs instruct model</strong></td><td>Raw next-token predictor vs one already tuned to follow instructions/chat.</td></tr><tr class="g1"><td class="c-term"><strong>Full fine-tuning</strong></td><td>Update <em>all</em> weights — most powerful, most expensive, needs big GPUs.</td></tr><tr class="g0"><td class="c-term"><strong><abbr title="parameter-efficient fine-tuning">PEFT</abbr></strong></td><td>Parameter-Efficient Fine-Tuning — train a tiny fraction of weights instead of all of them.</td></tr><tr class="g1"><td class="c-term"><strong><abbr title="low-rank adaptation">LoRA</abbr></strong></td><td>Freeze the model; learn small low-rank matrices (A·B) added to chosen layers.</td></tr><tr class="g0"><td class="c-term"><strong>Rank (r)</strong></td><td>Size of the LoRA matrices — bigger r = more capacity + more parameters.</td></tr><tr class="g1"><td class="c-term"><strong>Alpha (α) / <code>α·r</code> scaling</strong></td><td>A scaling factor controlling how strongly the LoRA update is applied.</td></tr><tr class="g0"><td class="c-term"><strong><abbr title="quantized low-rank adaptation">QLoRA</abbr></strong></td><td>LoRA on top of a 4-bit <em>quantized</em> base model → fine-tune a big model on one GPU.</td></tr><tr class="g1"><td class="c-term"><strong><abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">Quantization</abbr> (4-bit / NF4)</strong></td><td>Store the frozen base in 4 bits to slash memory.</td></tr><tr class="g0"><td class="c-term"><strong>Catastrophic forgetting</strong></td><td>Over-training erases the model's general abilities — fight with low LR, few epochs.</td></tr><tr class="g1"><td class="c-term"><strong>Epoch / learning rate</strong></td><td>One pass over your data / how big each weight update is.</td></tr></tbody></table></div>
@@ -692,12 +1040,12 @@ Same tiny add-on; QLoRA just stores the frozen base in 4-bit. On one consumer GP
 <p><strong>Q: Does fine-tuning add new facts?</strong>
 Not reliably — it changes <strong>behavior</strong>, not knowledge. Use RAG for facts.</p>
 <hr />
-<p><em>Previous: <a href="inference.html#f02LLMInference">02_LLM_Inference_Optimization.md</a> | Next: <a href="llm.html#f04PromptEngine">04_Prompt_Engineering.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f07LLMTraininga"><header class="filehead"><div class="fh-top"><span class="fh-num">07 &middot; Training &amp; alignment</span><span class="fh-count">12 sections</span><a class="fh-src" href="../../07_GenAI_and_LLMs/07_LLM_Training_and_Alignment.md">source .md &#8599;</a></div><h2>LLM Training &amp; Alignment — Pretraining → SFT → RLHF → DPO → GRPO</h2><div class="note">
+<p><em>Previous: <a href="inference.html#f02LLMInference">02_LLM_Inference_Optimization.md</a> | Next: <a href="llm.html#f04PromptEngine">04_Prompt_Engineering.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f07LLMTraininga"><header class="filehead"><div class="fh-top"><span class="fh-num">07 &middot; Training &amp; alignment</span><span class="fh-count">12 sections</span></div><h2>LLM Training &amp; Alignment — Pretraining → SFT → RLHF → DPO → GRPO</h2><div class="note">
 <p><strong>Scope:</strong> how a raw next-token predictor becomes a helpful assistant. The full post-training stack — supervised fine-tuning, reward modelling, <abbr title="reinforcement learning from human feedback">RLHF</abbr>/PPO, <abbr title="direct preference optimization">DPO</abbr> and its cousins, <abbr title="group relative policy optimization">GRPO</abbr> and RLVR, reasoning models and test-time compute — with the formulas, worked numbers, and from-scratch code for each.</p>
 <p><strong>Why this file exists:</strong> <code>03_Fine_Tuning_LLM.md</code> answers <em>"how do I adapt a model cheaply?"</em> (<abbr title="low-rank adaptation">LoRA</abbr>/<abbr title="quantized low-rank adaptation">QLoRA</abbr> — a <strong>parameter</strong> question). This file answers <em>"how does a model learn what a good answer even is?"</em> (an <strong>objective</strong> question). They're different axes: you can do DPO <em>with</em> LoRA, or full-parameter <abbr title="supervised fine-tuning">SFT</abbr> with no alignment at all.</p>
-</div></header><div class="parthead"><span>Key Definitions (read first)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="note">
+</div></header><div class="parthead" id="f07LLMTraininga-p0"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>Key Definitions (read first)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="note">
 <div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Term</th><th>Plain-language definition</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>Pretraining</strong></td><td>Next-token prediction over trillions of tokens of raw text. Produces a <strong>base model</strong> — knows language and facts, but doesn't follow instructions.</td></tr><tr class="g0"><td class="c-term"><strong>Post-training</strong></td><td>Everything after pretraining: <abbr title="supervised fine-tuning">SFT</abbr> + alignment. Turns a base model into an assistant. Also called <em>alignment</em>.</td></tr><tr class="g1"><td class="c-term"><strong>SFT</strong></td><td>Supervised Fine-Tuning — train on (instruction, ideal answer) pairs. Teaches <em>format and behaviour</em>.</td></tr><tr class="g0"><td class="c-term"><strong>Preference data</strong></td><td>Triples <code>(prompt, chosen, rejected)</code> — a human (or AI) said "this answer is better than that one".</td></tr><tr class="g1"><td class="c-term"><strong>Reward Model (RM)</strong></td><td>A model that scores an answer with a scalar. Trained from preference data. A <em>learned</em> proxy for human judgement.</td></tr><tr class="g0"><td class="c-term"><strong><abbr title="reinforcement learning from human feedback">RLHF</abbr></strong></td><td>Reinforcement Learning from Human Feedback — optimise the <abbr title="large language model">LLM</abbr> to maximise the RM's score, with a leash back to the original model.</td></tr><tr class="g1"><td class="c-term"><strong>PPO</strong></td><td>Proximal Policy Optimization — the <abbr title="reinforcement learning">RL</abbr> algorithm classically used for RLHF. Needs 4 models in memory.</td></tr><tr class="g0"><td class="c-term"><strong>KL penalty</strong></td><td>The leash: a term that punishes drifting too far from the pre-RL model. Without it the model degenerates.</td></tr><tr class="g1"><td class="c-term"><strong><abbr title="direct preference optimization">DPO</abbr></strong></td><td>Direct Preference Optimization — skips the RM and the RL loop; trains directly on preference pairs with one clean loss.</td></tr><tr class="g0"><td class="c-term"><strong><abbr title="group relative policy optimization">GRPO</abbr></strong></td><td>Group Relative Policy Optimization — PPO without the value network; the baseline comes from <em>a group of sampled answers</em> instead.</td></tr><tr class="g1"><td class="c-term"><strong>RLVR</strong></td><td>RL from <strong>Verifiable</strong> Rewards — the reward is a program (unit test, math checker), not a learned model. Can't be hacked the same way.</td></tr><tr class="g0"><td class="c-term"><strong><abbr title="object-relational mapping">ORM</abbr> / PRM</strong></td><td>Outcome Reward Model (grades the final answer) vs Process Reward Model (grades each reasoning step).</td></tr><tr class="g1"><td class="c-term"><strong>Test-time compute</strong></td><td>Spending more tokens/samples <em>at inference</em> to get a better answer, instead of training a bigger model.</td></tr><tr class="g0"><td class="c-term"><strong>Reward hacking</strong></td><td>The model finds a way to score high on the RM that a human would not actually prefer (length, flattery, formatting).</td></tr></tbody></table></div>
-</div></div><div class="parthead"><span>0. The one idea</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>A pretrained <abbr title="large language model">LLM</abbr> is not trying to be helpful. It is trying to <strong>predict the most likely next token given the internet</strong>. Ask it "What is the capital of France?" and a plausible continuation is <em>"What is the capital of Germany? What is the capital of Spain?"</em> — because on the internet, questions come in lists.</p>
+</div></div><div class="parthead" id="f07LLMTraininga-p1"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>0. The one idea</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>A pretrained <abbr title="large language model">LLM</abbr> is not trying to be helpful. It is trying to <strong>predict the most likely next token given the internet</strong>. Ask it "What is the capital of France?" and a plausible continuation is <em>"What is the capital of Germany? What is the capital of Spain?"</em> — because on the internet, questions come in lists.</p>
 <p>Post-training fixes this in two moves:</p>
 <div class="diagram"><pre>SFT       "Here is what a good answer looks like."      ← imitation      (cheap, gets you 80%)
 ALIGNMENT "Here is which of two answers is better."     ← preference     (expensive, gets the last 20%)</pre></div>
@@ -715,7 +1063,7 @@ ALIGNMENT "Here is which of two answers is better."     ← preference     (expe
         ├── path B: DPO           (2023 — no RM, no RL loop, the default for most teams)
         └── path C: GRPO + RLVR   (2025 — reasoning models: DeepSeek-R1 style)
         ▼
-  ALIGNED MODEL ──────────────────────────────► helpful, harmless, formatted, calibrated</pre></div></div><div class="parthead"><span>1. Stage 1 — Pretraining</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>You almost certainly will not do this (it costs millions), but interviewers ask about it because it sets up everything else.</p>
+  ALIGNED MODEL ──────────────────────────────► helpful, harmless, formatted, calibrated</pre></div></div><div class="parthead" id="f07LLMTraininga-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>1. Stage 1 — Pretraining</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>You almost certainly will not do this (it costs millions), but interviewers ask about it because it sets up everything else.</p>
 <p><strong>Objective — next-token prediction, i.e. cross-entropy over the vocabulary:</strong></p>
 <pre class="code"><code>L_pretrain  =  − (1/T) Σ_t  log P_θ( x_t | x_&lt;t )</code></pre>
 <p>That's it. One loss, no labels, no humans. Everything the model knows arrives through this.</p>
@@ -726,7 +1074,7 @@ Compute-optimal:  D ≈ 20 · N        (~20 tokens per parameter)</code></pre>
 <div class="note">
 <p><strong>The nuance that scores points:</strong> Chinchilla optimises <em>training</em> cost. In production you serve the model billions of times, so <strong>inference</strong> cost dominates — which is why modern open models are deliberately "over-trained" (Llama-3 8B saw ~15T tokens, ~1,875 tokens/param, <span class="mag">~90×</span> Chinchilla). You knowingly waste training FLOPs to get a <em>smaller</em> model of the same quality, because the small model is cheaper forever afterwards.</p>
 </div>
-<p><strong>What you actually control at this stage:</strong> data mix and dedup. Quality of the corpus beats almost every architectural tweak.</p></div><div class="parthead"><span>2. Stage 2 — Supervised Fine-Tuning (SFT)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Intuition</h3>
+<p><strong>What you actually control at this stage:</strong> data mix and dedup. Quality of the corpus beats almost every architectural tweak.</p></div><div class="parthead" id="f07LLMTraininga-p3"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>2. Stage 2 — Supervised Fine-Tuning (SFT)</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Intuition</h3>
 <p>Show the model thousands of examples of the <em>shape</em> of a good conversation and it learns the shape. This is plain supervised learning — same loss as pretraining, different data.</p>
 <h3>The one detail that matters: loss masking</h3>
 <p>You train on <code>(prompt, response)</code> pairs but you <strong>only compute loss on the response tokens</strong>. Training on the prompt tokens teaches the model to <em>generate user questions</em>, which is not the job.</p>
@@ -754,7 +1102,7 @@ loss = F.<span class="fn">cross_entropy</span>(
 text = tokenizer.<span class="fn">apply_chat_template</span>(messages, tokenize=<span class="kw">False</span>)   <span class="cmt"># always use this, never hand-format</span></code></pre>
 <h3>How much data?</h3>
 <div class="tbl-wrap"><table class="t2"><thead><tr><th>Goal</th><th>Examples needed</th></tr></thead><tbody><tr class="g1"><td>Output format / JSON shape</td><td>100 – 1,000</td></tr><tr class="g0"><td>Domain tone + task behaviour</td><td>1,000 – 10,000</td></tr><tr class="g1"><td>General instruction-following from scratch</td><td>10,000 – 100,000+</td></tr></tbody></table></div>
-<p><strong>Quality ≫ quantity.</strong> The LIMA result (1,000 carefully curated examples ≈ far larger noisy sets) is the standard citation. A few hundred bad examples can undo thousands of good ones.</p></div><div class="parthead"><span>3. Stage 3a — The Reward Model</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Intuition</h3>
+<p><strong>Quality ≫ quantity.</strong> The LIMA result (1,000 carefully curated examples ≈ far larger noisy sets) is the standard citation. A few hundred bad examples can undo thousands of good ones.</p></div><div class="parthead" id="f07LLMTraininga-p4"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>3. Stage 3a — The Reward Model</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Intuition</h3>
 <p>You want a function that says "this answer is worth 7.2 and that one is worth 3.1". But humans can't give calibrated absolute scores — ask ten people to rate an answer 1-10 and you get ten different scales. They <em>can</em> reliably say <strong>"A is better than B."</strong></p>
 <p>So: collect comparisons, and fit a scalar-scoring model whose <em>differences</em> explain those comparisons.</p>
 <h3>The formula — Bradley-Terry</h3>
@@ -802,7 +1150,7 @@ loss = −log(0.6457) = 0.4372</code></pre>
 <li>Train ~1 epoch. RMs overfit fast and an overfit RM is worse than a small one.</li>
 <li>The absolute scale is meaningless (only differences matter), so normalise scores before use.</li>
 <li>The single most useful RM metric is <strong>preference accuracy on held-out pairs</strong> — how often does <code>r(y_w) &gt; r(y_l)</code>? Below <span class="mag">~65%</span> and downstream <abbr title="reinforcement learning">RL</abbr> will chase noise.</li>
-</ul></div><div class="parthead"><span>4. Stage 3b — RLHF with PPO</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Intuition</h3>
+</ul></div><div class="parthead" id="f07LLMTraininga-p5"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>4. Stage 3b — RLHF with PPO</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Intuition</h3>
 <p>Now you have a scorer. Let the model generate answers, score them, and push its weights toward whatever scored well — with a <strong>leash</strong> so it doesn't wander off into gibberish that happens to fool the scorer.</p>
 <h3>The objective</h3>
 <div class="diagram"><pre>max_θ   E_{x~D, y~π_θ} [ r_φ(x, y) ]   −   β · KL( π_θ(·|x) ‖ π_ref(·|x) )
@@ -825,7 +1173,7 @@ L_PPO = E[ min( ρ_t · Â_t ,  clip(ρ_t, 1−ε, 1+ε) · Â_t ) ]     # ε �
     2. SCORE      each with r_φ                       → scalar reward
     3. PENALISE   per-token KL vs π_ref               → shaped reward R_t
     4. ESTIMATE   advantages Â_t via GAE using V_ψ
-    5. UPDATE     π_θ (clipped surrogate) and V_ψ (MSE), a few inner epochs</pre></div></div><div class="parthead"><span>5. DPO — deleting the reward model</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Intuition</h3>
+    5. UPDATE     π_θ (clipped surrogate) and V_ψ (MSE), a few inner epochs</pre></div></div><div class="parthead" id="f07LLMTraininga-p6"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>5. DPO — deleting the reward model</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Intuition</h3>
 <p>Here's the insight: the KL-constrained objective above has a <strong>closed-form optimum</strong>. If you know what the optimal policy looks like as a function of the reward, you can run that backwards — write the <em>reward</em> as a function of the <em>policy</em> — and then you never need to build a reward model at all. Train directly on the preference pairs.</p>
 <h3>The derivation (three lines, worth memorising)</h3></div><article class="q" id="f07LLMTraininga-10"><div class="q-h"><span class="q-n">&bull;</span><h3>1. The optimum of the RLHF objective is a reweighted reference policy:</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07LLMTraininga-10"><span></span></label></div><div class="q-a"><pre class="code"><code>π*(y|x)  =  (1 / Z(x)) · π_ref(y|x) · exp( r(x,y) / β )</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07LLMTraininga-11"><div class="q-h"><span class="q-n">&bull;</span><h3>2. Invert it — solve for the reward:</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07LLMTraininga-11"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">3. Substitute into Bradley-Terry</span><span class="kt">cancels</span><span class="kt">The whole trick in one sentence</span><span class="kt">+1.0</span><span class="kt">+0.5</span><span class="kt">What β does here</span></div><pre class="code"><code>r(x,y)  =  β · log( π*(y|x) / π_ref(y|x) )  +  β · log Z(x)</code></pre>
 <p><strong>3. Substitute into Bradley-Terry.</strong> The intractable partition function <code>Z(x)</code> depends only on <code>x</code>, so it appears in <em>both</em> terms of the difference and <strong>cancels</strong>:</p>
@@ -887,12 +1235,12 @@ trainer.<span class="fn">train</span>()</code></pre>
 </div>
 <h3>PPO vs <abbr title="direct preference optimization">DPO</abbr></h3>
 <div class="tbl-wrap"><table class="t3"><thead><tr><th></th><th>PPO (<abbr title="reinforcement learning from human feedback">RLHF</abbr>)</th><th>DPO</th></tr></thead><tbody><tr class="g1"><td>Models in memory</td><td>4</td><td>2 (or 1 with LoRA)</td></tr><tr class="g0"><td>Needs a reward model</td><td>✅</td><td>❌</td></tr><tr class="g1"><td>Needs online sampling</td><td>✅ (slow)</td><td>❌ (offline pairs)</td></tr><tr class="g0"><td>Hyperparameter sensitivity</td><td>High</td><td>Low</td></tr><tr class="g1"><td>Learning rate</td><td>~1e-6</td><td><strong>~5e-7</strong> (much lower than <abbr title="supervised fine-tuning">SFT</abbr>!)</td></tr><tr class="g0"><td>Can exceed the data</td><td>✅ explores beyond the preference set</td><td>❌ bounded by the pairs you have</td></tr><tr class="g1"><td>Typical use in 2026</td><td>Frontier labs, reasoning <abbr title="reinforcement learning">RL</abbr></td><td><strong>Default for everyone else</strong></td></tr></tbody></table></div>
-<p><strong>When PPO still wins:</strong> when you can generate <em>new</em> samples and score them — the policy can discover answers better than anything in your preference dataset. DPO can only re-rank behaviours already latent in the model. Hence the modern compromise: <strong>online/iterative DPO</strong> — generate fresh completions, label them with an RM or a judge, run DPO, repeat.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>6. The DPO family — ORPO, KTO, SimPO, IPO</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Each drops one requirement of <abbr title="direct preference optimization">DPO</abbr>. Know what each <em>removes</em> — that's the interview answer.</p>
+<p><strong>When PPO still wins:</strong> when you can generate <em>new</em> samples and score them — the policy can discover answers better than anything in your preference dataset. DPO can only re-rank behaviours already latent in the model. Hence the modern compromise: <strong>online/iterative DPO</strong> — generate fresh completions, label them with an RM or a judge, run DPO, repeat.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f07LLMTraininga-p7"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>6. The DPO family — ORPO, KTO, SimPO, IPO</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Each drops one requirement of <abbr title="direct preference optimization">DPO</abbr>. Know what each <em>removes</em> — that's the interview answer.</p>
 <div class="tbl-wrap"><table class="t4"><thead><tr><th>Method</th><th>Removes</th><th>Loss idea</th><th>Use when</th></tr></thead><tbody><tr class="g1"><td><strong>DPO</strong></td><td>the reward model + <abbr title="reinforcement learning">RL</abbr> loop</td><td>log-sigmoid of reference-relative margin</td><td>Default; you have pairs and an <abbr title="supervised fine-tuning">SFT</abbr> model</td></tr><tr class="g0"><td><strong>ORPO</strong></td><td>the <strong>reference model</strong> <em>and</em> the separate SFT stage</td><td>SFT loss + λ · odds-ratio penalty on the rejected answer</td><td>One-stage pipeline, tight memory — go base → aligned directly</td></tr><tr class="g1"><td><strong>KTO</strong></td><td>the need for <strong>pairs</strong></td><td>Prospect-theory value function on <em>individual</em> good/bad labels</td><td>Your data is thumbs-up/thumbs-down feedback, not A-vs-B</td></tr><tr class="g0"><td><strong>SimPO</strong></td><td>the reference model</td><td>Length-<strong>normalised</strong> average log-prob as the implicit reward + a target margin γ</td><td>DPO output is drifting long; you want the length bias fixed at the loss</td></tr><tr class="g1"><td><strong>IPO</strong></td><td>BT's assumption that preferences are transitive/deterministic</td><td>Squared loss on the margin toward a fixed target</td><td>Noisy or contradictory human labels; DPO is <abbr title="a model that fits the training data&#x27;s noise and generalises worse than a simpler one would">overfitting</abbr> them</td></tr></tbody></table></div>
 <p><strong>ORPO in one line</strong> (the useful one for small teams):</p>
 <pre class="code"><code>L_ORPO = L_SFT  +  λ · L_OR,        L_OR = − log σ( log odds(y_w) − log odds(y_l) )</code></pre>
 <p>It learns the good answer and pushes away from the bad one <em>in the same step</em>, with no reference model and no prior SFT run. Two stages collapse into one.</p>
-<p><strong>KTO in one line:</strong> you no longer need someone to compare two answers — a single "this response was bad" is enough. That is a <em>massive</em> practical difference, because production thumbs-down data is exactly that shape and pairwise data is not.</p></div><div class="parthead"><span>7. GRPO — deleting the critic</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Intuition</h3>
+<p><strong>KTO in one line:</strong> you no longer need someone to compare two answers — a single "this response was bad" is enough. That is a <em>massive</em> practical difference, because production thumbs-down data is exactly that shape and pairwise data is not.</p></div><div class="parthead" id="f07LLMTraininga-p8"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>7. GRPO — deleting the critic</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>Intuition</h3>
 <p>PPO needs a value network to answer "how good was this expected to be?" — that's a whole second trainable <abbr title="large language model">LLM</abbr>. <abbr title="group relative policy optimization">GRPO</abbr>'s insight: <strong>sample G answers to the same prompt and let the group's mean be the baseline.</strong> If an answer beats its siblings, reinforce it; if it lags them, suppress it. No critic needed.</p>
 <pre class="code"><code>PPO :   advantage = actual reward − critic's prediction        (learned baseline, extra model)
 GRPO:   advantage = actual reward − mean reward of G siblings  (empirical baseline, free)</code></pre>
@@ -929,7 +1277,7 @@ r = torch.<span class="fn">tensor</span>([[<span class="num">1</span>., <span cl
 <li><strong>No critic</strong> → <span class="mag">~40%</span> less memory, and no critic-collapse failure mode (a bad value head silently ruins PPO).</li>
 <li>Rewards for math/code are <strong>binary and verifiable</strong>, which is exactly the regime where a learned value function is hardest to fit and least necessary.</li>
 <li>Sampling G answers per prompt is <em>already</em> what you do for reasoning models, so the group comes free.</li>
-</ol></div><div class="parthead"><span>8. RLVR &amp; reasoning models</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>The shift</h3>
+</ol></div><div class="parthead" id="f07LLMTraininga-p9"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>8. RLVR &amp; reasoning models</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3>The shift</h3>
 <p>Classic <abbr title="reinforcement learning from human feedback">RLHF</abbr>: reward = <strong>learned model</strong> of human taste → can be hacked, hard to trust, expensive to maintain.
 RLVR: reward = <strong>a program</strong>.</p>
 <pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">reward</span>(problem, completion):
@@ -945,13 +1293,13 @@ RLVR: reward = <strong>a program</strong>.</p>
 <ol class="steplist"><li>(optional) Cold-start <abbr title="supervised fine-tuning">SFT</abbr> on a few thousand long chain-of-thought examples → readable reasoning format</li><li><abbr title="group relative policy optimization">GRPO</abbr> + verifiable rewards on math/code                                     → the model learns to think longer</li><li>Rejection sampling: keep the RL model's CORRECT traces → new SFT data      → consolidate</li><li>A final preference/safety pass (DPO or RLHF)                               → helpfulness + harmlessness</li></ol>
 <p><strong>The famous result:</strong> nobody told the model to think longer. Given only "correct answer = 1", response length <strong>grew on its own</strong> over training — the model discovered that backtracking, re-checking, and enumerating cases raise its hit rate. Emergent behaviours like <em>"Wait, let me reconsider…"</em> appear without ever being demonstrated.</p>
 <h3><abbr title="object-relational mapping">ORM</abbr> vs PRM</h3>
-<div class="tbl-wrap"><table class="t3"><thead><tr><th></th><th>Outcome RM</th><th>Process RM</th></tr></thead><tbody><tr class="g1"><td>Grades</td><td>The final answer only</td><td><strong>Every reasoning step</strong></td></tr><tr class="g0"><td>Label cost</td><td>Cheap (check the answer)</td><td>Expensive (annotate steps)</td></tr><tr class="g1"><td>Credit assignment</td><td>Weak — a lucky right answer from bad reasoning is rewarded</td><td>Strong — catches the exact wrong step</td></tr><tr class="g0"><td>Used for</td><td>GRPO/RLVR training signal</td><td>Guiding search at inference; step-level verification</td></tr></tbody></table></div></div><div class="parthead"><span>9. Test-time compute — the second scaling axis</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>For years, "better model" meant "more training FLOPs". Since 2024 there's a second dial: <strong>spend more compute at inference on the same model.</strong></p>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th></th><th>Outcome RM</th><th>Process RM</th></tr></thead><tbody><tr class="g1"><td>Grades</td><td>The final answer only</td><td><strong>Every reasoning step</strong></td></tr><tr class="g0"><td>Label cost</td><td>Cheap (check the answer)</td><td>Expensive (annotate steps)</td></tr><tr class="g1"><td>Credit assignment</td><td>Weak — a lucky right answer from bad reasoning is rewarded</td><td>Strong — catches the exact wrong step</td></tr><tr class="g0"><td>Used for</td><td>GRPO/RLVR training signal</td><td>Guiding search at inference; step-level verification</td></tr></tbody></table></div></div><div class="parthead" id="f07LLMTraininga-p10"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-network"/></svg>9. Test-time compute — the second scaling axis</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>For years, "better model" meant "more training FLOPs". Since 2024 there's a second dial: <strong>spend more compute at inference on the same model.</strong></p>
 <pre class="code"><code>Quality  ≈  f( training compute )  ×  g( inference compute )</code></pre>
 <div class="tbl-wrap"><table class="t4"><thead><tr><th>Technique</th><th>How it spends compute</th><th>Cost multiplier</th><th>Best for</th></tr></thead><tbody><tr class="g1"><td><strong>Longer <abbr title="chain of thought">CoT</abbr></strong></td><td>Generate more thinking tokens before answering</td><td><span class="mag">2–20×</span> output tokens</td><td>Any reasoning task; the native mode of reasoning models</td></tr><tr class="g0"><td><strong>Self-consistency</strong></td><td>Sample N answers, take the <strong>majority vote</strong></td><td>N×</td><td>Tasks with a short, comparable final answer (math)</td></tr><tr class="g1"><td><strong>Best-of-N</strong></td><td>Sample N, pick the highest <strong>verifier/RM</strong> score</td><td>N× + scoring</td><td>When you have a good verifier</td></tr><tr class="g0"><td><strong>Beam search over steps</strong></td><td>Expand/prune partial reasoning with a <strong>PRM</strong></td><td>N× with pruning</td><td>Long multi-step derivations</td></tr><tr class="g1"><td><strong>Self-refine / reflection</strong></td><td>Draft → critique → revise, k rounds</td><td>2k×</td><td>Writing, code review, agent plans</td></tr></tbody></table></div>
 <p><strong>Worked trade-off.</strong> A task where the small model scores <span class="mag">60%</span> and the big model <span class="mag">85%</span>, but the big model costs <span class="mag">20×</span> per call:</p>
 <div class="diagram"><pre>Small + self-consistency@8:   accuracy ≈ 78%,  cost = 8×   ← often the right answer
 Big model, single sample:     accuracy ≈ 85%,  cost = 20×</pre></div>
-<p><strong>Interview soundbite:</strong> <em>"Test-time compute is the cheapest quality lever I own, because it needs no retraining — but it trades latency for accuracy, so it belongs on the hard tail of my traffic, not on every request. I route: cheap single-pass for easy queries, verified sampling for hard ones."</em> That routing idea connects directly to <a href="production.html#f21LLMCostandTo">21_LLM_Cost_and_Token_Optimization.md</a>.</p></div><div class="parthead"><span>10. Reward hacking &amp; overoptimization</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>The core phenomenon (Goodhart's law, applied):</strong> the RM is a <em>proxy</em> for human preference. Optimise the proxy hard enough and the two come apart — true quality peaks and then <strong>falls</strong> while the RM score keeps climbing.</p>
+<p><strong>Interview soundbite:</strong> <em>"Test-time compute is the cheapest quality lever I own, because it needs no retraining — but it trades latency for accuracy, so it belongs on the hard tail of my traffic, not on every request. I route: cheap single-pass for easy queries, verified sampling for hard ones."</em> That routing idea connects directly to <a href="production.html#f21LLMCostandTo">21_LLM_Cost_and_Token_Optimization.md</a>.</p></div><div class="parthead" id="f07LLMTraininga-p11"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>10. Reward hacking &amp; overoptimization</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>The core phenomenon (Goodhart's law, applied):</strong> the RM is a <em>proxy</em> for human preference. Optimise the proxy hard enough and the two come apart — true quality peaks and then <strong>falls</strong> while the RM score keeps climbing.</p>
 <div class="diagram"><pre>  quality
     ▲          ┌── RM score (proxy) — keeps rising
     │      ────┘
@@ -968,7 +1316,7 @@ Big model, single sample:     accuracy ≈ 85%,  cost = 20×</pre></div>
 <li><strong>Hold out a separate RM</strong> ("gold RM") that never trains the policy, and watch for divergence between the two scores.</li>
 <li><strong>Track mean output length</strong> every eval. If it creeps up <span class="mag">40%</span> during alignment, you've bought length, not quality.</li>
 <li><strong>Keep a small human eval set</strong> that never touches training. The RM cannot grade its own homework.</li>
-</ul></div><div class="parthead"><span>11. RLAIF &amp; Constitutional AI</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Human preference labels cost $1–5 each and take weeks. <strong>RLAIF</strong> replaces the labeller with an <abbr title="large language model">LLM</abbr>:</p>
+</ul></div><div class="parthead" id="f07LLMTraininga-p12"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>11. RLAIF &amp; Constitutional AI</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Human preference labels cost $1–5 each and take weeks. <strong>RLAIF</strong> replaces the labeller with an <abbr title="large language model">LLM</abbr>:</p>
 <div class="diagram"><pre>Prompt → sample 2 responses → ask a strong LLM "which is better, and why?" → preference pair → DPO/RM</pre></div>
 <p>At a modest quality cost you get labels for ~$0.001 each and a full dataset overnight. In practice most teams use <strong>hybrid</strong>: AI labels for volume, human labels for calibration and for the safety-critical slice.</p>
 <p><strong>Constitutional AI (Anthropic)</strong> adds structure — the AI critiques against an explicit written set of principles:</p>
@@ -976,14 +1324,14 @@ Big model, single sample:     accuracy ≈ 85%,  cost = 20×</pre></div>
 <p><strong>Why it matters beyond safety:</strong> the alignment target becomes a <strong>document you can read, version, and argue about</strong> rather than the implicit average taste of a labelling vendor. That auditability is the answer when an interviewer asks how you'd govern model behaviour.</p>
 <div class="note">
 <p>This connects to <a href="production.html#f23LLMGuardrail">23_LLM_Guardrails_and_Safety.md</a> — note the distinction: alignment shapes <em>the model's tendencies</em>; <abbr title="checks around a model that block or rewrite unsafe or malformed input and output">guardrails</abbr> are a <em>runtime filter</em>. You need both, because alignment is probabilistic and guardrails are deterministic.</p>
-</div></div><div class="parthead"><span>12. Distillation &amp; model merging</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3><abbr title="training a smaller model to reproduce a larger model&#x27;s behaviour">Distillation</abbr> — transfer capability to a smaller model</h3>
+</div></div><div class="parthead" id="f07LLMTraininga-p13"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>12. Distillation &amp; model merging</span><i></i></div><div class="q-a" style="margin:0 0 12px"><h3><abbr title="training a smaller model to reproduce a larger model&#x27;s behaviour">Distillation</abbr> — transfer capability to a smaller model</h3>
 <div class="tbl-wrap"><table class="t3"><thead><tr><th>Type</th><th>Signal used</th><th>Notes</th></tr></thead><tbody><tr class="g1"><td><strong>Response (black-box)</strong></td><td>Teacher's generated text → <abbr title="supervised fine-tuning">SFT</abbr> the student</td><td>What you can do with an API-only teacher. Works surprisingly well.</td></tr><tr class="g0"><td><strong>Logit (white-box)</strong></td><td>KL between full output distributions</td><td>Much richer signal per token; needs weight access + shared tokenizer</td></tr><tr class="g1"><td><strong>Reasoning distillation</strong></td><td>Teacher's full chain-of-thought → student</td><td><strong>The big 2025 result</strong>: a 7B model SFT'd on a reasoning model's traces beats the same 7B trained with <abbr title="reinforcement learning">RL</abbr> directly. Distilling reasoning is cheaper than discovering it.</td></tr></tbody></table></div>
 <pre class="code"><code>L_distill = α · CE(student, hard_labels)  +  (1−α) · τ² · KL( student/τ ‖ teacher/τ )</code></pre>
 <p><code>τ</code> (temperature) softens both distributions so the student learns the teacher's <em>relative</em> preferences among wrong answers, not just the argmax. The <code>τ²</code> restores gradient magnitude.</p>
 <h3>Model merging — combine fine-tunes without retraining</h3>
 <p>You have three LoRAs (a code model, a chat model, a domain model) and want one model. Merging combines weights arithmetically — zero training compute.</p>
 <div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Method</th><th>Idea</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>Linear / weighted average</strong></td><td><code>θ = Σ wᵢ·θᵢ</code>. Simplest; works when models share an ancestor.</td></tr><tr class="g0"><td class="c-term"><strong>Task arithmetic</strong></td><td>Task vector <code>τᵢ = θᵢ − θ_base</code>; add them: <code>θ = θ_base + Σ λᵢ·τᵢ</code>. You can also <strong>subtract</strong> a vector to <em>remove</em> a behaviour.</td></tr><tr class="g1"><td class="c-term"><strong>TIES</strong></td><td>Trim small deltas, elect a sign per parameter, average only the agreeing ones — resolves interference between tasks.</td></tr><tr class="g0"><td class="c-term"><strong>DARE</strong></td><td>Randomly drop most deltas and rescale the rest; surprisingly lossless, and composes with TIES.</td></tr><tr class="g1"><td class="c-term"><strong>SLERP</strong></td><td>Spherical interpolation between exactly two models; preserves vector norms better than a straight average.</td></tr></tbody></table></div>
-<p><strong>Where this shows up in practice:</strong> merging is the standard cheap fix for <em>catastrophic forgetting</em> — merge your domain fine-tune back with the base/instruct model at ~0.3–0.5 weight and you recover general ability while keeping most of the domain gain.</p></div><div class="parthead"><span>13. Choosing a method — decision guide</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="diagram"><pre>Do you need the model to know NEW FACTS?
+<p><strong>Where this shows up in practice:</strong> merging is the standard cheap fix for <em>catastrophic forgetting</em> — merge your domain fine-tune back with the base/instruct model at ~0.3–0.5 weight and you recover general ability while keeping most of the domain gain.</p></div><div class="parthead" id="f07LLMTraininga-p14"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>13. Choosing a method — decision guide</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="diagram"><pre>Do you need the model to know NEW FACTS?
   └─► No fine-tuning. Use RAG.  →  05_RAG_and_Vector_Stores.md
       (Fine-tuning teaches behaviour, not facts. This mistake is the #1 interview filter.)
 
@@ -1005,9 +1353,9 @@ Do you have a labelling budget, an RM, GPUs for 4 models, and a team?
 <p><strong>Realistic 2026 pipeline for a product team:</strong></p>
 <div class="diagram"><pre>open instruct model  →  LoRA SFT (5k curated examples)  →  LoRA DPO (2k preference pairs
 harvested from production thumbs-down + LLM-judge labels)  →  merge  →  eval-gated deploy</pre></div>
-<p>That's two GPU-days, not a research programme — and it is the answer that lands in an interview, because it's the one that ships.</p></div><div class="parthead"><span>14. Evaluating an aligned model</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>The trap:</strong> your <abbr title="direct preference optimization">DPO</abbr> reward accuracy is 0.82 and the RM score doubled. That proves nothing — you optimised those numbers directly.</p>
+<p>That's two GPU-days, not a research programme — and it is the answer that lands in an interview, because it's the one that ships.</p></div><div class="parthead" id="f07LLMTraininga-p15"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chart"/></svg>14. Evaluating an aligned model</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>The trap:</strong> your <abbr title="direct preference optimization">DPO</abbr> reward accuracy is 0.82 and the RM score doubled. That proves nothing — you optimised those numbers directly.</p>
 <div class="tbl-wrap"><table class="t2"><thead><tr><th>What to measure</th><th>How</th></tr></thead><tbody><tr class="g1"><td><strong>Win rate vs the pre-alignment model</strong></td><td>Pairwise LLM-judge or human, on held-out prompts. <strong>Randomise order</strong> (judges favour position A) and <strong>control for length</strong>. This is the headline number.</td></tr><tr class="g0"><td><strong>Capability regression</strong></td><td>Re-run MMLU/GSM8K/HumanEval-style benchmarks. Alignment routinely costs a few points — the "alignment tax". Know your budget before you start.</td></tr><tr class="g1"><td><strong>Format/instruction compliance</strong></td><td>Deterministic checks: valid JSON rate, schema adherence, refusal-when-appropriate rate.</td></tr><tr class="g0"><td><strong>Safety</strong></td><td>Red-team prompt set, jailbreak suite, over-refusal set (measure <em>both</em> directions — an over-refusing model is also a failure).</td></tr><tr class="g1"><td><strong>Length &amp; KL drift</strong></td><td>Mean output tokens and KL from <code>π_ref</code>, tracked every checkpoint. Your early-warning system for reward hacking.</td></tr><tr class="g0"><td><strong>Calibration</strong></td><td>Does stated confidence track accuracy? <abbr title="reinforcement learning from human feedback">RLHF</abbr> is known to <em>degrade</em> calibration.</td></tr></tbody></table></div>
-<p>Full eval mechanics: <a href="eval.html#f06LLMEvaluatio">06_LLM_Evaluation.md</a> and <a href="production.html#f22LLMEvalPromp">22_LLM_Eval_Prompts_and_Finetuning.md</a>.</p></div><div class="parthead"><span>15. Interview Deep Dive</span><i></i></div><article class="q" id="f07LLMTraininga-12"><div class="q-h"><span class="q-n">&bull;</span><h3>Q1. Walk me through how a base model becomes ChatGPT.</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07LLMTraininga-12"><span></span></label></div><div class="q-a"><div class="note">
+<p>Full eval mechanics: <a href="eval.html#f06LLMEvaluatio">06_LLM_Evaluation.md</a> and <a href="production.html#f22LLMEvalPromp">22_LLM_Eval_Prompts_and_Finetuning.md</a>.</p></div><div class="parthead" id="f07LLMTraininga-p16"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>15. Interview Deep Dive</span><i></i></div><article class="q" id="f07LLMTraininga-12"><div class="q-h"><span class="q-n">&bull;</span><h3>Q1. Walk me through how a base model becomes ChatGPT.</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07LLMTraininga-12"><span></span></label></div><div class="q-a"><div class="note">
 <p>Three stages. Pretraining is next-token prediction over trillions of tokens — that gives knowledge and fluency but no instruction-following; a base model will happily continue your question with more questions. <abbr title="supervised fine-tuning">SFT</abbr> is supervised learning on (instruction, ideal answer) pairs with the loss masked to the response — that teaches the <em>shape</em> of assistant behaviour, and it gets you most of the way. Then alignment converts cheap human <em>comparisons</em> into weights: classically, fit a Bradley-Terry reward model on preference pairs and optimise the <abbr title="large language model">LLM</abbr> against it with PPO plus a KL leash to the SFT model; modern practice usually replaces that with <abbr title="direct preference optimization">DPO</abbr>, which proves the LLM's own log-ratio against the frozen reference <em>is</em> the reward, so you get the same objective as a supervised loss with two models instead of four. For reasoning models you add a fourth stage: <abbr title="group relative policy optimization">GRPO</abbr> against verifiable rewards.</p>
 </div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07LLMTraininga-13"><div class="q-h"><span class="q-n">&bull;</span><h3>Q2. Why not just do more SFT instead of RLHF/DPO?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07LLMTraininga-13"><span></span></label></div><div class="q-a"><div class="note">
 <p>Two reasons. First, data economics: <abbr title="supervised fine-tuning">SFT</abbr> needs someone to <em>write</em> the ideal answer; preference learning only needs someone to <em>pick</em> between two. Comparisons are an order of magnitude cheaper and far more consistent between annotators. Second, and more fundamental — SFT can only ever imitate the best answer in your dataset, and it gives no signal about what to <em>avoid</em>. Preference learning has an explicit negative: it actively pushes probability mass away from the rejected response. That's how you fix subtle failures like sycophancy or verbosity, where you can't easily write down the right answer but you can always recognise the wrong one.</p>
@@ -1025,7 +1373,7 @@ harvested from production thumbs-down + LLM-judge labels)  →  merge  →  eval
 <p>Catastrophic forgetting. Cheapest fixes first: use <abbr title="low-rank adaptation">LoRA</abbr> rather than full fine-tuning so the base weights are untouched and the delta is small and removable; drop the learning rate and the epoch count, since most forgetting comes from over-training on a narrow set. Then mix <span class="mag">~10–30%</span> general instruction data back into the fine-tuning set as replay. If it's already trained, model merging is the fastest repair — average the fine-tune with the original instruct model, or use TIES, at around 0.3–0.5 weight, and you usually recover general benchmarks while keeping most of the domain gain. And measure it: a fixed general-capability suite run <em>before and after</em> every fine-tune, so you're quantifying the alignment tax rather than discovering it in production.</p>
 </div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07LLMTraininga-20"><div class="q-h"><span class="q-n">&bull;</span><h3>Q9. What's the difference between alignment and guardrails?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07LLMTraininga-20"><span></span></label></div><div class="q-a"><div class="note">
 <p>Alignment changes the model's <em>tendencies</em> — it makes bad outputs less probable. <abbr title="checks around a model that block or rewrite unsafe or malformed input and output">Guardrails</abbr> are a <em>runtime filter</em> — deterministic checks on input and output that block things regardless of what the model wanted to do. Alignment is probabilistic and can be jailbroken; guardrails are deterministic but blunt and add latency. You need both, and they fail differently: alignment failures look like a model that gradually drifts or gets talked into something, guardrail failures look like a hard block on a legitimate request. In production I'd treat alignment as the model's default behaviour and guardrails as the enforceable policy boundary — and I'd log every guardrail trip as training signal for the next alignment round.</p>
-</div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07LLMTraininga-21"><div class="q-h"><span class="q-n">&bull;</span><h3>Q10. Rapid fire.</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07LLMTraininga-21"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">response tokens only</span><span class="kt">group</span><span class="kt">Test-time compute</span><span class="kt">length</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th>Question</th><th>Answer</th></tr></thead><tbody><tr class="g1"><td>Loss for <abbr title="supervised fine-tuning">SFT</abbr>?</td><td>Cross-entropy on <strong>response tokens only</strong> (prompt masked to −100)</td></tr><tr class="g0"><td>Loss for a reward model?</td><td><code>−log σ(r_chosen − r_rejected)</code> (Bradley-Terry)</td></tr><tr class="g1"><td>How many models does PPO hold?</td><td>4 — policy, reference, reward, value</td></tr><tr class="g0"><td>How many for <abbr title="direct preference optimization">DPO</abbr>?</td><td>2, or <strong>1</strong> with <abbr title="low-rank adaptation">LoRA</abbr> (adapter off = reference)</td></tr><tr class="g1"><td>Typical DPO learning rate?</td><td>~5e-7 — roughly <span class="mag">10–100×</span> lower than SFT</td></tr><tr class="g0"><td>What cancels in the DPO derivation?</td><td>The partition function <code>Z(x)</code></td></tr><tr class="g1"><td><abbr title="group relative policy optimization">GRPO</abbr>'s baseline?</td><td>Mean reward of the sampled <strong>group</strong></td></tr><tr class="g0"><td>KL penalty's job?</td><td>Stop the policy degenerating away from the SFT model</td></tr><tr class="g1"><td>Chinchilla ratio?</td><td>~20 tokens per parameter (training-optimal; over-train for inference-optimal)</td></tr><tr class="g0"><td>Cheapest quality lever with no retraining?</td><td><strong>Test-time compute</strong> — longer <abbr title="chain of thought">CoT</abbr>, self-consistency, best-of-N</td></tr><tr class="g1"><td>First metric that reveals reward hacking?</td><td>Mean output <strong>length</strong> (then KL drift)</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>Related</span><i></i></div><div class="q-a" style="margin:0 0 12px"><ul>
+</div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07LLMTraininga-21"><div class="q-h"><span class="q-n">&bull;</span><h3>Q10. Rapid fire.</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07LLMTraininga-21"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">response tokens only</span><span class="kt">group</span><span class="kt">Test-time compute</span><span class="kt">length</span></div><div class="tbl-wrap"><table class="t2"><thead><tr><th>Question</th><th>Answer</th></tr></thead><tbody><tr class="g1"><td>Loss for <abbr title="supervised fine-tuning">SFT</abbr>?</td><td>Cross-entropy on <strong>response tokens only</strong> (prompt masked to −100)</td></tr><tr class="g0"><td>Loss for a reward model?</td><td><code>−log σ(r_chosen − r_rejected)</code> (Bradley-Terry)</td></tr><tr class="g1"><td>How many models does PPO hold?</td><td>4 — policy, reference, reward, value</td></tr><tr class="g0"><td>How many for <abbr title="direct preference optimization">DPO</abbr>?</td><td>2, or <strong>1</strong> with <abbr title="low-rank adaptation">LoRA</abbr> (adapter off = reference)</td></tr><tr class="g1"><td>Typical DPO learning rate?</td><td>~5e-7 — roughly <span class="mag">10–100×</span> lower than SFT</td></tr><tr class="g0"><td>What cancels in the DPO derivation?</td><td>The partition function <code>Z(x)</code></td></tr><tr class="g1"><td><abbr title="group relative policy optimization">GRPO</abbr>'s baseline?</td><td>Mean reward of the sampled <strong>group</strong></td></tr><tr class="g0"><td>KL penalty's job?</td><td>Stop the policy degenerating away from the SFT model</td></tr><tr class="g1"><td>Chinchilla ratio?</td><td>~20 tokens per parameter (training-optimal; over-train for inference-optimal)</td></tr><tr class="g0"><td>Cheapest quality lever with no retraining?</td><td><strong>Test-time compute</strong> — longer <abbr title="chain of thought">CoT</abbr>, self-consistency, best-of-N</td></tr><tr class="g1"><td>First metric that reveals reward hacking?</td><td>Mean output <strong>length</strong> (then KL drift)</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f07LLMTraininga-p17"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>Related</span><i></i></div><div class="q-a" style="margin:0 0 12px"><ul>
 <li><a href="training.html#f03FineTuningLL">03_Fine_Tuning_LLM.md</a> — <abbr title="low-rank adaptation">LoRA</abbr>/<abbr title="quantized low-rank adaptation">QLoRA</abbr> mechanics (the <em>parameter</em> axis; pairs with everything here)</li>
 <li><a href="eval.html#f06LLMEvaluatio">06_LLM_Evaluation.md</a> — how to prove any of this worked</li>
 <li><a href="rag.html#f05RAGandVector">05_RAG_and_Vector_Stores.md</a> — the alternative when the problem is <em>facts</em>, not behaviour</li>
@@ -1033,8 +1381,10 @@ harvested from production thumbs-down + LLM-judge labels)  →  merge  →  eval
 <li><a href="../../05_Deep_Learning/Practice/07_Reinforcement_Learning.md">05_Deep_Learning/Practice/07_Reinforcement_Learning.md</a> — the <abbr title="reinforcement learning">RL</abbr> fundamentals under PPO/<abbr title="group relative policy optimization">GRPO</abbr></li>
 </ul></div></section>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<nav class="pnav"><a class="prev" href="inference.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrowl"/></svg><span class="pnav-t"><span>Previous</span><b>Inference</b></span></a><a class="next" href="rag.html"><span class="pnav-t"><span>Next</span><b>RAG</b></span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></a></nav>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
 </div></main>
+<aside class="toc" id="toc"><div class="toc-h"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>On this page</div><div class="toc-g" data-for="f03FineTuningLL"><b>03 &middot; Fine-tuning (LoRA/QLoRA)</b><a href="#f03FineTuningLL-0" data-c="f03FineTuningLL-0">Key Definitions (read first)</a><a href="#f03FineTuningLL-1" data-c="f03FineTuningLL-1">1. What is fine-tuning?</a><a href="#f03FineTuningLL-2" data-c="f03FineTuningLL-2">2. Why fine-tune? (vs RAG &amp; prompt engineering)</a><a href="#f03FineTuningLL-3" data-c="f03FineTuningLL-3">3. How LoRA works — the one idea</a><a href="#f03FineTuningLL-4" data-c="f03FineTuningLL-4">4. The formula (and why <code>α/r</code>)</a><a href="#f03FineTuningLL-5" data-c="f03FineTuningLL-5">5. QLoRA — why it fits on one GPU</a><a href="#f03FineTuningLL-6" data-c="f03FineTuningLL-6">6. What happens during training</a><a href="#f03FineTuningLL-7" data-c="f03FineTuningLL-7">7. One complete example (step by step)</a><a href="#f03FineTuningLL-8" data-c="f03FineTuningLL-8">8. The settings that matter</a><a href="#f03FineTuningLL-9" data-c="f03FineTuningLL-9">9. Quick FAQ</a></div><div class="toc-g" data-for="f07LLMTraininga"><b>07 &middot; Training &amp; alignment</b><a href="#f07LLMTraininga-10" data-c="f07LLMTraininga-10">1. The optimum of the RLHF objective is a reweighted reference policy:</a><a href="#f07LLMTraininga-11" data-c="f07LLMTraininga-11">2. Invert it — solve for the reward:</a><a href="#f07LLMTraininga-12" data-c="f07LLMTraininga-12">Q1. Walk me through how a base model becomes ChatGPT.</a><a href="#f07LLMTraininga-13" data-c="f07LLMTraininga-13">Q2. Why not just do more SFT instead of RLHF/DPO?</a><a href="#f07LLMTraininga-14" data-c="f07LLMTraininga-14">Q3. Explain DPO's derivation.</a><a href="#f07LLMTraininga-15" data-c="f07LLMTraininga-15">Q4. What does β control in DPO, and what happens at the extremes?</a><a href="#f07LLMTraininga-16" data-c="f07LLMTraininga-16">Q5. Why does GRPO drop the value network, and what breaks if the group is homogeneous?</a><a href="#f07LLMTraininga-17" data-c="f07LLMTraininga-17">Q6. Your RLHF model scores great on the reward model but users say it got worse. Diagnose.</a><a href="#f07LLMTraininga-18" data-c="f07LLMTraininga-18">Q7. When would you use RLVR over DPO?</a><a href="#f07LLMTraininga-19" data-c="f07LLMTraininga-19">Q8. You fine-tuned on domain data and the model got worse at everything else. What now?</a><a href="#f07LLMTraininga-20" data-c="f07LLMTraininga-20">Q9. What's the difference between alignment and guardrails?</a><a href="#f07LLMTraininga-21" data-c="f07LLMTraininga-21">Q10. Rapid fire.</a></div></aside>
 </div>
 <button class="totop" id="totop" title="Back to top">&#8593;</button>
 <script>
@@ -1075,29 +1425,44 @@ var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementBy
 qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
 function runSearch(){
   if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
-  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
-    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;});
+  /* a heading survives the filter only while something under it is still showing */
   [].forEach.call(document.querySelectorAll('.parthead'),function(p){
-    if(!v){p.style.display='';return}
-    var vis=false,n=p.nextElementSibling;
-    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
-    p.style.display=vis?'':'none';});
+    var vis=true;
+    if(v){
+      vis=false;
+      var n=p.nextElementSibling;
+      while(n&&!n.classList.contains('parthead')){
+        if(n.classList.contains('q')&&n.style.display!=='none'){vis=true;break}
+        n=n.nextElementSibling;
+      }
+    }
+    p.style.display=vis?'':'none';
+    if(p.id){var l=document.querySelector('nav a[data-t="'+p.id+'"]');
+      if(l)l.style.display=vis?'':'none';}
+  });
   if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
 }
 if(inp)inp.addEventListener('input',runSearch);
 
-var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+/* The sidebar lists main headings only, so scroll tracking follows those headings
+   (data-t -> element id) rather than one entry per question card. */
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-t]'));
+var navTargets=navLinks.map(function(l){return document.getElementById(l.getAttribute('data-t'))});
 var totop=document.getElementById('totop');
 function onScroll(){
   var sc=document.documentElement.scrollTop;
   if(totop)totop.classList.toggle('show',sc>600);
-  var cur=null;
-  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
-    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  var cur=-1;
+  for(var i=0;i<navTargets.length;i++){
+    var el=navTargets[i];
+    if(!el||el.offsetParent===null)continue;
+    if(el.getBoundingClientRect().top<=140)cur=i;else break;
+  }
   navLinks.forEach(function(l){l.classList.remove('active')});
-  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
-    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
-      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+  if(cur>=0){var l=navLinks[cur];
+    l.classList.add('active');var r=l.getBoundingClientRect();
+    if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}
 }
 window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
@@ -1148,6 +1513,43 @@ document.addEventListener('keydown',function(e){
     });
     pre.appendChild(b);
   });
+})();
+
+/* Right-hand rail: reveal the group for the file section being read, and mark the
+   card in view. Scrolling is done on the rail itself - scrollIntoView would drag the
+   window along with it. */
+(function(){
+  var toc=document.getElementById('toc'); if(!toc)return;
+  document.body.classList.add('js');
+  var groups=[].slice.call(toc.querySelectorAll('.toc-g'));
+  if(!groups.length)return;
+  var secs=groups.map(function(g){return document.getElementById(g.getAttribute('data-for'))});
+  var links=groups.map(function(g){return [].slice.call(g.querySelectorAll('a[data-c]'))});
+  var curG=-1;
+  function upd(){
+    var i,g=-1;
+    for(i=0;i<secs.length;i++){
+      var el=secs[i]; if(!el)continue;
+      if(el.getBoundingClientRect().top<=160)g=i; else break;
+    }
+    if(g<0)g=0;
+    if(g!==curG){groups.forEach(function(x,k){x.classList.toggle('on',k===g)});curG=g;}
+    var ls=links[g]||[],act=null;
+    for(i=0;i<ls.length;i++){
+      var t=document.getElementById(ls[i].getAttribute('data-c'));
+      if(!t||t.style.display==='none')continue;
+      if(t.getBoundingClientRect().top<=160)act=ls[i]; else break;
+    }
+    ls.forEach(function(a){a.classList.remove('on')});
+    if(act){
+      act.classList.add('on');
+      var top=act.offsetTop,h=act.offsetHeight;
+      if(top<toc.scrollTop+8||top+h>toc.scrollTop+toc.clientHeight-8)
+        toc.scrollTop=top-toc.clientHeight/2+h/2;
+    }
+  }
+  addEventListener('scroll',upd,{passive:true});
+  addEventListener('resize',upd); upd();
 })();
 
 /* deep link on each question card */

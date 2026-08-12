@@ -509,9 +509,358 @@ body.searching .parthead{opacity:.5}
 
 @media(max-width:1060px){ .parthead{top:0} }
 
+/* =====================================================================
+   AURORA GLASS
+   The final layer. Everything below re-tints the sheet above it: a deep
+   near-black canvas lit by a fixed gradient mesh, with the chrome and the
+   cards reading as frosted panels floating on top of it.
+   ===================================================================== */
+
+:root{
+  --bg:#070a12; --bg-2:#0a0e18;
+  --surface:#0f131e; --surface-2:#141a27; --surface-3:#1c2333;
+  --border:#232c40; --border-soft:#19202f;
+  --ink:#eaf0fb; --ink-2:#9fabc4; --ink-mut:#6b7690;
+
+  --accent:#7c9dff; --accent-2:#b18cff;
+  --accent-soft:rgba(124,157,255,.15); --accent-bd:rgba(124,157,255,.40);
+  --t-rag:#7c9dff; --t-agentic:#ff9563; --t-recall:#3ed9a4;
+  --t-violet:#b18cff; --t-amber:#f0c274;
+  --good:#3ed9a4; --warn:#f5c451; --crit:#ff6b81;
+  --good-soft:rgba(62,217,164,.12); --warn-soft:rgba(245,196,81,.12);
+  --crit-soft:rgba(255,107,129,.12);
+  --code-bg:#080b13;
+
+  --glass:rgba(255,255,255,.045);
+  --glass-bd:rgba(255,255,255,.075);
+  --e1:0 1px 2px rgba(0,0,0,.40);
+  --e2:0 8px 26px rgba(3,6,15,.55);
+  --e3:0 22px 60px rgba(3,6,15,.68);
+  --radius:16px; --radius-sm:11px;
+}
+html[data-theme="light"]{
+  --bg:#f6f8fe; --bg-2:#eef2fb;
+  --surface:#fff; --surface-2:#fafbff; --surface-3:#eef2fb;
+  --border:#dce3f2; --border-soft:#e9edf8;
+  --ink:#111828; --ink-2:#4c586f; --ink-mut:#7c8699;
+
+  --accent:#4f6fe6; --accent-2:#8b5cf6;
+  --accent-soft:rgba(79,111,230,.10); --accent-bd:rgba(79,111,230,.34);
+  --t-rag:#4f6fe6; --t-agentic:#e0663a; --t-recall:#0f9e74;
+  --t-violet:#8b5cf6; --t-amber:#a9760a;
+  --good:#0f9e74; --warn:#b07d00; --crit:#dc3d55;
+  --good-soft:rgba(15,158,116,.10); --warn-soft:rgba(176,125,0,.11);
+  --crit-soft:rgba(220,61,85,.09);
+  --code-bg:#f2f5fc;
+
+  --glass:rgba(255,255,255,.62);
+  --glass-bd:rgba(17,24,40,.07);
+  --e1:0 1px 2px rgba(16,24,40,.05);
+  --e2:0 8px 24px rgba(16,24,40,.08);
+  --e3:0 22px 56px rgba(16,24,40,.12);
+}
+
+/* ---------- the canvas ---------- */
+/* the page background lives on <html> so the fixed aurora layer can sit
+   between it and the content without the body's own fill covering it */
+html{background:var(--bg)}
+body{background:transparent}
+
+/* Ambient tint on every page: strongest at the top edge, gone by mid-scroll, so
+   long reading pages settle onto clean dark instead of a permanent wash. */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 22% -6%, color-mix(in srgb,var(--accent) 46%,transparent), transparent 66%),
+    radial-gradient(38% 32% at 82% -8%, color-mix(in srgb,var(--accent-2) 40%,transparent), transparent 64%);
+  filter:blur(30px) saturate(1.3);opacity:.5;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%);
+          mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%)}
+html[data-theme="light"] body::before{opacity:.5;filter:blur(36px) saturate(1)}
+
+/* film grain: keeps the large flat gradients from banding on cheap panels */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.032;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* multiply over a light canvas darkens fast - the grain has to be far weaker here
+   or the whole page reads grey instead of white */
+html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply}
+
+@keyframes aurora-drift{
+  from{transform:translate3d(0,0,0) scale(1)}
+  to{transform:translate3d(3%,-2.5%,0) scale(1.12)}
+}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:transparent;border-bottom:1px solid var(--border-soft)}
+.siteswitch a{color:var(--ink-mut)}
+.siteswitch a:hover{background:var(--glass);color:var(--ink)}
+.siteswitch a.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  box-shadow:0 3px 14px color-mix(in srgb,var(--accent) 40%,transparent)}
+.sitebar{background:color-mix(in srgb,var(--bg) 62%,transparent);
+  backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);
+  border-bottom:1px solid var(--glass-bd);box-shadow:0 1px 0 rgba(255,255,255,.03),var(--e1)}
+.logo b{background:linear-gradient(115deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{background:var(--glass);border:1px solid var(--glass-bd);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);border-radius:10px}
+.btn:hover{border-color:var(--accent-bd);color:var(--ink);
+  box-shadow:0 4px 16px color-mix(in srgb,var(--accent) 22%,transparent)}
+.btn.on{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,transparent),
+  color-mix(in srgb,var(--accent-2) 18%,transparent));border-color:var(--accent-bd);color:var(--accent)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 55%,transparent),transparent 60%);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-right:1px solid var(--glass-bd)}
+.sb-search input{background:var(--glass);border:1px solid var(--glass-bd);border-radius:11px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sb-search input:focus{border-color:var(--accent-bd);
+  box-shadow:0 0 0 3px var(--accent-soft),0 4px 18px color-mix(in srgb,var(--accent) 20%,transparent)}
+nav a:hover{background:var(--glass);color:var(--ink)}
+nav a.active{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 20%,transparent),transparent 78%);
+  box-shadow:inset 0 0 0 1px var(--accent-bd);color:var(--accent)}
+nav a.active::before{background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 10px var(--accent)}
+.nav-grp{color:var(--ink-mut)}
+
+/* ---------- hero ---------- */
+.hero::before{opacity:.72;filter:blur(38px)}
+.eyebrow{background:var(--glass);border:1px solid var(--glass-bd);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:var(--ink-2);font-weight:700}
+.hero h1{background:linear-gradient(112deg,var(--ink) 4%,
+    color-mix(in srgb,var(--accent) 88%,var(--ink)) 46%,
+    color-mix(in srgb,var(--accent-2) 92%,var(--ink)) 74%,
+    color-mix(in srgb,var(--t-recall) 70%,var(--ink)) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- surfaces: glass everywhere the old sheet used flat fills ---------- */
+.stat,.q,.tcard,.hub-card,.panel,.learn,figure.viz,.tbl-wrap,.flow,.learn-item{
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 72%,transparent));
+  border-color:var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+
+.stat{border-radius:14px}
+.stat::before{height:1.5px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),color-mix(in srgb,var(--tc,var(--accent)) 20%,transparent) 70%,transparent)}
+.stat:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 18%,transparent)}
+.stat-v{background:linear-gradient(150deg,var(--ink),var(--tc,var(--accent)));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 42%,transparent);box-shadow:var(--e2)}
+.q:target{box-shadow:0 0 0 3px var(--accent-soft),var(--e2)}
+.tcard:hover,.hub-card:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 22%,transparent)}
+
+/* the hover affordance was emitting a literal "92" - it wants to be an arrow */
+.tcard::after,.hub-card::after{content:"\2192"}
+
+figure.viz{border-radius:18px}
+pre.code{background:color-mix(in srgb,var(--code-bg) 88%,transparent);
+  border:1px solid var(--glass-bd);border-radius:13px;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.say{background:linear-gradient(100deg,color-mix(in srgb,var(--accent) 14%,transparent),transparent 72%);
+  border-left-color:var(--accent)}
+.kt{background:var(--glass);border-color:var(--glass-bd)}
+.kt:hover{border-color:var(--accent-bd);color:var(--accent)}
+.parthead{background:color-mix(in srgb,var(--bg) 66%,transparent);
+  backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5)}
+th{background:color-mix(in srgb,var(--surface-3) 82%,transparent)}
+
+/* ---------- right-hand "on this page" rail ---------- */
+:root{ --tocw:262px }
+.app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr) var(--tocw)}
+.toc{position:sticky;top:47px;align-self:start;height:calc(100vh - 47px);overflow-y:auto;
+  overscroll-behavior:contain;padding:22px 20px 60px;font-size:12.6px;
+  border-left:1px solid var(--glass-bd)}
+.toc::-webkit-scrollbar{width:7px}
+.toc::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.toc-h{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-mut);margin-bottom:12px}
+.toc-h svg.ic{font-size:13px;color:var(--tc,var(--accent))}
+/* one group per file section; the script shows the one you are reading */
+body.js .toc-g{display:none}
+body.js .toc-g.on{display:block}
+.toc-g > b{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tc,var(--accent));margin:0 0 9px;padding-left:11px}
+.toc-g a{display:block;padding:5px 10px 5px 12px;margin:1px 0;border-radius:7px;color:var(--ink-2);
+  text-decoration:none;line-height:1.42;border-left:2px solid transparent}
+.toc-g a:hover{background:var(--glass);color:var(--ink);text-decoration:none}
+.toc-g a.on{color:var(--accent);border-left-color:var(--accent);font-weight:650;
+  background:linear-gradient(90deg,var(--accent-soft),transparent 80%)}
+.toc-empty{color:var(--ink-mut);font-size:12px;padding-left:12px}
+@media(max-width:1400px){
+  .app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr)}
+  .toc{display:none}
+}
+
+/* ---------- breadcrumb ---------- */
+.crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.2px;color:var(--ink-mut);
+  padding-top:26px}
+.crumb a{color:var(--ink-mut);text-decoration:none}
+.crumb a:hover{color:var(--accent);text-decoration:none}
+.crumb svg.ic{font-size:12px;opacity:.5}
+.crumb b{color:var(--ink-2);font-weight:650}
+.crumb + .hero{padding-top:18px}
+.pnav-t{min-width:0}
+
+/* ---------- previous / next ---------- */
+.pnav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:64px 0 0}
+.pnav a{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:14px;
+  text-decoration:none;color:inherit;border:1px solid var(--glass-bd);
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 86%,transparent),
+    color-mix(in srgb,var(--surface-2) 66%,transparent))}
+.pnav a:hover{text-decoration:none;border-color:var(--accent-bd);box-shadow:var(--e2)}
+.pnav a.next{grid-column:2;justify-content:flex-end;text-align:right}
+.pnav a.prev{grid-column:1}
+.pnav span{display:block;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-mut)}
+.pnav b{display:block;margin-top:4px;font-size:14.5px;letter-spacing:-.02em;color:var(--ink)}
+.pnav svg.ic{font-size:18px;color:var(--accent);flex:none}
+@media(max-width:760px){
+  .pnav{grid-template-columns:1fr}
+  .pnav a.next,.pnav a.prev{grid-column:1}
+}
+
+/* ---------- section headers (shared by the hub and every topic index) ---------- */
+.h-sec-h{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.h-sec-h h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-mut);white-space:nowrap;display:flex;align-items:center;gap:9px;border:0;padding:0}
+.h-sec-h h2 svg.ic{font-size:15px;color:var(--accent);opacity:.9}
+.h-sec-h i{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- icons ---------- */
+.sprite{display:none}
+svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.13em}
+/* the boxed icon tile used by track rows, callouts and nav groups */
+.ic-box{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:44px;height:44px;border-radius:13px;font-size:20px;color:var(--tc,var(--accent));
+  background:linear-gradient(150deg,color-mix(in srgb,var(--tc,var(--accent)) 26%,transparent),
+    color-mix(in srgb,var(--tc,var(--accent)) 8%,transparent));
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.ic-sm{width:30px;height:30px;border-radius:9px;font-size:15px}
+
+/* ---------- topic index: learning-track rows ---------- */
+.trk{display:flex;flex-direction:column;gap:11px;margin:40px 0 0}
+.trk-row{position:relative;display:flex;align-items:center;gap:17px;padding:17px 19px;
+  border-radius:15px;text-decoration:none;color:inherit;overflow:hidden;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--surface) 90%,transparent),
+    color-mix(in srgb,var(--surface-2) 68%,transparent));
+  border:1px solid var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.trk-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tc)}
+.trk-row:hover{text-decoration:none;transform:translateX(3px);
+  border-color:color-mix(in srgb,var(--tc) 46%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc) 18%,transparent)}
+.trk-b{min-width:0;flex:1}
+.trk-b b{display:block;font-size:16.5px;letter-spacing:-.022em;color:var(--ink);font-weight:750}
+.trk-b b i{font-style:normal;color:var(--ink-mut);font-weight:600;margin-right:3px}
+.trk-b p{margin:4px 0 0;font-size:13.2px;line-height:1.5;color:var(--ink-2)}
+.trk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.trk-chips span{font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.trk-row:hover .trk-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+.trk-meta{display:flex;align-items:center;gap:8px;flex:none;font-size:11.5px;
+  font-family:var(--mono);color:var(--tc);white-space:nowrap}
+.trk-meta i{font-style:normal;opacity:.45}
+.trk-go{flex:none;font-size:19px;color:var(--ink-mut);display:inline-flex}
+.trk-row:hover .trk-go{color:var(--tc);transform:translateX(2px)}
+@media(prefers-reduced-motion:no-preference){
+  .trk-row,.trk-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,color .18s ease}
+}
+@media(max-width:820px){
+  .trk-row{flex-wrap:wrap;gap:13px}
+  .trk-meta{order:3;width:100%}
+  .trk-go{display:none}
+}
+
+/* ---------- sidebar nav with icons ---------- */
+.nav-grp{display:flex;align-items:center;gap:8px}
+.nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
+nav a svg.ic{font-size:14px;opacity:.6}
+nav a.active svg.ic{opacity:1}
+/* file = main heading, named part = its only sub-entry */
+nav a.nav-file{margin-top:13px;font-size:13px;font-weight:750;color:var(--ink);align-items:center}
+nav a.nav-file svg.ic{color:var(--tc,var(--accent));opacity:.95}
+nav a.nav-sub{padding-left:30px;font-size:12.2px;position:relative}
+nav a.nav-sub::after{content:"";position:absolute;left:16px;top:50%;width:5px;height:5px;
+  margin-top:-2.5px;border-radius:50%;background:var(--ink-mut);opacity:.5}
+nav a.nav-sub.active::after{background:var(--accent);opacity:1}
+
+/* ---------- callouts with icons ---------- */
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key,.say{position:relative}
+.note-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;font-size:13px;margin-right:8px;vertical-align:-.35em;flex:none}
+.say-h svg.ic{font-size:13px}
+
+/* ---------- topic index: the landing page of each site ---------- */
+/* the reading measure is right for prose but starves a card grid, so an index
+   page widens its column and fits three across */
+.wrap:has(.idx-grid){max-width:1300px}
+.idx-hero{padding:58px 0 4px}
+.idx-hero h1{font-size:clamp(36px,4.8vw,56px);margin:18px 0 16px}
+.idx-hero .lede{font-size:17.5px;max-width:76ch;margin:0}
+
+.idx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;
+  margin:44px 0 0}
+.idx-card{position:relative;display:block;padding:22px 23px 20px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 70%,transparent));
+  border:1px solid var(--glass-bd);text-decoration:none;color:inherit;
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.idx-card::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc),transparent 80%)}
+.idx-card:hover{transform:translateY(-3px);text-decoration:none;
+  border-color:color-mix(in srgb,var(--tc) 48%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc) 20%,transparent)}
+.idx-card-h{display:flex;align-items:center;gap:11px}
+.idx-card-h h3{margin:0;font-size:18.5px;letter-spacing:-.026em;color:var(--ink);font-weight:750}
+.idx-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--tc);
+  box-shadow:0 0 10px var(--tc)}
+.idx-go{margin-left:auto;font-size:16px;color:var(--tc);opacity:0;transform:translateX(-5px);flex:none}
+.idx-card:hover .idx-go{opacity:1;transform:translateX(0)}
+.idx-card p{margin:11px 0 0;font-size:13.4px;line-height:1.6;color:var(--ink-2)}
+.idx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}
+.idx-chips span{font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.idx-card:hover .idx-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+@media(prefers-reduced-motion:no-preference){
+  .idx-card,.idx-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,opacity .18s ease}
+}
+
+/* ---------- file section headers ---------- */
+/* .fh-top's spans had no rules at all, so the name and the count ran together as
+   one unstyled line. It reads as an eyebrow row above the file title. */
+.filehead{margin:56px 0 16px}
+.fh-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px}
+.fh-num{font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--tc,var(--accent));padding:4px 12px;border-radius:999px;
+  background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.fh-count{font-family:var(--mono);font-size:10.5px;color:var(--ink-mut);padding:4px 11px;
+  border-radius:999px;background:var(--glass);border:1px solid var(--glass-bd)}
+.filehead h2{font-size:28px;letter-spacing:-.032em;margin:0}
+
+/* ---------- detail ---------- */
+::selection{background:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--ink)}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-bd);background-clip:padding-box}
+#rprog{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--t-recall));
+  box-shadow:0 0 14px color-mix(in srgb,var(--accent) 70%,transparent)}
+.totop{background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 8px 26px color-mix(in srgb,var(--accent) 45%,transparent)}
+.totop:hover{transform:translateY(-2px)}
+
 </style>
 </head>
 <body>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol><symbol id="i-arrowl" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol><symbol id="i-branch" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol><symbol id="i-bulb" viewBox="0 0 24 24"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2z"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol><symbol id="i-code" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></symbol><symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol><symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 2v6.5L4.2 17A2 2 0 0 0 6 20h12a2 2 0 0 0 1.8-3L15 8.5V2"/><line x1="8" y1="2" x2="16" y2="2"/><line x1="7" y1="14" x2="17" y2="14"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol><symbol id="i-network" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></symbol><symbol id="i-package" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol><symbol id="i-sigma" viewBox="0 0 24 24"><path d="M18 4H6l6 8-6 8h12"/></symbol><symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol><symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol><symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol></svg>
 <div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
   <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw" href="../03_Data_Handling/index.html">03 Data</a><a class="sw" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw on" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw" href="../11_System_Design/index.html">11 Sys Design</a>
 </div></div><div class="sitebar-in">
@@ -523,20 +872,19 @@ body.searching .parthead{opacity:.5}
   <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
   <button class="btn" id="themeBtn">Dark</button>
 </div></div>
-<div class="app" style="--tc:var(--t-agentic)">
+<div class="app has-toc" style="--tc:var(--t-agentic)">
 <aside id="sidebar">
   <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
   <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
-  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><div class="nav-grp">40 &middot; Agentic failure modes</div><a href="#f40AgenticAIFai-0" data-q="f40AgenticAIFai-0"><span class="qn">&bull;</span>Overview</a><a href="#f40AgenticAIFai-1" data-q="f40AgenticAIFai-1"><span class="qn">&bull;</span>Key Definitions (read first)</a><a href="#f40AgenticAIFai-2" data-q="f40AgenticAIFai-2"><span class="qn">&bull;</span>The Failure-Mode Map</a><a href="#f40AgenticAIFai-3" data-q="f40AgenticAIFai-3"><span class="qn">&bull;</span>1. Runaway Loops</a><a href="#f40AgenticAIFai-4" data-q="f40AgenticAIFai-4"><span class="qn">&bull;</span>2. Error Compounding</a><a href="#f40AgenticAIFai-5" data-q="f40AgenticAIFai-5"><span class="qn">&bull;</span>3. Context-Window Overflow</a><a href="#f40AgenticAIFai-6" data-q="f40AgenticAIFai-6"><span class="qn">&bull;</span>4. Cost &amp; Latency Explosion</a><a href="#f40AgenticAIFai-7" data-q="f40AgenticAIFai-7"><span class="qn">&bull;</span>5. Tool Misuse</a><a href="#f40AgenticAIFai-8" data-q="f40AgenticAIFai-8"><span class="qn">&bull;</span>6. Goal Drift</a><a href="#f40AgenticAIFai-9" data-q="f40AgenticAIFai-9"><span class="qn">&bull;</span>7. Unsafe Actions</a><a href="#f40AgenticAIFai-10" data-q="f40AgenticAIFai-10"><span class="qn">&bull;</span>8. Multi-Agent Coordination Failures</a><a href="#f40AgenticAIFai-11" data-q="f40AgenticAIFai-11"><span class="qn">&bull;</span>A Safe Agent Loop (putting it together)</a><a href="#f40AgenticAIFai-12" data-q="f40AgenticAIFai-12"><span class="qn">&bull;</span>Checklist for Production</a><div class="nav-grp">41 &middot; RAG in production</div><a href="#f41RAGinProduct-13" data-q="f41RAGinProduct-13"><span class="qn">&bull;</span>Overview</a><a href="#f41RAGinProduct-14" data-q="f41RAGinProduct-14"><span class="qn">&bull;</span>Key Definitions (read first)</a><a href="#f41RAGinProduct-15" data-q="f41RAGinProduct-15"><span class="qn">&bull;</span>Do you even need RAG? (long-context vs RAG)</a><a href="#f41RAGinProduct-16" data-q="f41RAGinProduct-16"><span class="qn">&bull;</span>The RAG Pipeline</a><a href="#f41RAGinProduct-17" data-q="f41RAGinProduct-17"><span class="qn">&bull;</span>Stage-by-Stage: the failure mode at each step</a><a href="#f41RAGinProduct-18" data-q="f41RAGinProduct-18"><span class="qn">&bull;</span>Putting it together</a><a href="#f41RAGinProduct-19" data-q="f41RAGinProduct-19"><span class="qn">&bull;</span>Evaluating RAG (two halves — measure both)</a><a href="#f41RAGinProduct-20" data-q="f41RAGinProduct-20"><span class="qn">&bull;</span>Advanced Patterns (when basic RAG plateaus)</a><a href="#f41RAGinProduct-21" data-q="f41RAGinProduct-21"><span class="qn">&bull;</span>Decision Flow</a><a href="#f41RAGinProduct-22" data-q="f41RAGinProduct-22"><span class="qn">&bull;</span>Checklist for Production</a><div class="nav-grp">42 &middot; Framework guide</div><a href="#f42LangChainLan-23" data-q="f42LangChainLan-23"><span class="qn">&bull;</span>Overview</a><a href="#f42LangChainLan-24" data-q="f42LangChainLan-24"><span class="qn">&bull;</span>Key Definitions (read first)</a><a href="#f42LangChainLan-25" data-q="f42LangChainLan-25"><span class="qn">&bull;</span>Part 1 — LangChain</a><a href="#f42LangChainLan-26" data-q="f42LangChainLan-26"><span class="qn">&bull;</span>Part 2 — LangGraph</a><a href="#f42LangChainLan-27" data-q="f42LangChainLan-27"><span class="qn">&bull;</span>When to use what</a><a href="#f42LangChainLan-28" data-q="f42LangChainLan-28"><span class="qn">&bull;</span>Production Considerations (the trade-offs)</a><a href="#f42LangChainLan-29" data-q="f42LangChainLan-29"><span class="qn">&bull;</span>Decision Flow</a><a href="#f42LangChainLan-30" data-q="f42LangChainLan-30"><span class="qn">&bull;</span>Checklist for Production</a><div class="nav-grp">43 &middot; Agent evaluation</div><a href="#f43AgentEvaluat-31" data-q="f43AgentEvaluat-31"><span class="qn">&bull;</span>Overview</a><a href="#f43AgentEvaluat-32" data-q="f43AgentEvaluat-32"><span class="qn">&bull;</span>Key Definitions (read first)</a><a href="#f43AgentEvaluat-33" data-q="f43AgentEvaluat-33"><span class="qn">&bull;</span>The two axes you must measure</a><a href="#f43AgentEvaluat-34" data-q="f43AgentEvaluat-34"><span class="qn">&bull;</span>1. Outcome metrics — *did it achieve the goal?</a><a href="#f43AgentEvaluat-35" data-q="f43AgentEvaluat-35"><span class="qn">&bull;</span>2. Trajectory metrics — *was the path good?</a><a href="#f43AgentEvaluat-36" data-q="f43AgentEvaluat-36"><span class="qn">&bull;</span>Worked example — outcome-pass, trajectory-fail</a><a href="#f43AgentEvaluat-37" data-q="f43AgentEvaluat-37"><span class="qn">&bull;</span>3. Cost &amp; latency — *the third axis</a><a href="#f43AgentEvaluat-38" data-q="f43AgentEvaluat-38"><span class="qn">&bull;</span>4. Reference vs reference-free judging</a><a href="#f43AgentEvaluat-39" data-q="f43AgentEvaluat-39"><span class="qn">&bull;</span>5. Non-determinism — *run it more than once</a><a href="#f43AgentEvaluat-40" data-q="f43AgentEvaluat-40"><span class="qn">&bull;</span>6. Component eval before end-to-end</a><a href="#f43AgentEvaluat-41" data-q="f43AgentEvaluat-41"><span class="qn">&bull;</span>7. Offline (CI gate) vs online (production truth)</a><a href="#f43AgentEvaluat-42" data-q="f43AgentEvaluat-42"><span class="qn">&bull;</span>8. Building the agent eval set</a><a href="#f43AgentEvaluat-43" data-q="f43AgentEvaluat-43"><span class="qn">&bull;</span>Decision Flow</a><a href="#f43AgentEvaluat-44" data-q="f43AgentEvaluat-44"><span class="qn">&bull;</span>Checklist for Production</a><div class="nav-grp">44 &middot; Design rationale</div><a href="#f44RAGandAgentD-45" data-q="f44RAGandAgentD-45"><span class="qn">&bull;</span>Overview</a><a href="#f44RAGandAgentD-46" data-q="f44RAGandAgentD-46"><span class="qn">&bull;</span>Key Definitions (read first)</a><a href="#f44RAGandAgentD-47" data-q="f44RAGandAgentD-47"><span class="qn">&bull;</span>A1. Chunking — *"why only this chunking strategy?"</a><a href="#f44RAGandAgentD-48" data-q="f44RAGandAgentD-48"><span class="qn">&bull;</span>A2. Embedding — *why same-model-both-sides, and which model</a><a href="#f44RAGandAgentD-49" data-q="f44RAGandAgentD-49"><span class="qn">&bull;</span>A3. Indexing / ANN — *why HNSW (and when not)</a><a href="#f44RAGandAgentD-50" data-q="f44RAGandAgentD-50"><span class="qn">&bull;</span>A4. Retrieval — *"better way of handling retrieval"</a><a href="#f44RAGandAgentD-51" data-q="f44RAGandAgentD-51"><span class="qn">&bull;</span>A5. Generation — *why grounding beats a bigger model here</a><a href="#f44RAGandAgentD-52" data-q="f44RAGandAgentD-52"><span class="qn">&bull;</span>B1. Do you even need an agent? — *the cheapest correct answer</a><a href="#f44RAGandAgentD-53" data-q="f44RAGandAgentD-53"><span class="qn">&bull;</span>B2. Planning approach — *ReAct vs Plan-Execute vs Reflexion</a><a href="#f44RAGandAgentD-54" data-q="f44RAGandAgentD-54"><span class="qn">&bull;</span>B3. Tool design — *why few, strict, validated tools</a><a href="#f44RAGandAgentD-55" data-q="f44RAGandAgentD-55"><span class="qn">&bull;</span>B4. Memory &amp; context — *why summarize+external store, not "just a bigger window"</a><a href="#f44RAGandAgentD-56" data-q="f44RAGandAgentD-56"><span class="qn">&bull;</span>B5. Single vs multi-agent — *why one well-guarded agent first</a><a href="#f44RAGandAgentD-57" data-q="f44RAGandAgentD-57"><span class="qn">&bull;</span>B6. Safety &amp; limits — *why these are non-negotiable defaults</a><a href="#f44RAGandAgentD-58" data-q="f44RAGandAgentD-58"><span class="qn">&bull;</span>Decision Flow (defend any choice in one pass)</a><a href="#f44RAGandAgentD-59" data-q="f44RAGandAgentD-59"><span class="qn">&bull;</span>Checklist for Production</a><div class="nav-grp">45 &middot; Stepwise failure handling</div><a href="#f45RAGandAgentS-60" data-q="f45RAGandAgentS-60"><span class="qn">&bull;</span>Overview</a><a href="#f45RAGandAgentS-61" data-q="f45RAGandAgentS-61"><span class="qn">&bull;</span>Key Definitions (read first)</a><a href="#f45RAGandAgentS-62" data-q="f45RAGandAgentS-62"><span class="qn">&bull;</span>A1. Ingestion &amp; parsing — "the document never made it in"</a><a href="#f45RAGandAgentS-63" data-q="f45RAGandAgentS-63"><span class="qn">&bull;</span>A2. Chunking — "the answer got cut in half"</a><a href="#f45RAGandAgentS-64" data-q="f45RAGandAgentS-64"><span class="qn">&bull;</span>A3. Embedding — "the meaning got lost in translation"</a><a href="#f45RAGandAgentS-65" data-q="f45RAGandAgentS-65"><span class="qn">&bull;</span>A4. Vector store / index — "the library is on fire"</a><a href="#f45RAGandAgentS-66" data-q="f45RAGandAgentS-66"><span class="qn">&bull;</span>A5. Query understanding — "the question itself is the problem"</a><a href="#f45RAGandAgentS-67" data-q="f45RAGandAgentS-67"><span class="qn">&bull;</span>A6. Retrieval — "we fetched the wrong pages"</a><a href="#f45RAGandAgentS-68" data-q="f45RAGandAgentS-68"><span class="qn">&bull;</span>A7. Reranking — "the good page is in the pile, but at the bottom"</a><a href="#f45RAGandAgentS-69" data-q="f45RAGandAgentS-69"><span class="qn">&bull;</span>A8. Context assembly — "we found it, then threw it away"</a><a href="#f45RAGandAgentS-70" data-q="f45RAGandAgentS-70"><span class="qn">&bull;</span>A9. Generation — "right pages, wrong words"</a><a href="#f45RAGandAgentS-71" data-q="f45RAGandAgentS-71"><span class="qn">&bull;</span>A10. Post-processing &amp; delivery — "the last metre"</a><a href="#f45RAGandAgentS-72" data-q="f45RAGandAgentS-72"><span class="qn">&bull;</span>B1. Goal intake — "garbage goal in, expensive garbage out"</a><a href="#f45RAGandAgentS-73" data-q="f45RAGandAgentS-73"><span class="qn">&bull;</span>B2. Planning — "a confident plan for the wrong journey"</a><a href="#f45RAGandAgentS-74" data-q="f45RAGandAgentS-74"><span class="qn">&bull;</span>B3. Tool selection — "right intent, wrong instrument"</a><a href="#f45RAGandAgentS-75" data-q="f45RAGandAgentS-75"><span class="qn">&bull;</span>B4. Argument construction — "right tool, wrong knobs"</a><a href="#f45RAGandAgentS-76" data-q="f45RAGandAgentS-76"><span class="qn">&bull;</span>B5. Tool execution — "the world said no"</a><a href="#f45RAGandAgentS-77" data-q="f45RAGandAgentS-77"><span class="qn">&bull;</span>B6. Observation handling — "the loop believed a lie"</a><a href="#f45RAGandAgentS-78" data-q="f45RAGandAgentS-78"><span class="qn">&bull;</span>B7. Memory &amp; context — "the agent forgot why it came"</a><a href="#f45RAGandAgentS-79" data-q="f45RAGandAgentS-79"><span class="qn">&bull;</span>B8. Loop control — "when to stop is a feature"</a><a href="#f45RAGandAgentS-80" data-q="f45RAGandAgentS-80"><span class="qn">&bull;</span>B9. Final answer — "land the plane"</a><a href="#f45RAGandAgentS-81" data-q="f45RAGandAgentS-81"><span class="qn">&bull;</span>Master Table — every step, one line each</a><a href="#f45RAGandAgentS-82" data-q="f45RAGandAgentS-82"><span class="qn">&bull;</span>Interview-Ready Summary</a><a href="#f45RAGandAgentS-83" data-q="f45RAGandAgentS-83"><span class="qn">&bull;</span>Checklist</a><div class="nav-grp">46 &middot; Agentic RAG patterns</div><a href="#f46AgenticRAGmd-84" data-q="f46AgenticRAGmd-84"><span class="qn">&bull;</span>Overview</a><a href="#f46AgenticRAGmd-85" data-q="f46AgenticRAGmd-85"><span class="qn">&bull;</span>Key Definitions (read first)</a><a href="#f46AgenticRAGmd-86" data-q="f46AgenticRAGmd-86"><span class="qn">&bull;</span>Vanilla RAG vs Agentic RAG — where the line actually is</a><a href="#f46AgenticRAGmd-87" data-q="f46AgenticRAGmd-87"><span class="qn">&bull;</span>The Patterns of Agentic RAG</a><a href="#f46AgenticRAGmd-88" data-q="f46AgenticRAGmd-88"><span class="qn">&bull;</span>Architecture: a production agentic RAG system, assembled</a><a href="#f46AgenticRAGmd-89" data-q="f46AgenticRAGmd-89"><span class="qn">&bull;</span>From-Scratch Code: a minimal agentic RAG loop</a><a href="#f46AgenticRAGmd-90" data-q="f46AgenticRAGmd-90"><span class="qn">&bull;</span>Failure Modes Specific to Agentic RAG</a><a href="#f46AgenticRAGmd-91" data-q="f46AgenticRAGmd-91"><span class="qn">&bull;</span>Evaluating Agentic RAG</a><a href="#f46AgenticRAGmd-92" data-q="f46AgenticRAGmd-92"><span class="qn">&bull;</span>Decision Flow — which pattern do I actually need?</a><a href="#f46AgenticRAGmd-93" data-q="f46AgenticRAGmd-93"><span class="qn">&bull;</span>Checklist for Production</a><div class="nav-grp">47 &middot; Scaling &mdash; RAG</div><a href="#f47ScalingOptim-94" data-q="f47ScalingOptim-94"><span class="qn">&bull;</span>Overview</a><a href="#f47ScalingOptim-95" data-q="f47ScalingOptim-95"><span class="qn">&bull;</span>Key Definitions (read first)</a><a href="#f47ScalingOptim-96" data-q="f47ScalingOptim-96"><span class="qn">&bull;</span>A. Ingestion &amp; Chunking (offline, throughput-bound)</a><a href="#f47ScalingOptim-97" data-q="f47ScalingOptim-97"><span class="qn">&bull;</span>B. Embedding (throughput offline for docs, latency online for the query)</a><a href="#f47ScalingOptim-98" data-q="f47ScalingOptim-98"><span class="qn">&bull;</span>C. Indexing / Vector Store (memory-bound — this is where "scaling" most often means "stop the cliff")</a><a href="#f47ScalingOptim-99" data-q="f47ScalingOptim-99"><span class="qn">&bull;</span>D. Retrieval — the flagship layer (online, the first mandatory round-trip)</a><a href="#f47ScalingOptim-100" data-q="f47ScalingOptim-100"><span class="qn">&bull;</span>E. Reranking (highest quality-per-millisecond, and the layer that should fail open)</a><a href="#f47ScalingOptim-101" data-q="f47ScalingOptim-101"><span class="qn">&bull;</span>F. Context Assembly (correctness-critical, and the layer with the sneakiest silent failure)</a><a href="#f47ScalingOptim-102" data-q="f47ScalingOptim-102"><span class="qn">&bull;</span>G. Generation / LLM Inference (compute-bound, usually the dominant cost and latency line item)</a><a href="#f47ScalingOptim-103" data-q="f47ScalingOptim-103"><span class="qn">&bull;</span>H. Delivery &amp; Post-processing ("the last metre")</a><a href="#f47ScalingOptim-104" data-q="f47ScalingOptim-104"><span class="qn">&bull;</span>Caching Hierarchy &amp; Infra (underneath every layer above)</a><a href="#f47ScalingOptim-105" data-q="f47ScalingOptim-105"><span class="qn">&bull;</span>Worked Example: End-to-End Latency Budget</a><a href="#f47ScalingOptim-106" data-q="f47ScalingOptim-106"><span class="qn">&bull;</span>Decision Flow: "it's slow, expensive, or wrong — which layer, and what do I do?"</a><a href="#f47ScalingOptim-107" data-q="f47ScalingOptim-107"><span class="qn">&bull;</span>Interview-Ready Summary</a><a href="#f47ScalingOptim-108" data-q="f47ScalingOptim-108"><span class="qn">&bull;</span>Checklist for Production</a><div class="nav-grp">48 &middot; Scaling &mdash; agentic RAG</div><a href="#f48ScalingOptim-109" data-q="f48ScalingOptim-109"><span class="qn">&bull;</span>Overview</a><a href="#f48ScalingOptim-110" data-q="f48ScalingOptim-110"><span class="qn">&bull;</span>Key Definitions (read first)</a><a href="#f48ScalingOptim-111" data-q="f48ScalingOptim-111"><span class="qn">&bull;</span>Layer 1: Routing — the up-front decision that can misfire silently</a><a href="#f48ScalingOptim-112" data-q="f48ScalingOptim-112"><span class="qn">&bull;</span>Layer 2: Decomposition / Multi-hop — cost scales with sub-questions, and errors compound across them</a><a href="#f48ScalingOptim-113" data-q="f48ScalingOptim-113"><span class="qn">&bull;</span>Layer 3: Grading / CRAG — a second call on every hop, and a new point of failure</a><a href="#f48ScalingOptim-114" data-q="f48ScalingOptim-114"><span class="qn">&bull;</span>Layer 4: Iterative / Recursive Retrieval — the layer that most needs a hard cap</a><a href="#f48ScalingOptim-115" data-q="f48ScalingOptim-115"><span class="qn">&bull;</span>Layer 5: Tool-Augmented / Multi-Source &amp; Multi-Agent RAG — cross-reference</a><a href="#f48ScalingOptim-116" data-q="f48ScalingOptim-116"><span class="qn">&bull;</span>Comparison Table: Failure Mode + Scaling, by Layer</a><a href="#f48ScalingOptim-117" data-q="f48ScalingOptim-117"><span class="qn">&bull;</span>Worked Example: End-to-End Latency Budget</a><a href="#f48ScalingOptim-118" data-q="f48ScalingOptim-118"><span class="qn">&bull;</span>Worked Example: Cost Per Query — the Agentic Multiplier</a><a href="#f48ScalingOptim-119" data-q="f48ScalingOptim-119"><span class="qn">&bull;</span>Decision Flow: "the loop is slow, expensive, or stuck — which layer, and what do I do?"</a><a href="#f48ScalingOptim-120" data-q="f48ScalingOptim-120"><span class="qn">&bull;</span>Interview-Ready Summary</a><a href="#f48ScalingOptim-121" data-q="f48ScalingOptim-121"><span class="qn">&bull;</span>Checklist for Production</a><div class="nav-grp">49 &middot; Scaling &mdash; agentic systems</div><a href="#f49ScalingOptim-122" data-q="f49ScalingOptim-122"><span class="qn">&bull;</span>Overview</a><a href="#f49ScalingOptim-123" data-q="f49ScalingOptim-123"><span class="qn">&bull;</span>Key Definitions (read first)</a><a href="#f49ScalingOptim-124" data-q="f49ScalingOptim-124"><span class="qn">&bull;</span>Layer 1: Orchestration (the agent loop) — where runaway failures live, and where parallelism is won</a><a href="#f49ScalingOptim-125" data-q="f49ScalingOptim-125"><span class="qn">&bull;</span>Layer 2: Tool Surface — selection failures, and the cost of every tool in context</a><a href="#f49ScalingOptim-126" data-q="f49ScalingOptim-126"><span class="qn">&bull;</span>Layer 3: Multi-Agent Systems — coordination failures compound cost, not just complexity</a><a href="#f49ScalingOptim-127" data-q="f49ScalingOptim-127"><span class="qn">&bull;</span>Layer 4: Unsafe Actions — the failure mode with no scaling equivalent, because it doesn't need one</a><a href="#f49ScalingOptim-128" data-q="f49ScalingOptim-128"><span class="qn">&bull;</span>Layer 5: Infra — caching hierarchy, load balancing, autoscaling</a><a href="#f49ScalingOptim-129" data-q="f49ScalingOptim-129"><span class="qn">&bull;</span>Worked Example: Parallel vs. Sequential Tool Execution</a><a href="#f49ScalingOptim-130" data-q="f49ScalingOptim-130"><span class="qn">&bull;</span>Decision Flow: "the agent is slow, expensive, wrong, or stuck — which layer, and what do I do?"</a><a href="#f49ScalingOptim-131" data-q="f49ScalingOptim-131"><span class="qn">&bull;</span>Interview-Ready Summary</a><a href="#f49ScalingOptim-132" data-q="f49ScalingOptim-132"><span class="qn">&bull;</span>Checklist for Production</a></nav>
+  <nav><div class="nav-grp"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg>On this page</div><a href="#top" data-t="top"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compass"/></svg>Overview</a><a class="nav-file" href="#f40AgenticAIFai" data-t="f40AgenticAIFai"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>40 &middot; Agentic failure modes</a><a class="nav-file" href="#f41RAGinProduct" data-t="f41RAGinProduct"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>41 &middot; RAG in production</a><a class="nav-file" href="#f42LangChainLan" data-t="f42LangChainLan"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>42 &middot; Framework guide</a><a class="nav-file" href="#f43AgentEvaluat" data-t="f43AgentEvaluat"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>43 &middot; Agent evaluation</a><a class="nav-file" href="#f44RAGandAgentD" data-t="f44RAGandAgentD"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>44 &middot; Design rationale</a><a class="nav-file" href="#f45RAGandAgentS" data-t="f45RAGandAgentS"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-warn"/></svg>45 &middot; Stepwise failure handling</a><a class="nav-file" href="#f46AgenticRAGmd" data-t="f46AgenticRAGmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>46 &middot; Agentic RAG patterns</a><a class="nav-file" href="#f47ScalingOptim" data-t="f47ScalingOptim"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>47 &middot; Scaling &mdash; RAG</a><a class="nav-file" href="#f48ScalingOptim" data-t="f48ScalingOptim"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>48 &middot; Scaling &mdash; agentic RAG</a><a class="nav-file" href="#f49ScalingOptim" data-t="f49ScalingOptim"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>49 &middot; Scaling &mdash; agentic systems</a></nav>
 </aside>
 <main><div class="wrap">
 
-<section class="hero" id="top"><div class="eyebrow">08_LangChain_and_LangGraph &middot; Production</div>
-<h1>Production</h1><p class="lede">What breaks in RAG and agentic systems, and the scaling/optimization playbooks per layer</p><div class="oneliner"><b>10 files</b> in this section, <b>133 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
-<div class="stats"><div class="stat"><div class="stat-v">10</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">133</div><div class="stat-l">sections</div></div></div></section>
-<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">What breaks in RAG and agentic systems, and the scaling/optimization playbooks per layer</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>40 &middot; Agentic failure modes</b><span class="learn-n">13 sections</span></div><div class="learn-tags"><span>Overview</span><span>Key Definitions (read first)</span><span>The Failure-Mode Map</span><span>Runaway Loops</span><span>Error Compounding</span></div></li><li class="learn-item"><div class="learn-top"><b>41 &middot; RAG in production</b><span class="learn-n">10 sections</span></div><div class="learn-tags"><span>Overview</span><span>Key Definitions (read first)</span><span>Do you even need RAG? (long-context v…</span><span>The RAG Pipeline</span><span>Stage-by-Stage: the failure mode at e…</span></div></li><li class="learn-item"><div class="learn-top"><b>42 &middot; Framework guide</b><span class="learn-n">8 sections</span></div><div class="learn-tags"><span>Overview</span><span>Key Definitions (read first)</span><span>Part 1 — LangChain</span><span>Part 2 — LangGraph</span><span>When to use what</span></div></li><li class="learn-item"><div class="learn-top"><b>43 &middot; Agent evaluation</b><span class="learn-n">14 sections</span></div><div class="learn-tags"><span>Overview</span><span>Key Definitions (read first)</span><span>The two axes you must measure</span><span>Outcome metrics — *did it achieve the…</span><span>Trajectory metrics — *was the path go…</span></div></li><li class="learn-item"><div class="learn-top"><b>44 &middot; Design rationale</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>Overview</span><span>Key Definitions (read first)</span><span>A1. Chunking — *"why only this chunki…</span><span>A2. Embedding — *why same-model-both…</span><span>A3. Indexing / ANN — *why HNSW (and w…</span></div></li><li class="learn-item"><div class="learn-top"><b>45 &middot; Stepwise failure handling</b><span class="learn-n">24 sections</span></div><div class="learn-tags"><span>Overview</span><span>Key Definitions (read first)</span><span>A1. Ingestion &amp; parsing — "the docume…</span><span>A2. Chunking — "the answer got cut in…</span><span>A3. Embedding — "the meaning got lost…</span></div></li><li class="learn-item"><div class="learn-top"><b>46 &middot; Agentic RAG patterns</b><span class="learn-n">10 sections</span></div><div class="learn-tags"><span>Overview</span><span>Key Definitions (read first)</span><span>Vanilla RAG vs Agentic RAG — where th…</span><span>The Patterns of Agentic RAG</span><span>Architecture: a production agentic RA…</span></div></li><li class="learn-item"><div class="learn-top"><b>47 &middot; Scaling &mdash; RAG</b><span class="learn-n">15 sections</span></div><div class="learn-tags"><span>Overview</span><span>Key Definitions (read first)</span><span>A. Ingestion &amp; Chunking (offline, thr…</span><span>B. Embedding (throughput offline for…</span><span>C. Indexing / Vector Store (memory-bo…</span></div></li><li class="learn-item"><div class="learn-top"><b>48 &middot; Scaling &mdash; agentic RAG</b><span class="learn-n">13 sections</span></div><div class="learn-tags"><span>Overview</span><span>Key Definitions (read first)</span><span>Layer 1: Routing — the up-front decis…</span><span>Layer 2: Decomposition / Multi-hop —…</span><span>Layer 3: Grading / CRAG — a second ca…</span></div></li><li class="learn-item"><div class="learn-top"><b>49 &middot; Scaling &mdash; agentic systems</b><span class="learn-n">11 sections</span></div><div class="learn-tags"><span>Overview</span><span>Key Definitions (read first)</span><span>Layer 1: Orchestration (the agent loo…</span><span>Layer 2: Tool Surface — selection fai…</span><span>Layer 3: Multi-Agent Systems — coordi…</span></div></li></ul></section>
+<nav class="crumb"><a href="../index.html">Home</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><a href="index.html">LangChain &amp; LangGraph</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><b>Production</b></nav>
+<section class="hero" id="top"><div class="eyebrow">LangChain and LangGraph &middot; Production</div>
+<h1>Production</h1><p class="lede">What breaks in RAG and agentic systems, and the scaling/optimization playbooks per layer</p><div class="oneliner"><b>10 files</b> in this section, <b>133 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div></section>
 
-<section class="filesec" id="f40AgenticAIFai"><header class="filehead"><div class="fh-top"><span class="fh-num">40 &middot; Agentic failure modes</span><span class="fh-count">13 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/40_Agentic_AI_Failure_Modes.md">source .md &#8599;</a></div><h2>Production Issue #10: Agentic AI Failure Modes</h2><div class="note">
+<section class="filesec" id="f40AgenticAIFai"><header class="filehead"><div class="fh-top"><span class="fh-num">40 &middot; Agentic failure modes</span><span class="fh-count">13 sections</span></div><h2>Production Issue #10: Agentic AI Failure Modes</h2><div class="note">
 <p><strong>Scope:</strong> Agentic AI Failure Modes — the new failure classes that appear when an <abbr title="large language model">LLM</abbr> is allowed to <strong>loop, call tools, and act</strong>: runaway loops, error compounding, context-window overflow, cost/step explosions, tool misuse, multi-agent coordination, and unsafe actions.</p>
 </div></header><article class="q" id="f40AgenticAIFai-0"><div class="q-h"><span class="q-n">&bull;</span><h3>Overview</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f40AgenticAIFai-0"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">One-sentence idea</span><span class="kt">function</span><span class="kt">loop</span><span class="kt">enforce</span></div><div class="note">
 <p><strong>One-sentence idea:</strong> A plain <abbr title="large language model">LLM</abbr> call is a <strong>function</strong> — one input, one output. An <em>agent</em> is a <strong>loop</strong>: the model observes, decides, calls a tool, sees the result, and decides again, many times. Loops introduce failure modes that single calls simply don't have — they can run forever, drift off course, blow the budget, and take real-world actions.</p>
@@ -726,7 +1074,7 @@ Step 9 transcript:  41,000 tokens   → exceeds 32k limit
 <li>[ ] Cost-per-task and steps-per-task on the monitoring dashboard</li>
 </ul>
 <hr />
-<p><em>Previous: <a href="../../07_GenAI_and_LLMs/20_LLM_Hallucination_and_Faithfulness.md">20_LLM_Hallucination_and_Faithfulness.md</a> | Next: <a href="../../07_GenAI_and_LLMs/21_LLM_Cost_and_Token_Optimization.md">21_LLM_Cost_and_Token_Optimization.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f41RAGinProduct"><header class="filehead"><div class="fh-top"><span class="fh-num">41 &middot; RAG in production</span><span class="fh-count">10 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/41_RAG_in_Production.md">source .md &#8599;</a></div><h2>Production Issue #17: RAG in Production (End-to-End)</h2><div class="note">
+<p><em>Previous: <a href="../../07_GenAI_and_LLMs/20_LLM_Hallucination_and_Faithfulness.md">20_LLM_Hallucination_and_Faithfulness.md</a> | Next: <a href="../../07_GenAI_and_LLMs/21_LLM_Cost_and_Token_Optimization.md">21_LLM_Cost_and_Token_Optimization.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f41RAGinProduct"><header class="filehead"><div class="fh-top"><span class="fh-num">41 &middot; RAG in production</span><span class="fh-count">10 sections</span></div><h2>Production Issue #17: RAG in Production (End-to-End)</h2><div class="note">
 <p><strong>Scope:</strong> Retrieval-Augmented Generation as a complete production system — the full pipeline (ingest → chunk → embed → index → retrieve → rerank → generate), the failure mode at <em>each</em> stage, <abbr title="fusing keyword (BM25) and dense vector results, usually with reciprocal rank fusion">hybrid search</abbr> + <abbr title="a cross-encoder rescoring the top-k candidates and keeping only the best few">reranking</abbr>, evaluation, and advanced patterns. Consolidates the <abbr title="retrieval-augmented generation">RAG</abbr> threads scattered across files 08, 09, 12, and 14 into one build-it reference.</p>
 </div></header><article class="q" id="f41RAGinProduct-13"><div class="q-h"><span class="q-n">&bull;</span><h3>Overview</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f41RAGinProduct-13"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">One-sentence idea</span><span class="kt">RAG</span><span class="kt">your</span><span class="kt">Where this fits</span></div><div class="note">
 <p><strong>One-sentence idea:</strong> An <abbr title="large language model">LLM</abbr> only knows what was in its training data — frozen, public, and undated. <strong><abbr title="retrieval-augmented generation">RAG</abbr></strong> fixes that by <em>retrieving</em> relevant text from <strong>your</strong> knowledge base at query time and handing it to the model as context, so the answer is grounded in current, private, citable facts instead of the model's memory.</p>
@@ -946,7 +1294,7 @@ MMR (λ=0.7):        [refund-v1, shipping, returns, warranty, exchange]    ← b
 <li>[ ] Logs: query, retrieved chunk ids + scores, which chunks were cited/used</li>
 </ul>
 <hr />
-<p><em>Previous: <a href="../../10_MLOps_and_Deployment/26_AB_Testing_and_Experimentation.md">26_AB_Testing_and_Experimentation.md</a> | Next: <a href="production.html#f42LangChainLan">42_LangChain_LangGraph_Framework_Guide.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f42LangChainLan"><header class="filehead"><div class="fh-top"><span class="fh-num">42 &middot; Framework guide</span><span class="fh-count">8 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/42_LangChain_LangGraph_Framework_Guide.md">source .md &#8599;</a></div><h2>Production Issue #18: LangChain &amp; LangGraph — Framework Guide</h2><div class="note">
+<p><em>Previous: <a href="../../10_MLOps_and_Deployment/26_AB_Testing_and_Experimentation.md">26_AB_Testing_and_Experimentation.md</a> | Next: <a href="production.html#f42LangChainLan">42_LangChain_LangGraph_Framework_Guide.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f42LangChainLan"><header class="filehead"><div class="fh-top"><span class="fh-num">42 &middot; Framework guide</span><span class="fh-count">8 sections</span></div><h2>Production Issue #18: LangChain &amp; LangGraph — Framework Guide</h2><div class="note">
 <p><strong>Scope:</strong> The two most common LLM-app frameworks, in production terms — what each is for, the core APIs (<abbr title="LangChain Expression Language">LCEL</abbr>, retrievers, structured output for LangChain; <code>StateGraph</code>, checkpointers, human-in-the-loop for LangGraph), real code, and when to use a framework vs the raw SDK. The <em>concepts</em> here are covered from-scratch in files 08/09/10; this maps them onto the actual libraries.</p>
 </div></header><article class="q" id="f42LangChainLan-23"><div class="q-h"><span class="q-n">&bull;</span><h3>Overview</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f42LangChainLan-23"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">One-sentence idea</span><span class="kt">LangChain</span><span class="kt">LangGraph</span><span class="kt">stateful, durable graph</span><span class="kt">Honest caveat (read this)</span><span class="kt">Pin versions</span></div><div class="note">
 <p><strong>One-sentence idea:</strong> <strong>LangChain</strong> gives you composable building blocks (prompts, models, retrievers, parsers) wired together with a pipe operator; <strong>LangGraph</strong> gives you a <strong>stateful, durable graph</strong> for anything that loops, branches, persists, or needs human approval (i.e. agents and multi-step workflows). LangChain is the <em>plumbing</em>; LangGraph is the <em>control flow</em>.</p>
@@ -1200,7 +1548,7 @@ builder.<span class="fn">add_conditional_edges</span>(<span class="str">"split"<
 <li>[ ] Prompts + eval sets kept <strong>portable</strong> to limit lock-in</li>
 </ul>
 <hr />
-<p><em>Previous: <a href="production.html#f41RAGinProduct">41_RAG_in_Production.md</a> | Next: <a href="production.html#f43AgentEvaluat">43_Agent_Evaluation.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f43AgentEvaluat"><header class="filehead"><div class="fh-top"><span class="fh-num">43 &middot; Agent evaluation</span><span class="fh-count">14 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/43_Agent_Evaluation.md">source .md &#8599;</a></div><h2>Production Issue #19: Agent Evaluation (Outcome + Trajectory)</h2><div class="note">
+<p><em>Previous: <a href="production.html#f41RAGinProduct">41_RAG_in_Production.md</a> | Next: <a href="production.html#f43AgentEvaluat">43_Agent_Evaluation.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f43AgentEvaluat"><header class="filehead"><div class="fh-top"><span class="fh-num">43 &middot; Agent evaluation</span><span class="fh-count">14 sections</span></div><h2>Production Issue #19: Agent Evaluation (Outcome + Trajectory)</h2><div class="note">
 <p><strong>Scope:</strong> How to actually <em>measure</em> whether an agent works — which is fundamentally harder than evaluating a single <abbr title="large language model">LLM</abbr> call. An agent is a <strong>trajectory</strong> (a sequence of decisions and tool calls), so you must evaluate both the <strong>outcome</strong> (did it reach the goal?) and the <strong>path</strong> (was every step sane?). Covers task-success metrics, trajectory/tool-call metrics, reference vs reference-free judging, building an agent eval set, offline (CI) vs online, non-determinism, and the common pitfalls. The agent <em>failure modes</em> are in <a href="production.html#f40AgenticAIFai">40_Agentic_AI_Failure_Modes.md</a>; LLM/prompt eval is in <a href="../../07_GenAI_and_LLMs/22_LLM_Eval_Prompts_and_Finetuning.md">22_LLM_Eval_Prompts_and_Finetuning.md</a>; <abbr title="retrieval-augmented generation">RAG</abbr> eval is in <a href="production.html#f41RAGinProduct">41_RAG_in_Production.md</a>. This is the agent-specific layer.</p>
 </div></header><article class="q" id="f43AgentEvaluat-31"><div class="q-h"><span class="q-n">&bull;</span><h3>Overview</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f43AgentEvaluat-31"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">One-sentence idea</span><span class="kt">agent</span><span class="kt">The core trap</span></div><div class="note">
 <p><strong>One-sentence idea:</strong> Evaluating a single <abbr title="large language model">LLM</abbr> call is "is this <em>one</em> output good?" Evaluating an <strong>agent</strong> is "did this <em>sequence of decisions</em> reach the goal — and did it get there for the right reasons?" The same final answer can come from a clean 3-step path or a lucky 20-step flail that deleted a row along the way, and <strong>only looking at the final answer cannot tell them apart.</strong></p>
@@ -1371,7 +1719,7 @@ End-to-end agent     → outcome + trajectory + cost on the full task set</pre><
 <li>[ ] <strong>Full trajectories traced</strong> (LangSmith/OTel) — you can't grade paths you didn't record (files 08 Q43, 24)</li>
 </ul>
 <hr />
-<p><em>Previous: <a href="production.html#f42LangChainLan">42_LangChain_LangGraph_Framework_Guide.md</a> | Next: <a href="../../09_MCP/02_MCP_Production_Issues.md">02_MCP_Production_Issues.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f44RAGandAgentD"><header class="filehead"><div class="fh-top"><span class="fh-num">44 &middot; Design rationale</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/44_RAG_and_Agent_Design_Rationale.md">source .md &#8599;</a></div><h2>Production Issue #21: RAG &amp; Agent Design Rationale — *Issues at Each Step, and Why This Choice*</h2><div class="note">
+<p><em>Previous: <a href="production.html#f42LangChainLan">42_LangChain_LangGraph_Framework_Guide.md</a> | Next: <a href="../../09_MCP/02_MCP_Production_Issues.md">02_MCP_Production_Issues.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f44RAGandAgentD"><header class="filehead"><div class="fh-top"><span class="fh-num">44 &middot; Design rationale</span><span class="fh-count">15 sections</span></div><h2>Production Issue #21: RAG &amp; Agent Design Rationale — *Issues at Each Step, and Why This Choice*</h2><div class="note">
 <p><strong>Scope:</strong> A decision-and-trade-off playbook for <abbr title="retrieval-augmented generation">RAG</abbr> and agents. The other files tell you <em>what breaks</em> (<a href="production.html#f41RAGinProduct">41_RAG_in_Production.md</a>) and <em>what to fix</em> (<a href="production.html#f40AgenticAIFai">40_Agentic_AI_Failure_Modes.md</a>); <strong>this file answers the next question every reviewer asks — <em>"why this strategy and not another, and what's the better option when this one plateaus?"</em></strong> For each step we lay out: the <strong>issue you'll hit</strong>, the <strong>options</strong>, <strong>why the default wins</strong>, and the <strong>upgrade path</strong>. Part A = RAG; Part B = Agents. Read it as the "defend your design choices" companion to 14/23.</p>
 </div></header><article class="q" id="f44RAGandAgentD-45"><div class="q-h"><span class="q-n">&bull;</span><h3>Overview</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f44RAGandAgentD-45"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">One-sentence idea</span><span class="kt">Golden rule of sequencing</span><span class="kt">measure, then upgrade</span></div><div class="note">
 <p><strong>One-sentence idea:</strong> Most <abbr title="retrieval-augmented generation">RAG</abbr>/agent guides give you <em>a</em> recipe. Production reviews ask <em>why that recipe</em> — why 400-token chunks and not 1,000, why <abbr title="hierarchical navigable small world — the graph index most vector stores use for approximate nearest-neighbour search">HNSW</abbr> and not a flat index, why ReAct and not plan-execute. This file makes each choice <strong>explicit, justified, and upgradeable</strong>, so you can pick deliberately instead of cargo-culting a default.</p>
@@ -1495,7 +1843,7 @@ AGENT:  need-it? → plan style → tools → memory → topology → safety
 - [ ] <strong>Step cap + budgets + least-privilege + <abbr title="human in the loop">HITL</abbr> + per-step checkpoint</strong> wired from day one (B6)
 - [ ] Every choice is <strong>measured</strong> (<a href="production.html#f43AgentEvaluat">19</a>) — complexity added only where numbers prove a gap</p>
 <hr />
-<p><em>Previous: <a href="../../09_MCP/02_MCP_Production_Issues.md">02_MCP_Production_Issues.md</a> | Next: <a href="../../07_GenAI_and_LLMs/24_LLM_Systems_Interview_Notes.md">24_LLM_Systems_Interview_Notes.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f45RAGandAgentS"><header class="filehead"><div class="fh-top"><span class="fh-num">45 &middot; Stepwise failure handling</span><span class="fh-count">24 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/45_RAG_and_Agent_Stepwise_Failure_Handling.md">source .md &#8599;</a></div><h2>Production Issue #23: Handling Failures at Every Step — RAG &amp; Agent Pipelines</h2><div class="note">
+<p><em>Previous: <a href="../../09_MCP/02_MCP_Production_Issues.md">02_MCP_Production_Issues.md</a> | Next: <a href="../../07_GenAI_and_LLMs/24_LLM_Systems_Interview_Notes.md">24_LLM_Systems_Interview_Notes.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f45RAGandAgentS"><header class="filehead"><div class="fh-top"><span class="fh-num">45 &middot; Stepwise failure handling</span><span class="fh-count">24 sections</span></div><h2>Production Issue #23: Handling Failures at Every Step — RAG &amp; Agent Pipelines</h2><div class="note">
 <p><strong>Scope:</strong> A step-by-step <strong>failure-handling playbook</strong>: walk the <abbr title="retrieval-augmented generation">RAG</abbr> pipeline (ingest → chunk → embed → index → retrieve → rerank → assemble → generate → post-process) and the agent loop (goal → plan → pick tool → build args → execute → observe → remember → decide → answer), and for <strong>every step</strong> answer three questions: <em>what breaks here, how do I detect it at runtime, and what do I do about it — right now, in code?</em> Companion to <a href="production.html#f41RAGinProduct">41_RAG_in_Production.md</a> (what each step <em>is</em>), <a href="production.html#f40AgenticAIFai">40_Agentic_AI_Failure_Modes.md</a> (agent failure classes), and <a href="production.html#f44RAGandAgentD">44_RAG_and_Agent_Design_Rationale.md</a> (why each design choice).</p>
 </div></header><article class="q" id="f45RAGandAgentS-60"><div class="q-h"><span class="q-n">&bull;</span><h3>Overview</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f45RAGandAgentS-60"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">One-sentence idea</span><span class="kt">chain of steps</span><span class="kt">one place</span><span class="kt">at each step</span><span class="kt">retry with backoff</span><span class="kt">don&#x27;t retry</span></div><div class="note">
 <p><strong>One-sentence idea:</strong> A <abbr title="retrieval-augmented generation">RAG</abbr> system or agent is a <strong>chain of steps</strong>, and a chain fails at its weakest link — so reliability isn't one big fix, it's a <strong>small, named recovery behavior at every step</strong>: retry this, fall back to that, degrade gracefully here, abstain there, escalate to a human when all else fails.</p>
@@ -1726,7 +2074,7 @@ AGENT:  need-it? → plan style → tools → memory → topology → safety
 - [ ] Budget exhaustion returns a partial result + what remains, never a bare error
 - [ ] Full trace logged per run: plan, tool calls, errors, recoveries, budget spend</p>
 <hr />
-<p><em>Previous: <a href="../../07_GenAI_and_LLMs/24_LLM_Systems_Interview_Notes.md">24_LLM_Systems_Interview_Notes.md</a> | Back to <a href="../../08_LangChain_and_LangGraph/README.md">README.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f46AgenticRAGmd"><header class="filehead"><div class="fh-top"><span class="fh-num">46 &middot; Agentic RAG patterns</span><span class="fh-count">10 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/46_Agentic_RAG.md">source .md &#8599;</a></div><h2>Production Issue #25: Agentic RAG — Retrieval as a Decision, Not a Step</h2><div class="note">
+<p><em>Previous: <a href="../../07_GenAI_and_LLMs/24_LLM_Systems_Interview_Notes.md">24_LLM_Systems_Interview_Notes.md</a> | Back to <a href="../../08_LangChain_and_LangGraph/README.md">README.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f46AgenticRAGmd"><header class="filehead"><div class="fh-top"><span class="fh-num">46 &middot; Agentic RAG patterns</span><span class="fh-count">10 sections</span></div><h2>Production Issue #25: Agentic RAG — Retrieval as a Decision, Not a Step</h2><div class="note">
 <p><strong>Scope:</strong> Agentic <abbr title="retrieval-augmented generation">RAG</abbr> as its own architecture pattern — the point where retrieval stops being a fixed pipeline step and becomes something the model <em>reasons about</em>: whether to retrieve, from where, how many times, and whether what came back is good enough. The pipeline mechanics (chunk/embed/index/retrieve/rerank) are in <a href="production.html#f41RAGinProduct">41_RAG_in_Production.md</a>; general agent-loop failure modes are in <a href="production.html#f40AgenticAIFai">40_Agentic_AI_Failure_Modes.md</a>; the rationale for <em>when</em> to climb to agentic RAG is rung 7–8 of <a href="production.html#f44RAGandAgentD">44_RAG_and_Agent_Design_Rationale.md</a> (A4 ladder); trajectory evaluation is <a href="production.html#f43AgentEvaluat">43_Agent_Evaluation.md</a>; a Q&amp;A-drill treatment of the same idea (<abbr title="corrective retrieval-augmented generation">CRAG</abbr> code, rapid-fire) lives in <a href="prod-scenarios.html#f31ClientRoundR">31_Client_Round_RAG_and_Agents.md</a> §2. This file is the build-it reference: the taxonomy of patterns, the failure modes unique to <em>this</em> architecture, and how to evaluate it.</p>
 </div></header><article class="q" id="f46AgenticRAGmd-84"><div class="q-h"><span class="q-n">&bull;</span><h3>Overview</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f46AgenticRAGmd-84"><span></span></label></div><div class="q-a"><div class="note">
 <p><strong>One-sentence idea:</strong> Vanilla <abbr title="retrieval-augmented generation">RAG</abbr> always does the same thing — retrieve top-k, generate — whether the query needs it or not, whether one retrieval is enough or not, and whether the retrieved docs are any good or not. <strong>Agentic RAG wraps retrieval in a decision loop</strong>: an <abbr title="large language model">LLM</abbr> decides <em>whether</em> to retrieve, <em>what</em> to retrieve, <em>how many times</em>, and <em>whether to trust what it got back</em> — turning a fixed pipeline into a controllable, self-correcting process.</p>
@@ -1910,7 +2258,7 @@ and A/B the agentic version against vanilla RAG before shipping it — prove the
 <li>[ ] Abstention path exists when the hop cap is hit — never force a low-confidence final generation</li>
 </ul>
 <hr />
-<p><em>Previous: <a href="prod-scenarios.html#f31ClientRoundR">31_Client_Round_RAG_and_Agents.md</a> | Next: <a href="production.html#f47ScalingOptim">47_Scaling_Optimization_RAG.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f47ScalingOptim"><header class="filehead"><div class="fh-top"><span class="fh-num">47 &middot; Scaling &mdash; RAG</span><span class="fh-count">15 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/47_Scaling_Optimization_RAG.md">source .md &#8599;</a></div><h2>Production Issue #26: RAG — Failure Modes, Scaling, Performance &amp; Optimization</h2><div class="note">
+<p><em>Previous: <a href="prod-scenarios.html#f31ClientRoundR">31_Client_Round_RAG_and_Agents.md</a> | Next: <a href="production.html#f47ScalingOptim">47_Scaling_Optimization_RAG.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f47ScalingOptim"><header class="filehead"><div class="fh-top"><span class="fh-num">47 &middot; Scaling &mdash; RAG</span><span class="fh-count">15 sections</span></div><h2>Production Issue #26: RAG — Failure Modes, Scaling, Performance &amp; Optimization</h2><div class="note">
 <p><strong>Scope:</strong> The vanilla <abbr title="retrieval-augmented generation">RAG</abbr> pipeline, layer by layer (ingestion through delivery), with <strong>both halves merged per layer</strong>: <em>what breaks and what you do about it</em> (failure modes), and <em>how you make that layer fast, able to handle load, and cheap</em> (performance / scaling / optimization). This is file 1 of 3: <strong>26 (this file) = RAG</strong>, <a href="production.html#f48ScalingOptim">27</a> <strong>= Agentic RAG</strong> (the decision-loop overhead on top of this pipeline), <a href="production.html#f49ScalingOptim">28</a> <strong>= general Agentic Systems</strong> (orchestration/multi-agent, not RAG-specific). Pipeline mechanics: <a href="production.html#f41RAGinProduct">41_RAG_in_Production.md</a>. Design rationale: <a href="production.html#f44RAGandAgentD">44_RAG_and_Agent_Design_Rationale.md</a>. Retry/circuit-breaker/fallback <strong>code patterns</strong> referenced below (not re-derived) live in <a href="production.html#f45RAGandAgentS">45_RAG_and_Agent_Stepwise_Failure_Handling.md</a>. Low-level inference internals: <a href="../../07_GenAI_and_LLMs/24_LLM_Systems_Interview_Notes.md">24_LLM_Systems_Interview_Notes.md</a>.</p>
 </div></header><article class="q" id="f47ScalingOptim-94"><div class="q-h"><span class="q-n">&bull;</span><h3>Overview</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f47ScalingOptim-94"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">One-sentence idea</span><span class="kt">chain of layers</span><span class="kt">spoken interview answer</span><span class="kt">failure modes</span><span class="kt">scaling/performance/cost levers</span><span class="kt">measure per layer</span></div><div class="note">
 <p><strong>One-sentence idea:</strong> A <abbr title="retrieval-augmented generation">RAG</abbr> pipeline is a <strong>chain of layers</strong>, and every layer answers two separate interview questions that are easy to conflate: <em>"what happens when this breaks, and how do you catch it?"</em> and <em>"how do you make this layer fast / able to handle 100x traffic / cheap?"</em> — the strongest answer treats them as one conversation, not two.</p>
@@ -2067,7 +2415,7 @@ and A/B the agentic version against vanilla RAG before shipping it — prove the
 <li>[ ] Full per-hop trace logged — every recovery and every latency number above is only tunable if you can see it happening</li>
 </ul>
 <hr />
-<p><em>Previous: <a href="production.html#f46AgenticRAGmd">46_Agentic_RAG.md</a> | Next: <a href="production.html#f48ScalingOptim">48_Scaling_Optimization_Agentic_RAG.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f48ScalingOptim"><header class="filehead"><div class="fh-top"><span class="fh-num">48 &middot; Scaling &mdash; agentic RAG</span><span class="fh-count">13 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/48_Scaling_Optimization_Agentic_RAG.md">source .md &#8599;</a></div><h2>Production Issue #27: Agentic RAG — Failure Modes, Scaling, Performance &amp; Optimization</h2><div class="note">
+<p><em>Previous: <a href="production.html#f46AgenticRAGmd">46_Agentic_RAG.md</a> | Next: <a href="production.html#f48ScalingOptim">48_Scaling_Optimization_Agentic_RAG.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f48ScalingOptim"><header class="filehead"><div class="fh-top"><span class="fh-num">48 &middot; Scaling &mdash; agentic RAG</span><span class="fh-count">13 sections</span></div><h2>Production Issue #27: Agentic RAG — Failure Modes, Scaling, Performance &amp; Optimization</h2><div class="note">
 <p><strong>Scope:</strong> What breaks — and how you make it fast/scalable/cheap — <strong>specifically in the decision loop wrapped around <abbr title="retrieval-augmented generation">RAG</abbr></strong>: routing, decomposition, grading/<abbr title="corrective retrieval-augmented generation">CRAG</abbr>, iterative retrieval (the patterns in <a href="production.html#f46AgenticRAGmd">46_Agentic_RAG.md</a>). File 2 of 3: <a href="production.html#f47ScalingOptim">26</a> <strong>= the underlying RAG pipeline</strong> this file assumes and multiplies, this file <strong>= the agentic overhead on top of it</strong>, <a href="production.html#f49ScalingOptim">28</a> <strong>= general agent orchestration/multi-agent</strong> (not RAG-specific). Pattern correctness lives in file 25; general agent failure modes in <a href="production.html#f40AgenticAIFai">40_Agentic_AI_Failure_Modes.md</a>; this file is the "does the loop earn its cost, and what happens when it breaks" companion, quantified.</p>
 </div></header><article class="q" id="f48ScalingOptim-109"><div class="q-h"><span class="q-n">&bull;</span><h3>Overview</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f48ScalingOptim-109"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">One-sentence idea</span><span class="kt">the loop itself can fail</span></div><div class="note">
 <p><strong>One-sentence idea:</strong> Every agentic <abbr title="retrieval-augmented generation">RAG</abbr> pattern — routing, decomposition, grading, iterative retrieval — buys accuracy by spending <strong>extra <abbr title="large language model">LLM</abbr> calls and extra passes through file 26's pipeline</strong>, and it introduces a new failure class vanilla RAG doesn't have at all: <strong>the loop itself can fail</strong> — it can spin forever, trust a bad grade, or chase evidence that was never in the corpus.</p>
@@ -2154,7 +2502,7 @@ total                                               ≈ 2,025ms   (~2.3x vanilla
 <li>[ ] <strong>Cost/latency multiplier vs. vanilla RAG quantified and A/B'd</strong> before shipping — accuracy delta and cost/latency delta reported together, never accuracy alone</li>
 </ul>
 <hr />
-<p><em>Previous: <a href="production.html#f47ScalingOptim">47_Scaling_Optimization_RAG.md</a> | Next: <a href="production.html#f49ScalingOptim">49_Scaling_Optimization_Agentic_Systems.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f49ScalingOptim"><header class="filehead"><div class="fh-top"><span class="fh-num">49 &middot; Scaling &mdash; agentic systems</span><span class="fh-count">11 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/49_Scaling_Optimization_Agentic_Systems.md">source .md &#8599;</a></div><h2>Production Issue #28: Agentic Systems — Failure Modes, Scaling, Performance &amp; Optimization</h2><div class="note">
+<p><em>Previous: <a href="production.html#f47ScalingOptim">47_Scaling_Optimization_RAG.md</a> | Next: <a href="production.html#f49ScalingOptim">49_Scaling_Optimization_Agentic_Systems.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f49ScalingOptim"><header class="filehead"><div class="fh-top"><span class="fh-num">49 &middot; Scaling &mdash; agentic systems</span><span class="fh-count">11 sections</span></div><h2>Production Issue #28: Agentic Systems — Failure Modes, Scaling, Performance &amp; Optimization</h2><div class="note">
 <p><strong>Scope:</strong> What breaks — and how you make it fast/scalable/cheap — in <strong>general agentic systems</strong>: the orchestration (agent-loop) layer, the tool surface, multi-agent coordination, and the infra underneath, independent of whether the agent's tools happen to include a retriever. File 3 of 3: <a href="production.html#f47ScalingOptim">26</a> <strong>= the <abbr title="retrieval-augmented generation">RAG</abbr> pipeline</strong>, <a href="production.html#f48ScalingOptim">27</a> <strong>= the RAG-specific agentic loop overhead</strong>, this file <strong>= any agent system</strong> (a coding agent, a support/workflow agent, a multi-tool automation). General agent failure-mode catalog: <a href="production.html#f40AgenticAIFai">40_Agentic_AI_Failure_Modes.md</a> (referenced throughout, not re-derived). Architecture rationale: <a href="production.html#f44RAGandAgentD">44_RAG_and_Agent_Design_Rationale.md</a> Part B. Framework mechanics: <a href="production.html#f42LangChainLan">42_LangChain_LangGraph_Framework_Guide.md</a>.</p>
 </div></header><article class="q" id="f49ScalingOptim-122"><div class="q-h"><span class="q-n">&bull;</span><h3>Overview</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f49ScalingOptim-122"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">One-sentence idea</span><span class="kt">coordination</span></div><div class="note">
 <p><strong>One-sentence idea:</strong> An agent system's scaling problem is <strong>coordination</strong>, and its failure problem is <strong>an unbounded loop that can also take real-world actions</strong> — both come from the same root cause: every extra step, tool call, or sub-agent is decided <em>at runtime by the model</em>, not fixed in advance, so nothing about cost, latency, or safety is bounded unless you enforce it yourself.</p>
@@ -2280,8 +2628,10 @@ total                                               ≈ 2,025ms   (~2.3x vanilla
 <hr />
 <p><em>Previous: <a href="production.html#f48ScalingOptim">48_Scaling_Optimization_Agentic_RAG.md</a> | Back to <a href="../../08_LangChain_and_LangGraph/README.md">README.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<nav class="pnav"><a class="prev" href="reference.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrowl"/></svg><span class="pnav-t"><span>Previous</span><b>Reference</b></span></a><a class="next" href="prod-scenarios.html"><span class="pnav-t"><span>Next</span><b>Prod Scenarios</b></span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></a></nav>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
 </div></main>
+<aside class="toc" id="toc"><div class="toc-h"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>On this page</div><div class="toc-g" data-for="f40AgenticAIFai"><b>40 &middot; Agentic failure modes</b><a href="#f40AgenticAIFai-0" data-c="f40AgenticAIFai-0">Overview</a><a href="#f40AgenticAIFai-1" data-c="f40AgenticAIFai-1">Key Definitions (read first)</a><a href="#f40AgenticAIFai-2" data-c="f40AgenticAIFai-2">The Failure-Mode Map</a><a href="#f40AgenticAIFai-3" data-c="f40AgenticAIFai-3">1. Runaway Loops</a><a href="#f40AgenticAIFai-4" data-c="f40AgenticAIFai-4">2. Error Compounding</a><a href="#f40AgenticAIFai-5" data-c="f40AgenticAIFai-5">3. Context-Window Overflow</a><a href="#f40AgenticAIFai-6" data-c="f40AgenticAIFai-6">4. Cost &amp; Latency Explosion</a><a href="#f40AgenticAIFai-7" data-c="f40AgenticAIFai-7">5. Tool Misuse</a><a href="#f40AgenticAIFai-8" data-c="f40AgenticAIFai-8">6. Goal Drift</a><a href="#f40AgenticAIFai-9" data-c="f40AgenticAIFai-9">7. Unsafe Actions</a><a href="#f40AgenticAIFai-10" data-c="f40AgenticAIFai-10">8. Multi-Agent Coordination Failures</a><a href="#f40AgenticAIFai-11" data-c="f40AgenticAIFai-11">A Safe Agent Loop (putting it together)</a><a href="#f40AgenticAIFai-12" data-c="f40AgenticAIFai-12">Checklist for Production</a></div><div class="toc-g" data-for="f41RAGinProduct"><b>41 &middot; RAG in production</b><a href="#f41RAGinProduct-13" data-c="f41RAGinProduct-13">Overview</a><a href="#f41RAGinProduct-14" data-c="f41RAGinProduct-14">Key Definitions (read first)</a><a href="#f41RAGinProduct-15" data-c="f41RAGinProduct-15">Do you even need RAG? (long-context vs RAG)</a><a href="#f41RAGinProduct-16" data-c="f41RAGinProduct-16">The RAG Pipeline</a><a href="#f41RAGinProduct-17" data-c="f41RAGinProduct-17">Stage-by-Stage: the failure mode at each step</a><a href="#f41RAGinProduct-18" data-c="f41RAGinProduct-18">Putting it together</a><a href="#f41RAGinProduct-19" data-c="f41RAGinProduct-19">Evaluating RAG (two halves — measure both)</a><a href="#f41RAGinProduct-20" data-c="f41RAGinProduct-20">Advanced Patterns (when basic RAG plateaus)</a><a href="#f41RAGinProduct-21" data-c="f41RAGinProduct-21">Decision Flow</a><a href="#f41RAGinProduct-22" data-c="f41RAGinProduct-22">Checklist for Production</a></div><div class="toc-g" data-for="f42LangChainLan"><b>42 &middot; Framework guide</b><a href="#f42LangChainLan-23" data-c="f42LangChainLan-23">Overview</a><a href="#f42LangChainLan-24" data-c="f42LangChainLan-24">Key Definitions (read first)</a><a href="#f42LangChainLan-25" data-c="f42LangChainLan-25">Part 1 — LangChain</a><a href="#f42LangChainLan-26" data-c="f42LangChainLan-26">Part 2 — LangGraph</a><a href="#f42LangChainLan-27" data-c="f42LangChainLan-27">When to use what</a><a href="#f42LangChainLan-28" data-c="f42LangChainLan-28">Production Considerations (the trade-offs)</a><a href="#f42LangChainLan-29" data-c="f42LangChainLan-29">Decision Flow</a><a href="#f42LangChainLan-30" data-c="f42LangChainLan-30">Checklist for Production</a></div><div class="toc-g" data-for="f43AgentEvaluat"><b>43 &middot; Agent evaluation</b><a href="#f43AgentEvaluat-31" data-c="f43AgentEvaluat-31">Overview</a><a href="#f43AgentEvaluat-32" data-c="f43AgentEvaluat-32">Key Definitions (read first)</a><a href="#f43AgentEvaluat-33" data-c="f43AgentEvaluat-33">The two axes you must measure</a><a href="#f43AgentEvaluat-34" data-c="f43AgentEvaluat-34">1. Outcome metrics — *did it achieve the goal?</a><a href="#f43AgentEvaluat-35" data-c="f43AgentEvaluat-35">2. Trajectory metrics — *was the path good?</a><a href="#f43AgentEvaluat-36" data-c="f43AgentEvaluat-36">Worked example — outcome-pass, trajectory-fail</a><a href="#f43AgentEvaluat-37" data-c="f43AgentEvaluat-37">3. Cost &amp; latency — *the third axis</a><a href="#f43AgentEvaluat-38" data-c="f43AgentEvaluat-38">4. Reference vs reference-free judging</a><a href="#f43AgentEvaluat-39" data-c="f43AgentEvaluat-39">5. Non-determinism — *run it more than once</a><a href="#f43AgentEvaluat-40" data-c="f43AgentEvaluat-40">6. Component eval before end-to-end</a><a href="#f43AgentEvaluat-41" data-c="f43AgentEvaluat-41">7. Offline (CI gate) vs online (production truth)</a><a href="#f43AgentEvaluat-42" data-c="f43AgentEvaluat-42">8. Building the agent eval set</a><a href="#f43AgentEvaluat-43" data-c="f43AgentEvaluat-43">Decision Flow</a><a href="#f43AgentEvaluat-44" data-c="f43AgentEvaluat-44">Checklist for Production</a></div><div class="toc-g" data-for="f44RAGandAgentD"><b>44 &middot; Design rationale</b><a href="#f44RAGandAgentD-45" data-c="f44RAGandAgentD-45">Overview</a><a href="#f44RAGandAgentD-46" data-c="f44RAGandAgentD-46">Key Definitions (read first)</a><a href="#f44RAGandAgentD-47" data-c="f44RAGandAgentD-47">A1. Chunking — *"why only this chunking strategy?"</a><a href="#f44RAGandAgentD-48" data-c="f44RAGandAgentD-48">A2. Embedding — *why same-model-both-sides, and which model</a><a href="#f44RAGandAgentD-49" data-c="f44RAGandAgentD-49">A3. Indexing / ANN — *why HNSW (and when not)</a><a href="#f44RAGandAgentD-50" data-c="f44RAGandAgentD-50">A4. Retrieval — *"better way of handling retrieval"</a><a href="#f44RAGandAgentD-51" data-c="f44RAGandAgentD-51">A5. Generation — *why grounding beats a bigger model here</a><a href="#f44RAGandAgentD-52" data-c="f44RAGandAgentD-52">B1. Do you even need an agent? — *the cheapest correct answer</a><a href="#f44RAGandAgentD-53" data-c="f44RAGandAgentD-53">B2. Planning approach — *ReAct vs Plan-Execute vs Reflexion</a><a href="#f44RAGandAgentD-54" data-c="f44RAGandAgentD-54">B3. Tool design — *why few, strict, validated tools</a><a href="#f44RAGandAgentD-55" data-c="f44RAGandAgentD-55">B4. Memory &amp; context — *why summarize+external store, not "just a bigger window"</a><a href="#f44RAGandAgentD-56" data-c="f44RAGandAgentD-56">B5. Single vs multi-agent — *why one well-guarded agent first</a><a href="#f44RAGandAgentD-57" data-c="f44RAGandAgentD-57">B6. Safety &amp; limits — *why these are non-negotiable defaults</a><a href="#f44RAGandAgentD-58" data-c="f44RAGandAgentD-58">Decision Flow (defend any choice in one pass)</a><a href="#f44RAGandAgentD-59" data-c="f44RAGandAgentD-59">Checklist for Production</a></div><div class="toc-g" data-for="f45RAGandAgentS"><b>45 &middot; Stepwise failure handling</b><a href="#f45RAGandAgentS-60" data-c="f45RAGandAgentS-60">Overview</a><a href="#f45RAGandAgentS-61" data-c="f45RAGandAgentS-61">Key Definitions (read first)</a><a href="#f45RAGandAgentS-62" data-c="f45RAGandAgentS-62">A1. Ingestion &amp; parsing — "the document never made it in"</a><a href="#f45RAGandAgentS-63" data-c="f45RAGandAgentS-63">A2. Chunking — "the answer got cut in half"</a><a href="#f45RAGandAgentS-64" data-c="f45RAGandAgentS-64">A3. Embedding — "the meaning got lost in translation"</a><a href="#f45RAGandAgentS-65" data-c="f45RAGandAgentS-65">A4. Vector store / index — "the library is on fire"</a><a href="#f45RAGandAgentS-66" data-c="f45RAGandAgentS-66">A5. Query understanding — "the question itself is the problem"</a><a href="#f45RAGandAgentS-67" data-c="f45RAGandAgentS-67">A6. Retrieval — "we fetched the wrong pages"</a><a href="#f45RAGandAgentS-68" data-c="f45RAGandAgentS-68">A7. Reranking — "the good page is in the pile, but at the bottom"</a><a href="#f45RAGandAgentS-69" data-c="f45RAGandAgentS-69">A8. Context assembly — "we found it, then threw it away"</a><a href="#f45RAGandAgentS-70" data-c="f45RAGandAgentS-70">A9. Generation — "right pages, wrong words"</a><a href="#f45RAGandAgentS-71" data-c="f45RAGandAgentS-71">A10. Post-processing &amp; delivery — "the last metre"</a><a href="#f45RAGandAgentS-72" data-c="f45RAGandAgentS-72">B1. Goal intake — "garbage goal in, expensive garbage out"</a><a href="#f45RAGandAgentS-73" data-c="f45RAGandAgentS-73">B2. Planning — "a confident plan for the wrong journey"</a><a href="#f45RAGandAgentS-74" data-c="f45RAGandAgentS-74">B3. Tool selection — "right intent, wrong instrument"</a><a href="#f45RAGandAgentS-75" data-c="f45RAGandAgentS-75">B4. Argument construction — "right tool, wrong knobs"</a><a href="#f45RAGandAgentS-76" data-c="f45RAGandAgentS-76">B5. Tool execution — "the world said no"</a><a href="#f45RAGandAgentS-77" data-c="f45RAGandAgentS-77">B6. Observation handling — "the loop believed a lie"</a><a href="#f45RAGandAgentS-78" data-c="f45RAGandAgentS-78">B7. Memory &amp; context — "the agent forgot why it came"</a><a href="#f45RAGandAgentS-79" data-c="f45RAGandAgentS-79">B8. Loop control — "when to stop is a feature"</a><a href="#f45RAGandAgentS-80" data-c="f45RAGandAgentS-80">B9. Final answer — "land the plane"</a><a href="#f45RAGandAgentS-81" data-c="f45RAGandAgentS-81">Master Table — every step, one line each</a><a href="#f45RAGandAgentS-82" data-c="f45RAGandAgentS-82">Interview-Ready Summary</a><a href="#f45RAGandAgentS-83" data-c="f45RAGandAgentS-83">Checklist</a></div><div class="toc-g" data-for="f46AgenticRAGmd"><b>46 &middot; Agentic RAG patterns</b><a href="#f46AgenticRAGmd-84" data-c="f46AgenticRAGmd-84">Overview</a><a href="#f46AgenticRAGmd-85" data-c="f46AgenticRAGmd-85">Key Definitions (read first)</a><a href="#f46AgenticRAGmd-86" data-c="f46AgenticRAGmd-86">Vanilla RAG vs Agentic RAG — where the line actually is</a><a href="#f46AgenticRAGmd-87" data-c="f46AgenticRAGmd-87">The Patterns of Agentic RAG</a><a href="#f46AgenticRAGmd-88" data-c="f46AgenticRAGmd-88">Architecture: a production agentic RAG system, assembled</a><a href="#f46AgenticRAGmd-89" data-c="f46AgenticRAGmd-89">From-Scratch Code: a minimal agentic RAG loop</a><a href="#f46AgenticRAGmd-90" data-c="f46AgenticRAGmd-90">Failure Modes Specific to Agentic RAG</a><a href="#f46AgenticRAGmd-91" data-c="f46AgenticRAGmd-91">Evaluating Agentic RAG</a><a href="#f46AgenticRAGmd-92" data-c="f46AgenticRAGmd-92">Decision Flow — which pattern do I actually need?</a><a href="#f46AgenticRAGmd-93" data-c="f46AgenticRAGmd-93">Checklist for Production</a></div><div class="toc-g" data-for="f47ScalingOptim"><b>47 &middot; Scaling &mdash; RAG</b><a href="#f47ScalingOptim-94" data-c="f47ScalingOptim-94">Overview</a><a href="#f47ScalingOptim-95" data-c="f47ScalingOptim-95">Key Definitions (read first)</a><a href="#f47ScalingOptim-96" data-c="f47ScalingOptim-96">A. Ingestion &amp; Chunking (offline, throughput-bound)</a><a href="#f47ScalingOptim-97" data-c="f47ScalingOptim-97">B. Embedding (throughput offline for docs, latency online for the query)</a><a href="#f47ScalingOptim-98" data-c="f47ScalingOptim-98">C. Indexing / Vector Store (memory-bound — this is where "scaling" most often means "stop the cliff")</a><a href="#f47ScalingOptim-99" data-c="f47ScalingOptim-99">D. Retrieval — the flagship layer (online, the first mandatory round-trip)</a><a href="#f47ScalingOptim-100" data-c="f47ScalingOptim-100">E. Reranking (highest quality-per-millisecond, and the layer that should fail open)</a><a href="#f47ScalingOptim-101" data-c="f47ScalingOptim-101">F. Context Assembly (correctness-critical, and the layer with the sneakiest silent failure)</a><a href="#f47ScalingOptim-102" data-c="f47ScalingOptim-102">G. Generation / LLM Inference (compute-bound, usually the dominant cost and latency line item)</a><a href="#f47ScalingOptim-103" data-c="f47ScalingOptim-103">H. Delivery &amp; Post-processing ("the last metre")</a><a href="#f47ScalingOptim-104" data-c="f47ScalingOptim-104">Caching Hierarchy &amp; Infra (underneath every layer above)</a><a href="#f47ScalingOptim-105" data-c="f47ScalingOptim-105">Worked Example: End-to-End Latency Budget</a><a href="#f47ScalingOptim-106" data-c="f47ScalingOptim-106">Decision Flow: "it's slow, expensive, or wrong — which layer, and what do I do?"</a><a href="#f47ScalingOptim-107" data-c="f47ScalingOptim-107">Interview-Ready Summary</a><a href="#f47ScalingOptim-108" data-c="f47ScalingOptim-108">Checklist for Production</a></div><div class="toc-g" data-for="f48ScalingOptim"><b>48 &middot; Scaling &mdash; agentic RAG</b><a href="#f48ScalingOptim-109" data-c="f48ScalingOptim-109">Overview</a><a href="#f48ScalingOptim-110" data-c="f48ScalingOptim-110">Key Definitions (read first)</a><a href="#f48ScalingOptim-111" data-c="f48ScalingOptim-111">Layer 1: Routing — the up-front decision that can misfire silently</a><a href="#f48ScalingOptim-112" data-c="f48ScalingOptim-112">Layer 2: Decomposition / Multi-hop — cost scales with sub-questions, and errors compound across them</a><a href="#f48ScalingOptim-113" data-c="f48ScalingOptim-113">Layer 3: Grading / CRAG — a second call on every hop, and a new point of failure</a><a href="#f48ScalingOptim-114" data-c="f48ScalingOptim-114">Layer 4: Iterative / Recursive Retrieval — the layer that most needs a hard cap</a><a href="#f48ScalingOptim-115" data-c="f48ScalingOptim-115">Layer 5: Tool-Augmented / Multi-Source &amp; Multi-Agent RAG — cross-reference</a><a href="#f48ScalingOptim-116" data-c="f48ScalingOptim-116">Comparison Table: Failure Mode + Scaling, by Layer</a><a href="#f48ScalingOptim-117" data-c="f48ScalingOptim-117">Worked Example: End-to-End Latency Budget</a><a href="#f48ScalingOptim-118" data-c="f48ScalingOptim-118">Worked Example: Cost Per Query — the Agentic Multiplier</a><a href="#f48ScalingOptim-119" data-c="f48ScalingOptim-119">Decision Flow: "the loop is slow, expensive, or stuck — which layer, and what do I do?"</a><a href="#f48ScalingOptim-120" data-c="f48ScalingOptim-120">Interview-Ready Summary</a><a href="#f48ScalingOptim-121" data-c="f48ScalingOptim-121">Checklist for Production</a></div><div class="toc-g" data-for="f49ScalingOptim"><b>49 &middot; Scaling &mdash; agentic systems</b><a href="#f49ScalingOptim-122" data-c="f49ScalingOptim-122">Overview</a><a href="#f49ScalingOptim-123" data-c="f49ScalingOptim-123">Key Definitions (read first)</a><a href="#f49ScalingOptim-124" data-c="f49ScalingOptim-124">Layer 1: Orchestration (the agent loop) — where runaway failures live, and where parallelism is won</a><a href="#f49ScalingOptim-125" data-c="f49ScalingOptim-125">Layer 2: Tool Surface — selection failures, and the cost of every tool in context</a><a href="#f49ScalingOptim-126" data-c="f49ScalingOptim-126">Layer 3: Multi-Agent Systems — coordination failures compound cost, not just complexity</a><a href="#f49ScalingOptim-127" data-c="f49ScalingOptim-127">Layer 4: Unsafe Actions — the failure mode with no scaling equivalent, because it doesn't need one</a><a href="#f49ScalingOptim-128" data-c="f49ScalingOptim-128">Layer 5: Infra — caching hierarchy, load balancing, autoscaling</a><a href="#f49ScalingOptim-129" data-c="f49ScalingOptim-129">Worked Example: Parallel vs. Sequential Tool Execution</a><a href="#f49ScalingOptim-130" data-c="f49ScalingOptim-130">Decision Flow: "the agent is slow, expensive, wrong, or stuck — which layer, and what do I do?"</a><a href="#f49ScalingOptim-131" data-c="f49ScalingOptim-131">Interview-Ready Summary</a><a href="#f49ScalingOptim-132" data-c="f49ScalingOptim-132">Checklist for Production</a></div></aside>
 </div>
 <button class="totop" id="totop" title="Back to top">&#8593;</button>
 <script>
@@ -2322,29 +2672,44 @@ var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementBy
 qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
 function runSearch(){
   if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
-  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
-    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;});
+  /* a heading survives the filter only while something under it is still showing */
   [].forEach.call(document.querySelectorAll('.parthead'),function(p){
-    if(!v){p.style.display='';return}
-    var vis=false,n=p.nextElementSibling;
-    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
-    p.style.display=vis?'':'none';});
+    var vis=true;
+    if(v){
+      vis=false;
+      var n=p.nextElementSibling;
+      while(n&&!n.classList.contains('parthead')){
+        if(n.classList.contains('q')&&n.style.display!=='none'){vis=true;break}
+        n=n.nextElementSibling;
+      }
+    }
+    p.style.display=vis?'':'none';
+    if(p.id){var l=document.querySelector('nav a[data-t="'+p.id+'"]');
+      if(l)l.style.display=vis?'':'none';}
+  });
   if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
 }
 if(inp)inp.addEventListener('input',runSearch);
 
-var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+/* The sidebar lists main headings only, so scroll tracking follows those headings
+   (data-t -> element id) rather than one entry per question card. */
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-t]'));
+var navTargets=navLinks.map(function(l){return document.getElementById(l.getAttribute('data-t'))});
 var totop=document.getElementById('totop');
 function onScroll(){
   var sc=document.documentElement.scrollTop;
   if(totop)totop.classList.toggle('show',sc>600);
-  var cur=null;
-  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
-    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  var cur=-1;
+  for(var i=0;i<navTargets.length;i++){
+    var el=navTargets[i];
+    if(!el||el.offsetParent===null)continue;
+    if(el.getBoundingClientRect().top<=140)cur=i;else break;
+  }
   navLinks.forEach(function(l){l.classList.remove('active')});
-  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
-    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
-      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+  if(cur>=0){var l=navLinks[cur];
+    l.classList.add('active');var r=l.getBoundingClientRect();
+    if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}
 }
 window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
@@ -2395,6 +2760,43 @@ document.addEventListener('keydown',function(e){
     });
     pre.appendChild(b);
   });
+})();
+
+/* Right-hand rail: reveal the group for the file section being read, and mark the
+   card in view. Scrolling is done on the rail itself - scrollIntoView would drag the
+   window along with it. */
+(function(){
+  var toc=document.getElementById('toc'); if(!toc)return;
+  document.body.classList.add('js');
+  var groups=[].slice.call(toc.querySelectorAll('.toc-g'));
+  if(!groups.length)return;
+  var secs=groups.map(function(g){return document.getElementById(g.getAttribute('data-for'))});
+  var links=groups.map(function(g){return [].slice.call(g.querySelectorAll('a[data-c]'))});
+  var curG=-1;
+  function upd(){
+    var i,g=-1;
+    for(i=0;i<secs.length;i++){
+      var el=secs[i]; if(!el)continue;
+      if(el.getBoundingClientRect().top<=160)g=i; else break;
+    }
+    if(g<0)g=0;
+    if(g!==curG){groups.forEach(function(x,k){x.classList.toggle('on',k===g)});curG=g;}
+    var ls=links[g]||[],act=null;
+    for(i=0;i<ls.length;i++){
+      var t=document.getElementById(ls[i].getAttribute('data-c'));
+      if(!t||t.style.display==='none')continue;
+      if(t.getBoundingClientRect().top<=160)act=ls[i]; else break;
+    }
+    ls.forEach(function(a){a.classList.remove('on')});
+    if(act){
+      act.classList.add('on');
+      var top=act.offsetTop,h=act.offsetHeight;
+      if(top<toc.scrollTop+8||top+h>toc.scrollTop+toc.clientHeight-8)
+        toc.scrollTop=top-toc.clientHeight/2+h/2;
+    }
+  }
+  addEventListener('scroll',upd,{passive:true});
+  addEventListener('resize',upd); upd();
 })();
 
 /* deep link on each question card */

@@ -509,9 +509,358 @@ body.searching .parthead{opacity:.5}
 
 @media(max-width:1060px){ .parthead{top:0} }
 
+/* =====================================================================
+   AURORA GLASS
+   The final layer. Everything below re-tints the sheet above it: a deep
+   near-black canvas lit by a fixed gradient mesh, with the chrome and the
+   cards reading as frosted panels floating on top of it.
+   ===================================================================== */
+
+:root{
+  --bg:#070a12; --bg-2:#0a0e18;
+  --surface:#0f131e; --surface-2:#141a27; --surface-3:#1c2333;
+  --border:#232c40; --border-soft:#19202f;
+  --ink:#eaf0fb; --ink-2:#9fabc4; --ink-mut:#6b7690;
+
+  --accent:#7c9dff; --accent-2:#b18cff;
+  --accent-soft:rgba(124,157,255,.15); --accent-bd:rgba(124,157,255,.40);
+  --t-rag:#7c9dff; --t-agentic:#ff9563; --t-recall:#3ed9a4;
+  --t-violet:#b18cff; --t-amber:#f0c274;
+  --good:#3ed9a4; --warn:#f5c451; --crit:#ff6b81;
+  --good-soft:rgba(62,217,164,.12); --warn-soft:rgba(245,196,81,.12);
+  --crit-soft:rgba(255,107,129,.12);
+  --code-bg:#080b13;
+
+  --glass:rgba(255,255,255,.045);
+  --glass-bd:rgba(255,255,255,.075);
+  --e1:0 1px 2px rgba(0,0,0,.40);
+  --e2:0 8px 26px rgba(3,6,15,.55);
+  --e3:0 22px 60px rgba(3,6,15,.68);
+  --radius:16px; --radius-sm:11px;
+}
+html[data-theme="light"]{
+  --bg:#f6f8fe; --bg-2:#eef2fb;
+  --surface:#fff; --surface-2:#fafbff; --surface-3:#eef2fb;
+  --border:#dce3f2; --border-soft:#e9edf8;
+  --ink:#111828; --ink-2:#4c586f; --ink-mut:#7c8699;
+
+  --accent:#4f6fe6; --accent-2:#8b5cf6;
+  --accent-soft:rgba(79,111,230,.10); --accent-bd:rgba(79,111,230,.34);
+  --t-rag:#4f6fe6; --t-agentic:#e0663a; --t-recall:#0f9e74;
+  --t-violet:#8b5cf6; --t-amber:#a9760a;
+  --good:#0f9e74; --warn:#b07d00; --crit:#dc3d55;
+  --good-soft:rgba(15,158,116,.10); --warn-soft:rgba(176,125,0,.11);
+  --crit-soft:rgba(220,61,85,.09);
+  --code-bg:#f2f5fc;
+
+  --glass:rgba(255,255,255,.62);
+  --glass-bd:rgba(17,24,40,.07);
+  --e1:0 1px 2px rgba(16,24,40,.05);
+  --e2:0 8px 24px rgba(16,24,40,.08);
+  --e3:0 22px 56px rgba(16,24,40,.12);
+}
+
+/* ---------- the canvas ---------- */
+/* the page background lives on <html> so the fixed aurora layer can sit
+   between it and the content without the body's own fill covering it */
+html{background:var(--bg)}
+body{background:transparent}
+
+/* Ambient tint on every page: strongest at the top edge, gone by mid-scroll, so
+   long reading pages settle onto clean dark instead of a permanent wash. */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 22% -6%, color-mix(in srgb,var(--accent) 46%,transparent), transparent 66%),
+    radial-gradient(38% 32% at 82% -8%, color-mix(in srgb,var(--accent-2) 40%,transparent), transparent 64%);
+  filter:blur(30px) saturate(1.3);opacity:.5;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%);
+          mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%)}
+html[data-theme="light"] body::before{opacity:.5;filter:blur(36px) saturate(1)}
+
+/* film grain: keeps the large flat gradients from banding on cheap panels */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.032;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* multiply over a light canvas darkens fast - the grain has to be far weaker here
+   or the whole page reads grey instead of white */
+html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply}
+
+@keyframes aurora-drift{
+  from{transform:translate3d(0,0,0) scale(1)}
+  to{transform:translate3d(3%,-2.5%,0) scale(1.12)}
+}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:transparent;border-bottom:1px solid var(--border-soft)}
+.siteswitch a{color:var(--ink-mut)}
+.siteswitch a:hover{background:var(--glass);color:var(--ink)}
+.siteswitch a.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  box-shadow:0 3px 14px color-mix(in srgb,var(--accent) 40%,transparent)}
+.sitebar{background:color-mix(in srgb,var(--bg) 62%,transparent);
+  backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);
+  border-bottom:1px solid var(--glass-bd);box-shadow:0 1px 0 rgba(255,255,255,.03),var(--e1)}
+.logo b{background:linear-gradient(115deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{background:var(--glass);border:1px solid var(--glass-bd);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);border-radius:10px}
+.btn:hover{border-color:var(--accent-bd);color:var(--ink);
+  box-shadow:0 4px 16px color-mix(in srgb,var(--accent) 22%,transparent)}
+.btn.on{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,transparent),
+  color-mix(in srgb,var(--accent-2) 18%,transparent));border-color:var(--accent-bd);color:var(--accent)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 55%,transparent),transparent 60%);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-right:1px solid var(--glass-bd)}
+.sb-search input{background:var(--glass);border:1px solid var(--glass-bd);border-radius:11px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sb-search input:focus{border-color:var(--accent-bd);
+  box-shadow:0 0 0 3px var(--accent-soft),0 4px 18px color-mix(in srgb,var(--accent) 20%,transparent)}
+nav a:hover{background:var(--glass);color:var(--ink)}
+nav a.active{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 20%,transparent),transparent 78%);
+  box-shadow:inset 0 0 0 1px var(--accent-bd);color:var(--accent)}
+nav a.active::before{background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 10px var(--accent)}
+.nav-grp{color:var(--ink-mut)}
+
+/* ---------- hero ---------- */
+.hero::before{opacity:.72;filter:blur(38px)}
+.eyebrow{background:var(--glass);border:1px solid var(--glass-bd);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:var(--ink-2);font-weight:700}
+.hero h1{background:linear-gradient(112deg,var(--ink) 4%,
+    color-mix(in srgb,var(--accent) 88%,var(--ink)) 46%,
+    color-mix(in srgb,var(--accent-2) 92%,var(--ink)) 74%,
+    color-mix(in srgb,var(--t-recall) 70%,var(--ink)) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- surfaces: glass everywhere the old sheet used flat fills ---------- */
+.stat,.q,.tcard,.hub-card,.panel,.learn,figure.viz,.tbl-wrap,.flow,.learn-item{
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 72%,transparent));
+  border-color:var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+
+.stat{border-radius:14px}
+.stat::before{height:1.5px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),color-mix(in srgb,var(--tc,var(--accent)) 20%,transparent) 70%,transparent)}
+.stat:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 18%,transparent)}
+.stat-v{background:linear-gradient(150deg,var(--ink),var(--tc,var(--accent)));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 42%,transparent);box-shadow:var(--e2)}
+.q:target{box-shadow:0 0 0 3px var(--accent-soft),var(--e2)}
+.tcard:hover,.hub-card:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 22%,transparent)}
+
+/* the hover affordance was emitting a literal "92" - it wants to be an arrow */
+.tcard::after,.hub-card::after{content:"\2192"}
+
+figure.viz{border-radius:18px}
+pre.code{background:color-mix(in srgb,var(--code-bg) 88%,transparent);
+  border:1px solid var(--glass-bd);border-radius:13px;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.say{background:linear-gradient(100deg,color-mix(in srgb,var(--accent) 14%,transparent),transparent 72%);
+  border-left-color:var(--accent)}
+.kt{background:var(--glass);border-color:var(--glass-bd)}
+.kt:hover{border-color:var(--accent-bd);color:var(--accent)}
+.parthead{background:color-mix(in srgb,var(--bg) 66%,transparent);
+  backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5)}
+th{background:color-mix(in srgb,var(--surface-3) 82%,transparent)}
+
+/* ---------- right-hand "on this page" rail ---------- */
+:root{ --tocw:262px }
+.app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr) var(--tocw)}
+.toc{position:sticky;top:47px;align-self:start;height:calc(100vh - 47px);overflow-y:auto;
+  overscroll-behavior:contain;padding:22px 20px 60px;font-size:12.6px;
+  border-left:1px solid var(--glass-bd)}
+.toc::-webkit-scrollbar{width:7px}
+.toc::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.toc-h{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-mut);margin-bottom:12px}
+.toc-h svg.ic{font-size:13px;color:var(--tc,var(--accent))}
+/* one group per file section; the script shows the one you are reading */
+body.js .toc-g{display:none}
+body.js .toc-g.on{display:block}
+.toc-g > b{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tc,var(--accent));margin:0 0 9px;padding-left:11px}
+.toc-g a{display:block;padding:5px 10px 5px 12px;margin:1px 0;border-radius:7px;color:var(--ink-2);
+  text-decoration:none;line-height:1.42;border-left:2px solid transparent}
+.toc-g a:hover{background:var(--glass);color:var(--ink);text-decoration:none}
+.toc-g a.on{color:var(--accent);border-left-color:var(--accent);font-weight:650;
+  background:linear-gradient(90deg,var(--accent-soft),transparent 80%)}
+.toc-empty{color:var(--ink-mut);font-size:12px;padding-left:12px}
+@media(max-width:1400px){
+  .app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr)}
+  .toc{display:none}
+}
+
+/* ---------- breadcrumb ---------- */
+.crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.2px;color:var(--ink-mut);
+  padding-top:26px}
+.crumb a{color:var(--ink-mut);text-decoration:none}
+.crumb a:hover{color:var(--accent);text-decoration:none}
+.crumb svg.ic{font-size:12px;opacity:.5}
+.crumb b{color:var(--ink-2);font-weight:650}
+.crumb + .hero{padding-top:18px}
+.pnav-t{min-width:0}
+
+/* ---------- previous / next ---------- */
+.pnav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:64px 0 0}
+.pnav a{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:14px;
+  text-decoration:none;color:inherit;border:1px solid var(--glass-bd);
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 86%,transparent),
+    color-mix(in srgb,var(--surface-2) 66%,transparent))}
+.pnav a:hover{text-decoration:none;border-color:var(--accent-bd);box-shadow:var(--e2)}
+.pnav a.next{grid-column:2;justify-content:flex-end;text-align:right}
+.pnav a.prev{grid-column:1}
+.pnav span{display:block;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-mut)}
+.pnav b{display:block;margin-top:4px;font-size:14.5px;letter-spacing:-.02em;color:var(--ink)}
+.pnav svg.ic{font-size:18px;color:var(--accent);flex:none}
+@media(max-width:760px){
+  .pnav{grid-template-columns:1fr}
+  .pnav a.next,.pnav a.prev{grid-column:1}
+}
+
+/* ---------- section headers (shared by the hub and every topic index) ---------- */
+.h-sec-h{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.h-sec-h h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-mut);white-space:nowrap;display:flex;align-items:center;gap:9px;border:0;padding:0}
+.h-sec-h h2 svg.ic{font-size:15px;color:var(--accent);opacity:.9}
+.h-sec-h i{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- icons ---------- */
+.sprite{display:none}
+svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.13em}
+/* the boxed icon tile used by track rows, callouts and nav groups */
+.ic-box{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:44px;height:44px;border-radius:13px;font-size:20px;color:var(--tc,var(--accent));
+  background:linear-gradient(150deg,color-mix(in srgb,var(--tc,var(--accent)) 26%,transparent),
+    color-mix(in srgb,var(--tc,var(--accent)) 8%,transparent));
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.ic-sm{width:30px;height:30px;border-radius:9px;font-size:15px}
+
+/* ---------- topic index: learning-track rows ---------- */
+.trk{display:flex;flex-direction:column;gap:11px;margin:40px 0 0}
+.trk-row{position:relative;display:flex;align-items:center;gap:17px;padding:17px 19px;
+  border-radius:15px;text-decoration:none;color:inherit;overflow:hidden;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--surface) 90%,transparent),
+    color-mix(in srgb,var(--surface-2) 68%,transparent));
+  border:1px solid var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.trk-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tc)}
+.trk-row:hover{text-decoration:none;transform:translateX(3px);
+  border-color:color-mix(in srgb,var(--tc) 46%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc) 18%,transparent)}
+.trk-b{min-width:0;flex:1}
+.trk-b b{display:block;font-size:16.5px;letter-spacing:-.022em;color:var(--ink);font-weight:750}
+.trk-b b i{font-style:normal;color:var(--ink-mut);font-weight:600;margin-right:3px}
+.trk-b p{margin:4px 0 0;font-size:13.2px;line-height:1.5;color:var(--ink-2)}
+.trk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.trk-chips span{font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.trk-row:hover .trk-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+.trk-meta{display:flex;align-items:center;gap:8px;flex:none;font-size:11.5px;
+  font-family:var(--mono);color:var(--tc);white-space:nowrap}
+.trk-meta i{font-style:normal;opacity:.45}
+.trk-go{flex:none;font-size:19px;color:var(--ink-mut);display:inline-flex}
+.trk-row:hover .trk-go{color:var(--tc);transform:translateX(2px)}
+@media(prefers-reduced-motion:no-preference){
+  .trk-row,.trk-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,color .18s ease}
+}
+@media(max-width:820px){
+  .trk-row{flex-wrap:wrap;gap:13px}
+  .trk-meta{order:3;width:100%}
+  .trk-go{display:none}
+}
+
+/* ---------- sidebar nav with icons ---------- */
+.nav-grp{display:flex;align-items:center;gap:8px}
+.nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
+nav a svg.ic{font-size:14px;opacity:.6}
+nav a.active svg.ic{opacity:1}
+/* file = main heading, named part = its only sub-entry */
+nav a.nav-file{margin-top:13px;font-size:13px;font-weight:750;color:var(--ink);align-items:center}
+nav a.nav-file svg.ic{color:var(--tc,var(--accent));opacity:.95}
+nav a.nav-sub{padding-left:30px;font-size:12.2px;position:relative}
+nav a.nav-sub::after{content:"";position:absolute;left:16px;top:50%;width:5px;height:5px;
+  margin-top:-2.5px;border-radius:50%;background:var(--ink-mut);opacity:.5}
+nav a.nav-sub.active::after{background:var(--accent);opacity:1}
+
+/* ---------- callouts with icons ---------- */
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key,.say{position:relative}
+.note-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;font-size:13px;margin-right:8px;vertical-align:-.35em;flex:none}
+.say-h svg.ic{font-size:13px}
+
+/* ---------- topic index: the landing page of each site ---------- */
+/* the reading measure is right for prose but starves a card grid, so an index
+   page widens its column and fits three across */
+.wrap:has(.idx-grid){max-width:1300px}
+.idx-hero{padding:58px 0 4px}
+.idx-hero h1{font-size:clamp(36px,4.8vw,56px);margin:18px 0 16px}
+.idx-hero .lede{font-size:17.5px;max-width:76ch;margin:0}
+
+.idx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;
+  margin:44px 0 0}
+.idx-card{position:relative;display:block;padding:22px 23px 20px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 70%,transparent));
+  border:1px solid var(--glass-bd);text-decoration:none;color:inherit;
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.idx-card::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc),transparent 80%)}
+.idx-card:hover{transform:translateY(-3px);text-decoration:none;
+  border-color:color-mix(in srgb,var(--tc) 48%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc) 20%,transparent)}
+.idx-card-h{display:flex;align-items:center;gap:11px}
+.idx-card-h h3{margin:0;font-size:18.5px;letter-spacing:-.026em;color:var(--ink);font-weight:750}
+.idx-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--tc);
+  box-shadow:0 0 10px var(--tc)}
+.idx-go{margin-left:auto;font-size:16px;color:var(--tc);opacity:0;transform:translateX(-5px);flex:none}
+.idx-card:hover .idx-go{opacity:1;transform:translateX(0)}
+.idx-card p{margin:11px 0 0;font-size:13.4px;line-height:1.6;color:var(--ink-2)}
+.idx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}
+.idx-chips span{font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.idx-card:hover .idx-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+@media(prefers-reduced-motion:no-preference){
+  .idx-card,.idx-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,opacity .18s ease}
+}
+
+/* ---------- file section headers ---------- */
+/* .fh-top's spans had no rules at all, so the name and the count ran together as
+   one unstyled line. It reads as an eyebrow row above the file title. */
+.filehead{margin:56px 0 16px}
+.fh-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px}
+.fh-num{font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--tc,var(--accent));padding:4px 12px;border-radius:999px;
+  background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.fh-count{font-family:var(--mono);font-size:10.5px;color:var(--ink-mut);padding:4px 11px;
+  border-radius:999px;background:var(--glass);border:1px solid var(--glass-bd)}
+.filehead h2{font-size:28px;letter-spacing:-.032em;margin:0}
+
+/* ---------- detail ---------- */
+::selection{background:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--ink)}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-bd);background-clip:padding-box}
+#rprog{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--t-recall));
+  box-shadow:0 0 14px color-mix(in srgb,var(--accent) 70%,transparent)}
+.totop{background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 8px 26px color-mix(in srgb,var(--accent) 45%,transparent)}
+.totop:hover{transform:translateY(-2px)}
+
 </style>
 </head>
 <body>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol><symbol id="i-arrowl" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol><symbol id="i-branch" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol><symbol id="i-bulb" viewBox="0 0 24 24"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2z"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol><symbol id="i-code" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></symbol><symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol><symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 2v6.5L4.2 17A2 2 0 0 0 6 20h12a2 2 0 0 0 1.8-3L15 8.5V2"/><line x1="8" y1="2" x2="16" y2="2"/><line x1="7" y1="14" x2="17" y2="14"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol><symbol id="i-network" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></symbol><symbol id="i-package" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol><symbol id="i-sigma" viewBox="0 0 24 24"><path d="M18 4H6l6 8-6 8h12"/></symbol><symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol><symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol><symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol></svg>
 <div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
   <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw" href="../03_Data_Handling/index.html">03 Data</a><a class="sw" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw on" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw" href="../11_System_Design/index.html">11 Sys Design</a>
 </div></div><div class="sitebar-in">
@@ -523,20 +872,19 @@ body.searching .parthead{opacity:.5}
   <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
   <button class="btn" id="themeBtn">Dark</button>
 </div></div>
-<div class="app" style="--tc:var(--t-rag)">
+<div class="app has-toc" style="--tc:var(--t-rag)">
 <aside id="sidebar">
   <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
   <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
-  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><a href="#figs"><span class="qn">&#9635;</span>Diagrams</a><div class="nav-grp">01 &middot; LangChain notes</div><a href="#f01LangChainNot-0" data-q="f01LangChainNot-0"><span class="qn">&bull;</span>Key Definitions (read first)</a><a href="#f01LangChainNot-1" data-q="f01LangChainNot-1"><span class="qn">&bull;</span>1. Architecture &amp; Core Concepts</a><a href="#f01LangChainNot-2" data-q="f01LangChainNot-2"><span class="qn">&bull;</span>2. Chat Models &amp; Providers</a><a href="#f01LangChainNot-3" data-q="f01LangChainNot-3"><span class="qn">&bull;</span>3. Prompt Templates</a><a href="#f01LangChainNot-4" data-q="f01LangChainNot-4"><span class="qn">&bull;</span>4. Output Parsers &amp; Structured Output</a><a href="#f01LangChainNot-5" data-q="f01LangChainNot-5"><span class="qn">&bull;</span>5. LCEL</a><a href="#f01LangChainNot-6" data-q="f01LangChainNot-6"><span class="qn">&bull;</span>6. Chains</a><a href="#f01LangChainNot-7" data-q="f01LangChainNot-7"><span class="qn">&bull;</span>7. Tools &amp; Tool Calling</a><a href="#f01LangChainNot-8" data-q="f01LangChainNot-8"><span class="qn">&bull;</span>8. Agents</a><a href="#f01LangChainNot-9" data-q="f01LangChainNot-9"><span class="qn">&bull;</span>9. Memory</a><a href="#f01LangChainNot-10" data-q="f01LangChainNot-10"><span class="qn">&bull;</span>10. RAG Pipeline</a><a href="#f01LangChainNot-11" data-q="f01LangChainNot-11"><span class="qn">&bull;</span>11. Streaming &amp; Async</a><a href="#f01LangChainNot-12" data-q="f01LangChainNot-12"><span class="qn">&bull;</span>12. Callbacks, Tracing &amp; LangSmith</a><a href="#f01LangChainNot-13" data-q="f01LangChainNot-13"><span class="qn">&bull;</span>13. Caching &amp; Token Management</a><a href="#f01LangChainNot-14" data-q="f01LangChainNot-14"><span class="qn">&bull;</span>14. Security &amp; Guardrails</a><a href="#f01LangChainNot-15" data-q="f01LangChainNot-15"><span class="qn">&bull;</span>15. Evaluation &amp; Testing</a><a href="#f01LangChainNot-16" data-q="f01LangChainNot-16"><span class="qn">&bull;</span>16. Custom Components</a><a href="#f01LangChainNot-17" data-q="f01LangChainNot-17"><span class="qn">&bull;</span>17. Production Patterns</a><a href="#f01LangChainNot-18" data-q="f01LangChainNot-18"><span class="qn">&bull;</span>18. Document Loaders</a><a href="#f01LangChainNot-19" data-q="f01LangChainNot-19"><span class="qn">&bull;</span>19. Error Handling, Fallbacks &amp; Retries</a><a href="#f01LangChainNot-20" data-q="f01LangChainNot-20"><span class="qn">&bull;</span>20. Interview Deep Dive</a></nav>
+  <nav><div class="nav-grp"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg>On this page</div><a href="#top" data-t="top"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compass"/></svg>Overview</a><a href="#figs" data-t="figs"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-image"/></svg>Diagrams</a><a class="nav-file" href="#f01LangChainNot" data-t="f01LangChainNot"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>01 &middot; LangChain notes</a></nav>
 </aside>
 <main><div class="wrap">
 
-<section class="hero" id="top"><div class="eyebrow">08_LangChain_and_LangGraph &middot; LangChain</div>
-<h1>LangChain</h1><p class="lede">Models, the LangChain Expression Language (LCEL), tools, agents, retrieval-augmented generation (RAG), streaming</p><div class="oneliner"><b>1 file</b> in this section, <b>21 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
-<div class="stats"><div class="stat"><div class="stat-v">1</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">21</div><div class="stat-l">sections</div></div></div></section>
-<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">Models, the LangChain Expression Language (LCEL), tools, agents, retrieval-augmented generation (RAG), streaming</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>01 &middot; LangChain notes</b><span class="learn-n">21 sections</span></div><div class="learn-tags"><span>Key Definitions (read first)</span><span>Architecture &amp; Core Concepts</span><span>Chat Models &amp; Providers</span><span>Prompt Templates</span><span>Output Parsers &amp; Structured Output</span></div></li></ul></section>
+<nav class="crumb"><a href="../index.html">Home</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><a href="index.html">LangChain &amp; LangGraph</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><b>LangChain</b></nav>
+<section class="hero" id="top"><div class="eyebrow">LangChain and LangGraph &middot; LangChain</div>
+<h1>LangChain</h1><p class="lede">Models, the LangChain Expression Language (LCEL), tools, agents, retrieval-augmented generation (RAG), streaming</p><div class="oneliner"><b>1 file</b> in this section, <b>21 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div></section>
 <section class="sec" id="figs"><figure class="viz"><figcaption><b>The LangChain Expression Language (LCEL) &mdash; everything is a Runnable, and Runnables compose with the pipe</b><span>One interface: invoke, stream, batch, and their async twins &mdash; for free, at every level<span class="terms"><b>LCEL</b> LangChain Expression Language &middot; <b>Runnable</b> the one interface every LCEL step implements &middot; <b>LLM</b> large language model</span></span></figcaption><div class="viz-scroll"><svg viewBox="0 0 920 432" role="img" aria-label="The LangChain Expression Language (LCEL) &mdash; everything is a Runnable, and Runnables compose with the pipe"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-opacity="0.22"/></filter></defs><text x="10" y="22" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">THE PIPE IS JUST FUNCTION COMPOSITION WITH A SHARED INTERFACE</text><rect x="10" y="30" width="176" height="50" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><text x="98" y="53.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">prompt</text><text x="98" y="67" text-anchor="middle" font-size="10" fill="var(--fig-mut)">PromptTemplate</text><text x="199" y="61" text-anchor="middle" font-size="20" font-weight="800" fill="var(--fig-accent)" font-family="monospace">|</text><rect x="212" y="30" width="158" height="50" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><text x="291" y="53.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">model</text><text x="291" y="67" text-anchor="middle" font-size="10" fill="var(--fig-mut)">ChatModel</text><text x="383" y="61" text-anchor="middle" font-size="20" font-weight="800" fill="var(--fig-accent)" font-family="monospace">|</text><rect x="396" y="30" width="168" height="50" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><text x="480" y="53.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">parser</text><text x="480" y="67" text-anchor="middle" font-size="10" fill="var(--fig-mut)">OutputParser</text><line x1="564" y1="55" x2="592" y2="55" stroke="var(--fig-good)" stroke-width="2" marker-end="url(#a)"/><rect x="596" y="30" width="148" height="50" rx="10" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><text x="670" y="59.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">result</text><text x="14" y="100" text-anchor="start" font-size="10.6" font-weight="400" fill="var(--fig-mut)">Every box above implements the <tspan font-weight='700'>same</tspan> Runnable interface &mdash; so any single box can be swapped for an entire chain, and nothing downstream notices.</text><text x="10" y="130" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">ONE COMPOSITION, FOUR WAYS TO RUN IT</text><rect x="10" y="138" width="216" height="68" rx="10" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="138" width="5" height="68" rx="2.5" fill="var(--fig-good)"/><text x="25" y="157" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-good)">.invoke()</text><text x="25" y="174" text-anchor="start" font-size="10.2" font-weight="400" fill="var(--fig-ink-2)">one input &rarr; one output.</text><text x="25" y="187.5" text-anchor="start" font-size="10.2" font-weight="400" fill="var(--fig-ink-2)">Blocks until the last token.</text><rect x="238" y="138" width="216" height="68" rx="10" fill="var(--fig-surface)" stroke="var(--fig-accent)" stroke-width="1.5" filter="url(#sh)"/><rect x="238" y="138" width="5" height="68" rx="2.5" fill="var(--fig-accent)"/><text x="253" y="157" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">.stream()</text><text x="253" y="174" text-anchor="start" font-size="10.2" font-weight="400" fill="var(--fig-ink-2)">yields tokens as they arrive.</text><text x="253" y="187.5" text-anchor="start" font-size="10.2" font-weight="400" fill="var(--fig-ink-2)">Cuts perceived latency, not total.</text><rect x="466" y="138" width="216" height="68" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><rect x="466" y="138" width="5" height="68" rx="2.5" fill="var(--fig-rag)"/><text x="481" y="157" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-rag)">.batch()</text><text x="481" y="174" text-anchor="start" font-size="10.2" font-weight="400" fill="var(--fig-ink-2)">many inputs, concurrency</text><text x="481" y="187.5" text-anchor="start" font-size="10.2" font-weight="400" fill="var(--fig-ink-2)">handled for you.</text><rect x="694" y="138" width="216" height="68" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><rect x="694" y="138" width="5" height="68" rx="2.5" fill="var(--fig-agentic)"/><text x="709" y="157" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-agentic)">.astream_events()</text><text x="709" y="174" text-anchor="start" font-size="10.2" font-weight="400" fill="var(--fig-ink-2)">every intermediate step,</text><text x="709" y="187.5" text-anchor="start" font-size="10.2" font-weight="400" fill="var(--fig-ink-2)">with names &mdash; this is your tracing.</text><text x="10" y="236" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">THE PRIMITIVES YOU ACTUALLY COMPOSE WITH</text><rect x="10" y="246" width="216" height="52" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="246" width="5" height="52" rx="2.5" fill="var(--fig-rag)"/><text x="25" y="267" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)"><tspan font-family='monospace' font-weight='700' fill='var(--fig-rag)'>RunnableParallel</tspan></text><text x="25" y="282" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)">fan out, gather into a dict</text><rect x="238" y="246" width="216" height="52" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><rect x="238" y="246" width="5" height="52" rx="2.5" fill="var(--fig-rag)"/><text x="253" y="267" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)"><tspan font-family='monospace' font-weight='700' fill='var(--fig-rag)'>RunnablePassthrough</tspan></text><text x="253" y="282" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)">carry the input forward</text><rect x="466" y="246" width="216" height="52" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><rect x="466" y="246" width="5" height="52" rx="2.5" fill="var(--fig-rag)"/><text x="481" y="267" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)"><tspan font-family='monospace' font-weight='700' fill='var(--fig-rag)'>RunnableLambda</tspan></text><text x="481" y="282" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)">any function becomes a step</text><rect x="694" y="246" width="216" height="52" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><rect x="694" y="246" width="5" height="52" rx="2.5" fill="var(--fig-agentic)"/><text x="709" y="267" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)"><tspan font-family='monospace' font-weight='700' fill='var(--fig-agentic)'>RunnableBranch</tspan></text><text x="709" y="282" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)">if / elif routing</text><rect x="10" y="306" width="216" height="52" rx="10" fill="var(--fig-surface)" stroke="var(--fig-warn)" stroke-width="1.5" filter="url(#sh)"/><rect x="10" y="306" width="5" height="52" rx="2.5" fill="var(--fig-warn)"/><text x="25" y="327" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)"><tspan font-family='monospace' font-weight='700' fill='var(--fig-warn)'>.with_fallbacks()</tspan></text><text x="25" y="342" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)">second model when the first fails</text><rect x="238" y="306" width="216" height="52" rx="10" fill="var(--fig-surface)" stroke="var(--fig-warn)" stroke-width="1.5" filter="url(#sh)"/><rect x="238" y="306" width="5" height="52" rx="2.5" fill="var(--fig-warn)"/><text x="253" y="327" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)"><tspan font-family='monospace' font-weight='700' fill='var(--fig-warn)'>.with_retry()</tspan></text><text x="253" y="342" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)">backoff on transient errors</text><rect x="466" y="306" width="216" height="52" rx="10" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><rect x="466" y="306" width="5" height="52" rx="2.5" fill="var(--fig-good)"/><text x="481" y="327" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)"><tspan font-family='monospace' font-weight='700' fill='var(--fig-good)'>.with_structured_output()</tspan></text><text x="481" y="342" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)">schema-validated result</text><rect x="694" y="306" width="216" height="52" rx="10" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><rect x="694" y="306" width="5" height="52" rx="2.5" fill="var(--fig-good)"/><text x="709" y="327" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)"><tspan font-family='monospace' font-weight='700' fill='var(--fig-good)'>.bind_tools()</tspan></text><text x="709" y="342" text-anchor="start" font-size="10" font-weight="400" fill="var(--fig-ink-2)">attach tool schemas to the model</text><rect x="10" y="372" width="900" height="50" rx="9" fill="var(--fig-surface-2)" stroke="var(--fig-accent)"/><text x="27" y="393" font-size="11.5" fill="var(--fig-ink-2)"><tspan font-weight="800" fill="var(--fig-accent)">The interview answer:</tspan> LCEL is not sugar &mdash; it is what gives you streaming, batching, retries, fallbacks and per-step tracing without </text><text x="27" y="410" font-size="11.5" fill="var(--fig-ink-2)">writing any of them. That is the whole argument for the pipe.</text></svg></div></figure><figure class="viz"><figcaption><b>The five workflow shapes &mdash; and where an agent starts</b><span>A workflow has a path you drew. An agent decides its own. The moment none of these five shapes fits, you need LangGraph.<span class="terms"><b>workflow</b> the control flow is fixed at build time, by you &middot; <b>agent</b> the control flow is decided at run time, by the model &middot; <b>gate</b> a programmatic check between steps that can stop or reroute the chain</span></span></figcaption><div class="viz-scroll"><svg viewBox="0 0 920 838" role="img" aria-label="The five workflow shapes &mdash; and where an agent starts"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-opacity="0.22"/></filter></defs><text x="10" y="22" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">READ THE DIAGRAM, NOT THE NAME &mdash; THE SHAPE IS THE WHOLE IDEA</text><rect x="10" y="30" width="900" height="116" rx="12" fill="var(--fig-surface-2)" stroke="var(--fig-rag)" stroke-width="1.5"/><rect x="10" y="30" width="900" height="4" rx="2" fill="var(--fig-rag)"/><text x="25" y="54" text-anchor="start" font-size="9.6" font-weight="800" fill="var(--fig-rag)">WORKFLOW 1</text><text x="25" y="72" text-anchor="start" font-size="12.6" font-weight="700" fill="var(--fig-ink)">Prompt chaining</text><text x="25" y="96" text-anchor="start" font-size="9.6" font-weight="400" fill="var(--fig-mut)">fixed sequence; each step feeds the </text><text x="25" y="107.5" text-anchor="start" font-size="9.6" font-weight="400" fill="var(--fig-mut)">next</text><text x="25" y="124" text-anchor="start" font-size="9.4" font-weight="400" fill="var(--fig-mut)"><tspan font-weight='700' fill='var(--fig-rag)'>use it when:</tspan> the task decomposes cleanly </text><text x="25" y="135" text-anchor="start" font-size="9.4" font-weight="400" fill="var(--fig-mut)">and the order never changes</text><rect x="246" y="68" width="100" height="40" rx="8" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.4"/><text x="296" y="87.6" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-ink)">Step 1</text><text x="296" y="98" text-anchor="middle" font-size="8.8" font-weight="400" fill="var(--fig-mut)">extract</text><line x1="346" y1="88" x2="362" y2="88" stroke="var(--fig-rag)" stroke-width="2" marker-end="url(#a)"/><rect x="364" y="68" width="100" height="40" rx="8" fill="var(--fig-surface)" stroke="var(--fig-warn)" stroke-width="1.4"/><text x="414" y="87.6" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-ink)">Gate</text><text x="414" y="98" text-anchor="middle" font-size="8.8" font-weight="400" fill="var(--fig-mut)">check</text><line x1="464" y1="88" x2="480" y2="88" stroke="var(--fig-rag)" stroke-width="2" marker-end="url(#a)"/><rect x="482" y="68" width="100" height="40" rx="8" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.4"/><text x="532" y="87.6" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-ink)">Step 2</text><text x="532" y="98" text-anchor="middle" font-size="8.8" font-weight="400" fill="var(--fig-mut)">transform</text><line x1="582" y1="88" x2="598" y2="88" stroke="var(--fig-rag)" stroke-width="2" marker-end="url(#a)"/><rect x="600" y="68" width="100" height="40" rx="8" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.4"/><text x="650" y="87.6" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-ink)">Step 3</text><text x="650" y="98" text-anchor="middle" font-size="8.8" font-weight="400" fill="var(--fig-mut)">write</text><path d="M414 108 L414 126 L254 126" fill="none" stroke="var(--fig-crit)" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#a)"/><text x="424" y="130" text-anchor="start" font-size="8.8" font-weight="400" fill="var(--fig-crit)">gate fails &rarr; stop, or retry the step</text><rect x="10" y="154" width="900" height="116" rx="12" fill="var(--fig-surface-2)" stroke="var(--fig-rag)" stroke-width="1.5"/><rect x="10" y="154" width="900" height="4" rx="2" fill="var(--fig-rag)"/><text x="25" y="178" text-anchor="start" font-size="9.6" font-weight="800" fill="var(--fig-rag)">WORKFLOW 2</text><text x="25" y="196" text-anchor="start" font-size="12.6" font-weight="700" fill="var(--fig-ink)">Routing</text><text x="25" y="220" text-anchor="start" font-size="9.6" font-weight="400" fill="var(--fig-mut)">classify once, then dispatch to one </text><text x="25" y="231.5" text-anchor="start" font-size="9.6" font-weight="400" fill="var(--fig-mut)">specialist</text><text x="25" y="248" text-anchor="start" font-size="9.4" font-weight="400" fill="var(--fig-mut)"><tspan font-weight='700' fill='var(--fig-rag)'>use it when:</tspan> inputs fall into distinct </text><text x="25" y="259" text-anchor="start" font-size="9.4" font-weight="400" fill="var(--fig-mut)">kinds needing different handling</text><rect x="246" y="200" width="108" height="40" rx="8" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.4"/><text x="300" y="219.6" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-ink)">Classify</text><text x="300" y="230" text-anchor="middle" font-size="8.8" font-weight="400" fill="var(--fig-mut)">one call</text><rect x="436" y="184" width="150" height="24" rx="8" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.4"/><text x="511" y="199.6" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink)">Specialist A</text><path d="M354 220 L396 220 L396 196" fill="none" stroke="var(--fig-rag)" stroke-width="1.2" marker-end="url(#a)"/><line x1="396" y1="196" x2="432" y2="196" stroke="var(--fig-rag)" stroke-width="1.2" marker-end="url(#a)"/><rect x="436" y="212" width="150" height="24" rx="8" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.4"/><text x="511" y="227.6" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink)">Specialist B</text><path d="M354 220 L396 220 L396 224" fill="none" stroke="var(--fig-rag)" stroke-width="1.2" marker-end="url(#a)"/><line x1="396" y1="224" x2="432" y2="224" stroke="var(--fig-rag)" stroke-width="1.2" marker-end="url(#a)"/><rect x="436" y="240" width="150" height="24" rx="8" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.4"/><text x="511" y="255.6" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink)">Specialist C</text><path d="M354 220 L396 220 L396 252" fill="none" stroke="var(--fig-rag)" stroke-width="1.2" marker-end="url(#a)"/><line x1="396" y1="252" x2="432" y2="252" stroke="var(--fig-rag)" stroke-width="1.2" marker-end="url(#a)"/><text x="598" y="224" text-anchor="start" font-size="9" font-weight="400" fill="var(--fig-mut)">exactly one fires</text><rect x="10" y="278" width="900" height="116" rx="12" fill="var(--fig-surface-2)" stroke="var(--fig-rag)" stroke-width="1.5"/><rect x="10" y="278" width="900" height="4" rx="2" fill="var(--fig-rag)"/><text x="25" y="302" text-anchor="start" font-size="9.6" font-weight="800" fill="var(--fig-rag)">WORKFLOW 3</text><text x="25" y="320" text-anchor="start" font-size="12.6" font-weight="700" fill="var(--fig-ink)">Parallelization</text><text x="25" y="344" text-anchor="start" font-size="9.6" font-weight="400" fill="var(--fig-mut)">independent calls at once, then merge</text><text x="25" y="372" text-anchor="start" font-size="9.4" font-weight="400" fill="var(--fig-mut)"><tspan font-weight='700' fill='var(--fig-rag)'>use it when:</tspan> sectioning (split the work) </text><text x="25" y="383" text-anchor="start" font-size="9.4" font-weight="400" fill="var(--fig-mut)">or voting (same work, N times)</text><rect x="246" y="324" width="92" height="40" rx="8" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.4"/><text x="292" y="347.6" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-ink)">Split</text><rect x="394" y="308" width="110" height="24" rx="8" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.4"/><text x="449" y="323.6" text-anchor="middle" font-size="9.4" font-weight="700" fill="var(--fig-ink)">LLM call 1</text><line x1="338" y1="344" x2="390" y2="344" stroke="var(--fig-rag)" stroke-width="1.2" marker-end="url(#a)"/><path d="M504 320 L548 344" fill="none" stroke="var(--fig-rag)" stroke-width="1.2" marker-end="url(#a)"/><rect x="394" y="336" width="110" height="24" rx="8" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.4"/><text x="449" y="351.6" text-anchor="middle" font-size="9.4" font-weight="700" fill="var(--fig-ink)">LLM call 2</text><line x1="338" y1="344" x2="390" y2="344" stroke="var(--fig-rag)" stroke-width="1.2" marker-end="url(#a)"/><path d="M504 348 L548 344" fill="none" stroke="var(--fig-rag)" stroke-width="1.2" marker-end="url(#a)"/><rect x="394" y="364" width="110" height="24" rx="8" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.4"/><text x="449" y="379.6" text-anchor="middle" font-size="9.4" font-weight="700" fill="var(--fig-ink)">LLM call 3</text><line x1="338" y1="344" x2="390" y2="344" stroke="var(--fig-rag)" stroke-width="1.2" marker-end="url(#a)"/><path d="M504 376 L548 344" fill="none" stroke="var(--fig-rag)" stroke-width="1.2" marker-end="url(#a)"/><rect x="552" y="324" width="110" height="40" rx="8" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.4"/><text x="607" y="343.6" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-ink)">Aggregate</text><text x="607" y="354" text-anchor="middle" font-size="8.8" font-weight="400" fill="var(--fig-mut)">merge / vote</text><text x="246" y="390" text-anchor="start" font-size="9" font-weight="400" fill="var(--fig-good)">latency is the slowest branch, not the sum</text><rect x="10" y="402" width="900" height="116" rx="12" fill="var(--fig-surface-2)" stroke="var(--fig-agentic)" stroke-width="1.5"/><rect x="10" y="402" width="900" height="4" rx="2" fill="var(--fig-agentic)"/><text x="25" y="426" text-anchor="start" font-size="9.6" font-weight="800" fill="var(--fig-agentic)">WORKFLOW 4</text><text x="25" y="444" text-anchor="start" font-size="12.6" font-weight="700" fill="var(--fig-ink)">Orchestrator&ndash;workers</text><text x="25" y="468" text-anchor="start" font-size="9.6" font-weight="400" fill="var(--fig-mut)">an LLM decides how many subtasks, a </text><text x="25" y="479.5" text-anchor="start" font-size="9.6" font-weight="400" fill="var(--fig-mut)">synthesiser merges</text><text x="25" y="496" text-anchor="start" font-size="9.4" font-weight="400" fill="var(--fig-mut)"><tspan font-weight='700' fill='var(--fig-agentic)'>use it when:</tspan> you cannot know the number </text><text x="25" y="507" text-anchor="start" font-size="9.4" font-weight="400" fill="var(--fig-mut)">of subtasks in advance</text><rect x="246" y="448" width="118" height="40" rx="8" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.4"/><text x="305" y="467.6" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-ink)">Orchestrator</text><text x="305" y="478" text-anchor="middle" font-size="8.8" font-weight="400" fill="var(--fig-mut)">an LLM</text><rect x="422" y="432" width="98" height="24" rx="8" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.4"/><text x="471" y="447.6" text-anchor="middle" font-size="9.4" font-weight="700" fill="var(--fig-ink)">Worker 1</text><line x1="364" y1="468" x2="418" y2="468" stroke="var(--fig-agentic)" stroke-width="1.2" marker-end="url(#a)"/><path d="M520 444 L564 468" fill="none" stroke="var(--fig-agentic)" stroke-width="1.2" marker-end="url(#a)"/><rect x="422" y="460" width="98" height="24" rx="8" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.4"/><text x="471" y="475.6" text-anchor="middle" font-size="9.4" font-weight="700" fill="var(--fig-ink)">Worker 2</text><line x1="364" y1="468" x2="418" y2="468" stroke="var(--fig-agentic)" stroke-width="1.2" marker-end="url(#a)"/><path d="M520 472 L564 468" fill="none" stroke="var(--fig-agentic)" stroke-width="1.2" marker-end="url(#a)"/><rect x="422" y="488" width="98" height="24" rx="8" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.4" stroke-dasharray="4 3"/><text x="471" y="503.6" text-anchor="middle" font-size="9.4" font-weight="700" fill="var(--fig-ink)">Worker 3</text><line x1="364" y1="468" x2="418" y2="468" stroke="var(--fig-agentic)" stroke-width="1.2" marker-end="url(#a)"/><path d="M520 500 L564 468" fill="none" stroke="var(--fig-agentic)" stroke-width="1.2" marker-end="url(#a)"/><rect x="568" y="448" width="110" height="40" rx="8" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.4"/><text x="623" y="471.6" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-ink)">Synthesise</text><text x="246" y="514" text-anchor="start" font-size="9" font-weight="400" fill="var(--fig-agentic)">the dashed worker is the point: N is decided at run time</text><rect x="10" y="526" width="900" height="116" rx="12" fill="var(--fig-surface-2)" stroke="var(--fig-agentic)" stroke-width="1.5"/><rect x="10" y="526" width="900" height="4" rx="2" fill="var(--fig-agentic)"/><text x="25" y="550" text-anchor="start" font-size="9.6" font-weight="800" fill="var(--fig-agentic)">WORKFLOW 5</text><text x="25" y="568" text-anchor="start" font-size="12.6" font-weight="700" fill="var(--fig-ink)">Evaluator&ndash;optimizer</text><text x="25" y="592" text-anchor="start" font-size="9.6" font-weight="400" fill="var(--fig-mut)">generate, critique, refine until the </text><text x="25" y="603.5" text-anchor="start" font-size="9.6" font-weight="400" fill="var(--fig-mut)">grader passes</text><text x="25" y="620" text-anchor="start" font-size="9.4" font-weight="400" fill="var(--fig-mut)"><tspan font-weight='700' fill='var(--fig-agentic)'>use it when:</tspan> there are clear criteria </text><text x="25" y="631" text-anchor="start" font-size="9.4" font-weight="400" fill="var(--fig-mut)">and iteration measurably helps</text><rect x="246" y="568" width="110" height="40" rx="8" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.4"/><text x="301" y="591.6" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-ink)">Generate</text><line x1="356" y1="588" x2="394" y2="588" stroke="var(--fig-agentic)" stroke-width="2" marker-end="url(#a)"/><rect x="398" y="568" width="110" height="40" rx="8" fill="var(--fig-surface)" stroke="var(--fig-warn)" stroke-width="1.4"/><text x="453" y="587.6" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-ink)">Evaluate</text><text x="453" y="598" text-anchor="middle" font-size="8.8" font-weight="400" fill="var(--fig-mut)">grader</text><line x1="508" y1="588" x2="546" y2="588" stroke="var(--fig-good)" stroke-width="2" marker-end="url(#a)"/><rect x="550" y="568" width="100" height="40" rx="8" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.4"/><text x="600" y="591.6" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-ink)">Accept</text><path d="M453 608 L453 628 L301 628 L301 610" fill="none" stroke="var(--fig-warn)" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#a)"/><text x="462" y="632" text-anchor="start" font-size="9" font-weight="400" fill="var(--fig-warn)">rejected &rarr; refine, with the critique attached</text><rect x="10" y="650" width="900" height="116" rx="12" fill="var(--fig-surface-2)" stroke="var(--fig-crit)" stroke-width="1.5"/><rect x="10" y="650" width="900" height="4" rx="2" fill="var(--fig-crit)"/><text x="25" y="674" text-anchor="start" font-size="9.6" font-weight="800" fill="var(--fig-crit)">NOT A WORKFLOW</text><text x="25" y="692" text-anchor="start" font-size="12.6" font-weight="700" fill="var(--fig-ink)">Agent</text><text x="25" y="716" text-anchor="start" font-size="9.6" font-weight="400" fill="var(--fig-mut)">the model picks each next step from </text><text x="25" y="727.5" text-anchor="start" font-size="9.6" font-weight="400" fill="var(--fig-mut)">tool results</text><text x="25" y="744" text-anchor="start" font-size="9.4" font-weight="400" fill="var(--fig-mut)"><tspan font-weight='700' fill='var(--fig-crit)'>use it when:</tspan> open-ended tasks where you </text><text x="25" y="755" text-anchor="start" font-size="9.4" font-weight="400" fill="var(--fig-mut)">cannot enumerate the path</text><rect x="246" y="692" width="92" height="40" rx="8" fill="var(--fig-surface)" stroke="var(--fig-mut)" stroke-width="1.4"/><text x="292" y="715.6" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-ink)">START</text><line x1="338" y1="712" x2="372" y2="712" stroke="var(--fig-crit)" stroke-width="2" marker-end="url(#a)"/><rect x="376" y="692" width="118" height="40" rx="8" fill="var(--fig-surface)" stroke="var(--fig-crit)" stroke-width="1.4"/><text x="435" y="711.6" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-ink)">LLM</text><text x="435" y="722" text-anchor="middle" font-size="8.8" font-weight="400" fill="var(--fig-mut)">decides</text><line x1="494" y1="712" x2="530" y2="712" stroke="var(--fig-crit)" stroke-width="2" marker-end="url(#a)"/><rect x="534" y="692" width="100" height="40" rx="8" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.4"/><text x="584" y="715.6" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-ink)">Tools</text><path d="M584 732 L584 754 L435 754 L435 734" fill="none" stroke="var(--fig-crit)" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#a)"/><text x="592" y="758" text-anchor="start" font-size="9" font-weight="400" fill="var(--fig-crit)">loops until the model stops &mdash; needs a step cap</text><rect x="10" y="778" width="900" height="50" rx="9" fill="var(--fig-surface-2)" stroke="var(--fig-accent)"/><text x="27" y="799" font-size="11.5" fill="var(--fig-ink-2)"><tspan font-weight="800" fill="var(--fig-accent)">The rule that decides the library:</tspan> if you can draw the arrows before the first token is generated, it is a workflow and LangChain is </text><text x="27" y="816" font-size="11.5" fill="var(--fig-ink-2)">enough. The moment the arrows depend on what the model just said, you need state, checkpoints and cycles &mdash; that is LangGraph.</text></svg></div></figure><figure class="viz"><figcaption><b>The retrieval-augmented generation (RAG) pipeline &mdash; and the knob that matters at each stage</b><span>Two halves that run at completely different times: ingest is offline, query is on the critical path<span class="terms"><b>RAG</b> retrieval-augmented generation &middot; <b>BM25</b> Best Match 25 &mdash; the classic keyword-ranking function &middot; <b>top-k</b> the k highest-scoring passages returned &middot; <b>PDF</b> portable document format</span></span></figcaption><div class="viz-scroll"><svg viewBox="0 0 920 378" role="img" aria-label="The retrieval-augmented generation (RAG) pipeline &mdash; and the knob that matters at each stage"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-opacity="0.22"/></filter></defs><rect x="10" y="10" width="900" height="118" rx="11" fill="var(--fig-surface-2)" stroke="var(--fig-border)"/><rect x="10" y="10" width="5" height="118" rx="2.5" fill="var(--fig-rag)"/><text x="26" y="31" font-size="10" font-weight="800" letter-spacing=".09em" fill="var(--fig-rag)">INGEST &mdash; OFFLINE, RUN ONCE PER DOCUMENT CHANGE</text><text x="896" y="31" text-anchor="end" font-size="10" fill="var(--fig-mut)">cost here is cheap and one-off</text><rect x="32" y="44" width="158" height="48" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><text x="111" y="66.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Load</text><text x="111" y="80" text-anchor="middle" font-size="10" fill="var(--fig-mut)">loaders / parsers</text><line x1="190" y1="68" x2="209" y2="68" stroke="var(--fig-rag)" stroke-width="2" marker-end="url(#a)"/><rect x="212" y="44" width="158" height="48" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><text x="291" y="66.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Split</text><text x="291" y="80" text-anchor="middle" font-size="10" fill="var(--fig-mut)">chunk + overlap</text><line x1="370" y1="68" x2="389" y2="68" stroke="var(--fig-rag)" stroke-width="2" marker-end="url(#a)"/><rect x="392" y="44" width="158" height="48" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><text x="471" y="66.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Embed</text><text x="471" y="80" text-anchor="middle" font-size="10" fill="var(--fig-mut)">embedding model</text><line x1="550" y1="68" x2="569" y2="68" stroke="var(--fig-rag)" stroke-width="2" marker-end="url(#a)"/><rect x="572" y="44" width="158" height="48" rx="10" fill="var(--fig-surface)" stroke="var(--fig-rag)" stroke-width="1.5" filter="url(#sh)"/><text x="651" y="66.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Index</text><text x="651" y="80" text-anchor="middle" font-size="10" fill="var(--fig-mut)">vector + BM25</text><text x="111" y="110" text-anchor="middle" font-size="9.6" font-weight="400" fill="var(--fig-mut)">PDF tables break naive parsers</text><text x="291" y="110" text-anchor="middle" font-size="9.6" font-weight="400" fill="var(--fig-mut)">size, overlap, semantic vs fixed</text><text x="471" y="110" text-anchor="middle" font-size="9.6" font-weight="400" fill="var(--fig-mut)">dimension &amp; cost per 1M</text><text x="651" y="110" text-anchor="middle" font-size="9.6" font-weight="400" fill="var(--fig-mut)">hybrid beats dense alone</text><text x="888" y="110" text-anchor="end" font-size="10.2" font-weight="400" fill="var(--fig-ink-2)"></text><rect x="10" y="140" width="900" height="166" rx="11" fill="var(--fig-surface-2)" stroke="var(--fig-border)"/><rect x="10" y="140" width="5" height="166" rx="2.5" fill="var(--fig-agentic)"/><text x="26" y="161" font-size="10" font-weight="800" letter-spacing=".09em" fill="var(--fig-agentic)">QUERY &mdash; ONLINE, EVERY SINGLE REQUEST PAYS FOR IT</text><text x="896" y="161" text-anchor="end" font-size="10" fill="var(--fig-mut)">every box here is latency you can measure</text><rect x="32" y="174" width="150" height="48" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><text x="107" y="196.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Retrieve</text><text x="107" y="210" text-anchor="middle" font-size="10" fill="var(--fig-mut)">top-k, hybrid</text><line x1="182" y1="198" x2="197" y2="198" stroke="var(--fig-agentic)" stroke-width="2" marker-end="url(#a)"/><rect x="200" y="174" width="142" height="48" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><text x="271" y="196.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Rerank</text><text x="271" y="210" text-anchor="middle" font-size="10" fill="var(--fig-mut)">cross-encoder</text><line x1="342" y1="198" x2="357" y2="198" stroke="var(--fig-agentic)" stroke-width="2" marker-end="url(#a)"/><rect x="360" y="174" width="166" height="48" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><text x="443" y="196.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Build prompt</text><text x="443" y="210" text-anchor="middle" font-size="10" fill="var(--fig-mut)">context + question</text><line x1="526" y1="198" x2="541" y2="198" stroke="var(--fig-agentic)" stroke-width="2" marker-end="url(#a)"/><rect x="544" y="174" width="146" height="48" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><text x="617" y="196.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Generate</text><text x="617" y="210" text-anchor="middle" font-size="10" fill="var(--fig-mut)">the LLM call</text><line x1="690" y1="198" x2="705" y2="198" stroke="var(--fig-agentic)" stroke-width="2" marker-end="url(#a)"/><rect x="708" y="174" width="140" height="48" rx="10" fill="var(--fig-surface)" stroke="var(--fig-agentic)" stroke-width="1.5" filter="url(#sh)"/><text x="778" y="196.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">Parse</text><text x="778" y="210" text-anchor="middle" font-size="10" fill="var(--fig-mut)">cite / validate</text><text x="107" y="240" text-anchor="middle" font-size="9.8" font-weight="700" fill="var(--fig-warn)" font-family="monospace">~20&ndash;60ms</text><text x="271" y="240" text-anchor="middle" font-size="9.8" font-weight="700" fill="var(--fig-warn)" font-family="monospace">~60&ndash;150ms</text><text x="443" y="240" text-anchor="middle" font-size="9.8" font-weight="700" fill="var(--fig-warn)" font-family="monospace">&mdash;</text><text x="617" y="240" text-anchor="middle" font-size="9.8" font-weight="700" fill="var(--fig-warn)" font-family="monospace">~600ms&ndash;2s</text><text x="778" y="240" text-anchor="middle" font-size="9.8" font-weight="700" fill="var(--fig-warn)" font-family="monospace">~5ms</text><text x="34" y="266" text-anchor="start" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)"><tspan font-weight='800' fill='var(--fig-crit)'>Where answers go wrong, in order:</tspan> retrieval misses the passage (recall) &rarr; the reranker keeps the wrong four (precision) &rarr; the prompt buries the </text><text x="34" y="281" text-anchor="start" font-size="10.6" font-weight="400" fill="var(--fig-ink-2)">evidence in the middle (position) &rarr; the model fills the gap anyway (faithfulness).</text><rect x="10" y="318" width="900" height="50" rx="9" fill="var(--fig-surface-2)" stroke="var(--fig-good)"/><text x="27" y="339" font-size="11.5" fill="var(--fig-ink-2)"><tspan font-weight="800" fill="var(--fig-good)">Debug it in this order:</tspan> measure <tspan font-weight='700'>recall@k</tspan> before you touch the prompt. If the passage was never retrieved, no amount of prompt </text><text x="27" y="356" font-size="11.5" fill="var(--fig-ink-2)">engineering will save the answer.</text></svg></div></figure></section>
-<section class="filesec" id="f01LangChainNot"><header class="filehead"><div class="fh-top"><span class="fh-num">01 &middot; LangChain notes</span><span class="fh-count">21 sections</span><a class="fh-src" href="../../08_LangChain_and_LangGraph/01_LangChain_Notes.md">source .md &#8599;</a></div><h2>LangChain — Complete Engineering Reference</h2><div class="note">
+<section class="filesec" id="f01LangChainNot"><header class="filehead"><div class="fh-top"><span class="fh-num">01 &middot; LangChain notes</span><span class="fh-count">21 sections</span></div><h2>LangChain — Complete Engineering Reference</h2><div class="note">
 <p><strong>Scope:</strong> Chat models &amp; providers (incl. multimodal/vision inputs), prompt templates (ChatPromptTemplate, FewShot, Selectors), output parsers &amp; structured output (incl. fixing/retry parsers), <abbr title="LangChain Expression Language">LCEL</abbr> (LangChain Expression Language), chains (Sequential, Parallel, Branching, Fallbacks), tools &amp; <abbr title="the model emitting a structured request for a function the application then executes">tool calling</abbr>, agents (ReAct, tool-calling, custom), memory (buffer, summary, conversation, history trimming), <abbr title="retrieval-augmented generation">RAG</abbr> pipeline (loaders, splitters, embeddings, vector stores, retrievers), streaming &amp; async patterns, callbacks &amp; tracing (LangSmith), caching, token management &amp; cost optimization, security &amp; prompt injection defense, evaluation &amp; testing, custom <abbr title="large language model">LLM</abbr> / embeddings, production patterns, interview Q&amp;A.</p>
 </div></header><article class="q" id="f01LangChainNot-0"><div class="q-h"><span class="q-n">&bull;</span><h3>Key Definitions (read first)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01LangChainNot-0"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">LangChain</span><span class="kt">Runnable</span><span class="kt">LCEL</span><span class="kt">Chat model</span><span class="kt">Prompt template</span><span class="kt">Output parser / structured output</span></div><div class="note">
 <div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Term</th><th>Plain-language definition</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>LangChain</strong></td><td>A modular framework of <abbr title="large language model">LLM</abbr> building blocks + a composition syntax (<abbr title="LangChain Expression Language">LCEL</abbr>).</td></tr><tr class="g0"><td class="c-term"><strong>Runnable</strong></td><td>The universal interface — everything supports <code>.invoke()/.stream()/.batch()/.ainvoke()</code>.</td></tr><tr class="g1"><td class="c-term"><strong>LCEL</strong></td><td>LangChain Expression Language — compose components with the pipe <code>|</code> into a Runnable.</td></tr><tr class="g0"><td class="c-term"><strong>Chat model</strong></td><td>The LLM wrapper (<code>ChatOpenAI</code>, <code>ChatAnthropic</code>) you call with messages.</td></tr><tr class="g1"><td class="c-term"><strong>Prompt template</strong></td><td>A parameterized prompt (<code>ChatPromptTemplate</code>, FewShot) filled at runtime.</td></tr><tr class="g0"><td class="c-term"><strong>Output parser / structured output</strong></td><td>Turn model text into a typed object (<code>with_structured_output</code>).</td></tr><tr class="g1"><td class="c-term"><strong>Chain</strong></td><td>Components wired together — Sequential, Parallel, Branching, with Fallbacks.</td></tr><tr class="g0"><td class="c-term"><strong>Fallbacks / retry</strong></td><td><code>with_fallbacks</code> / <code>with_retry</code> for resilience against errors and rate limits.</td></tr><tr class="g1"><td class="c-term"><strong>Tool / <abbr title="the model emitting a structured request for a function the application then executes">tool calling</abbr></strong></td><td>A function the model can invoke (<code>@tool</code> decorator).</td></tr><tr class="g0"><td class="c-term"><strong>Agent</strong></td><td>An LLM that chooses tools in a loop. Built via <code>create_agent</code> (LangChain 1.0) or LangGraph's <code>create_react_agent</code> — not legacy AgentExecutor.</td></tr><tr class="g1"><td class="c-term"><strong>Middleware</strong></td><td>LangChain 1.0 hooks that run around every model/tool call inside an agent (trim context, gate tools, redact <abbr title="personally identifiable information">PII</abbr>, fallbacks) — see §8.</td></tr><tr class="g0"><td class="c-term"><strong>Memory</strong></td><td>Conversation history handling (modern apps use LangGraph persistence).</td></tr><tr class="g1"><td class="c-term"><strong>Retriever / <abbr title="a database that indexes embeddings for nearest-neighbour search">vector store</abbr></strong></td><td>Returns relevant docs / stores embeddings — the <abbr title="retrieval-augmented generation">RAG</abbr> pieces.</td></tr><tr class="g0"><td class="c-term"><strong>Callbacks / LangSmith</strong></td><td>Hooks for tracing, logging, and observability of runs.</td></tr><tr class="g1"><td class="c-term"><strong>Caching</strong></td><td>Skip the API call for identical prompts (<code>set_llm_cache</code>).</td></tr></tbody></table></div>
@@ -1744,8 +2092,10 @@ chain = prompt | llm | <span class="fn">StrOutputParser</span>() | <span class="
 <hr />
 <p><em>Previous: <a href="../../07_GenAI_and_LLMs/05_RAG_and_Vector_Stores.md">../07_GenAI_and_LLMs/05_RAG_and_Vector_Stores.md</a> | Next: <a href="langgraph.html#f02LangGraphNot">02_LangGraph_Notes.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<nav class="pnav"><a class="prev" href="index.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrowl"/></svg><span class="pnav-t"><span>Previous</span><b>Home</b></span></a><a class="next" href="langgraph.html"><span class="pnav-t"><span>Next</span><b>LangGraph</b></span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></a></nav>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
 </div></main>
+<aside class="toc" id="toc"><div class="toc-h"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>On this page</div><div class="toc-g" data-for="f01LangChainNot"><b>01 &middot; LangChain notes</b><a href="#f01LangChainNot-0" data-c="f01LangChainNot-0">Key Definitions (read first)</a><a href="#f01LangChainNot-1" data-c="f01LangChainNot-1">1. Architecture &amp; Core Concepts</a><a href="#f01LangChainNot-2" data-c="f01LangChainNot-2">2. Chat Models &amp; Providers</a><a href="#f01LangChainNot-3" data-c="f01LangChainNot-3">3. Prompt Templates</a><a href="#f01LangChainNot-4" data-c="f01LangChainNot-4">4. Output Parsers &amp; Structured Output</a><a href="#f01LangChainNot-5" data-c="f01LangChainNot-5">5. LCEL</a><a href="#f01LangChainNot-6" data-c="f01LangChainNot-6">6. Chains</a><a href="#f01LangChainNot-7" data-c="f01LangChainNot-7">7. Tools &amp; Tool Calling</a><a href="#f01LangChainNot-8" data-c="f01LangChainNot-8">8. Agents</a><a href="#f01LangChainNot-9" data-c="f01LangChainNot-9">9. Memory</a><a href="#f01LangChainNot-10" data-c="f01LangChainNot-10">10. RAG Pipeline</a><a href="#f01LangChainNot-11" data-c="f01LangChainNot-11">11. Streaming &amp; Async</a><a href="#f01LangChainNot-12" data-c="f01LangChainNot-12">12. Callbacks, Tracing &amp; LangSmith</a><a href="#f01LangChainNot-13" data-c="f01LangChainNot-13">13. Caching &amp; Token Management</a><a href="#f01LangChainNot-14" data-c="f01LangChainNot-14">14. Security &amp; Guardrails</a><a href="#f01LangChainNot-15" data-c="f01LangChainNot-15">15. Evaluation &amp; Testing</a><a href="#f01LangChainNot-16" data-c="f01LangChainNot-16">16. Custom Components</a><a href="#f01LangChainNot-17" data-c="f01LangChainNot-17">17. Production Patterns</a><a href="#f01LangChainNot-18" data-c="f01LangChainNot-18">18. Document Loaders</a><a href="#f01LangChainNot-19" data-c="f01LangChainNot-19">19. Error Handling, Fallbacks &amp; Retries</a><a href="#f01LangChainNot-20" data-c="f01LangChainNot-20">20. Interview Deep Dive</a></div></aside>
 </div>
 <button class="totop" id="totop" title="Back to top">&#8593;</button>
 <script>
@@ -1786,29 +2136,44 @@ var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementBy
 qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
 function runSearch(){
   if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
-  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
-    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;});
+  /* a heading survives the filter only while something under it is still showing */
   [].forEach.call(document.querySelectorAll('.parthead'),function(p){
-    if(!v){p.style.display='';return}
-    var vis=false,n=p.nextElementSibling;
-    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
-    p.style.display=vis?'':'none';});
+    var vis=true;
+    if(v){
+      vis=false;
+      var n=p.nextElementSibling;
+      while(n&&!n.classList.contains('parthead')){
+        if(n.classList.contains('q')&&n.style.display!=='none'){vis=true;break}
+        n=n.nextElementSibling;
+      }
+    }
+    p.style.display=vis?'':'none';
+    if(p.id){var l=document.querySelector('nav a[data-t="'+p.id+'"]');
+      if(l)l.style.display=vis?'':'none';}
+  });
   if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
 }
 if(inp)inp.addEventListener('input',runSearch);
 
-var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+/* The sidebar lists main headings only, so scroll tracking follows those headings
+   (data-t -> element id) rather than one entry per question card. */
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-t]'));
+var navTargets=navLinks.map(function(l){return document.getElementById(l.getAttribute('data-t'))});
 var totop=document.getElementById('totop');
 function onScroll(){
   var sc=document.documentElement.scrollTop;
   if(totop)totop.classList.toggle('show',sc>600);
-  var cur=null;
-  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
-    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  var cur=-1;
+  for(var i=0;i<navTargets.length;i++){
+    var el=navTargets[i];
+    if(!el||el.offsetParent===null)continue;
+    if(el.getBoundingClientRect().top<=140)cur=i;else break;
+  }
   navLinks.forEach(function(l){l.classList.remove('active')});
-  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
-    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
-      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+  if(cur>=0){var l=navLinks[cur];
+    l.classList.add('active');var r=l.getBoundingClientRect();
+    if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}
 }
 window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
@@ -1859,6 +2224,43 @@ document.addEventListener('keydown',function(e){
     });
     pre.appendChild(b);
   });
+})();
+
+/* Right-hand rail: reveal the group for the file section being read, and mark the
+   card in view. Scrolling is done on the rail itself - scrollIntoView would drag the
+   window along with it. */
+(function(){
+  var toc=document.getElementById('toc'); if(!toc)return;
+  document.body.classList.add('js');
+  var groups=[].slice.call(toc.querySelectorAll('.toc-g'));
+  if(!groups.length)return;
+  var secs=groups.map(function(g){return document.getElementById(g.getAttribute('data-for'))});
+  var links=groups.map(function(g){return [].slice.call(g.querySelectorAll('a[data-c]'))});
+  var curG=-1;
+  function upd(){
+    var i,g=-1;
+    for(i=0;i<secs.length;i++){
+      var el=secs[i]; if(!el)continue;
+      if(el.getBoundingClientRect().top<=160)g=i; else break;
+    }
+    if(g<0)g=0;
+    if(g!==curG){groups.forEach(function(x,k){x.classList.toggle('on',k===g)});curG=g;}
+    var ls=links[g]||[],act=null;
+    for(i=0;i<ls.length;i++){
+      var t=document.getElementById(ls[i].getAttribute('data-c'));
+      if(!t||t.style.display==='none')continue;
+      if(t.getBoundingClientRect().top<=160)act=ls[i]; else break;
+    }
+    ls.forEach(function(a){a.classList.remove('on')});
+    if(act){
+      act.classList.add('on');
+      var top=act.offsetTop,h=act.offsetHeight;
+      if(top<toc.scrollTop+8||top+h>toc.scrollTop+toc.clientHeight-8)
+        toc.scrollTop=top-toc.clientHeight/2+h/2;
+    }
+  }
+  addEventListener('scroll',upd,{passive:true});
+  addEventListener('resize',upd); upd();
 })();
 
 /* deep link on each question card */

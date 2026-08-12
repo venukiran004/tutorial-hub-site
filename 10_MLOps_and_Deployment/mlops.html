@@ -509,9 +509,358 @@ body.searching .parthead{opacity:.5}
 
 @media(max-width:1060px){ .parthead{top:0} }
 
+/* =====================================================================
+   AURORA GLASS
+   The final layer. Everything below re-tints the sheet above it: a deep
+   near-black canvas lit by a fixed gradient mesh, with the chrome and the
+   cards reading as frosted panels floating on top of it.
+   ===================================================================== */
+
+:root{
+  --bg:#070a12; --bg-2:#0a0e18;
+  --surface:#0f131e; --surface-2:#141a27; --surface-3:#1c2333;
+  --border:#232c40; --border-soft:#19202f;
+  --ink:#eaf0fb; --ink-2:#9fabc4; --ink-mut:#6b7690;
+
+  --accent:#7c9dff; --accent-2:#b18cff;
+  --accent-soft:rgba(124,157,255,.15); --accent-bd:rgba(124,157,255,.40);
+  --t-rag:#7c9dff; --t-agentic:#ff9563; --t-recall:#3ed9a4;
+  --t-violet:#b18cff; --t-amber:#f0c274;
+  --good:#3ed9a4; --warn:#f5c451; --crit:#ff6b81;
+  --good-soft:rgba(62,217,164,.12); --warn-soft:rgba(245,196,81,.12);
+  --crit-soft:rgba(255,107,129,.12);
+  --code-bg:#080b13;
+
+  --glass:rgba(255,255,255,.045);
+  --glass-bd:rgba(255,255,255,.075);
+  --e1:0 1px 2px rgba(0,0,0,.40);
+  --e2:0 8px 26px rgba(3,6,15,.55);
+  --e3:0 22px 60px rgba(3,6,15,.68);
+  --radius:16px; --radius-sm:11px;
+}
+html[data-theme="light"]{
+  --bg:#f6f8fe; --bg-2:#eef2fb;
+  --surface:#fff; --surface-2:#fafbff; --surface-3:#eef2fb;
+  --border:#dce3f2; --border-soft:#e9edf8;
+  --ink:#111828; --ink-2:#4c586f; --ink-mut:#7c8699;
+
+  --accent:#4f6fe6; --accent-2:#8b5cf6;
+  --accent-soft:rgba(79,111,230,.10); --accent-bd:rgba(79,111,230,.34);
+  --t-rag:#4f6fe6; --t-agentic:#e0663a; --t-recall:#0f9e74;
+  --t-violet:#8b5cf6; --t-amber:#a9760a;
+  --good:#0f9e74; --warn:#b07d00; --crit:#dc3d55;
+  --good-soft:rgba(15,158,116,.10); --warn-soft:rgba(176,125,0,.11);
+  --crit-soft:rgba(220,61,85,.09);
+  --code-bg:#f2f5fc;
+
+  --glass:rgba(255,255,255,.62);
+  --glass-bd:rgba(17,24,40,.07);
+  --e1:0 1px 2px rgba(16,24,40,.05);
+  --e2:0 8px 24px rgba(16,24,40,.08);
+  --e3:0 22px 56px rgba(16,24,40,.12);
+}
+
+/* ---------- the canvas ---------- */
+/* the page background lives on <html> so the fixed aurora layer can sit
+   between it and the content without the body's own fill covering it */
+html{background:var(--bg)}
+body{background:transparent}
+
+/* Ambient tint on every page: strongest at the top edge, gone by mid-scroll, so
+   long reading pages settle onto clean dark instead of a permanent wash. */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 22% -6%, color-mix(in srgb,var(--accent) 46%,transparent), transparent 66%),
+    radial-gradient(38% 32% at 82% -8%, color-mix(in srgb,var(--accent-2) 40%,transparent), transparent 64%);
+  filter:blur(30px) saturate(1.3);opacity:.5;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%);
+          mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%)}
+html[data-theme="light"] body::before{opacity:.5;filter:blur(36px) saturate(1)}
+
+/* film grain: keeps the large flat gradients from banding on cheap panels */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.032;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* multiply over a light canvas darkens fast - the grain has to be far weaker here
+   or the whole page reads grey instead of white */
+html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply}
+
+@keyframes aurora-drift{
+  from{transform:translate3d(0,0,0) scale(1)}
+  to{transform:translate3d(3%,-2.5%,0) scale(1.12)}
+}
+
+/* ---------- chrome ---------- */
+.siteswitch{background:transparent;border-bottom:1px solid var(--border-soft)}
+.siteswitch a{color:var(--ink-mut)}
+.siteswitch a:hover{background:var(--glass);color:var(--ink)}
+.siteswitch a.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  box-shadow:0 3px 14px color-mix(in srgb,var(--accent) 40%,transparent)}
+.sitebar{background:color-mix(in srgb,var(--bg) 62%,transparent);
+  backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);
+  border-bottom:1px solid var(--glass-bd);box-shadow:0 1px 0 rgba(255,255,255,.03),var(--e1)}
+.logo b{background:linear-gradient(115deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{background:var(--glass);border:1px solid var(--glass-bd);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);border-radius:10px}
+.btn:hover{border-color:var(--accent-bd);color:var(--ink);
+  box-shadow:0 4px 16px color-mix(in srgb,var(--accent) 22%,transparent)}
+.btn.on{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,transparent),
+  color-mix(in srgb,var(--accent-2) 18%,transparent));border-color:var(--accent-bd);color:var(--accent)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 55%,transparent),transparent 60%);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-right:1px solid var(--glass-bd)}
+.sb-search input{background:var(--glass);border:1px solid var(--glass-bd);border-radius:11px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sb-search input:focus{border-color:var(--accent-bd);
+  box-shadow:0 0 0 3px var(--accent-soft),0 4px 18px color-mix(in srgb,var(--accent) 20%,transparent)}
+nav a:hover{background:var(--glass);color:var(--ink)}
+nav a.active{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 20%,transparent),transparent 78%);
+  box-shadow:inset 0 0 0 1px var(--accent-bd);color:var(--accent)}
+nav a.active::before{background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 10px var(--accent)}
+.nav-grp{color:var(--ink-mut)}
+
+/* ---------- hero ---------- */
+.hero::before{opacity:.72;filter:blur(38px)}
+.eyebrow{background:var(--glass);border:1px solid var(--glass-bd);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:var(--ink-2);font-weight:700}
+.hero h1{background:linear-gradient(112deg,var(--ink) 4%,
+    color-mix(in srgb,var(--accent) 88%,var(--ink)) 46%,
+    color-mix(in srgb,var(--accent-2) 92%,var(--ink)) 74%,
+    color-mix(in srgb,var(--t-recall) 70%,var(--ink)) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- surfaces: glass everywhere the old sheet used flat fills ---------- */
+.stat,.q,.tcard,.hub-card,.panel,.learn,figure.viz,.tbl-wrap,.flow,.learn-item{
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 72%,transparent));
+  border-color:var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+
+.stat{border-radius:14px}
+.stat::before{height:1.5px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),color-mix(in srgb,var(--tc,var(--accent)) 20%,transparent) 70%,transparent)}
+.stat:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 18%,transparent)}
+.stat-v{background:linear-gradient(150deg,var(--ink),var(--tc,var(--accent)));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 42%,transparent);box-shadow:var(--e2)}
+.q:target{box-shadow:0 0 0 3px var(--accent-soft),var(--e2)}
+.tcard:hover,.hub-card:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 22%,transparent)}
+
+/* the hover affordance was emitting a literal "92" - it wants to be an arrow */
+.tcard::after,.hub-card::after{content:"\2192"}
+
+figure.viz{border-radius:18px}
+pre.code{background:color-mix(in srgb,var(--code-bg) 88%,transparent);
+  border:1px solid var(--glass-bd);border-radius:13px;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.say{background:linear-gradient(100deg,color-mix(in srgb,var(--accent) 14%,transparent),transparent 72%);
+  border-left-color:var(--accent)}
+.kt{background:var(--glass);border-color:var(--glass-bd)}
+.kt:hover{border-color:var(--accent-bd);color:var(--accent)}
+.parthead{background:color-mix(in srgb,var(--bg) 66%,transparent);
+  backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5)}
+th{background:color-mix(in srgb,var(--surface-3) 82%,transparent)}
+
+/* ---------- right-hand "on this page" rail ---------- */
+:root{ --tocw:262px }
+.app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr) var(--tocw)}
+.toc{position:sticky;top:47px;align-self:start;height:calc(100vh - 47px);overflow-y:auto;
+  overscroll-behavior:contain;padding:22px 20px 60px;font-size:12.6px;
+  border-left:1px solid var(--glass-bd)}
+.toc::-webkit-scrollbar{width:7px}
+.toc::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.toc-h{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-mut);margin-bottom:12px}
+.toc-h svg.ic{font-size:13px;color:var(--tc,var(--accent))}
+/* one group per file section; the script shows the one you are reading */
+body.js .toc-g{display:none}
+body.js .toc-g.on{display:block}
+.toc-g > b{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tc,var(--accent));margin:0 0 9px;padding-left:11px}
+.toc-g a{display:block;padding:5px 10px 5px 12px;margin:1px 0;border-radius:7px;color:var(--ink-2);
+  text-decoration:none;line-height:1.42;border-left:2px solid transparent}
+.toc-g a:hover{background:var(--glass);color:var(--ink);text-decoration:none}
+.toc-g a.on{color:var(--accent);border-left-color:var(--accent);font-weight:650;
+  background:linear-gradient(90deg,var(--accent-soft),transparent 80%)}
+.toc-empty{color:var(--ink-mut);font-size:12px;padding-left:12px}
+@media(max-width:1400px){
+  .app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr)}
+  .toc{display:none}
+}
+
+/* ---------- breadcrumb ---------- */
+.crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.2px;color:var(--ink-mut);
+  padding-top:26px}
+.crumb a{color:var(--ink-mut);text-decoration:none}
+.crumb a:hover{color:var(--accent);text-decoration:none}
+.crumb svg.ic{font-size:12px;opacity:.5}
+.crumb b{color:var(--ink-2);font-weight:650}
+.crumb + .hero{padding-top:18px}
+.pnav-t{min-width:0}
+
+/* ---------- previous / next ---------- */
+.pnav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:64px 0 0}
+.pnav a{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:14px;
+  text-decoration:none;color:inherit;border:1px solid var(--glass-bd);
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 86%,transparent),
+    color-mix(in srgb,var(--surface-2) 66%,transparent))}
+.pnav a:hover{text-decoration:none;border-color:var(--accent-bd);box-shadow:var(--e2)}
+.pnav a.next{grid-column:2;justify-content:flex-end;text-align:right}
+.pnav a.prev{grid-column:1}
+.pnav span{display:block;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-mut)}
+.pnav b{display:block;margin-top:4px;font-size:14.5px;letter-spacing:-.02em;color:var(--ink)}
+.pnav svg.ic{font-size:18px;color:var(--accent);flex:none}
+@media(max-width:760px){
+  .pnav{grid-template-columns:1fr}
+  .pnav a.next,.pnav a.prev{grid-column:1}
+}
+
+/* ---------- section headers (shared by the hub and every topic index) ---------- */
+.h-sec-h{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.h-sec-h h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-mut);white-space:nowrap;display:flex;align-items:center;gap:9px;border:0;padding:0}
+.h-sec-h h2 svg.ic{font-size:15px;color:var(--accent);opacity:.9}
+.h-sec-h i{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- icons ---------- */
+.sprite{display:none}
+svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.13em}
+/* the boxed icon tile used by track rows, callouts and nav groups */
+.ic-box{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:44px;height:44px;border-radius:13px;font-size:20px;color:var(--tc,var(--accent));
+  background:linear-gradient(150deg,color-mix(in srgb,var(--tc,var(--accent)) 26%,transparent),
+    color-mix(in srgb,var(--tc,var(--accent)) 8%,transparent));
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.ic-sm{width:30px;height:30px;border-radius:9px;font-size:15px}
+
+/* ---------- topic index: learning-track rows ---------- */
+.trk{display:flex;flex-direction:column;gap:11px;margin:40px 0 0}
+.trk-row{position:relative;display:flex;align-items:center;gap:17px;padding:17px 19px;
+  border-radius:15px;text-decoration:none;color:inherit;overflow:hidden;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--surface) 90%,transparent),
+    color-mix(in srgb,var(--surface-2) 68%,transparent));
+  border:1px solid var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.trk-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tc)}
+.trk-row:hover{text-decoration:none;transform:translateX(3px);
+  border-color:color-mix(in srgb,var(--tc) 46%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc) 18%,transparent)}
+.trk-b{min-width:0;flex:1}
+.trk-b b{display:block;font-size:16.5px;letter-spacing:-.022em;color:var(--ink);font-weight:750}
+.trk-b b i{font-style:normal;color:var(--ink-mut);font-weight:600;margin-right:3px}
+.trk-b p{margin:4px 0 0;font-size:13.2px;line-height:1.5;color:var(--ink-2)}
+.trk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.trk-chips span{font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.trk-row:hover .trk-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+.trk-meta{display:flex;align-items:center;gap:8px;flex:none;font-size:11.5px;
+  font-family:var(--mono);color:var(--tc);white-space:nowrap}
+.trk-meta i{font-style:normal;opacity:.45}
+.trk-go{flex:none;font-size:19px;color:var(--ink-mut);display:inline-flex}
+.trk-row:hover .trk-go{color:var(--tc);transform:translateX(2px)}
+@media(prefers-reduced-motion:no-preference){
+  .trk-row,.trk-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,color .18s ease}
+}
+@media(max-width:820px){
+  .trk-row{flex-wrap:wrap;gap:13px}
+  .trk-meta{order:3;width:100%}
+  .trk-go{display:none}
+}
+
+/* ---------- sidebar nav with icons ---------- */
+.nav-grp{display:flex;align-items:center;gap:8px}
+.nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
+nav a svg.ic{font-size:14px;opacity:.6}
+nav a.active svg.ic{opacity:1}
+/* file = main heading, named part = its only sub-entry */
+nav a.nav-file{margin-top:13px;font-size:13px;font-weight:750;color:var(--ink);align-items:center}
+nav a.nav-file svg.ic{color:var(--tc,var(--accent));opacity:.95}
+nav a.nav-sub{padding-left:30px;font-size:12.2px;position:relative}
+nav a.nav-sub::after{content:"";position:absolute;left:16px;top:50%;width:5px;height:5px;
+  margin-top:-2.5px;border-radius:50%;background:var(--ink-mut);opacity:.5}
+nav a.nav-sub.active::after{background:var(--accent);opacity:1}
+
+/* ---------- callouts with icons ---------- */
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key,.say{position:relative}
+.note-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;font-size:13px;margin-right:8px;vertical-align:-.35em;flex:none}
+.say-h svg.ic{font-size:13px}
+
+/* ---------- topic index: the landing page of each site ---------- */
+/* the reading measure is right for prose but starves a card grid, so an index
+   page widens its column and fits three across */
+.wrap:has(.idx-grid){max-width:1300px}
+.idx-hero{padding:58px 0 4px}
+.idx-hero h1{font-size:clamp(36px,4.8vw,56px);margin:18px 0 16px}
+.idx-hero .lede{font-size:17.5px;max-width:76ch;margin:0}
+
+.idx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;
+  margin:44px 0 0}
+.idx-card{position:relative;display:block;padding:22px 23px 20px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 70%,transparent));
+  border:1px solid var(--glass-bd);text-decoration:none;color:inherit;
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.idx-card::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc),transparent 80%)}
+.idx-card:hover{transform:translateY(-3px);text-decoration:none;
+  border-color:color-mix(in srgb,var(--tc) 48%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc) 20%,transparent)}
+.idx-card-h{display:flex;align-items:center;gap:11px}
+.idx-card-h h3{margin:0;font-size:18.5px;letter-spacing:-.026em;color:var(--ink);font-weight:750}
+.idx-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--tc);
+  box-shadow:0 0 10px var(--tc)}
+.idx-go{margin-left:auto;font-size:16px;color:var(--tc);opacity:0;transform:translateX(-5px);flex:none}
+.idx-card:hover .idx-go{opacity:1;transform:translateX(0)}
+.idx-card p{margin:11px 0 0;font-size:13.4px;line-height:1.6;color:var(--ink-2)}
+.idx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}
+.idx-chips span{font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.idx-card:hover .idx-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+@media(prefers-reduced-motion:no-preference){
+  .idx-card,.idx-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,opacity .18s ease}
+}
+
+/* ---------- file section headers ---------- */
+/* .fh-top's spans had no rules at all, so the name and the count ran together as
+   one unstyled line. It reads as an eyebrow row above the file title. */
+.filehead{margin:56px 0 16px}
+.fh-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px}
+.fh-num{font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--tc,var(--accent));padding:4px 12px;border-radius:999px;
+  background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.fh-count{font-family:var(--mono);font-size:10.5px;color:var(--ink-mut);padding:4px 11px;
+  border-radius:999px;background:var(--glass);border:1px solid var(--glass-bd)}
+.filehead h2{font-size:28px;letter-spacing:-.032em;margin:0}
+
+/* ---------- detail ---------- */
+::selection{background:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--ink)}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-bd);background-clip:padding-box}
+#rprog{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--t-recall));
+  box-shadow:0 0 14px color-mix(in srgb,var(--accent) 70%,transparent)}
+.totop{background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 8px 26px color-mix(in srgb,var(--accent) 45%,transparent)}
+.totop:hover{transform:translateY(-2px)}
+
 </style>
 </head>
 <body>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol><symbol id="i-arrowl" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol><symbol id="i-branch" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol><symbol id="i-bulb" viewBox="0 0 24 24"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2z"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol><symbol id="i-code" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></symbol><symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol><symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 2v6.5L4.2 17A2 2 0 0 0 6 20h12a2 2 0 0 0 1.8-3L15 8.5V2"/><line x1="8" y1="2" x2="16" y2="2"/><line x1="7" y1="14" x2="17" y2="14"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol><symbol id="i-network" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></symbol><symbol id="i-package" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol><symbol id="i-sigma" viewBox="0 0 24 24"><path d="M18 4H6l6 8-6 8h12"/></symbol><symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol><symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol><symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol></svg>
 <div class="sitebar"><div class="siteswitch"><div class="siteswitch-in">
   <a class="sw-home" href="../index.html">&#9632; All topics</a><a class="sw" href="../01_Python/index.html">01 Python</a><a class="sw" href="../02_Mathematics_and_Statistics/index.html">02 Maths</a><a class="sw" href="../03_Data_Handling/index.html">03 Data</a><a class="sw" href="../04_Machine_Learning/index.html">04 ML</a><a class="sw" href="../05_Deep_Learning/index.html">05 DL</a><a class="sw" href="../06_NLP_and_Transformers/index.html">06 NLP</a><a class="sw" href="../07_GenAI_and_LLMs/index.html">07 GenAI</a><a class="sw" href="../08_LangChain_and_LangGraph/index.html">08 LangChain</a><a class="sw" href="../09_MCP/index.html">09 MCP</a><a class="sw on" href="../10_MLOps_and_Deployment/index.html">10 MLOps</a><a class="sw" href="../11_System_Design/index.html">11 Sys Design</a>
 </div></div><div class="sitebar-in">
@@ -523,20 +872,19 @@ body.searching .parthead{opacity:.5}
   <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time">Drill</button>
   <button class="btn" id="themeBtn">Dark</button>
 </div></div>
-<div class="app" style="--tc:var(--t-rag)">
+<div class="app has-toc" style="--tc:var(--t-rag)">
 <aside id="sidebar">
   <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off"></div>
   <div class="sb-hint"><kbd>/</kbd> search <kbd>d</kbd> drill <kbd>j</kbd>/<kbd>k</kbd> move <kbd>t</kbd> theme</div>
-  <nav><div class="nav-grp">On this page</div><a href="#top"><span class="qn">&#9673;</span>Overview</a><a href="#learn"><span class="qn">&#9733;</span>What you&rsquo;ll learn</a><div class="nav-grp">MLOps</div><a href="#f01MLOpsmd-0" data-q="f01MLOpsmd-0"><span class="qn">&bull;</span>1. MLOps Fundamentals</a><a href="#f01MLOpsmd-1" data-q="f01MLOpsmd-1"><span class="qn">&bull;</span>2. MLflow</a><a href="#f01MLOpsmd-2" data-q="f01MLOpsmd-2"><span class="qn">&bull;</span>3. Weights &amp; Biases</a><a href="#f01MLOpsmd-3" data-q="f01MLOpsmd-3"><span class="qn">&bull;</span>4. DVC (Data Version Control)</a><a href="#f01MLOpsmd-4" data-q="f01MLOpsmd-4"><span class="qn">&bull;</span>5. Feature Stores</a><a href="#f01MLOpsmd-5" data-q="f01MLOpsmd-5"><span class="qn">&bull;</span>6. Data Validation</a><a href="#f01MLOpsmd-6" data-q="f01MLOpsmd-6"><span class="qn">&bull;</span>7. Model Serving</a><a href="#f01MLOpsmd-7" data-q="f01MLOpsmd-7"><span class="qn">&bull;</span>8. Model Monitoring</a><a href="#f01MLOpsmd-8" data-q="f01MLOpsmd-8"><span class="qn">&bull;</span>9. Orchestration</a><a href="#f01MLOpsmd-9" data-q="f01MLOpsmd-9"><span class="qn">&bull;</span>10. CI/CD for ML</a><a href="#f01MLOpsmd-10" data-q="f01MLOpsmd-10"><span class="qn">&bull;</span>11. A/B Testing &amp; Deployment Strategies</a><a href="#f01MLOpsmd-11" data-q="f01MLOpsmd-11"><span class="qn">&bull;</span>12. Model Compression</a><a href="#f01MLOpsmd-12" data-q="f01MLOpsmd-12"><span class="qn">&bull;</span>13. Experiment Reproducibility</a><a href="#f01MLOpsmd-13" data-q="f01MLOpsmd-13"><span class="qn">&bull;</span>14. Kubeflow &amp; Vertex Pipelines</a><a href="#f01MLOpsmd-14" data-q="f01MLOpsmd-14"><span class="qn">&bull;</span>15. Production Best Practices</a><a href="#f01MLOpsmd-15" data-q="f01MLOpsmd-15"><span class="qn">&bull;</span>16. Interview Deep Dive</a><div class="nav-grp">DevOps</div><a href="#f02DevOpsmd-16" data-q="f02DevOpsmd-16"><span class="qn">&bull;</span>1. DevOps Fundamentals</a><a href="#f02DevOpsmd-17" data-q="f02DevOpsmd-17"><span class="qn">&bull;</span>2. Docker</a><a href="#f02DevOpsmd-18" data-q="f02DevOpsmd-18"><span class="qn">&bull;</span>3. Docker Compose</a><a href="#f02DevOpsmd-19" data-q="f02DevOpsmd-19"><span class="qn">&bull;</span>4. Kubernetes Core</a><a href="#f02DevOpsmd-20" data-q="f02DevOpsmd-20"><span class="qn">&bull;</span>5. Kubernetes Workloads &amp; Networking</a><a href="#f02DevOpsmd-21" data-q="f02DevOpsmd-21"><span class="qn">&bull;</span>6. Kubernetes Config, Storage &amp; Autoscaling</a><a href="#f02DevOpsmd-22" data-q="f02DevOpsmd-22"><span class="qn">&bull;</span>7. Helm</a><a href="#f02DevOpsmd-23" data-q="f02DevOpsmd-23"><span class="qn">&bull;</span>8. Terraform</a><a href="#f02DevOpsmd-24" data-q="f02DevOpsmd-24"><span class="qn">&bull;</span>9. CI/CD (GitHub Actions)</a><a href="#f02DevOpsmd-25" data-q="f02DevOpsmd-25"><span class="qn">&bull;</span>10. GitOps (ArgoCD)</a><a href="#f02DevOpsmd-26" data-q="f02DevOpsmd-26"><span class="qn">&bull;</span>11. Monitoring (Prometheus + Grafana)</a><a href="#f02DevOpsmd-27" data-q="f02DevOpsmd-27"><span class="qn">&bull;</span>12. Logging</a><a href="#f02DevOpsmd-28" data-q="f02DevOpsmd-28"><span class="qn">&bull;</span>13. Container Security</a><a href="#f02DevOpsmd-29" data-q="f02DevOpsmd-29"><span class="qn">&bull;</span>14. Deployment Strategies</a><a href="#f02DevOpsmd-30" data-q="f02DevOpsmd-30"><span class="qn">&bull;</span>15. Ansible</a><a href="#f02DevOpsmd-31" data-q="f02DevOpsmd-31"><span class="qn">&bull;</span>16. Interview Deep Dive</a><div class="nav-grp">Cloud ML</div><a href="#f03CloudMLmd-32" data-q="f03CloudMLmd-32"><span class="qn">&bull;</span>1. Platform Landscape</a><a href="#f03CloudMLmd-33" data-q="f03CloudMLmd-33"><span class="qn">&bull;</span>2. AWS SageMaker</a><a href="#f03CloudMLmd-34" data-q="f03CloudMLmd-34"><span class="qn">&bull;</span>3. GCP Vertex AI</a><a href="#f03CloudMLmd-35" data-q="f03CloudMLmd-35"><span class="qn">&bull;</span>4. Azure Machine Learning</a><a href="#f03CloudMLmd-36" data-q="f03CloudMLmd-36"><span class="qn">&bull;</span>5. Databricks &amp; Spark MLlib</a><a href="#f03CloudMLmd-37" data-q="f03CloudMLmd-37"><span class="qn">&bull;</span>6. GPU Instance Selection</a><a href="#f03CloudMLmd-38" data-q="f03CloudMLmd-38"><span class="qn">&bull;</span>7. Spot &amp; Preemptible Instances</a><a href="#f03CloudMLmd-39" data-q="f03CloudMLmd-39"><span class="qn">&bull;</span>8. Managed Training &amp; HPO</a><a href="#f03CloudMLmd-40" data-q="f03CloudMLmd-40"><span class="qn">&bull;</span>9. Model Serving &amp; Endpoints</a><a href="#f03CloudMLmd-41" data-q="f03CloudMLmd-41"><span class="qn">&bull;</span>10. Data Pipelines &amp; Feature Stores</a><a href="#f03CloudMLmd-42" data-q="f03CloudMLmd-42"><span class="qn">&bull;</span>11. Serverless ML</a><a href="#f03CloudMLmd-43" data-q="f03CloudMLmd-43"><span class="qn">&bull;</span>12. Cost Optimization</a><a href="#f03CloudMLmd-44" data-q="f03CloudMLmd-44"><span class="qn">&bull;</span>13. Data Governance &amp; Security</a><a href="#f03CloudMLmd-45" data-q="f03CloudMLmd-45"><span class="qn">&bull;</span>14. Interview Deep Dive</a><div class="nav-grp">SDLC</div><a href="#f06SDLCmd-46" data-q="f06SDLCmd-46"><span class="qn">&bull;</span>1.1 Why SDLC Matters</a><a href="#f06SDLCmd-47" data-q="f06SDLCmd-47"><span class="qn">&bull;</span>1.2 Core Principles</a><a href="#f06SDLCmd-48" data-q="f06SDLCmd-48"><span class="qn">&bull;</span>2.1 Phase Overview</a><a href="#f06SDLCmd-49" data-q="f06SDLCmd-49"><span class="qn">&bull;</span>2.2 Phase 1: Planning &amp; Feasibility</a><a href="#f06SDLCmd-50" data-q="f06SDLCmd-50"><span class="qn">&bull;</span>2.3 Phase 2: Requirements Analysis</a><a href="#f06SDLCmd-51" data-q="f06SDLCmd-51"><span class="qn">&bull;</span>2.4 Phase 3: Design</a><a href="#f06SDLCmd-52" data-q="f06SDLCmd-52"><span class="qn">&bull;</span>2.5 Phase 4: Implementation (Coding)</a><a href="#f06SDLCmd-53" data-q="f06SDLCmd-53"><span class="qn">&bull;</span>2.6 Phase 5: Testing</a><a href="#f06SDLCmd-54" data-q="f06SDLCmd-54"><span class="qn">&bull;</span>2.7 Phase 6: Deployment</a><a href="#f06SDLCmd-55" data-q="f06SDLCmd-55"><span class="qn">&bull;</span>2.8 Phase 7: Maintenance &amp; Operations</a><a href="#f06SDLCmd-56" data-q="f06SDLCmd-56"><span class="qn">&bull;</span>3.1 Waterfall</a><a href="#f06SDLCmd-57" data-q="f06SDLCmd-57"><span class="qn">&bull;</span>3.2 V-Model (Verification &amp; Validation)</a><a href="#f06SDLCmd-58" data-q="f06SDLCmd-58"><span class="qn">&bull;</span>3.3 Iterative &amp; Incremental</a><a href="#f06SDLCmd-59" data-q="f06SDLCmd-59"><span class="qn">&bull;</span>3.4 Spiral Model</a><a href="#f06SDLCmd-60" data-q="f06SDLCmd-60"><span class="qn">&bull;</span>3.5 Methodology Comparison</a><a href="#f06SDLCmd-61" data-q="f06SDLCmd-61"><span class="qn">&bull;</span>4.1 Agile Manifesto (2001)</a><a href="#f06SDLCmd-62" data-q="f06SDLCmd-62"><span class="qn">&bull;</span>4.2 Scrum Framework</a><a href="#f06SDLCmd-63" data-q="f06SDLCmd-63"><span class="qn">&bull;</span>4.3 User Stories &amp; Estimation</a><a href="#f06SDLCmd-64" data-q="f06SDLCmd-64"><span class="qn">&bull;</span>4.4 Velocity &amp; Burndown</a><a href="#f06SDLCmd-65" data-q="f06SDLCmd-65"><span class="qn">&bull;</span>6.1 Requirements Documentation</a><a href="#f06SDLCmd-66" data-q="f06SDLCmd-66"><span class="qn">&bull;</span>6.2 Requirement Prioritization</a><a href="#f06SDLCmd-67" data-q="f06SDLCmd-67"><span class="qn">&bull;</span>7.1 Architecture Decision Records (ADR)</a><a href="#f06SDLCmd-68" data-q="f06SDLCmd-68"><span class="qn">&bull;</span>7.2 Design Patterns in SDLC Context</a><a href="#f06SDLCmd-69" data-q="f06SDLCmd-69"><span class="qn">&bull;</span>8.1 Test-Driven Development (TDD)</a><a href="#f06SDLCmd-70" data-q="f06SDLCmd-70"><span class="qn">&bull;</span>8.2 Behavior-Driven Development (BDD)</a><a href="#f06SDLCmd-71" data-q="f06SDLCmd-71"><span class="qn">&bull;</span>8.3 Testing Strategy by Layer</a><a href="#f06SDLCmd-72" data-q="f06SDLCmd-72"><span class="qn">&bull;</span>9.1 Git Flow</a><a href="#f06SDLCmd-73" data-q="f06SDLCmd-73"><span class="qn">&bull;</span>9.2 Trunk-Based Development</a><a href="#f06SDLCmd-74" data-q="f06SDLCmd-74"><span class="qn">&bull;</span>9.3 GitHub Flow (Simplified)</a><a href="#f06SDLCmd-75" data-q="f06SDLCmd-75"><span class="qn">&bull;</span>9.4 Commit Message Convention</a><a href="#f06SDLCmd-76" data-q="f06SDLCmd-76"><span class="qn">&bull;</span>10.1 CI/CD Pipeline Stages</a><a href="#f06SDLCmd-77" data-q="f06SDLCmd-77"><span class="qn">&bull;</span>10.2 GitHub Actions Example</a><a href="#f06SDLCmd-78" data-q="f06SDLCmd-78"><span class="qn">&bull;</span>14.1 ML Lifecycle vs Traditional SDLC</a><a href="#f06SDLCmd-79" data-q="f06SDLCmd-79"><span class="qn">&bull;</span>14.2 CRISP-DM (Cross-Industry Standard Process for Data Mining)</a><a href="#f06SDLCmd-80" data-q="f06SDLCmd-80"><span class="qn">&bull;</span>14.3 MLOps Integration</a><a href="#f06SDLCmd-81" data-q="f06SDLCmd-81"><span class="qn">&bull;</span>15.1 Common Anti-Patterns</a><a href="#f06SDLCmd-82" data-q="f06SDLCmd-82"><span class="qn">&bull;</span>15.2 Best Practices Summary</a><a href="#f06SDLCmd-83" data-q="f06SDLCmd-83"><span class="qn">&bull;</span>Q1: What is SDLC? Why is it important?</a><a href="#f06SDLCmd-84" data-q="f06SDLCmd-84"><span class="qn">&bull;</span>Q2: Compare Agile vs Waterfall. When would you use each?</a><a href="#f06SDLCmd-85" data-q="f06SDLCmd-85"><span class="qn">&bull;</span>Q3: Explain Scrum ceremonies and their purpose.</a><a href="#f06SDLCmd-86" data-q="f06SDLCmd-86"><span class="qn">&bull;</span>Q4: What is the difference between CI, CD (Delivery), and CD (Deployment)?</a><a href="#f06SDLCmd-87" data-q="f06SDLCmd-87"><span class="qn">&bull;</span>Q5: How does SDLC differ for ML projects compared to traditional software?</a><a href="#f06SDLCmd-88" data-q="f06SDLCmd-88"><span class="qn">&bull;</span>Q6: Explain branching strategies. Which one do you prefer?</a><a href="#f06SDLCmd-89" data-q="f06SDLCmd-89"><span class="qn">&bull;</span>Q7: What is Definition of Done (DoD)?</a><a href="#f06SDLCmd-90" data-q="f06SDLCmd-90"><span class="qn">&bull;</span>Q8: How do you handle technical debt?</a><a href="#f06SDLCmd-91" data-q="f06SDLCmd-91"><span class="qn">&bull;</span>Q9: Explain the Testing Pyramid. Why is it shaped that way?</a><a href="#f06SDLCmd-92" data-q="f06SDLCmd-92"><span class="qn">&bull;</span>Q10: What would you do if requirements change mid-sprint?</a></nav>
+  <nav><div class="nav-grp"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg>On this page</div><a href="#top" data-t="top"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compass"/></svg>Overview</a><a class="nav-file" href="#f01MLOpsmd" data-t="f01MLOpsmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>MLOps</a><a class="nav-file" href="#f02DevOpsmd" data-t="f02DevOpsmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>DevOps</a><a class="nav-file" href="#f03CloudMLmd" data-t="f03CloudMLmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>Cloud ML</a><a class="nav-file" href="#f06SDLCmd" data-t="f06SDLCmd"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>SDLC</a><a class="nav-sub" href="#f06SDLCmd-p0" data-t="f06SDLCmd-p0">1. What is SDLC?</a><a class="nav-sub" href="#f06SDLCmd-p1" data-t="f06SDLCmd-p1">2. SDLC Phases — Deep Dive</a><a class="nav-sub" href="#f06SDLCmd-p2" data-t="f06SDLCmd-p2">3. SDLC Models &amp; Methodologies</a><a class="nav-sub" href="#f06SDLCmd-p3" data-t="f06SDLCmd-p3">4. Agile &amp; Scrum — In Depth</a><a class="nav-sub" href="#f06SDLCmd-p4" data-t="f06SDLCmd-p4">5. Kanban</a><a class="nav-sub" href="#f06SDLCmd-p5" data-t="f06SDLCmd-p5">6. Requirements Engineering</a><a class="nav-sub" href="#f06SDLCmd-p6" data-t="f06SDLCmd-p6">7. System Design &amp; Architecture in SDLC</a><a class="nav-sub" href="#f06SDLCmd-p7" data-t="f06SDLCmd-p7">8. Testing Strategies</a><a class="nav-sub" href="#f06SDLCmd-p8" data-t="f06SDLCmd-p8">9. Version Control &amp; Branching Strategies</a><a class="nav-sub" href="#f06SDLCmd-p9" data-t="f06SDLCmd-p9">10. CI/CD in the SDLC</a><a class="nav-sub" href="#f06SDLCmd-p10" data-t="f06SDLCmd-p10">11. Deployment Strategies</a><a class="nav-sub" href="#f06SDLCmd-p11" data-t="f06SDLCmd-p11">12. Documentation &amp; Knowledge Management</a><a class="nav-sub" href="#f06SDLCmd-p12" data-t="f06SDLCmd-p12">13. Project Management Tools</a><a class="nav-sub" href="#f06SDLCmd-p13" data-t="f06SDLCmd-p13">14. SDLC for ML/AI Projects</a><a class="nav-sub" href="#f06SDLCmd-p14" data-t="f06SDLCmd-p14">15. SDLC Anti-Patterns &amp; Best Practices</a><a class="nav-sub" href="#f06SDLCmd-p15" data-t="f06SDLCmd-p15">16. Interview Deep Dive</a></nav>
 </aside>
 <main><div class="wrap">
 
-<section class="hero" id="top"><div class="eyebrow">10_MLOps_and_Deployment &middot; MLOps</div>
-<h1>MLOps</h1><p class="lede">The lifecycle, DevOps, cloud ML, SDLC</p><div class="oneliner"><b>4 files</b> in this section, <b>93 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div>
-<div class="stats"><div class="stat"><div class="stat-v">4</div><div class="stat-l">source files</div></div><div class="stat"><div class="stat-v">93</div><div class="stat-l">sections</div></div></div></section>
-<section class="learn" id="learn"><div class="learn-h"><span class="learn-ic">&#9733;</span>What you&rsquo;ll learn here</div><p class="learn-lede">The lifecycle, DevOps, cloud ML, SDLC</p><ul class="learn-grid"><li class="learn-item"><div class="learn-top"><b>MLOps</b><span class="learn-n">16 sections</span></div><div class="learn-tags"><span>MLOps Fundamentals</span><span>MLflow</span><span>Weights &amp; Biases</span><span>DVC (Data Version Control)</span><span>Feature Stores</span></div></li><li class="learn-item"><div class="learn-top"><b>DevOps</b><span class="learn-n">16 sections</span></div><div class="learn-tags"><span>DevOps Fundamentals</span><span>Docker</span><span>Docker Compose</span><span>Kubernetes Core</span><span>Kubernetes Workloads &amp; Networking</span></div></li><li class="learn-item"><div class="learn-top"><b>Cloud ML</b><span class="learn-n">14 sections</span></div><div class="learn-tags"><span>Platform Landscape</span><span>AWS SageMaker</span><span>GCP Vertex AI</span><span>Azure Machine Learning</span><span>Databricks &amp; Spark MLlib</span></div></li><li class="learn-item"><div class="learn-top"><b>SDLC</b><span class="learn-n">47 sections</span></div><div class="learn-tags"><span>What is SDLC?</span><span>SDLC Phases — Deep Dive</span><span>SDLC Models &amp; Methodologies</span><span>Agile &amp; Scrum — In Depth</span><span>Kanban</span></div></li></ul></section>
+<nav class="crumb"><a href="../index.html">Home</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><a href="index.html">MLOps &amp; Deployment</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><b>MLOps</b></nav>
+<section class="hero" id="top"><div class="eyebrow">MLOps and Deployment &middot; MLOps</div>
+<h1>MLOps</h1><p class="lede">The lifecycle, DevOps, cloud ML, SDLC</p><div class="oneliner"><b>4 files</b> in this section, <b>93 sections</b> in total. Use <b>Drill</b> in the top bar to hide every answer and test yourself.</div></section>
 
-<section class="filesec" id="f01MLOpsmd"><header class="filehead"><div class="fh-top"><span class="fh-num">MLOps</span><span class="fh-count">16 sections</span><a class="fh-src" href="../../10_MLOps_and_Deployment/01_MLOps.md">source .md &#8599;</a></div><h2>MLOps — Complete Engineering Reference</h2><div class="note">
+<section class="filesec" id="f01MLOpsmd"><header class="filehead"><div class="fh-top"><span class="fh-num">MLOps</span><span class="fh-count">16 sections</span></div><h2>MLOps — Complete Engineering Reference</h2><div class="note">
 <p><strong>Scope:</strong> <abbr title="machine-learning operations">MLOps</abbr> lifecycle, MLflow (tracking, registry, serving), Weights &amp; Biases, DVC, feature stores (Feast), model serving (BentoML, Ray Serve, TorchServe, vLLM, TGI), model monitoring (<abbr title="the input distribution changing after deployment">data drift</abbr>, <abbr title="the relationship between inputs and the correct answer changing after deployment">concept drift</abbr>), Airflow/Prefect, CI/CD for ML, A/B testing &amp; shadow deployments, data validation (Great Expectations, Pandera), model compression (<abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">quantization</abbr>, <abbr title="training a smaller model to reproduce a larger model&#x27;s behaviour">distillation</abbr>, pruning), experiment reproducibility, Kubeflow, labeling pipelines, model cards, edge deployment (ONNX, TFLite), cost optimization, production best practices, interview Q&amp;A.</p>
 </div></header><article class="q" id="f01MLOpsmd-0"><div class="q-h"><span class="q-n">&bull;</span><h3>1. MLOps Fundamentals</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01MLOpsmd-0"><span></span></label></div><div class="q-a"><p><abbr title="machine-learning operations">MLOps</abbr> (Machine Learning Operations) applies DevOps principles — CI/CD, automation, monitoring, and versioning — to the entire ML lifecycle from data preparation through model deployment and ongoing monitoring. It bridges the gap between experimental notebooks and reliable production services, ensuring that models are reproducible, automatically retrained, and continuously monitored for degradation.</p>
 <div class="diagram"><pre>MLOps MATURITY LEVELS:
@@ -936,7 +1284,7 @@ A/B TESTING for ML:
 <h3>Q8: What is model monitoring? What metrics do you track?</h3>
 <p><strong>A:</strong> Four levels of monitoring: (1) <strong>Infrastructure</strong>: Latency (P50/P95/P99), throughput (<abbr title="queries per second">QPS</abbr>), error rate, CPU/GPU utilization. (2) <strong>Data quality</strong>: Missing values, schema violations, outliers in input features. (3) <strong>Data/prediction drift</strong>: PSI per feature, KS test, output distribution changes. (4) <strong>Business metrics</strong>: Revenue impact, user engagement, conversion rate. Tools: Evidently (drift), Prometheus/Grafana (infra), custom dashboards (business). Alert priorities: infra issues = P0, drift detected = P1, performance degraded = P2.</p>
 <hr />
-<p><em>Previous: <a href="../../08_LangChain_and_LangGraph/11_Agentic_Systems_and_Patterns.md">../08_LangChain_and_LangGraph/11_Agentic_Systems_and_Patterns.md</a> | Next: <a href="mlops.html#f02DevOpsmd">02_DevOps.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f02DevOpsmd"><header class="filehead"><div class="fh-top"><span class="fh-num">DevOps</span><span class="fh-count">16 sections</span><a class="fh-src" href="../../10_MLOps_and_Deployment/02_DevOps.md">source .md &#8599;</a></div><h2>DevOps — Complete Engineering Reference</h2><div class="note">
+<p><em>Previous: <a href="../../08_LangChain_and_LangGraph/11_Agentic_Systems_and_Patterns.md">../08_LangChain_and_LangGraph/11_Agentic_Systems_and_Patterns.md</a> | Next: <a href="mlops.html#f02DevOpsmd">02_DevOps.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f02DevOpsmd"><header class="filehead"><div class="fh-top"><span class="fh-num">DevOps</span><span class="fh-count">16 sections</span></div><h2>DevOps — Complete Engineering Reference</h2><div class="note">
 <p><strong>Scope:</strong> DevOps fundamentals, Docker (images, containers, multi-stage builds, Compose), Kubernetes (pods, deployments, services, ConfigMaps, secrets, volumes, Ingress, HPA, Jobs), Helm, Terraform, Ansible, CI/CD (GitHub Actions, GitLab CI), GitOps (ArgoCD), monitoring (Prometheus + Grafana), logging (ELK stack), service mesh, container security, networking, deployment strategies, interview Q&amp;A.</p>
 </div></header><article class="q" id="f02DevOpsmd-16"><div class="q-h"><span class="q-n">&bull;</span><h3>1. DevOps Fundamentals</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02DevOpsmd-16"><span></span></label></div><div class="q-a"><p>DevOps is a set of practices that unifies software development and IT operations, emphasizing automation, continuous integration/delivery, infrastructure as code, and monitoring throughout the application lifecycle. Its core goal is to shorten the development cycle, increase deployment frequency, and deliver reliable software at scale.</p>
 <div class="diagram"><pre>DevOps = Development + Operations
@@ -1497,7 +1845,7 @@ ansible-playbook deploy_ml_service.yml -i inventory.ini</code></pre></div><butto
 <h3>Q8: Design a CI/CD pipeline for an ML application.</h3>
 <p><strong>A:</strong> Stages: (1) <strong>Code CI</strong>: Lint (ruff), type check (mypy), unit tests (pytest). Triggered on PR. (2) <strong>Data validation</strong>: Run Great Expectations/Pandera on training data. (3) <strong>Model CI</strong>: Train model, evaluate on holdout set, compare with current production model (fail if worse). Log to MLflow. (4) <strong>Build</strong>: Docker multi-stage build, push to container registry. (5) <strong>Deploy staging</strong>: Deploy to staging K8s, run integration tests. (6) <strong>Deploy production</strong>: Canary deployment (<span class="mag">5%</span> → monitor → <span class="mag">100%</span>). (7) <strong>Monitor</strong>: Prometheus metrics + drift detection. Tools: GitHub Actions → MLflow → Docker → ArgoCD → Prometheus.</p>
 <hr />
-<p><em>Previous: <a href="mlops.html#f01MLOpsmd">01_MLOps.md</a> | Next: <a href="mlops.html#f03CloudMLmd">03_Cloud_ML.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f03CloudMLmd"><header class="filehead"><div class="fh-top"><span class="fh-num">Cloud ML</span><span class="fh-count">14 sections</span><a class="fh-src" href="../../10_MLOps_and_Deployment/03_Cloud_ML.md">source .md &#8599;</a></div><h2>Cloud ML Platforms — Complete Engineering Reference</h2><div class="note">
+<p><em>Previous: <a href="mlops.html#f01MLOpsmd">01_MLOps.md</a> | Next: <a href="mlops.html#f03CloudMLmd">03_Cloud_ML.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f03CloudMLmd"><header class="filehead"><div class="fh-top"><span class="fh-num">Cloud ML</span><span class="fh-count">14 sections</span></div><h2>Cloud ML Platforms — Complete Engineering Reference</h2><div class="note">
 <p><strong>Scope:</strong> AWS SageMaker, GCP Vertex AI, Azure ML, Databricks, GPU selection, spot/preemptible instances, model serving, data pipelines, MLflow integration, serverless ML, cost optimization, data governance, production deployment, interview Q&amp;A.</p>
 </div></header><article class="q" id="f03CloudMLmd-32"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Platform Landscape</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03CloudMLmd-32"><span></span></label></div><div class="q-a"><p>The cloud ML platform landscape encompasses managed services from AWS, GCP, and Azure that cover the full ML lifecycle—from notebooks and training to serving and monitoring. Understanding the capabilities and trade-offs of each platform is essential for selecting the right infrastructure for your ML workloads.</p>
 <div class="diagram"><pre>┌─────────────────────────────────────────────────────────────────┐
@@ -1828,9 +2176,9 @@ FEATURE STORE ARCHITECTURE:
 <h3>Q8: How do you handle data governance for ML in the cloud?</h3>
 <p><strong>A:</strong> (1) <strong>Data lineage</strong>: Track which data was used for each model version (DVC, MLflow, cloud-native tools). (2) <strong>Access control</strong>: IAM policies, column-level security for <abbr title="personally identifiable information">PII</abbr>. (3) <strong>Encryption</strong>: KMS for at-rest, <abbr title="transport layer security">TLS</abbr> for in-transit. (4) <strong>Residency</strong>: Deploy in correct regions for GDPR/sovereignty. (5) <strong>Deletion</strong>: Ability to retrain models without deleted user data (GDPR right to erasure). (6) <strong>Audit</strong>: All data access logged (CloudTrail/Stackdriver). (7) <strong>Cataloging</strong>: Tag PII/sensitive columns in data catalog (AWS Glue Catalog, GCP Data Catalog, Purview). (8) <strong>Model cards</strong>: Document training data sources, biases, intended use.</p>
 <hr />
-<p><em>Previous: <a href="mlops.html#f02DevOpsmd">02_DevOps.md</a> | Next: <a href="../../01_Python/25_FastAPI/FastAPI_Detailed.md">FastAPI_Detailed.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f06SDLCmd"><header class="filehead"><div class="fh-top"><span class="fh-num">SDLC</span><span class="fh-count">47 sections</span><a class="fh-src" href="../../10_MLOps_and_Deployment/06_SDLC.md">source .md &#8599;</a></div><h2>SDLC (Software Development Life Cycle) — Complete Notes</h2><div class="note">
+<p><em>Previous: <a href="mlops.html#f02DevOpsmd">02_DevOps.md</a> | Next: <a href="../../01_Python/25_FastAPI/FastAPI_Detailed.md">FastAPI_Detailed.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f06SDLCmd"><header class="filehead"><div class="fh-top"><span class="fh-num">SDLC</span><span class="fh-count">47 sections</span></div><h2>SDLC (Software Development Life Cycle) — Complete Notes</h2><div class="note">
 <p><strong>Scope:</strong> <abbr title="software development life cycle">SDLC</abbr> phases, methodologies (Waterfall, Agile, Scrum, Kanban, SAFe), requirements engineering, design patterns, testing strategies, deployment, maintenance, DevOps integration, documentation, project management tools, and interview preparation.</p>
-</div></header><div class="parthead"><span>1. What is SDLC?</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>The Software Development Life Cycle (<abbr title="software development life cycle">SDLC</abbr>) is a structured process for planning, creating, testing, deploying, and maintaining software systems. It provides a systematic framework that ensures quality, predictability, and alignment with business goals.</p></div><article class="q" id="f06SDLCmd-46"><div class="q-h"><span class="q-n">&bull;</span><h3>1.1 Why SDLC Matters</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-46"><span></span></label></div><div class="q-a"><div class="diagram"><pre>WITHOUT SDLC:                          WITH SDLC:
+</div></header><div class="parthead" id="f06SDLCmd-p0"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>1. What is SDLC?</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>The Software Development Life Cycle (<abbr title="software development life cycle">SDLC</abbr>) is a structured process for planning, creating, testing, deploying, and maintaining software systems. It provides a systematic framework that ensures quality, predictability, and alignment with business goals.</p></div><article class="q" id="f06SDLCmd-46"><div class="q-h"><span class="q-n">&bull;</span><h3>1.1 Why SDLC Matters</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-46"><span></span></label></div><div class="q-a"><div class="diagram"><pre>WITHOUT SDLC:                          WITH SDLC:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Chaotic development                     Structured, predictable process
 Scope creep                             Controlled change management
@@ -1846,7 +2194,7 @@ Risk management           Identify &amp; mitigate risks proactively
 Quality gates             Don't move to next phase without validation
 Traceability              Link requirements → design → code → tests
 Automation                Automate repetitive tasks (build, test, deploy)
-Continuous improvement    Retrospectives → process improvements</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>2. SDLC Phases — Deep Dive</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Every <abbr title="software development life cycle">SDLC</abbr> methodology includes these core phases, though the sequencing and overlap varies.</p></div><article class="q" id="f06SDLCmd-48"><div class="q-h"><span class="q-n">&bull;</span><h3>2.1 Phase Overview</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-48"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Phase                    Key Activities                      Output
+Continuous improvement    Retrospectives → process improvements</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f06SDLCmd-p1"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-star"/></svg>2. SDLC Phases — Deep Dive</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Every <abbr title="software development life cycle">SDLC</abbr> methodology includes these core phases, though the sequencing and overlap varies.</p></div><article class="q" id="f06SDLCmd-48"><div class="q-h"><span class="q-n">&bull;</span><h3>2.1 Phase Overview</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-48"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Phase                    Key Activities                      Output
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 1. Planning              Feasibility, scope, timeline         Project charter
 2. Requirements          Gather, analyze, document needs      SRS / User stories
@@ -1985,7 +2333,7 @@ MONITORING ESSENTIALS:
   • Business metrics (conversions, user engagement)
   • Alerting with escalation policies
   • Log aggregation (ELK, CloudWatch, Datadog)
-  • On-call rotation with runbooks</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>3. SDLC Models &amp; Methodologies</span><i></i></div><article class="q" id="f06SDLCmd-56"><div class="q-h"><span class="q-n">&bull;</span><h3>3.1 Waterfall</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-56"><span></span></label></div><div class="q-a"><div class="diagram"><pre>WATERFALL MODEL:
+  • On-call rotation with runbooks</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f06SDLCmd-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>3. SDLC Models &amp; Methodologies</span><i></i></div><article class="q" id="f06SDLCmd-56"><div class="q-h"><span class="q-n">&bull;</span><h3>3.1 Waterfall</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-56"><span></span></label></div><div class="q-a"><div class="diagram"><pre>WATERFALL MODEL:
   Requirements → Design → Implementation → Testing → Deployment → Maintenance
   
   ┌──────────┐
@@ -2070,7 +2418,7 @@ Waterfall     Low          Low         Late        Fixed requirements
 V-Model       Low          Medium      Late        Safety-critical
 Iterative     Medium       Medium      Regular     Evolving requirements
 Spiral        High         Very High   Regular     Large, risky projects
-Agile         Very High    High        Continuous  Most modern projects</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>4. Agile &amp; Scrum — In Depth</span><i></i></div><article class="q" id="f06SDLCmd-61"><div class="q-h"><span class="q-n">&bull;</span><h3>4.1 Agile Manifesto (2001)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-61"><span></span></label></div><div class="q-a"><pre class="code"><code>VALUES (left is valued MORE, but right still has value):
+Agile         Very High    High        Continuous  Most modern projects</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f06SDLCmd-p3"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cpu"/></svg>4. Agile &amp; Scrum — In Depth</span><i></i></div><article class="q" id="f06SDLCmd-61"><div class="q-h"><span class="q-n">&bull;</span><h3>4.1 Agile Manifesto (2001)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-61"><span></span></label></div><div class="q-a"><pre class="code"><code>VALUES (left is valued MORE, but right still has value):
   Individuals &amp; interactions    OVER    Processes &amp; tools
   Working software              OVER    Comprehensive documentation
   Customer collaboration        OVER    Contract negotiation
@@ -2186,7 +2534,7 @@ BURNDOWN CHART:
    10    │              ╲
     5    │               ╲
     0    │────────────────╲──▶ Days
-         1  2  3  4  5  6  7  8  9  10</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>5. Kanban</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="diagram"><pre>KANBAN BOARD:
+         1  2  3  4  5  6  7  8  9  10</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f06SDLCmd-p4"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>5. Kanban</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="diagram"><pre>KANBAN BOARD:
   ┌──────────┬──────────┬──────────┬──────────┬──────────┐
   │ Backlog  │ To Do    │ In Prog  │ Review   │ Done     │
   │          │ (WIP: 3) │ (WIP: 3) │ (WIP: 2) │          │
@@ -2217,7 +2565,7 @@ KANBAN METRICS:
 SCRUM vs KANBAN:
   Scrum:  Fixed sprints, defined roles, velocity
   Kanban: Continuous flow, no prescribed roles, WIP limits
-  Scrumban: Hybrid (sprints + WIP limits + continuous flow)</pre></div></div><div class="parthead"><span>6. Requirements Engineering</span><i></i></div><article class="q" id="f06SDLCmd-65"><div class="q-h"><span class="q-n">&bull;</span><h3>6.1 Requirements Documentation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-65"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SOFTWARE REQUIREMENTS SPECIFICATION (SRS):
+  Scrumban: Hybrid (sprints + WIP limits + continuous flow)</pre></div></div><div class="parthead" id="f06SDLCmd-p5"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>6. Requirements Engineering</span><i></i></div><article class="q" id="f06SDLCmd-65"><div class="q-h"><span class="q-n">&bull;</span><h3>6.1 Requirements Documentation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-65"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SOFTWARE REQUIREMENTS SPECIFICATION (SRS):
   1. Introduction (purpose, scope, definitions)
   2. Overall Description (product perspective, constraints)
   3. Functional Requirements (detailed features)
@@ -2257,7 +2605,7 @@ AGILE ALTERNATIVE — EPICS &amp; STORIES:
     │ Fill-Ins     │ Thankless    │  ← Low Value
     │ (IF TIME)    │ (AVOID)      │
     └──────────────┴──────────────┘
-      Low Effort     High Effort</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>7. System Design &amp; Architecture in SDLC</span><i></i></div><article class="q" id="f06SDLCmd-67"><div class="q-h"><span class="q-n">&bull;</span><h3>7.1 Architecture Decision Records (ADR)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-67"><span></span></label></div><div class="q-a"><pre class="code"><code>ADR TEMPLATE:
+      Low Effort     High Effort</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f06SDLCmd-p6"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-network"/></svg>7. System Design &amp; Architecture in SDLC</span><i></i></div><article class="q" id="f06SDLCmd-67"><div class="q-h"><span class="q-n">&bull;</span><h3>7.1 Architecture Decision Records (ADR)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-67"><span></span></label></div><div class="q-a"><pre class="code"><code>ADR TEMPLATE:
   Title:    ADR-001: Use PostgreSQL as primary database
   Status:   Accepted / Proposed / Deprecated / Superseded
   Context:  We need a relational database for structured data with
@@ -2282,7 +2630,7 @@ AGILE ALTERNATIVE — EPICS &amp; STORIES:
   Resilience:     Circuit Breaker, Retry, Bulkhead
   Deployment:     Blue-Green, Canary, Feature Flags
   
-  Each pattern should be an explicit ADR with rationale.</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>8. Testing Strategies</span><i></i></div><article class="q" id="f06SDLCmd-69"><div class="q-h"><span class="q-n">&bull;</span><h3>8.1 Test-Driven Development (TDD)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-69"><span></span></label></div><div class="q-a"><pre class="code"><code>TDD CYCLE (Red-Green-Refactor):
+  Each pattern should be an explicit ADR with rationale.</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f06SDLCmd-p7"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>8. Testing Strategies</span><i></i></div><article class="q" id="f06SDLCmd-69"><div class="q-h"><span class="q-n">&bull;</span><h3>8.1 Test-Driven Development (TDD)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-69"><span></span></label></div><div class="q-a"><pre class="code"><code>TDD CYCLE (Red-Green-Refactor):
   1. RED:    Write a failing test first
   2. GREEN:  Write minimum code to pass the test
   3. REFACTOR: Clean up code while keeping tests green
@@ -2334,7 +2682,7 @@ CODE COVERAGE:
   • Aim for &gt;80% unit test coverage
   • 100% is impractical and doesn't guarantee quality
   • Focus on covering critical business logic and edge cases
-  • Tool: pytest-cov</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>9. Version Control &amp; Branching Strategies</span><i></i></div><article class="q" id="f06SDLCmd-72"><div class="q-h"><span class="q-n">&bull;</span><h3>9.1 Git Flow</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-72"><span></span></label></div><div class="q-a"><div class="diagram"><pre>GIT FLOW:
+  • Tool: pytest-cov</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f06SDLCmd-p8"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>9. Version Control &amp; Branching Strategies</span><i></i></div><article class="q" id="f06SDLCmd-72"><div class="q-h"><span class="q-n">&bull;</span><h3>9.1 Git Flow</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-72"><span></span></label></div><div class="q-a"><div class="diagram"><pre>GIT FLOW:
   main ─────●─────────────────●─────────────●──── (releases only)
              ╲               ╱               ╱
   develop ────●───●───●───●───●───●───●───●────── (integration)
@@ -2391,7 +2739,7 @@ CODE COVERAGE:
     fix(model): handle NaN values in feature pipeline
     docs(readme): add deployment instructions
     refactor(training): extract validation loop into function
-    test(api): add integration tests for /predict endpoint</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>10. CI/CD in the SDLC</span><i></i></div><article class="q" id="f06SDLCmd-76"><div class="q-h"><span class="q-n">&bull;</span><h3>10.1 CI/CD Pipeline Stages</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-76"><span></span></label></div><div class="q-a"><div class="diagram"><pre>TYPICAL CI/CD PIPELINE:
+    test(api): add integration tests for /predict endpoint</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f06SDLCmd-p9"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>10. CI/CD in the SDLC</span><i></i></div><article class="q" id="f06SDLCmd-76"><div class="q-h"><span class="q-n">&bull;</span><h3>10.1 CI/CD Pipeline Stages</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-76"><span></span></label></div><div class="q-a"><div class="diagram"><pre>TYPICAL CI/CD PIPELINE:
   ┌──────┐   ┌──────┐   ┌──────┐   ┌──────┐   ┌──────┐   ┌──────┐
   │ Lint │──▶│Build │──▶│ Unit │──▶│Integ.│──▶│Deploy│──▶│Smoke │
   │      │   │      │   │ Test │   │ Test │   │Staging│  │ Test │
@@ -2460,7 +2808,7 @@ jobs:
       - name: Push to registry
         run: |
           docker tag myapp:${{ github.sha }} registry.example.com/myapp:latest
-          docker push registry.example.com/myapp:latest</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>11. Deployment Strategies</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="diagram"><pre>STRATEGY          DESCRIPTION                           RISK   DOWNTIME
+          docker push registry.example.com/myapp:latest</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f06SDLCmd-p10"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>11. Deployment Strategies</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="diagram"><pre>STRATEGY          DESCRIPTION                           RISK   DOWNTIME
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Recreate          Stop old → Start new                  High   Yes
 Rolling Update    Replace instances gradually           Medium Minimal
@@ -2495,7 +2843,7 @@ CANARY DEPLOYMENT:
   Phase 3: Route 50% → v2, compare A/B metrics
   Phase 4: Route 100% → v2, decommission v1
   
-  If errors detected at any phase → rollback to v1</pre></div></div><div class="parthead"><span>12. Documentation &amp; Knowledge Management</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="diagram"><pre>DOCUMENTATION TYPES:
+  If errors detected at any phase → rollback to v1</pre></div></div><div class="parthead" id="f06SDLCmd-p11"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>12. Documentation &amp; Knowledge Management</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="diagram"><pre>DOCUMENTATION TYPES:
   Type               Audience           Examples
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   API Documentation  Developers         OpenAPI/Swagger, Postman
@@ -2522,7 +2870,7 @@ THE DOCUMENTATION QUADRANT (Diátaxis):
   │ EXPLANATION      │ REFERENCE        │
   │ Understanding    │ Information      │
   │ "Why does...?"   │ "What is the..." │
-  └──────────────────┴──────────────────┘</pre></div></div><div class="parthead"><span>13. Project Management Tools</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="diagram"><pre>TOOL             BEST FOR                    KEY FEATURES
+  └──────────────────┴──────────────────┘</pre></div></div><div class="parthead" id="f06SDLCmd-p12"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>13. Project Management Tools</span><i></i></div><div class="q-a" style="margin:0 0 12px"><div class="diagram"><pre>TOOL             BEST FOR                    KEY FEATURES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Jira             Enterprise Agile            Sprints, boards, roadmaps,
                                              advanced reporting, JQL
@@ -2545,7 +2893,7 @@ JIRA WORKFLOW (TYPICAL):
 JIRA QUERY LANGUAGE (JQL):
   project = "ML-PLATFORM" AND status = "In Progress" AND assignee = currentUser()
   sprint in openSprints() AND priority = "High"
-  created &gt;= startOfWeek() AND type = "Bug"</pre></div></div><div class="parthead"><span>14. SDLC for ML/AI Projects</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>ML projects have unique lifecycle challenges that traditional <abbr title="software development life cycle">SDLC</abbr> doesn't address. Several frameworks extend SDLC for ML.</p></div><article class="q" id="f06SDLCmd-78"><div class="q-h"><span class="q-n">&bull;</span><h3>14.1 ML Lifecycle vs Traditional SDLC</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-78"><span></span></label></div><div class="q-a"><div class="diagram"><pre>TRADITIONAL SDLC:
+  created &gt;= startOfWeek() AND type = "Bug"</pre></div></div><div class="parthead" id="f06SDLCmd-p13"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>14. SDLC for ML/AI Projects</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>ML projects have unique lifecycle challenges that traditional <abbr title="software development life cycle">SDLC</abbr> doesn't address. Several frameworks extend SDLC for ML.</p></div><article class="q" id="f06SDLCmd-78"><div class="q-h"><span class="q-n">&bull;</span><h3>14.1 ML Lifecycle vs Traditional SDLC</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-78"><span></span></label></div><div class="q-a"><div class="diagram"><pre>TRADITIONAL SDLC:
   Requirements → Design → Code → Test → Deploy → Maintain
 
 ML SDLC (Additional Phases):
@@ -2606,7 +2954,7 @@ ML TESTING CHECKLIST:
   □ Bias and fairness tests
   □ Performance tests (latency, throughput)
   □ Integration tests (API → model → response)
-  □ A/B test framework for model comparison</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>15. SDLC Anti-Patterns &amp; Best Practices</span><i></i></div><article class="q" id="f06SDLCmd-81"><div class="q-h"><span class="q-n">&bull;</span><h3>15.1 Common Anti-Patterns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-81"><span></span></label></div><div class="q-a"><div class="diagram"><pre>ANTI-PATTERN                     FIX
+  □ A/B test framework for model comparison</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f06SDLCmd-p14"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-target"/></svg>15. SDLC Anti-Patterns &amp; Best Practices</span><i></i></div><article class="q" id="f06SDLCmd-81"><div class="q-h"><span class="q-n">&bull;</span><h3>15.1 Common Anti-Patterns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-81"><span></span></label></div><div class="q-a"><div class="diagram"><pre>ANTI-PATTERN                     FIX
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "Big Bang" integration           Continuous integration (merge daily)
 Waterfall disguised as Agile     Truly iterate, demo working software
@@ -2629,13 +2977,15 @@ Deployment         CI/CD, canary/blue-green, rollback plans
 Monitoring         Alerting, dashboards, SLOs/SLIs/SLAs
 Process            Regular retrospectives, continuous improvement
 Documentation      Docs-as-code, living documentation
-Team               Psychological safety, knowledge sharing, pairing</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead"><span>16. Interview Deep Dive</span><i></i></div><article class="q" id="f06SDLCmd-83"><div class="q-h"><span class="q-n">&bull;</span><h3>Q1: What is SDLC? Why is it important?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-83"><span></span></label></div><div class="q-a"><p><strong>A:</strong> <abbr title="software development life cycle">SDLC</abbr> is a structured process for software development covering planning, requirements, design, coding, testing, deployment, and maintenance. It matters because it brings predictability, quality assurance, risk management, and stakeholder alignment to software projects. Without it, projects suffer from scope creep, late bug discovery, missed deadlines, and unmaintainable code. Different methodologies (Waterfall, Agile, Spiral) implement SDLC phases differently based on project needs.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-84"><div class="q-h"><span class="q-n">&bull;</span><h3>Q2: Compare Agile vs Waterfall. When would you use each?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-84"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Waterfall</span><span class="kt">Agile</span></div><p><strong>A:</strong> <strong>Waterfall</strong>: Sequential, phase-by-phase, no going back. Best for fixed requirements, regulatory environments, short simple projects. <strong>Agile</strong>: Iterative, incremental delivery, embraces change. Best for evolving requirements, complex projects, when early feedback is valuable. Key tradeoff: Waterfall gives predictability and documentation; Agile gives flexibility and faster time-to-value. Most modern software uses Agile; Waterfall still used in embedded systems, defense, and hardware-dependent projects. In practice, many teams use a hybrid — Agile sprints with Waterfall-style milestone gates for compliance.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-85"><div class="q-h"><span class="q-n">&bull;</span><h3>Q3: Explain Scrum ceremonies and their purpose.</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-85"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Sprint Planning</span><span class="kt">Daily Standup</span><span class="kt">Sprint Review/Demo</span><span class="kt">Sprint Retrospective</span></div><p><strong>A:</strong> <strong>Sprint Planning</strong>: Team selects Product Backlog items for the sprint and defines how to implement them. Sets the Sprint Goal. <strong>Daily Standup</strong>: 15-minute sync — what I did yesterday, what I'll do today, any blockers. Not a status report — it's team coordination. <strong>Sprint Review/Demo</strong>: Show working software to stakeholders, get feedback. Updates Product Backlog based on feedback. <strong>Sprint Retrospective</strong>: What went well, what didn't, what to improve. Produces action items for the next sprint. The retrospective is often the most valuable ceremony — it's how teams continuously improve.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-86"><div class="q-h"><span class="q-n">&bull;</span><h3>Q4: What is the difference between CI, CD (Delivery), and CD (Deployment)?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-86"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">CI (Continuous Integration)</span><span class="kt">CD (Continuous Delivery)</span><span class="kt">CD (Continuous Deployment)</span></div><p><strong>A:</strong> <strong>CI (Continuous Integration)</strong>: Developers merge frequently (at least daily), each merge triggers automated build and tests. Goal: detect integration issues early. <strong>CD (Continuous Delivery)</strong>: Code is always in a deployable state — deploying to production requires a manual approval. <strong>CD (Continuous Deployment)</strong>: Every change that passes automated tests is automatically deployed to production — no human gate. Progression: CI → Continuous Delivery → Continuous Deployment. Most teams are at Continuous Delivery; Continuous Deployment requires very mature test suites and monitoring.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-87"><div class="q-h"><span class="q-n">&bull;</span><h3>Q5: How does SDLC differ for ML projects compared to traditional software?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-87"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Data dependency</span><span class="kt">Non-determinism</span><span class="kt">Continuous degradation</span><span class="kt">Versioning complexity</span><span class="kt">Experimentation</span></div><p><strong>A:</strong> ML projects have unique challenges: (1) <strong>Data dependency</strong>: ML quality depends on data quality — <abbr title="software development life cycle">SDLC</abbr> must include data collection, validation, and versioning phases. (2) <strong>Non-determinism</strong>: Testing is probabilistic (metric thresholds instead of pass/fail). (3) <strong>Continuous degradation</strong>: Models degrade over time due to <abbr title="the input distribution changing after deployment">data drift</abbr> — requires continuous monitoring and retraining loops. (4) <strong>Versioning complexity</strong>: Must version code + data + model artifacts + training config. (5) <strong>Experimentation</strong>: Before deployment, extensive experimentation phase (CRISP-DM) that doesn't exist in traditional SDLC. Frameworks like CRISP-DM and <abbr title="machine-learning operations">MLOps</abbr> practices bridge this gap.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-88"><div class="q-h"><span class="q-n">&bull;</span><h3>Q6: Explain branching strategies. Which one do you prefer?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-88"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Git Flow</span><span class="kt">GitHub Flow</span><span class="kt">Trunk-Based</span></div><p><strong>A:</strong> <strong>Git Flow</strong>: Feature branches → develop → release → main. Good for versioned releases but complex. <strong>GitHub Flow</strong>: Feature branches → main. Simple, always-deployable main branch. <strong>Trunk-Based</strong>: Everyone commits to main with feature flags. Fastest iteration but requires mature CI/CD. I prefer <strong>GitHub Flow</strong> for most teams — it balances simplicity with safety. For mature teams doing continuous deployment, trunk-based is ideal. Git Flow is best when you need parallel release maintenance (e.g., v1.x and v2.x simultaneously).</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-89"><div class="q-h"><span class="q-n">&bull;</span><h3>Q7: What is Definition of Done (DoD)?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-89"><span></span></label></div><div class="q-a"><p><strong>A:</strong> DoD is a shared checklist that defines when a user story is truly "done" — not just "code complete." Typical DoD: (1) Code written and passes all linters, (2) Unit tests written with <span class="mag">&gt;80%</span> coverage on new code, (3) Code reviewed and approved by at least one peer, (4) Integration tests passing, (5) Documentation updated, (6) No known defects, (7) Deployed to staging and smoke tested, (8) Acceptance criteria verified by PO. DoD prevents "90% done" stories that linger. It's agreed upon by the team and applied consistently.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-90"><div class="q-h"><span class="q-n">&bull;</span><h3>Q8: How do you handle technical debt?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-90"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Make it visible</span><span class="kt">Allocate capacity</span><span class="kt">Prioritize by impact</span><span class="kt">Prevent accumulation</span><span class="kt">Communicate business impact</span></div><p><strong>A:</strong> Technical debt is the implied cost of future rework caused by short-term shortcuts. Management strategy: (1) <strong>Make it visible</strong>: Track tech debt items in the backlog with clear impact descriptions. (2) <strong>Allocate capacity</strong>: Reserve <span class="mag">10-20%</span> of each sprint for debt reduction. (3) <strong>Prioritize by impact</strong>: Fix debt that slows down current feature development first. (4) <strong>Prevent accumulation</strong>: Strong code reviews, DoD, and "Boy Scout Rule" (leave code cleaner than you found it). (5) <strong>Communicate business impact</strong>: Frame debt in terms stakeholders understand — "This refactoring will reduce bug-fix time from 3 days to 4 hours." Never ask "permission" to fix tech debt — it's part of professional engineering.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-91"><div class="q-h"><span class="q-n">&bull;</span><h3>Q9: Explain the Testing Pyramid. Why is it shaped that way?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-91"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Unit tests</span><span class="kt">Integration tests</span><span class="kt">E2E/UI tests</span></div><p><strong>A:</strong> The pyramid has three layers — bottom to top: <strong>Unit tests</strong> (many, fast, cheap), <strong>Integration tests</strong> (moderate count, slower, test component interactions), <strong>E2E/UI tests</strong> (few, slowest, most expensive to maintain). It's shaped this way because: (1) Unit tests give fastest feedback — seconds to run, easy to debug failures. (2) Integration tests catch miscommunication between services. (3) E2E tests are fragile, slow, and expensive but catch user-facing issues. Anti-pattern: "Ice cream cone" — mostly manual/E2E tests, few unit tests. This leads to slow CI, flaky tests, and late bug detection. The goal is to catch <span class="mag">70-80%</span> of bugs at the unit level.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-92"><div class="q-h"><span class="q-n">&bull;</span><h3>Q10: What would you do if requirements change mid-sprint?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-92"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Minor changes</span><span class="kt">Major changes</span><span class="kt">Process fix</span></div><p><strong>A:</strong> In Scrum: (1) <strong>Minor changes</strong>: Discuss with PO — can they fit within the Sprint Goal without jeopardizing committed work? If yes, swap in the new item and remove an equally-sized uncommitted item. (2) <strong>Major changes</strong>: If the Sprint Goal is invalidated, the PO can cancel the sprint (rare). Start a new sprint planning. (3) <strong>Process fix</strong>: If this happens frequently, it signals a problem — either the backlog isn't groomed properly, stakeholders aren't engaged in planning, or sprint length is too long. Discuss in retrospective. The Agile principle is "welcome changing requirements" — but within a structured change management process, not chaotic context-switching.</p>
+Team               Psychological safety, knowledge sharing, pairing</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f06SDLCmd-p15"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>16. Interview Deep Dive</span><i></i></div><article class="q" id="f06SDLCmd-83"><div class="q-h"><span class="q-n">&bull;</span><h3>Q1: What is SDLC? Why is it important?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-83"><span></span></label></div><div class="q-a"><p><strong>A:</strong> <abbr title="software development life cycle">SDLC</abbr> is a structured process for software development covering planning, requirements, design, coding, testing, deployment, and maintenance. It matters because it brings predictability, quality assurance, risk management, and stakeholder alignment to software projects. Without it, projects suffer from scope creep, late bug discovery, missed deadlines, and unmaintainable code. Different methodologies (Waterfall, Agile, Spiral) implement SDLC phases differently based on project needs.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-84"><div class="q-h"><span class="q-n">&bull;</span><h3>Q2: Compare Agile vs Waterfall. When would you use each?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-84"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Waterfall</span><span class="kt">Agile</span></div><p><strong>A:</strong> <strong>Waterfall</strong>: Sequential, phase-by-phase, no going back. Best for fixed requirements, regulatory environments, short simple projects. <strong>Agile</strong>: Iterative, incremental delivery, embraces change. Best for evolving requirements, complex projects, when early feedback is valuable. Key tradeoff: Waterfall gives predictability and documentation; Agile gives flexibility and faster time-to-value. Most modern software uses Agile; Waterfall still used in embedded systems, defense, and hardware-dependent projects. In practice, many teams use a hybrid — Agile sprints with Waterfall-style milestone gates for compliance.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-85"><div class="q-h"><span class="q-n">&bull;</span><h3>Q3: Explain Scrum ceremonies and their purpose.</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-85"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Sprint Planning</span><span class="kt">Daily Standup</span><span class="kt">Sprint Review/Demo</span><span class="kt">Sprint Retrospective</span></div><p><strong>A:</strong> <strong>Sprint Planning</strong>: Team selects Product Backlog items for the sprint and defines how to implement them. Sets the Sprint Goal. <strong>Daily Standup</strong>: 15-minute sync — what I did yesterday, what I'll do today, any blockers. Not a status report — it's team coordination. <strong>Sprint Review/Demo</strong>: Show working software to stakeholders, get feedback. Updates Product Backlog based on feedback. <strong>Sprint Retrospective</strong>: What went well, what didn't, what to improve. Produces action items for the next sprint. The retrospective is often the most valuable ceremony — it's how teams continuously improve.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-86"><div class="q-h"><span class="q-n">&bull;</span><h3>Q4: What is the difference between CI, CD (Delivery), and CD (Deployment)?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-86"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">CI (Continuous Integration)</span><span class="kt">CD (Continuous Delivery)</span><span class="kt">CD (Continuous Deployment)</span></div><p><strong>A:</strong> <strong>CI (Continuous Integration)</strong>: Developers merge frequently (at least daily), each merge triggers automated build and tests. Goal: detect integration issues early. <strong>CD (Continuous Delivery)</strong>: Code is always in a deployable state — deploying to production requires a manual approval. <strong>CD (Continuous Deployment)</strong>: Every change that passes automated tests is automatically deployed to production — no human gate. Progression: CI → Continuous Delivery → Continuous Deployment. Most teams are at Continuous Delivery; Continuous Deployment requires very mature test suites and monitoring.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-87"><div class="q-h"><span class="q-n">&bull;</span><h3>Q5: How does SDLC differ for ML projects compared to traditional software?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-87"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Data dependency</span><span class="kt">Non-determinism</span><span class="kt">Continuous degradation</span><span class="kt">Versioning complexity</span><span class="kt">Experimentation</span></div><p><strong>A:</strong> ML projects have unique challenges: (1) <strong>Data dependency</strong>: ML quality depends on data quality — <abbr title="software development life cycle">SDLC</abbr> must include data collection, validation, and versioning phases. (2) <strong>Non-determinism</strong>: Testing is probabilistic (metric thresholds instead of pass/fail). (3) <strong>Continuous degradation</strong>: Models degrade over time due to <abbr title="the input distribution changing after deployment">data drift</abbr> — requires continuous monitoring and retraining loops. (4) <strong>Versioning complexity</strong>: Must version code + data + model artifacts + training config. (5) <strong>Experimentation</strong>: Before deployment, extensive experimentation phase (CRISP-DM) that doesn't exist in traditional SDLC. Frameworks like CRISP-DM and <abbr title="machine-learning operations">MLOps</abbr> practices bridge this gap.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-88"><div class="q-h"><span class="q-n">&bull;</span><h3>Q6: Explain branching strategies. Which one do you prefer?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-88"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Git Flow</span><span class="kt">GitHub Flow</span><span class="kt">Trunk-Based</span></div><p><strong>A:</strong> <strong>Git Flow</strong>: Feature branches → develop → release → main. Good for versioned releases but complex. <strong>GitHub Flow</strong>: Feature branches → main. Simple, always-deployable main branch. <strong>Trunk-Based</strong>: Everyone commits to main with feature flags. Fastest iteration but requires mature CI/CD. I prefer <strong>GitHub Flow</strong> for most teams — it balances simplicity with safety. For mature teams doing continuous deployment, trunk-based is ideal. Git Flow is best when you need parallel release maintenance (e.g., v1.x and v2.x simultaneously).</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-89"><div class="q-h"><span class="q-n">&bull;</span><h3>Q7: What is Definition of Done (DoD)?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-89"><span></span></label></div><div class="q-a"><p><strong>A:</strong> DoD is a shared checklist that defines when a user story is truly "done" — not just "code complete." Typical DoD: (1) Code written and passes all linters, (2) Unit tests written with <span class="mag">&gt;80%</span> coverage on new code, (3) Code reviewed and approved by at least one peer, (4) Integration tests passing, (5) Documentation updated, (6) No known defects, (7) Deployed to staging and smoke tested, (8) Acceptance criteria verified by PO. DoD prevents "90% done" stories that linger. It's agreed upon by the team and applied consistently.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-90"><div class="q-h"><span class="q-n">&bull;</span><h3>Q8: How do you handle technical debt?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-90"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Make it visible</span><span class="kt">Allocate capacity</span><span class="kt">Prioritize by impact</span><span class="kt">Prevent accumulation</span><span class="kt">Communicate business impact</span></div><p><strong>A:</strong> Technical debt is the implied cost of future rework caused by short-term shortcuts. Management strategy: (1) <strong>Make it visible</strong>: Track tech debt items in the backlog with clear impact descriptions. (2) <strong>Allocate capacity</strong>: Reserve <span class="mag">10-20%</span> of each sprint for debt reduction. (3) <strong>Prioritize by impact</strong>: Fix debt that slows down current feature development first. (4) <strong>Prevent accumulation</strong>: Strong code reviews, DoD, and "Boy Scout Rule" (leave code cleaner than you found it). (5) <strong>Communicate business impact</strong>: Frame debt in terms stakeholders understand — "This refactoring will reduce bug-fix time from 3 days to 4 hours." Never ask "permission" to fix tech debt — it's part of professional engineering.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-91"><div class="q-h"><span class="q-n">&bull;</span><h3>Q9: Explain the Testing Pyramid. Why is it shaped that way?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-91"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Unit tests</span><span class="kt">Integration tests</span><span class="kt">E2E/UI tests</span></div><p><strong>A:</strong> The pyramid has three layers — bottom to top: <strong>Unit tests</strong> (many, fast, cheap), <strong>Integration tests</strong> (moderate count, slower, test component interactions), <strong>E2E/UI tests</strong> (few, slowest, most expensive to maintain). It's shaped this way because: (1) Unit tests give fastest feedback — seconds to run, easy to debug failures. (2) Integration tests catch miscommunication between services. (3) E2E tests are fragile, slow, and expensive but catch user-facing issues. Anti-pattern: "Ice cream cone" — mostly manual/E2E tests, few unit tests. This leads to slow CI, flaky tests, and late bug detection. The goal is to catch <span class="mag">70-80%</span> of bugs at the unit level.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-92"><div class="q-h"><span class="q-n">&bull;</span><h3>Q10: What would you do if requirements change mid-sprint?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-92"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Minor changes</span><span class="kt">Major changes</span><span class="kt">Process fix</span></div><p><strong>A:</strong> In Scrum: (1) <strong>Minor changes</strong>: Discuss with PO — can they fit within the Sprint Goal without jeopardizing committed work? If yes, swap in the new item and remove an equally-sized uncommitted item. (2) <strong>Major changes</strong>: If the Sprint Goal is invalidated, the PO can cancel the sprint (rare). Start a new sprint planning. (3) <strong>Process fix</strong>: If this happens frequently, it signals a problem — either the backlog isn't groomed properly, stakeholders aren't engaged in planning, or sprint length is too long. Discuss in retrospective. The Agile principle is "welcome changing requirements" — but within a structured change management process, not chaotic context-switching.</p>
 <hr />
 <p><em><abbr title="software development life cycle">SDLC</abbr> is not just a process — it's a mindset. The goal is to build software that works, is maintainable, and delivers value. The specific methodology matters less than the discipline of planning, iterating, testing, and reflecting. Choose the simplest process that gives your team enough structure without slowing them down.</em></p>
 <p><em>Previous: <a href="infra.html#f05LinuxandGitm">05_Linux_and_Git.md</a> | Next: <a href="../../11_System_Design/03_System_Design.md">../11_System_Design/03_System_Design.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+<nav class="pnav"><a class="prev" href="index.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrowl"/></svg><span class="pnav-t"><span>Previous</span><b>Home</b></span></a><a class="next" href="infra.html"><span class="pnav-t"><span>Next</span><b>Infra & Tools</b></span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></a></nav>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
 </div></main>
+<aside class="toc" id="toc"><div class="toc-h"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>On this page</div><div class="toc-g" data-for="f01MLOpsmd"><b>MLOps</b><a href="#f01MLOpsmd-0" data-c="f01MLOpsmd-0">1. MLOps Fundamentals</a><a href="#f01MLOpsmd-1" data-c="f01MLOpsmd-1">2. MLflow</a><a href="#f01MLOpsmd-2" data-c="f01MLOpsmd-2">3. Weights &amp; Biases</a><a href="#f01MLOpsmd-3" data-c="f01MLOpsmd-3">4. DVC (Data Version Control)</a><a href="#f01MLOpsmd-4" data-c="f01MLOpsmd-4">5. Feature Stores</a><a href="#f01MLOpsmd-5" data-c="f01MLOpsmd-5">6. Data Validation</a><a href="#f01MLOpsmd-6" data-c="f01MLOpsmd-6">7. Model Serving</a><a href="#f01MLOpsmd-7" data-c="f01MLOpsmd-7">8. Model Monitoring</a><a href="#f01MLOpsmd-8" data-c="f01MLOpsmd-8">9. Orchestration</a><a href="#f01MLOpsmd-9" data-c="f01MLOpsmd-9">10. CI/CD for ML</a><a href="#f01MLOpsmd-10" data-c="f01MLOpsmd-10">11. A/B Testing &amp; Deployment Strategies</a><a href="#f01MLOpsmd-11" data-c="f01MLOpsmd-11">12. Model Compression</a><a href="#f01MLOpsmd-12" data-c="f01MLOpsmd-12">13. Experiment Reproducibility</a><a href="#f01MLOpsmd-13" data-c="f01MLOpsmd-13">14. Kubeflow &amp; Vertex Pipelines</a><a href="#f01MLOpsmd-14" data-c="f01MLOpsmd-14">15. Production Best Practices</a><a href="#f01MLOpsmd-15" data-c="f01MLOpsmd-15">16. Interview Deep Dive</a></div><div class="toc-g" data-for="f02DevOpsmd"><b>DevOps</b><a href="#f02DevOpsmd-16" data-c="f02DevOpsmd-16">1. DevOps Fundamentals</a><a href="#f02DevOpsmd-17" data-c="f02DevOpsmd-17">2. Docker</a><a href="#f02DevOpsmd-18" data-c="f02DevOpsmd-18">3. Docker Compose</a><a href="#f02DevOpsmd-19" data-c="f02DevOpsmd-19">4. Kubernetes Core</a><a href="#f02DevOpsmd-20" data-c="f02DevOpsmd-20">5. Kubernetes Workloads &amp; Networking</a><a href="#f02DevOpsmd-21" data-c="f02DevOpsmd-21">6. Kubernetes Config, Storage &amp; Autoscaling</a><a href="#f02DevOpsmd-22" data-c="f02DevOpsmd-22">7. Helm</a><a href="#f02DevOpsmd-23" data-c="f02DevOpsmd-23">8. Terraform</a><a href="#f02DevOpsmd-24" data-c="f02DevOpsmd-24">9. CI/CD (GitHub Actions)</a><a href="#f02DevOpsmd-25" data-c="f02DevOpsmd-25">10. GitOps (ArgoCD)</a><a href="#f02DevOpsmd-26" data-c="f02DevOpsmd-26">11. Monitoring (Prometheus + Grafana)</a><a href="#f02DevOpsmd-27" data-c="f02DevOpsmd-27">12. Logging</a><a href="#f02DevOpsmd-28" data-c="f02DevOpsmd-28">13. Container Security</a><a href="#f02DevOpsmd-29" data-c="f02DevOpsmd-29">14. Deployment Strategies</a><a href="#f02DevOpsmd-30" data-c="f02DevOpsmd-30">15. Ansible</a><a href="#f02DevOpsmd-31" data-c="f02DevOpsmd-31">16. Interview Deep Dive</a></div><div class="toc-g" data-for="f03CloudMLmd"><b>Cloud ML</b><a href="#f03CloudMLmd-32" data-c="f03CloudMLmd-32">1. Platform Landscape</a><a href="#f03CloudMLmd-33" data-c="f03CloudMLmd-33">2. AWS SageMaker</a><a href="#f03CloudMLmd-34" data-c="f03CloudMLmd-34">3. GCP Vertex AI</a><a href="#f03CloudMLmd-35" data-c="f03CloudMLmd-35">4. Azure Machine Learning</a><a href="#f03CloudMLmd-36" data-c="f03CloudMLmd-36">5. Databricks &amp; Spark MLlib</a><a href="#f03CloudMLmd-37" data-c="f03CloudMLmd-37">6. GPU Instance Selection</a><a href="#f03CloudMLmd-38" data-c="f03CloudMLmd-38">7. Spot &amp; Preemptible Instances</a><a href="#f03CloudMLmd-39" data-c="f03CloudMLmd-39">8. Managed Training &amp; HPO</a><a href="#f03CloudMLmd-40" data-c="f03CloudMLmd-40">9. Model Serving &amp; Endpoints</a><a href="#f03CloudMLmd-41" data-c="f03CloudMLmd-41">10. Data Pipelines &amp; Feature Stores</a><a href="#f03CloudMLmd-42" data-c="f03CloudMLmd-42">11. Serverless ML</a><a href="#f03CloudMLmd-43" data-c="f03CloudMLmd-43">12. Cost Optimization</a><a href="#f03CloudMLmd-44" data-c="f03CloudMLmd-44">13. Data Governance &amp; Security</a><a href="#f03CloudMLmd-45" data-c="f03CloudMLmd-45">14. Interview Deep Dive</a></div><div class="toc-g" data-for="f06SDLCmd"><b>SDLC</b><a href="#f06SDLCmd-46" data-c="f06SDLCmd-46">1.1 Why SDLC Matters</a><a href="#f06SDLCmd-47" data-c="f06SDLCmd-47">1.2 Core Principles</a><a href="#f06SDLCmd-48" data-c="f06SDLCmd-48">2.1 Phase Overview</a><a href="#f06SDLCmd-49" data-c="f06SDLCmd-49">2.2 Phase 1: Planning &amp; Feasibility</a><a href="#f06SDLCmd-50" data-c="f06SDLCmd-50">2.3 Phase 2: Requirements Analysis</a><a href="#f06SDLCmd-51" data-c="f06SDLCmd-51">2.4 Phase 3: Design</a><a href="#f06SDLCmd-52" data-c="f06SDLCmd-52">2.5 Phase 4: Implementation (Coding)</a><a href="#f06SDLCmd-53" data-c="f06SDLCmd-53">2.6 Phase 5: Testing</a><a href="#f06SDLCmd-54" data-c="f06SDLCmd-54">2.7 Phase 6: Deployment</a><a href="#f06SDLCmd-55" data-c="f06SDLCmd-55">2.8 Phase 7: Maintenance &amp; Operations</a><a href="#f06SDLCmd-56" data-c="f06SDLCmd-56">3.1 Waterfall</a><a href="#f06SDLCmd-57" data-c="f06SDLCmd-57">3.2 V-Model (Verification &amp; Validation)</a><a href="#f06SDLCmd-58" data-c="f06SDLCmd-58">3.3 Iterative &amp; Incremental</a><a href="#f06SDLCmd-59" data-c="f06SDLCmd-59">3.4 Spiral Model</a><a href="#f06SDLCmd-60" data-c="f06SDLCmd-60">3.5 Methodology Comparison</a><a href="#f06SDLCmd-61" data-c="f06SDLCmd-61">4.1 Agile Manifesto (2001)</a><a href="#f06SDLCmd-62" data-c="f06SDLCmd-62">4.2 Scrum Framework</a><a href="#f06SDLCmd-63" data-c="f06SDLCmd-63">4.3 User Stories &amp; Estimation</a><a href="#f06SDLCmd-64" data-c="f06SDLCmd-64">4.4 Velocity &amp; Burndown</a><a href="#f06SDLCmd-65" data-c="f06SDLCmd-65">6.1 Requirements Documentation</a><a href="#f06SDLCmd-66" data-c="f06SDLCmd-66">6.2 Requirement Prioritization</a><a href="#f06SDLCmd-67" data-c="f06SDLCmd-67">7.1 Architecture Decision Records (ADR)</a><a href="#f06SDLCmd-68" data-c="f06SDLCmd-68">7.2 Design Patterns in SDLC Context</a><a href="#f06SDLCmd-69" data-c="f06SDLCmd-69">8.1 Test-Driven Development (TDD)</a><a href="#f06SDLCmd-70" data-c="f06SDLCmd-70">8.2 Behavior-Driven Development (BDD)</a><a href="#f06SDLCmd-71" data-c="f06SDLCmd-71">8.3 Testing Strategy by Layer</a><a href="#f06SDLCmd-72" data-c="f06SDLCmd-72">9.1 Git Flow</a><a href="#f06SDLCmd-73" data-c="f06SDLCmd-73">9.2 Trunk-Based Development</a><a href="#f06SDLCmd-74" data-c="f06SDLCmd-74">9.3 GitHub Flow (Simplified)</a><a href="#f06SDLCmd-75" data-c="f06SDLCmd-75">9.4 Commit Message Convention</a><a href="#f06SDLCmd-76" data-c="f06SDLCmd-76">10.1 CI/CD Pipeline Stages</a><a href="#f06SDLCmd-77" data-c="f06SDLCmd-77">10.2 GitHub Actions Example</a><a href="#f06SDLCmd-78" data-c="f06SDLCmd-78">14.1 ML Lifecycle vs Traditional SDLC</a><a href="#f06SDLCmd-79" data-c="f06SDLCmd-79">14.2 CRISP-DM (Cross-Industry Standard Process for Data Mining)</a><a href="#f06SDLCmd-80" data-c="f06SDLCmd-80">14.3 MLOps Integration</a><a href="#f06SDLCmd-81" data-c="f06SDLCmd-81">15.1 Common Anti-Patterns</a><a href="#f06SDLCmd-82" data-c="f06SDLCmd-82">15.2 Best Practices Summary</a><a href="#f06SDLCmd-83" data-c="f06SDLCmd-83">Q1: What is SDLC? Why is it important?</a><a href="#f06SDLCmd-84" data-c="f06SDLCmd-84">Q2: Compare Agile vs Waterfall. When would you use each?</a><a href="#f06SDLCmd-85" data-c="f06SDLCmd-85">Q3: Explain Scrum ceremonies and their purpose.</a><a href="#f06SDLCmd-86" data-c="f06SDLCmd-86">Q4: What is the difference between CI, CD (Delivery), and CD (Deployment)?</a><a href="#f06SDLCmd-87" data-c="f06SDLCmd-87">Q5: How does SDLC differ for ML projects compared to traditional software?</a><a href="#f06SDLCmd-88" data-c="f06SDLCmd-88">Q6: Explain branching strategies. Which one do you prefer?</a><a href="#f06SDLCmd-89" data-c="f06SDLCmd-89">Q7: What is Definition of Done (DoD)?</a><a href="#f06SDLCmd-90" data-c="f06SDLCmd-90">Q8: How do you handle technical debt?</a><a href="#f06SDLCmd-91" data-c="f06SDLCmd-91">Q9: Explain the Testing Pyramid. Why is it shaped that way?</a><a href="#f06SDLCmd-92" data-c="f06SDLCmd-92">Q10: What would you do if requirements change mid-sprint?</a></div></aside>
 </div>
 <button class="totop" id="totop" title="Back to top">&#8593;</button>
 <script>
@@ -2676,29 +3026,44 @@ var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementBy
 qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
 function runSearch(){
   if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
-  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;
-    var l=document.querySelector('nav a[data-q="'+q.id+'"]');if(l)l.style.display=s?'':'none';});
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;});
+  /* a heading survives the filter only while something under it is still showing */
   [].forEach.call(document.querySelectorAll('.parthead'),function(p){
-    if(!v){p.style.display='';return}
-    var vis=false,n=p.nextElementSibling;
-    while(n&&n.classList.contains('q')){if(n.style.display!=='none'){vis=true;break}n=n.nextElementSibling}
-    p.style.display=vis?'':'none';});
+    var vis=true;
+    if(v){
+      vis=false;
+      var n=p.nextElementSibling;
+      while(n&&!n.classList.contains('parthead')){
+        if(n.classList.contains('q')&&n.style.display!=='none'){vis=true;break}
+        n=n.nextElementSibling;
+      }
+    }
+    p.style.display=vis?'':'none';
+    if(p.id){var l=document.querySelector('nav a[data-t="'+p.id+'"]');
+      if(l)l.style.display=vis?'':'none';}
+  });
   if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
 }
 if(inp)inp.addEventListener('input',runSearch);
 
-var navLinks=[].slice.call(document.querySelectorAll('nav a[data-q]'));
+/* The sidebar lists main headings only, so scroll tracking follows those headings
+   (data-t -> element id) rather than one entry per question card. */
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-t]'));
+var navTargets=navLinks.map(function(l){return document.getElementById(l.getAttribute('data-t'))});
 var totop=document.getElementById('totop');
 function onScroll(){
   var sc=document.documentElement.scrollTop;
   if(totop)totop.classList.toggle('show',sc>600);
-  var cur=null;
-  for(var i=0;i<qs.length;i++){if(qs[i].style.display==='none')continue;
-    if(qs[i].getBoundingClientRect().top<=120)cur=qs[i];else break;}
+  var cur=-1;
+  for(var i=0;i<navTargets.length;i++){
+    var el=navTargets[i];
+    if(!el||el.offsetParent===null)continue;
+    if(el.getBoundingClientRect().top<=140)cur=i;else break;
+  }
   navLinks.forEach(function(l){l.classList.remove('active')});
-  if(cur){var l=document.querySelector('nav a[data-q="'+cur.id+'"]');
-    if(l){l.classList.add('active');var r=l.getBoundingClientRect();
-      if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}}
+  if(cur>=0){var l=navLinks[cur];
+    l.classList.add('active');var r=l.getBoundingClientRect();
+    if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}
 }
 window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
@@ -2749,6 +3114,43 @@ document.addEventListener('keydown',function(e){
     });
     pre.appendChild(b);
   });
+})();
+
+/* Right-hand rail: reveal the group for the file section being read, and mark the
+   card in view. Scrolling is done on the rail itself - scrollIntoView would drag the
+   window along with it. */
+(function(){
+  var toc=document.getElementById('toc'); if(!toc)return;
+  document.body.classList.add('js');
+  var groups=[].slice.call(toc.querySelectorAll('.toc-g'));
+  if(!groups.length)return;
+  var secs=groups.map(function(g){return document.getElementById(g.getAttribute('data-for'))});
+  var links=groups.map(function(g){return [].slice.call(g.querySelectorAll('a[data-c]'))});
+  var curG=-1;
+  function upd(){
+    var i,g=-1;
+    for(i=0;i<secs.length;i++){
+      var el=secs[i]; if(!el)continue;
+      if(el.getBoundingClientRect().top<=160)g=i; else break;
+    }
+    if(g<0)g=0;
+    if(g!==curG){groups.forEach(function(x,k){x.classList.toggle('on',k===g)});curG=g;}
+    var ls=links[g]||[],act=null;
+    for(i=0;i<ls.length;i++){
+      var t=document.getElementById(ls[i].getAttribute('data-c'));
+      if(!t||t.style.display==='none')continue;
+      if(t.getBoundingClientRect().top<=160)act=ls[i]; else break;
+    }
+    ls.forEach(function(a){a.classList.remove('on')});
+    if(act){
+      act.classList.add('on');
+      var top=act.offsetTop,h=act.offsetHeight;
+      if(top<toc.scrollTop+8||top+h>toc.scrollTop+toc.clientHeight-8)
+        toc.scrollTop=top-toc.clientHeight/2+h/2;
+    }
+  }
+  addEventListener('scroll',upd,{passive:true});
+  addEventListener('resize',upd); upd();
 })();
 
 /* deep link on each question card */
