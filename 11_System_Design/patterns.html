@@ -1050,7 +1050,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
 </ul>
 <p><strong>Real-world example — Google Maglev.</strong> Google fronts services like Search and Gmail with Maglev, a <em>software</em> network load balancer running on ordinary servers. A cluster of Maglev machines advertises a single virtual IP (VIP) to the internet and spreads the incoming packet flood across hundreds of backend servers, with each Maglev box able to saturate a 10 Gbps link. It uses consistent hashing on the connection's 5-tuple so that when a backend is added or removed, existing TCP connections stay pinned to the same server instead of being reset. Because the backends are stateless web servers (session state lives in a shared store — the exact precondition this pattern demands), any backend can answer any request, so Google can lose individual backends, or even whole Maglev nodes, without users noticing. The same idea in smaller form is what <strong>AWS ALB/ELB</strong> and <strong>Nginx/HAProxy</strong> do for ordinary web apps.</p>
 <div class="diagram"><pre>            ┌──────────────┐
-client ───► │ Load Balancer│──► Server A   (Round Robin: A, B, C, A, B, C…)
+client ───► │ Load Balancer │──► Server A   (Round Robin: A, B, C, A, B, C…)
             │  (health      │──► Server B   (Least-Conn: pick fewest active)
             │   checks)     │──► Server C   (IP Hash: same client → same server)
             └──────────────┘</pre></div>
@@ -2500,12 +2500,12 @@ Created by Alistair Cockburn (2005)
   │    │  REST     │     │                  │    │ PostgreSQL│   │
   │    │  Adapter  ├────→│   PORT           │    │  Adapter  │   │
   │    └──────────┘     │  (Interface)     │    └──────────┘     │
-  │                      │       ↓          │                    │
-  │    ┌──────────┐     │  ┌──────────┐   │    ┌──────────┐      │
+  │                     │       ↓          │                     │
+  │    ┌──────────┐     │  ┌──────────┐    │    ┌──────────┐     │
   │    │  GraphQL  │     │  │ DOMAIN   │   │    │  Redis    │    │
   │    │  Adapter  ├────→│  │ LOGIC    │───├───→│  Adapter  │    │
   │    └──────────┘     │  │ (Core)   │   │    └──────────┘      │
-  │                      │  └──────────┘   │                     │
+  │                     │  └──────────┘    │                     │
   │    ┌──────────┐     │       ↓          │    ┌──────────┐     │
   │    │  CLI      │     │   PORT           │    │  Kafka    │   │
   │    │  Adapter  ├────→│  (Interface)     │    │  Adapter  │   │
@@ -2545,19 +2545,19 @@ Created by Alistair Cockburn (2005)
   ┌──────────────────────────────────────────────────────────────┐
   │ src/                                                         │
   │ ├── domain/           ← Entities, Value Objects, Events      │
-  │ │   ├── order.py                                             │
-  │ │   └── events.py                                            │
+  │                  │   ├── order.py                            │
+  │                  │   └── events.py                           │
   │ ├── ports/            ← Interfaces (ABC)                     │
-  │ │   ├── order_repository.py                                  │
-  │ │   └── payment_gateway.py                                   │
+  │                  │   ├── order_repository.py                 │
+  │                  │   └── payment_gateway.py                  │
   │ ├─────── application/      ← Use cases / Application services│
-  │ │   ├── create_order.py                                      │
-  │ │   └── cancel_order.py                                      │
+  │                  │   ├── create_order.py                     │
+  │                  │   └── cancel_order.py                     │
   │ └── adapters/         ← Infrastructure implementations       │
   │     ├── api/                                                 │
-  │     │   └── rest_controller.py                               │
+  │                  │   └── rest_controller.py                  │
   │     ├── persistence/                                         │
-  │     │   └── postgres_order_repo.py                           │
+  │                  │   └── postgres_order_repo.py              │
   │     └── messaging/                                           │
   │         └── kafka_publisher.py                               │
   └──────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-39"><div class="q-h"><span class="q-n">&bull;</span><h3>4. Clean Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-39"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CLEAN ARCHITECTURE (Robert C. Martin, 2012)
@@ -2568,9 +2568,9 @@ anything in an outer circle.
   ┌─────────────────────────────────────────────────────────────┐
   │                                                             │
   │  ┌─────────────────────────────────────────────────────┐    │
-  │  │                                                     │    │
+  │  │                                                    │     │
   │  │  ┌─────────────────────────────────────────────┐   │     │
-  │  │  │                                             │   │     │
+  │  │  │                                            │   │      │
   │  │  │  ┌───────────────────────────────────┐     │   │      │
   │  │  │  │         ENTITIES                  │     │   │      │
   │  │  │  │   (Enterprise Business Rules)     │     │   │      │
@@ -2947,7 +2947,7 @@ that each serve a subset of users or traffic.
   │  ┌─────────┐    ┌─────────┐    ┌─────────┐               │
   │  │ Cell A  │    │ Cell B  │    │ Cell C  │               │
   │  │ Users   │    │ Users   │    │ Users   │               │
-  │  │ 1-1M   │    │ 1M-2M  │    │ 2M-3M  │                  │
+  │  │ 1-1M    │    │ 1M-2M   │    │ 2M-3M   │               │
   │  │         │    │         │    │         │               │
   │  │ [API]   │    │ [API]   │    │ [API]   │               │
   │  │ [DB]    │    │ [DB]    │    │ [DB]    │               │
@@ -3336,9 +3336,9 @@ across multiple dimensions.
   │ Wide-column / time-series│ Cassandra / TimescaleDB      │
   │ Graph                    │ Neo4j                        │
   │ Search                   │ Elasticsearch / OpenSearch   │
-  │ Global distributed      │ CockroachDB / Spanner         │
+  │ Global distributed       │ CockroachDB / Spanner        │
   │ Vector / embeddings      │ Pinecone / pgvector / Milvus │
-  │ Ledger / immutable      │ QLDB / Event Store            │
+  │ Ledger / immutable       │ QLDB / Event Store           │
   └──────────────────────────┴──────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-53"><div class="q-h"><span class="q-n">&bull;</span><h3>18. Interview Deep Dive</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-53"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Catalog</span><span class="kt">Ordering</span><span class="kt">Payment</span><span class="kt">Shipping</span><span class="kt">Customer</span><span class="kt">Step 1</span></div><h3>Q1: Explain DDD and how you'd apply it to an e-commerce platform.</h3>
 <p><strong>A:</strong> DDD is about modeling software around the business domain. For e-commerce, I'd identify bounded contexts: <strong>Catalog</strong> (product information, categories, search), <strong>Ordering</strong> (cart, checkout, order lifecycle), <strong>Payment</strong> (transactions, refunds), <strong>Shipping</strong> (fulfillment, tracking), <strong>Customer</strong> (profiles, preferences). Each context has its own model — "Product" in Catalog has description/images, while in Ordering it's just product_id/price/quantity. Communication between contexts via domain events (OrderPlaced → Payment processes → PaymentConfirmed → Shipping creates fulfillment). Each context maps to a team (inverse Conway). Aggregates: Order is an aggregate root with OrderItems; invariant — order total must equal sum of items. Reference Payment by order_id, not object reference.</p>
 <h3>Q2: When would you choose a modular monolith over microservices?</h3>

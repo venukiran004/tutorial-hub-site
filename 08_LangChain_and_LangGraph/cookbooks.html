@@ -1043,7 +1043,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
 <p><strong>Companion files:</strong> <a href="../07_GenAI_and_LLMs/rag.html#f05RAGandVector">RAG and Vector Stores</a> (fundamentals, chunking, vector stores, RAGAS depth) · <a href="production.html#f41RAGinProduct">RAG in Production</a> (stage-by-stage failure modes) · <a href="failure.html#f16RAGFailureHa">RAG Failure Handling</a> (recovery playbook).</p>
 </div></header><article class="q" id="f17RAGImplement-0"><div class="q-h"><span class="q-n">&bull;</span><h3>1. The Mental Model — Recall then Precision</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f17RAGImplement-0"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">two stages</span><span class="kt">Stage 1 must not miss</span><span class="kt">Stage 2 must rank correctly</span></div><p>Every serious <abbr title="retrieval-augmented generation">RAG</abbr> retriever is <strong>two stages</strong>, and almost every strategy below is just "which stage am I improving?"</p>
 <div class="diagram"><pre>        ┌──────────── STAGE 1: RECALL ────────────┐   ┌───── STAGE 2: PRECISION ───┐
-query ─▶│ cast a WIDE net, cheaply → top ~20-50   │──▶│ re-score them EXPENSIVELY │──▶ top 3-5 ─▶ LLM
+query ─▶│ cast a WIDE net, cheaply → top ~20-50    │──▶│ re-score them EXPENSIVELY │──▶ top 3-5 ─▶ LLM
         │  • dense similarity (bi-encoder)         │   │  • cross-encoder reranker │
         │  • BM25 (keyword)                        │   │  (slow, very accurate)    │
         │  • hybrid = both, fused by RRF           │   └───────────────────────────┘
@@ -1335,7 +1335,7 @@ query ──▶ rewrite ──┤  dense (k=20) ──┐                       
                     └──────────────────────────────┬────────────────────────────────┘
                                                     ▼
                     ┌──────── STAGE 2: PRECISION ────────┐
-                    │  cross-encoder rerank → top 4      │
+                    │  cross-encoder rerank → top 4                                 │
                     └──────────────────┬─────────────────┘
                                        ▼
                           no-context guard (score &lt; threshold → abstain)
@@ -1859,7 +1859,7 @@ docs = vectorstore.<span class="fn">similarity_search</span>(<span class="str">"
 <div class="diagram"><pre>INDEX (once)                                          QUERY (per request)
  PDF ─▶ partition_pdf ─▶ texts ──────────────┐
                        ├ tables (HTML) ─▶ LLM summary ─▶ ┌─────────────┐      "2024 revenue?"
-                       └ images (b64) ──▶ VLM summary ─▶ │ vectorstore │◀────── embed &amp; search
+                       └ images (b64) ──▶ VLM summary ─▶  │ vectorstore │◀────── embed &amp; search
                                                           │ (summaries) │
                               originals ────────────────▶ │  docstore   │─▶ doc_id hit → ORIGINAL
                               keyed by doc_id             │ (originals) │       │

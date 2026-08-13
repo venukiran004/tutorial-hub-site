@@ -1053,7 +1053,7 @@ code and back — reliably, quickly, and at scale?</em> We start at the very beg
 <strong>sends requests</strong>; a <strong>server</strong> <strong>processes</strong> them and <strong>returns responses</strong>.</p>
 <div class="diagram"><pre>   ┌──────────┐    1. REQUEST  ("GET me the homepage")   ┌──────────┐
    │  CLIENT  │  ─────────────────────────────────────▶  │  SERVER  │
-   │ (browser)│                                           │ (your   │
+   │ (browser)│                                          │ (your    │
    │          │  ◀─────────────────────────────────────  │  code)   │
    └──────────┘    2. RESPONSE (HTML / JSON / image)      └─────────┘</pre></div>
 <p><strong>Why it matters.</strong> It cleanly separates concerns:
@@ -1088,7 +1088,7 @@ fail over). We need a human-friendly layer of indirection → <abbr title="domai
 <div class="diagram"><pre>                          DNS RESOLUTION (simplified)
    ┌────────┐   "where is algomaster.io?"   ┌───────────────────────┐
    │ CLIENT │ ────────────────────────────▶ │  DNS RESOLVER         │
-   │        │                                │  (asks the hierarchy)│
+   │        │                               │  (asks the hierarchy) │
    │        │ ◀──────────────────────────── │   Root → .io TLD →    │
    └────────┘     "it's at 192.168.1.1"      │   authoritative NS   │
                                              └──────────────────────┘</pre></div>
@@ -1377,7 +1377,7 @@ remember RAM is <span class="mag">~100,000×</span> faster than a cross-continen
                  │ Checks CACHE (RAM) first.    │
                  └───────────────┬──────────────┘
                   CACHE HIT ◀────┴────▶ CACHE MISS
-                      │                         │
+                 │                              │
                       ▼                     ▼
               ┌──────────────┐    ┌─────────────────────────────┐
               │ Return data  │    │ Fetch from DATABASE (disk)  │
@@ -1456,7 +1456,7 @@ backups). Each file — a <strong>BLOB (Binary Large OBject)</strong> — gets a
 <div class="diagram"><pre>   ┌───────────── OBJECT STORAGE (unlimited capacity) ─────────────┐
    │   🎞 video.mp4   →  blob_id: 0-2024-X1Q, 120GB → unique URL    │
    │   🖼 image.jpeg  →  blob_id: 1-2024-Y34, 5MB  → unique URL     │
-   │   📄 doc.pdf     →  blob_id: 1-2024-734, 12GB → unique URL    │
+   │   📄 doc.pdf     →  blob_id: 1-2024-734, 12GB → unique URL     │
    └───────────────────────────────────────────────────────────────┘</pre></div>
 <p><strong>Why not store media in the database?</strong> Databases are terrible at large binaries — they bloat,
 slow down backups, and waste expensive DB I/O. Instead:
@@ -1483,7 +1483,7 @@ via edge compute. Updates are distributed automatically; cache behavior is contr
 layer optimized for extreme read/write volumes and low latency</strong>:</p>
 <div class="diagram"><pre>   ┌──────┐   static media    ┌───────────┐  direct pull   ┌──────────────┐
    │CLIENT│ ─────────────────▶│ CDN EDGE  │───────────────▶│ BLOB STORAGE │ (videos/images)
-   │      │                   │   NODE    │                └──────────────┘
+   │           │      │   NODE                                                             │                └──────────────┘
    └──┬───┘                   └───────────┘
       │ dynamic requests
       ▼
@@ -1637,10 +1637,10 @@ blueprint of modern system design:</p>
    └──────┘      │     │       └──────┬───────┘ │   │            ▼   MESSAGE QUEUE (MQ)        │          │
                  └─────┼──────────────┼─────────┘   │      ✉ ✉ ✉ (async, decoupled) ✉ ✉ ✉     │           │
                        │              ▼             └─────────────┬────────────────────────────┘          │
-                       │      ┌──────────────┐                   │                                        │
+                       │      ┌──────────────┐    │                                                       │
                        │      │ LOAD BALANCER│──────▶ app/service fleet (stateless, scaled out)           │
                        │      │ (×N, HA)     │                   │                                        │
-                       │      └──────────────┘                   ▼                                        │
+                                                  │      └──────────────┘                   ▼             │
                        │                          ┌──────────────────── DATA LAYER ───────────────────────┐
                        │                          │  ┌───────┐   ┌──────────┐  ┌─────────┐  ┌──────────┐  │
                        └─────────────────────────▶│  │ CACHE │   │ SQL PRI- │  │ SQL     │  │ SHARDED  │  │
@@ -1648,7 +1648,7 @@ blueprint of modern system design:</p>
                                                   │  └───────┘   └──────────┘  └─────────┘  │ CLUSTER  │  │
                                                   │                                          └──────────┘ │
                                                   │  ┌──────────────┐                                     │
-                                                  │  │ BLOB STORAGE │ ◀── CDN pulls media from here       │
+                       │      │ BLOB STORAGE │ ◀── CDN pulls media from here                              │
                                                   │  └──────────────┘                                     │
                                                   └───────────────────────────────────────────────────────┘</pre></div>
 <p><strong>End-to-end request walkthrough:</strong>
@@ -1765,10 +1765,10 @@ demand at a target performance level.
   │ Memory &gt; 80%     │ Scale up or optimize memory usage      │
   │ Disk I/O &gt; 80%   │ Move to SSD, add read replicas         │
   │ Network &gt; 60%    │ Add bandwidth, optimize payloads       │
-  │ DB connections    │ Add connection pooling, read replicas │
+  │ DB connections   │ Add connection pooling, read replicas  │
   │ &gt; 80% pool       │                                        │
-  │ Queue depth       │ Add consumers, scale workers          │
-  │ growing           │                                       │
+  │ Queue depth      │ Add consumers, scale workers           │
+  │ growing          │                                        │
   └──────────────────┴────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-35"><div class="q-h"><span class="q-n">&bull;</span><h3>3. Queuing Theory and Little's Law</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-35"><span></span></label></div><div class="q-a"><div class="diagram"><pre>LITTLE'S LAW:
   L = λ × W
 
@@ -1934,7 +1934,7 @@ demand at a target performance level.
   Browser → CDN Edge → API Gateway → App Cache → DB Cache → DB
   
   ┌──────────────┬──────────┬───────────┬─────────────────────┐
-  │ Layer         │ Latency  │ Hit Rate  │ What to cache      │
+  │ Layer        │ Latency  │ Hit Rate  │ What to cache       │
   ├──────────────┼──────────┼───────────┼─────────────────────┤
   │ Browser      │ 0ms      │ Varies    │ Static assets, API  │
   │ CDN          │ 1-30ms   │ 95-99%    │ Static, semi-static │
