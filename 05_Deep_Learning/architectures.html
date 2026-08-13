@@ -1533,8 +1533,8 @@ RNN (Recurrent):        Input₁→₂→₃ → [Recurrent Layers] → Output
                         Learns temporal patterns (order matters)</pre></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="frnnlstmgrutran-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-layers"/></svg>3. RNN (Recurrent Neural Network)</span><i></i></div><article class="q" id="frnnlstmgrutran-81"><div class="q-h"><span class="q-n">&bull;</span><h3>2.1 Concept</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-81"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">one element at a time</span><span class="kt">hidden state</span></div><p>An <abbr title="recurrent neural network">RNN</abbr> processes sequences <strong>one element at a time</strong>, maintaining a <strong>hidden state</strong> that acts as memory.</p>
 <div class="diagram"><pre>         ┌──────────┐     ┌──────────┐     ┌──────────┐
   x₁ ──→ │  RNN Cell │──→ │  RNN Cell │──→ │  RNN Cell │──→ ...
-         │    h₁     │  h₁│    h₂     │  h₂│    h₃     │
-         └────┬──────┘     └────┬──────┘     └────┬──────┘
+         │    h₁     │  h₁│    h₂     │  h₂│    h₃    │
+         └────┬──────┘     └────┬──────┘     └────┬───┘
               ↓                  ↓                  ↓
              y₁                 y₂                 y₃</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-82"><div class="q-h"><span class="q-n">&bull;</span><h3>2.2 Mathematical Formulation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-82"><span></span></label></div><div class="q-a"><span class="mth mth-block"><i>h</i><sub><i>t</i></sub> <span class="mth-op">=</span> <span class="mth-fn">tanh</span>(<i>W</i><sub><i>x</i><i>h</i></sub> · <i>x</i><sub><i>t</i></sub> <span class="mth-op">+</span> <i>W</i><sub><i>h</i><i>h</i></sub> · <i>h</i><sub><i>t</i><span class="mth-op">−</span>1</sub> <span class="mth-op">+</span> <i>b</i><sub><i>h</i></sub>)</span>
 <span class="mth mth-block"><i>y</i><sub><i>t</i></sub> <span class="mth-op">=</span> <i>W</i><sub><i>h</i><i>y</i></sub> · <i>h</i><sub><i>t</i></sub> <span class="mth-op">+</span> <i>b</i><sub><i>y</i></sub></span>
@@ -1601,9 +1601,9 @@ output = <span class="fn">model</span>(x)             <span class="cmt"># shape:
                   ↑ ×          ↑ +           
                   │            │             
             ┌─────┴──┐  ┌─────┴──────┐  ┌───┴────┐
-            │ Forget  │  │   Input    │  │ Output │
-            │  Gate   │  │   Gate     │  │  Gate  │
-            │  (fₜ)   │  │ (iₜ)(C̃ₜ)  │  │  (oₜ) │
+            │ Forget  │  │   Input    │  │ Output│
+            │  Gate   │  │   Gate     │  │  Gate │
+            │  (fₜ)   │  │ (iₜ)(C̃ₜ)  │  │  (oₜ)  │
             └─────────┘  └───────────┘  └────────┘
                  ↑              ↑              ↑
             ─────┴──────────────┴──────────────┴──→ hₜ
@@ -1735,9 +1735,9 @@ Prediction: ~15°C (cold trend learned)</pre></div></div><button class="reveal">
 model = <span class="fn">GRUPredictor</span>(input_size=<span class="num">5</span>, hidden_size=<span class="num">64</span>, output_size=<span class="num">1</span>)
 x = torch.<span class="fn">randn</span>(<span class="num">16</span>, <span class="num">7</span>, <span class="num">5</span>)  <span class="cmt"># batch=16, seq_len=7, features=5 (temp, humidity, etc.)</span>
 pred = <span class="fn">model</span>(x)              <span class="cmt"># shape: (16, 1)</span></code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="frnnlstmgrutran-p5"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-message"/></svg>6. Transformer</span><i></i></div><article class="q" id="frnnlstmgrutran-100"><div class="q-h"><span class="q-n">&bull;</span><h3>5.1 Motivation: The Problems with RNN/LSTM/GRU</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-100"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Sequential processing</span><span class="kt">Long-range dependency</span><span class="kt">Training speed</span><span class="kt">Information bottleneck</span><span class="kt">Transformer&#x27;s solution</span><span class="kt">all tokens simultaneously</span></div><div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Problem</th><th>Detail</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>Sequential processing</strong></td><td>Can't parallelize — must process token by token</td></tr><tr class="g0"><td class="c-term"><strong>Long-range dependency</strong></td><td>Even <abbr title="long short-term memory">LSTM</abbr> struggles with 500+ tokens</td></tr><tr class="g1"><td class="c-term"><strong>Training speed</strong></td><td>Slow due to sequential nature</td></tr><tr class="g0"><td class="c-term"><strong>Information bottleneck</strong></td><td>Entire sequence compressed into fixed-size hidden state</td></tr></tbody></table></div>
-<p><strong>Transformer's solution:</strong> Process <strong>all tokens simultaneously</strong> using <strong>Self-Attention</strong>.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-101"><div class="q-h"><span class="q-n">&bull;</span><h3>5.2 High-Level Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-101"><span></span></label></div><div class="q-a"><div class="diagram"><pre>              ┌─────────────────────────────────────┐
-              │           TRANSFORMER               │
-              │                                     │
+<p><strong>Transformer's solution:</strong> Process <strong>all tokens simultaneously</strong> using <strong>Self-Attention</strong>.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-101"><div class="q-h"><span class="q-n">&bull;</span><h3>5.2 High-Level Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-101"><span></span></label></div><div class="q-a"><div class="diagram"><pre>              ┌────────────────────────────────────┐
+              │           TRANSFORMER              │
+              │                                    │
   Input ──→   │  ┌──────────┐    ┌──────────┐      │ ──→ Output
               │  │ ENCODER  │    │ DECODER  │      │
               │  │ (×N)     │──→ │ (×N)     │      │

@@ -983,11 +983,11 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
 <p><strong>Why from-scratch AND LangChain?</strong> The LangChain call is one line, but if you don't know what it does you can't tune or debug it. Every section shows the mechanism, then the shortcut.</p>
 <p><strong>Companion files:</strong> <a href="../07_GenAI_and_LLMs/rag.html#f05RAGandVector">RAG and Vector Stores</a> (fundamentals, chunking, vector stores, RAGAS depth) · <a href="production.html#f41RAGinProduct">RAG in Production</a> (stage-by-stage failure modes) · <a href="failure.html#f16RAGFailureHa">RAG Failure Handling</a> (recovery playbook).</p>
 </div></header><article class="q" id="f17RAGImplement-0"><div class="q-h"><span class="q-n">&bull;</span><h3>1. The Mental Model — Recall then Precision</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f17RAGImplement-0"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">two stages</span><span class="kt">Stage 1 must not miss</span><span class="kt">Stage 2 must rank correctly</span></div><p>Every serious <abbr title="retrieval-augmented generation">RAG</abbr> retriever is <strong>two stages</strong>, and almost every strategy below is just "which stage am I improving?"</p>
-<div class="diagram"><pre>        ┌──────────── STAGE 1: RECALL ────────────┐   ┌─── STAGE 2: PRECISION ───┐
+<div class="diagram"><pre>        ┌──────────── STAGE 1: RECALL ────────────┐   ┌───── STAGE 2: PRECISION ───┐
 query ─▶│ cast a WIDE net, cheaply → top ~20-50   │──▶│ re-score them EXPENSIVELY │──▶ top 3-5 ─▶ LLM
         │  • dense similarity (bi-encoder)         │   │  • cross-encoder reranker │
         │  • BM25 (keyword)                        │   │  (slow, very accurate)    │
-        │  • hybrid = both, fused by RRF           │   └──────────────────────────┘
+        │  • hybrid = both, fused by RRF           │   └───────────────────────────┘
         │  • MMR = drop near-duplicates            │
         └─────────────────────────────────────────┘
         "don't MISS the right doc"                     "put the right doc FIRST"</pre></div>
@@ -1273,7 +1273,7 @@ compression_retriever.<span class="fn">invoke</span>(<span class="str">"what is 
 query ──▶ rewrite ──┤  dense (k=20) ──┐                                             │
                     │                 ├──▶ RRF fuse ──▶ MMR (drop near-dups) ──▶ 20 │
                     │  BM25  (k=20) ──┘                                             │
-                    └──────────────────────────────┬───────────────────────────────┘
+                    └──────────────────────────────┬────────────────────────────────┘
                                                     ▼
                     ┌──────── STAGE 2: PRECISION ────────┐
                     │  cross-encoder rerank → top 4      │
@@ -1520,7 +1520,7 @@ app = g.<span class="fn">compile</span>()</code></pre>
 <strong>Don't use when:</strong> latency-sensitive, or the task is simple (you're paying <span class="mag">3×</span> for nothing).</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f18AgentImpleme-17"><div class="q-h"><span class="q-n">&bull;</span><h3>5. Reflexion (reflection + episodic memory)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f18AgentImpleme-17"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Core idea</span><span class="kt">forgets</span><span class="kt">episodic memory</span></div><p><strong>Core idea:</strong> Reflection <strong>forgets</strong> its lessons after each run. Reflexion writes the lesson into <strong>episodic memory</strong> that survives across trials/sessions — so it stops repeating the same mistake. <em>"Reinforcement learning where the gradient is natural language."</em></p>
 <div class="diagram"><pre>[act] ──▶ [evaluate] ──fail──▶ [reflect: write a LESSON] ──▶ memory ──┐
    ▲                                                                  │
-   └────────────── next trial reads the lessons ─────────────────────┘</pre></div>
+   └────────────── next trial reads the lessons ──────────────────────┘</pre></div>
 <pre class="code" data-lang="python"><code><span class="kw">class</span> <span class="fn">ReflexionState</span>(TypedDict):
     task: str
     attempt: str

@@ -994,9 +994,9 @@ code and back — reliably, quickly, and at scale?</em> We start at the very beg
 <strong>sends requests</strong>; a <strong>server</strong> <strong>processes</strong> them and <strong>returns responses</strong>.</p>
 <div class="diagram"><pre>   ┌──────────┐    1. REQUEST  ("GET me the homepage")   ┌──────────┐
    │  CLIENT  │  ─────────────────────────────────────▶  │  SERVER  │
-   │ (browser)│                                           │ (your    │
+   │ (browser)│                                           │ (your   │
    │          │  ◀─────────────────────────────────────  │  code)   │
-   └──────────┘    2. RESPONSE (HTML / JSON / image)      └──────────┘</pre></div>
+   └──────────┘    2. RESPONSE (HTML / JSON / image)      └─────────┘</pre></div>
 <p><strong>Why it matters.</strong> It cleanly separates concerns:
 - The <strong>client</strong> handles presentation and user interaction.
 - The <strong>server</strong> owns business logic, data, and security.</p>
@@ -1027,12 +1027,12 @@ reachable on a network. Every deployed server has a <strong>public IP</strong> s
 fail over). We need a human-friendly layer of indirection → <abbr title="domain name system">DNS</abbr>.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01TheScalingBl-3"><div class="q-h"><span class="q-n">&bull;</span><h3>3. DNS (Domain Name System)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01TheScalingBl-3"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Definition</span><span class="kt">into machine-readable IP addresses</span><span class="kt">Browser/OS cache</span><span class="kt">Recursive resolver</span><span class="kt">Root nameserver</span><span class="kt">TLD nameserver</span></div><p><strong>Definition.</strong> The internet's phone book. <abbr title="domain name system">DNS</abbr> <strong>translates human-friendly domain names</strong>
 (<code>algomaster.io</code>) <strong>into machine-readable IP addresses</strong> (<code>192.168.1.1</code>).</p>
 <div class="diagram"><pre>                          DNS RESOLUTION (simplified)
-   ┌────────┐   "where is algomaster.io?"   ┌─────────────────────┐
-   │ CLIENT │ ────────────────────────────▶ │  DNS RESOLVER        │
+   ┌────────┐   "where is algomaster.io?"   ┌───────────────────────┐
+   │ CLIENT │ ────────────────────────────▶ │  DNS RESOLVER         │
    │        │                                │  (asks the hierarchy)│
-   │        │ ◀──────────────────────────── │   Root → .io TLD →   │
+   │        │ ◀──────────────────────────── │   Root → .io TLD →    │
    └────────┘     "it's at 192.168.1.1"      │   authoritative NS   │
-                                             └─────────────────────┘</pre></div>
+                                             └──────────────────────┘</pre></div>
 <p><strong>The resolution chain (what actually happens):</strong>
 1. <strong>Browser/OS cache</strong> — checked first (fastest).
 2. <strong>Recursive resolver</strong> (your ISP or <code>8.8.8.8</code>) — does the legwork.
@@ -1199,9 +1199,9 @@ the LB <em>itself</em> becoming a single point of failure, you run it redundantl
 floating IP, or a managed LB like AWS ELB across availability zones).</p>
 </div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01TheScalingBl-13"><div class="q-h"><span class="q-n">&bull;</span><h3>13. Synthesis I — The Resilient Core</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01TheScalingBl-13"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">battle-tested core</span><span class="kt">Flow</span><span class="kt">API Gateway / Reverse Proxy</span><span class="kt">Load Balancer</span><span class="kt">stateless app servers</span><span class="kt">primary SQL database</span></div><p>Combining everything so far gives a <strong>battle-tested core</strong> capable of reliably handling <strong>thousands
 of concurrent users without a single point of failure</strong>:</p>
-<div class="diagram"><pre>                                          ┌────────────┐
-                                     ┌───▶│  Server 1  │───┐
-  ┌──────┐   ┌─────┐   ┌─────────┐   │    │ (app)      │   │
+<div class="diagram"><pre>                                          ┌─────────────────┐
+                                     ┌───▶│  Server 1  │────┐
+  ┌──────┐   ┌─────┐   ┌─────────┐   │    │ (app)      │    │
   │CLIENT│──▶│ DNS │──▶│   API    │   │    └────────────┘   │   ┌──────────────┐
   │      │   │     │   │ GATEWAY/ │   │    ┌────────────┐   ├──▶│   PRIMARY    │
   └──────┘   └─────┘   │ REVERSE  │──▶│───▶│  Server 2  │───┤   │ SQL DATABASE │
@@ -1209,8 +1209,8 @@ of concurrent users without a single point of failure</strong>:</p>
                        └─────┬────┘   │    └────────────┘   │
                              │        │    ┌────────────┐   │
                        ┌─────▼────┐   └───▶│  Server 3  │───┘
-                       │  LOAD    │        │ (app)      │
-                       │ BALANCER │        └────────────┘
+                       │  LOAD    │        │ (app)          │
+                       │ BALANCER │        └────────────────┘
                        └──────────┘     (stateless, horizontally scaled)</pre></div>
 <p><strong>Flow:</strong> Client → <abbr title="domain name system">DNS</abbr> resolves the domain → request hits the <strong>API Gateway / Reverse Proxy</strong>
 (security hatch) → <strong>Load Balancer</strong> distributes across <strong>stateless app servers</strong> → all read/write
@@ -1225,7 +1225,7 @@ without scanning every row</strong>.</p>
    WITH INDEX:     jump straight to the row   → O(log n) 🚀
 
    USER_ID INDEX ──▶ ┌──────────────────────────────┐
-                     │ ...........  TARGET ROW  .... │
+                     │ ...........  TARGET ROW  ....│
                      └──────────────────────────────┘</pre></div>
 <ul>
 <li><strong>Speeds up reads</strong> dramatically (the #1 first-line fix for slow queries).</li>
@@ -1248,9 +1248,9 @@ handle reads</strong>. This spreads read load and ensures high availability.</p>
                   └───────┬─────────┘
        data sync ┌────────┼────────┐ data sync
                  ▼        ▼        ▼
-           ┌─────────┐┌─────────┐┌─────────┐
+           ┌─────────┐┌─────────┐┌──┐
            │ REPLICA ││ REPLICA ││ REPLICA │   ← all serve READS
-           └─────────┘└─────────┘└─────────┘</pre></div>
+           └─────────┘└─────────┘└──┘</pre></div>
 <p><strong>Why it works:</strong> most applications are <strong>read-heavy</strong> (think <span class="mag">90%</span> reads, <span class="mag">10%</span> writes). Offloading
 reads to replicas frees the primary to focus on writes.</p>
 <p><strong>Key concepts:</strong>
@@ -1269,7 +1269,7 @@ throughput and total dataset size. To break <em>that</em>, you shard.</p>
 (e.g., User IDs 1–1M on Shard A, 1M–2M on Shard B...). <strong>Distributes the heavy load</strong> — each shard
 holds only a <em>slice</em> of the data and handles only a <em>slice</em> of the traffic.</p>
 <div class="diagram"><pre>   ┌──────────────────────────── ALL USERS ───────────────────────────┐
-   │ User IDs 1–1M │ User IDs 1M–2M │ User IDs 2M–3M │ ...             │
+   │ User IDs 1–1M │ User IDs 1M–2M │ User IDs 2M–3M │ ...            │
    └───────┬───────────────┬───────────────┬──────────────────────────┘
            ▼               ▼               ▼
       ┌─────────┐     ┌─────────┐     ┌─────────┐
@@ -1295,11 +1295,11 @@ holds only a <em>slice</em> of the data and handles only a <em>slice</em> of the
 unnecessary disk I/O</strong> by scanning only the relevant fields.</p>
 <div class="diagram"><pre>   ONE WIDE "users" TABLE  →  split by COLUMN GROUPS by how often they're accessed
 
-   ┌──────────── PROFILE (hot) ────────────┐   ┌──────── BILLING (cold) ────────┐
+   ┌──────────── PROFILE (hot) ────────────┐   ┌───────── BILLING (cold) ────────┐
    │ User_ID │ Name │ Email │ Settings      │   │ User_ID │ Payment │ TX history │
    │ (frequently accessed data)             │   │ (less-frequently accessed)     │
    └────────────────────────────────────────┘   └────────────────────────────────┘
-            shares the same User_ID  ◀──────────────────────┘</pre></div>
+            shares the same User_ID  ◀───────────────────────────────────────────┘</pre></div>
 <p><strong>Difference from <abbr title="splitting one dataset across machines by a partition key">sharding</abbr>:</strong> sharding splits <strong>rows</strong> (same columns, different rows on each server);
 vertical partitioning splits <strong>columns</strong> (different columns grouped by access frequency).</p>
 <p><strong>Why do it:</strong>
@@ -1318,9 +1318,9 @@ remember RAM is <span class="mag">~100,000×</span> faster than a cross-continen
                  │ Checks CACHE (RAM) first.    │
                  └───────────────┬──────────────┘
                   CACHE HIT ◀────┴────▶ CACHE MISS
-                      │                     │
+                      │                         │
                       ▼                     ▼
-              ┌──────────────┐    ┌────────────────────────────┐
+              ┌──────────────┐    ┌─────────────────────────────┐
               │ Return data  │    │ Fetch from DATABASE (disk)  │
               │ INSTANTLY 🚀 │    │ Save a copy to cache        │
               └──────────────┘    │ Return data                 │
@@ -1396,7 +1396,7 @@ choose Latency or Consistency.</em> Even with no failures, you trade latency for
 backups). Each file — a <strong>BLOB (Binary Large OBject)</strong> — gets a <strong>unique URL</strong>.</p>
 <div class="diagram"><pre>   ┌───────────── OBJECT STORAGE (unlimited capacity) ─────────────┐
    │   🎞 video.mp4   →  blob_id: 0-2024-X1Q, 120GB → unique URL    │
-   │   🖼 image.jpeg  →  blob_id: 1-2024-Y34, 5MB  → unique URL    │
+   │   🖼 image.jpeg  →  blob_id: 1-2024-Y34, 5MB  → unique URL     │
    │   📄 doc.pdf     →  blob_id: 1-2024-734, 12GB → unique URL    │
    └───────────────────────────────────────────────────────────────┘</pre></div>
 <p><strong>Why not store media in the database?</strong> Databases are terrible at large binaries — they bloat,
@@ -1410,7 +1410,7 @@ close to users</strong> to eliminate latency and buffering.</p>
 <div class="diagram"><pre>                       ┌──────── ORIGIN (blob storage / your server) ────────┐
                        │              content pushed/pulled to edges         │
                        └───────────────────────┬─────────────────────────────┘
-       ┌───────────────┬───────────────────────┼───────────────┬───────────────┐
+       ┌───────────────┬───────────────────────┼───────────────┬─────────────┐
        ▼               ▼                        ▼               ▼               ▼
    [Edge: N.America] [Edge: S.America]   [Edge: Europe]   [Edge: Asia]   [Edge: Australia]
        ▲                                                       ▲
@@ -1428,14 +1428,14 @@ layer optimized for extreme read/write volumes and low latency</strong>:</p>
    └──┬───┘                   └───────────┘
       │ dynamic requests
       ▼
-   ┌───────────┐      ┌──────────────────────── DISTRIBUTED DATA LAYER ───────────────────┐
+   ┌───────────┐      ┌───────────────────────── DISTRIBUTED DATA LAYER ───────────────────┐
    │APP SERVERS│◀────▶│  ┌───────────┐                                                     │
    │  (scaled  │      │  │   CACHE   │  ← checked first (Redis)                            │
    │   out)    │      │  └─────┬─────┘                                                     │
    └───────────┘      │        ▼                                                           │
-                      │  ┌──────────────┐   reads   ┌─────────┐┌─────────┐┌─────────┐    │
-                      │  │   PRIMARY    │◀─────────▶│ REPLICA ││ REPLICA ││ REPLICA │    │
-                      │  │   DATABASE   │           └─────────┘└─────────┘└─────────┘    │
+                      │  ┌──────────────┐   reads   ┌─────────┐┌─────────┐┌─────────┐      │
+                      │  │   PRIMARY    │◀─────────▶│ REPLICA ││ REPLICA ││ REPLICA │      │
+                      │  │   DATABASE   │           └─────────┘└─────────┘└─────────┘      │
                       │  └──────┬───────┘                                                  │
                       │         ▼  writes distributed by shard key                         │
                       │  ┌─────────┐┌─────────┐┌─────────┐                                 │
@@ -1463,7 +1463,7 @@ sports scores, trading tickers.</p>
 <p><strong>Event-driven HTTP triggers.</strong> A provider <strong>instantly sends a <code>POST</code> request to a registered URL
 when an event occurs</strong> — "don't call us, we'll call you."</p>
 <div class="diagram"><pre>   ⚡ EVENT     HTTP POST payload (JSON: event id + data + timestamp)
-   ┌──────────┐ ───────────────────────────────────────────▶ ┌──────────┐
+   ┌──────────┐ ───────────────────────────────────────────▶ ┌───────────┐
    │ SERVER A │                                               │ SERVER B │
    │(provider)│            one-way notification               │(subscriber)
    └──────────┘                                               └──────────┘</pre></div>
@@ -1471,7 +1471,7 @@ when an event occurs</strong> — "don't call us, we'll call you."</p>
 push events, Slack integrations.</p>
 <div class="tbl-wrap"><table class="t3"><thead><tr><th></th><th>WebSocket</th><th>Webhook</th></tr></thead><tbody><tr class="g1"><td>Direction</td><td>Bidirectional (client ↔ server)</td><td>One-way (server → server)</td></tr><tr class="g0"><td>Connection</td><td>Persistent / long-lived</td><td>Stateless, per-event HTTP POST</td></tr><tr class="g1"><td>Who triggers</td><td>Either side, anytime</td><td>The event provider</td></tr><tr class="g0"><td>Best for</td><td>Live UI updates</td><td>Backend-to-backend event notifications</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01TheScalingBl-25"><div class="q-h"><span class="q-n">&bull;</span><h3>25. Monolith → Microservices</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01TheScalingBl-25"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">All features in one codebase</span><span class="kt">Hard to scale</span><span class="kt">slow to deploy</span><span class="kt">fragile</span><span class="kt">own database</span><span class="kt">Don&#x27;t cargo-cult microservices</span></div><h3>The Monolith</h3>
 <p><strong>All features in one codebase</strong>, deployed as a single unit.</p>
-<div class="diagram"><pre>   ┌───────────── ONE DEPLOYABLE APP ─────────────┐
+<div class="diagram"><pre>   ┌────────────── ONE DEPLOYABLE APP ─────────────┐
    │   [ AUTH ]   [ BILLING ]                      │
    │   [ CATALOG ]                                 │
    └───────────────────────────────────────────────┘</pre></div>
@@ -1502,8 +1502,8 @@ demands it.</p>
 service is slow or down, the caller blocks or fails, and the failure ripples upstream.</p>
 <p><strong>The solution.</strong> <strong>Asynchronous decoupling.</strong> A <strong>producer drops tasks into a queue</strong>; a
 <strong>consumer processes them at its own pace.</strong></p>
-<div class="diagram"><pre>   ┌──────────┐  enqueue  ┌──────────── MESSAGE QUEUE ────────────┐  dequeue  ┌──────────┐
-   │ PRODUCER │ ─────────▶│  ✉ ✉ ✉ ✉ ✉  (durable buffer)  ✉ ✉ ✉ │ ─────────▶│ CONSUMER │
+<div class="diagram"><pre>   ┌──────────┐  enqueue  ┌──────────── MESSAGE QUEUE ────────────┐  dequeue  ┌────────────┐
+   │ PRODUCER │ ─────────▶│  ✉ ✉ ✉ ✉ ✉  (durable buffer)  ✉ ✉ ✉ │ ─────────▶│ CONSUMER     │
    └──────────┘           └─────────────────────────────────────────┘           └──────────┘</pre></div>
 <p><strong>What it buys you:</strong>
 - <strong>Absorbs massive traffic spikes</strong> — the queue buffers a surge; consumers drain it steadily
@@ -1571,22 +1571,22 @@ it worked, so it <strong>retries</strong>. Without idempotency, the customer is 
 <p>Idempotency is what makes <strong>at-least-once</strong> delivery (from <a href="javascript:void(0)">message queues</a>)
 safe — retries become harmless.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f01TheScalingBl-p8"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>H — Putting It All Together</span><i></i></div><article class="q" id="f01TheScalingBl-29"><div class="q-h"><span class="q-n">&bull;</span><h3>29. The Master Blueprint</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01TheScalingBl-29"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">End-to-end request walkthrough</span><span class="kt">Client → DNS</span><span class="kt">Static assets</span><span class="kt">CDN edge</span><span class="kt">blob storage</span><span class="kt">Dynamic requests</span></div><p><em>From a single computer to a global architecture.</em> Every concept assembled into the foundational
 blueprint of modern system design:</p>
-<div class="diagram"><pre>                 ┌──────── EDGE / ENTRY ────────┐   ┌──────────── COMPUTE: MICROSERVICES ────────────┐
-   ┌──────┐ DNS  │  ┌─────┐    ┌──────────────┐ │   │  [user svc] [order svc] [payment svc] [inventory]│
-   │CLIENT│─────▶│  │ CDN │    │ API GATEWAY  │ │   │       │          │           │           │       │
-   │      │ HTTP │  └──┬──┘    │ + RATE LIMIT │ │   │       └────┬─────┴───────────┘           │       │
-   └──────┘      │     │       └──────┬───────┘ │   │            ▼   MESSAGE QUEUE (MQ)        │       │
-                 └─────┼──────────────┼─────────┘   │      ✉ ✉ ✉ (async, decoupled) ✉ ✉ ✉     │       │
-                       │              ▼             └─────────────┬────────────────────────────┘       │
-                       │      ┌──────────────┐                   │                                      │
-                       │      │ LOAD BALANCER│──────▶ app/service fleet (stateless, scaled out)         │
-                       │      │ (×N, HA)     │                   │                                      │
-                       │      └──────────────┘                   ▼                                      │
-                       │                          ┌──────────────────── DATA LAYER ─────────────────────┐
-                       │                          │  ┌───────┐   ┌──────────┐  ┌─────────┐  ┌──────────┐ │
-                       └─────────────────────────▶│  │ CACHE │   │ SQL PRI- │  │ SQL     │  │ SHARDED  │ │
-                          static media            │  │(Redis)│   │ MARY     │─▶│ REPLICA │  │ NoSQL    │ │
-                                                  │  └───────┘   └──────────┘  └─────────┘  │ CLUSTER  │ │
+<div class="diagram"><pre>                 ┌──────── EDGE / ENTRY ────────┐   ┌───────────────── COMPUTE: MICROSERVICES ────────────┐
+   ┌──────┐ DNS  │  ┌─────┐    ┌──────────────┐ │   │  [user svc] [order svc] [payment svc] [inventory]   │
+   │CLIENT│─────▶│  │ CDN │    │ API GATEWAY  │ │   │       │          │           │           │          │
+   │      │ HTTP │  └──┬──┘    │ + RATE LIMIT │ │   │       └────┬─────┴───────────┘           │          │
+   └──────┘      │     │       └──────┬───────┘ │   │            ▼   MESSAGE QUEUE (MQ)        │          │
+                 └─────┼──────────────┼─────────┘   │      ✉ ✉ ✉ (async, decoupled) ✉ ✉ ✉     │           │
+                       │              ▼             └─────────────┬────────────────────────────┘          │
+                       │      ┌──────────────┐                   │                                        │
+                       │      │ LOAD BALANCER│──────▶ app/service fleet (stateless, scaled out)           │
+                       │      │ (×N, HA)     │                   │                                        │
+                       │      └──────────────┘                   ▼                                        │
+                       │                          ┌──────────────────── DATA LAYER ───────────────────────┐
+                       │                          │  ┌───────┐   ┌──────────┐  ┌─────────┐  ┌──────────┐  │
+                       └─────────────────────────▶│  │ CACHE │   │ SQL PRI- │  │ SQL     │  │ SHARDED  │  │
+                          static media            │  │(Redis)│   │ MARY     │─▶│ REPLICA │  │ NoSQL    │  │
+                                                  │  └───────┘   └──────────┘  └─────────┘  │ CLUSTER  │  │
                                                   │                                          └──────────┘ │
                                                   │  ┌──────────────┐                                     │
                                                   │  │ BLOB STORAGE │ ◀── CDN pulls media from here       │
@@ -1627,67 +1627,67 @@ detail so each concept stands on its own.</em></p>
   UTILIZATION: How busy resources are (CPU, memory, I/O, network)
 
   THE PERFORMANCE TRIANGLE:
-  ┌───────────────────────────────────────────────────────────┐
-  │ You can optimize for TWO of THREE:                        │
-  │                                                           │
-  │   Throughput ←──────→ Latency ←──────→ Resource Cost      │
-  │                                                           │
-  │ High throughput + low latency  = expensive (more hardware)│
-  │ High throughput + low cost     = higher latency (batching)│
-  │ Low latency    + low cost      = low throughput (few reqs)│
-  └───────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │ You can optimize for TWO of THREE:                          │
+  │                                                             │
+  │   Throughput ←──────→ Latency ←──────→ Resource Cost        │
+  │                                                             │
+  │ High throughput + low latency  = expensive (more hardware)  │
+  │ High throughput + low cost     = higher latency (batching)  │
+  │ Low latency    + low cost      = low throughput (few reqs)  │
+  └─────────────────────────────────────────────────────────────┘
 
   KEY NUMBERS EVERY ARCHITECT MUST KNOW:
-  ┌──────────────────────────────┬─────────────────────────────┐
-  │ L1 cache reference           │ 0.5 ns                     │
-  │ L2 cache reference           │ 7 ns                       │
-  │ Main memory reference        │ 100 ns                     │
-  │ SSD random read              │ 150 μs                     │
-  │ SSD sequential read 1MB      │ 1 ms                       │
-  │ HDD seek                     │ 10 ms                      │
-  │ Network round trip (same DC) │ 0.5 ms                     │
-  │ Network round trip (same AZ) │ 1 ms                       │
-  │ Network round trip (cross DC)│ 50-150 ms                  │
-  │ Mutex lock/unlock            │ 25 ns                      │
-  │ Send 2K over 1 Gbps network  │ 20 μs                     │
-  │ Read 1 MB from memory        │ 250 μs                     │
-  │ Read 1 MB from SSD           │ 1 ms                       │
-  │ Read 1 MB from HDD           │ 20 ms                      │
-  │ TCP handshake                │ ~1ms (same DC)             │
-  │ TLS handshake                │ ~5ms (same DC)             │
-  └──────────────────────────────┴─────────────────────────────┘
+  ┌──────────────────────────────┬──────────────────────────────┐
+  │ L1 cache reference           │ 0.5 ns                       │
+  │ L2 cache reference           │ 7 ns                         │
+  │ Main memory reference        │ 100 ns                       │
+  │ SSD random read              │ 150 μs                       │
+  │ SSD sequential read 1MB      │ 1 ms                         │
+  │ HDD seek                     │ 10 ms                        │
+  │ Network round trip (same DC) │ 0.5 ms                       │
+  │ Network round trip (same AZ) │ 1 ms                         │
+  │ Network round trip (cross DC)│ 50-150 ms                    │
+  │ Mutex lock/unlock            │ 25 ns                        │
+  │ Send 2K over 1 Gbps network  │ 20 μs                        │
+  │ Read 1 MB from memory        │ 250 μs                       │
+  │ Read 1 MB from SSD           │ 1 ms                         │
+  │ Read 1 MB from HDD           │ 20 ms                        │
+  │ TCP handshake                │ ~1ms (same DC)               │
+  │ TLS handshake                │ ~5ms (same DC)               │
+  └──────────────────────────────┴──────────────────────────────┘
 
   SERVER CAPACITY RULES OF THUMB:
-  ┌──────────────────────────────┬─────────────────────────────┐
-  │ REST API server              │ 1K-10K QPS                  │
+  ┌──────────────────────────────┬──────────────────────────────┐
+  │ REST API server              │ 1K-10K QPS                   │
   │ PostgreSQL (single node)     │ 5K-20K QPS (depends on query)│
-  │ Redis (single node)          │ 100K-500K QPS               │
-  │ Kafka broker                 │ 100K-1M messages/sec        │
-  │ Elasticsearch node           │ 1K-10K search QPS           │
-  │ Nginx (reverse proxy)        │ 50K-100K RPS                │
-  │ Single gRPC server           │ 10K-100K RPS                │
-  └──────────────────────────────┴─────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-34"><div class="q-h"><span class="q-n">&bull;</span><h3>2. Capacity Planning</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-34"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CAPACITY PLANNING: Estimate resources needed to meet
+  │ Redis (single node)          │ 100K-500K QPS                │
+  │ Kafka broker                 │ 100K-1M messages/sec         │
+  │ Elasticsearch node           │ 1K-10K search QPS            │
+  │ Nginx (reverse proxy)        │ 50K-100K RPS                 │
+  │ Single gRPC server           │ 10K-100K RPS                 │
+  └──────────────────────────────┴──────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-34"><div class="q-h"><span class="q-n">&bull;</span><h3>2. Capacity Planning</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-34"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CAPACITY PLANNING: Estimate resources needed to meet
 demand at a target performance level.
 
   STEP-BY-STEP:
   ┌───────────────────────────────────────────────────────────┐
   │ 1. TRAFFIC ESTIMATION                                     │
   │    DAU → QPS: QPS = DAU × actions_per_user / 86400        │
-  │    Peak QPS ≈ 2-3× average QPS                           │
+  │    Peak QPS ≈ 2-3× average QPS                            │
   │    Growth: plan for 2-3× current peak                     │
   │                                                           │
   │    Example: 10M DAU, 20 actions/day                       │
-  │    Avg QPS = 10M × 20 / 86400 ≈ 2,300 QPS               │
+  │    Avg QPS = 10M × 20 / 86400 ≈ 2,300 QPS                 │
   │    Peak QPS ≈ 2,300 × 3 = 6,900 QPS                       │
   │    Plan for = 6,900 × 2 = 13,800 QPS                      │
   │                                                           │
   │ 2. STORAGE ESTIMATION                                     │
-  │    Daily new data = new_records × avg_record_size          │
+  │    Daily new data = new_records × avg_record_size         │
   │    Include: indexes (2-3× data), replicas, backups        │
   │    Retention: how long to keep data                       │
   │                                                           │
   │    Example: 10M new records/day × 500 bytes = 5 GB/day    │
-  │    + indexes (2×) = 15 GB/day                            │
+  │    + indexes (2×) = 15 GB/day                             │
   │    × 365 days × 3 replicas = 16.4 TB/year                 │
   │                                                           │
   │ 3. BANDWIDTH ESTIMATION                                   │
@@ -1701,16 +1701,16 @@ demand at a target performance level.
   └───────────────────────────────────────────────────────────┘
 
   SCALING THRESHOLDS:
-  ┌──────────────────┬──────────────────────────────────────────┐
-  │ CPU &gt; 70%        │ Scale out compute                       │
-  │ Memory &gt; 80%     │ Scale up or optimize memory usage       │
+  ┌──────────────────┬────────────────────────────────────────┐
+  │ CPU &gt; 70%        │ Scale out compute                      │
+  │ Memory &gt; 80%     │ Scale up or optimize memory usage      │
   │ Disk I/O &gt; 80%   │ Move to SSD, add read replicas         │
   │ Network &gt; 60%    │ Add bandwidth, optimize payloads       │
-  │ DB connections    │ Add connection pooling, read replicas  │
+  │ DB connections    │ Add connection pooling, read replicas │
   │ &gt; 80% pool       │                                        │
   │ Queue depth       │ Add consumers, scale workers          │
-  │ growing           │                                        │
-  └──────────────────┴──────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-35"><div class="q-h"><span class="q-n">&bull;</span><h3>3. Queuing Theory and Little's Law</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-35"><span></span></label></div><div class="q-a"><div class="diagram"><pre>LITTLE'S LAW:
+  │ growing           │                                       │
+  └──────────────────┴────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-35"><div class="q-h"><span class="q-n">&bull;</span><h3>3. Queuing Theory and Little's Law</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-35"><span></span></label></div><div class="q-a"><div class="diagram"><pre>LITTLE'S LAW:
   L = λ × W
 
   L = Average number of items in the system
@@ -1718,20 +1718,20 @@ demand at a target performance level.
   W = Average time each item spends in the system
 
   APPLICATIONS:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ How many concurrent connections?                          │
-  │   λ = 1000 QPS, W = 200ms (0.2s)                        │
-  │   L = 1000 × 0.2 = 200 concurrent connections           │
+  │   λ = 1000 QPS, W = 200ms (0.2s)                          │
+  │   L = 1000 × 0.2 = 200 concurrent connections             │
   │                                                           │
   │ What thread pool size do I need?                          │
-  │   λ = 500 QPS, W = 100ms per request                    │
-  │   L = 500 × 0.1 = 50 threads minimum                    │
+  │   λ = 500 QPS, W = 100ms per request                      │
+  │   L = 500 × 0.1 = 50 threads minimum                      │
   │                                                           │
   │ How many servers for target latency?                      │
-  │   Target: 5000 QPS, 100ms latency, 50 QPS/server         │
-  │   Servers = 5000 / 50 = 100 servers                      │
+  │   Target: 5000 QPS, 100ms latency, 50 QPS/server          │
+  │   Servers = 5000 / 50 = 100 servers                       │
   │   But: include queuing delay!                             │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   QUEUING THEORY KEY INSIGHTS:
   ┌───────────────────────────────────────────────────────────┐
@@ -1749,9 +1749,9 @@ demand at a target performance level.
   │ 2. VARIANCE KILLS PERFORMANCE                             │
   │    Even at low average utilization, high variance in      │
   │    processing time causes queuing spikes.                 │
-  │    → Reduce processing time variance (consistent perf)   │
+  │    → Reduce processing time variance (consistent perf)    │
   │                                                           │
-  │ 3. QUEUES ABSORB BURSTS but amplify SUSTAINED overload   │
+  │ 3. QUEUES ABSORB BURSTS but amplify SUSTAINED overload    │
   │    Short burst → queue absorbs, processes later           │
   │    Sustained overload → queue grows → OOM → crash         │
   │    → Always have backpressure (bounded queues)            │
@@ -1772,27 +1772,27 @@ demand at a target performance level.
   1-S = fraction that is parallelizable
 
   IMPLICATIONS:
-  ┌───────────────────────────────────────────────────────────┐
+  ┌──────────────────────────────────────────────────────────┐
   │ Serial %  │ Max speedup with ∞ processors                │
-  │ 1%        │ 100×                                          │
-  │ 5%        │ 20×                                           │
-  │ 10%       │ 10×                                           │
-  │ 25%       │ 4×                                            │
-  │ 50%       │ 2×                                            │
-  │                                                           │
+  │ 1%        │ 100×                                         │
+  │ 5%        │ 20×                                          │
+  │ 10%       │ 10×                                          │
+  │ 25%       │ 4×                                           │
+  │ 50%       │ 2×                                           │
+  │                                                          │
   │ Even 5% serial code limits you to 20× speedup!           │
   │ → Optimize the serial parts first                        │
-  └───────────────────────────────────────────────────────────┘
+  └──────────────────────────────────────────────────────────┘
 
   SERIAL BOTTLENECKS IN DISTRIBUTED SYSTEMS:
-  ┌──────────────────┬──────────────────────────────────────────┐
-  │ Database locks    │ Contention on hot rows/tables           │
-  │ Leader node       │ All writes go through one node         │
-  │ Sequence gen      │ Auto-increment ID generation            │
-  │ Global cache      │ Single cache server for popular keys   │
-  │ Queue consumer    │ Single-threaded consumer               │
-  │ Aggregation       │ Fan-out results collected at one node  │
-  └──────────────────┴──────────────────────────────────────────┘
+  ┌──────────────────┬───────────────────────────────────────┐
+  │ Database locks    │ Contention on hot rows/tables        │
+  │ Leader node       │ All writes go through one node       │
+  │ Sequence gen      │ Auto-increment ID generation         │
+  │ Global cache      │ Single cache server for popular keys │
+  │ Queue consumer    │ Single-threaded consumer             │
+  │ Aggregation       │ Fan-out results collected at one node│
+  └──────────────────┴───────────────────────────────────────┘
 
   UNIVERSAL SCALABILITY LAW (USL):
   Extension of Amdahl's adding COHERENCY penalty:
@@ -1808,7 +1808,7 @@ demand at a target performance level.
 
   ARCHITECT INSIGHT:
   ┌──────────────────────────────────────────────────────────┐
-  │ Before adding servers:                                    │
+  │ Before adding servers:                                   │
   │ 1. Profile: where is the actual bottleneck?              │
   │ 2. Optimize: can the serial part be made parallel?       │
   │ 3. Cache: can we avoid the bottleneck entirely?          │
@@ -1822,27 +1822,27 @@ demand at a target performance level.
   P99.9: 1 in 1000 is slower
 
   WHY TAIL LATENCY MATTERS:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌──────────────────────────────────────────────────────────┐
   │ A single user request may fan out to 100 backend calls.  │
-  │ The SLOWEST call determines user-perceived latency.       │
-  │                                                           │
+  │ The SLOWEST call determines user-perceived latency.      │
+  │                                                          │
   │ If P99 = 1 second, and user request touches 100 services:│
-  │ P(at least one &gt; 1s) = 1 - (0.99)^100 = 63%!           │
-  │                                                           │
+  │ P(at least one &gt; 1s) = 1 - (0.99)^100 = 63%!             │
+  │                                                          │
   │ → At scale, tail latency BECOMES the user experience     │
   │ → Always measure and optimize P99, not just P50          │
-  └────────────────────────────────────────────────────────────┘
+  └──────────────────────────────────────────────────────────┘
 
   TAIL LATENCY CAUSES:
-  ┌──────────────────┬──────────────────────────────────────────┐
-  │ GC pauses        │ Java/Go: 10-100ms+ pauses               │
-  │ Resource contention│ CPU scheduling, disk I/O, network     │
-  │ Head-of-line     │ Slow request blocks fast ones in queue  │
-  │ Cold cache       │ First request after cache eviction      │
-  │ Background tasks │ Compaction, snapshots, log rotation     │
-  │ Kernel interrupts│ Network interrupts, context switches    │
-  │ Noisy neighbors  │ Shared infrastructure (cloud VMs)       │
-  └──────────────────┴──────────────────────────────────────────┘
+  ┌──────────────────┬───────────────────────────────────────┐
+  │ GC pauses        │ Java/Go: 10-100ms+ pauses             │
+  │ Resource contention│ CPU scheduling, disk I/O, network   │
+  │ Head-of-line     │ Slow request blocks fast ones in queue│
+  │ Cold cache       │ First request after cache eviction    │
+  │ Background tasks │ Compaction, snapshots, log rotation   │
+  │ Kernel interrupts│ Network interrupts, context switches  │
+  │ Noisy neighbors  │ Shared infrastructure (cloud VMs)     │
+  └──────────────────┴───────────────────────────────────────┘
 
   TAIL LATENCY MITIGATION:
   1. HEDGED REQUESTS: Send same request to 2 replicas,
@@ -1860,7 +1860,7 @@ demand at a target performance level.
   LATENCY BUDGETING:
   ┌──────────────────────────────────────────────────────────┐
   │ Total budget: 200ms                                      │
-  │ ├── API Gateway:    10ms                                  │
+  │ ├── API Gateway:    10ms                                 │
   │ ├── Auth check:     15ms (cached JWT validation)         │
   │ ├── Feature fetch:  30ms (Redis, parallel)               │
   │ ├── Model inference: 50ms                                │
@@ -1875,7 +1875,7 @@ demand at a target performance level.
   Browser → CDN Edge → API Gateway → App Cache → DB Cache → DB
   
   ┌──────────────┬──────────┬───────────┬─────────────────────┐
-  │ Layer         │ Latency  │ Hit Rate  │ What to cache       │
+  │ Layer         │ Latency  │ Hit Rate  │ What to cache      │
   ├──────────────┼──────────┼───────────┼─────────────────────┤
   │ Browser      │ 0ms      │ Varies    │ Static assets, API  │
   │ CDN          │ 1-30ms   │ 95-99%    │ Static, semi-static │
@@ -1887,31 +1887,31 @@ demand at a target performance level.
   └──────────────┴──────────┴───────────┴─────────────────────┘
 
   CACHE TOPOLOGY PATTERNS:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ LOCAL CACHE (in-process):                                 │
   │   - Fastest (no network hop)                              │
   │   - Per-instance (not shared)                             │
   │   - Inconsistent across instances                         │
   │   - Use for: immutable data, config, feature flags        │
-  │   - Tools: Caffeine (Java), lru-cache (Python)           │
+  │   - Tools: Caffeine (Java), lru-cache (Python)            │
   │                                                           │
   │ DISTRIBUTED CACHE (Redis/Memcached):                      │
   │   - Shared across all instances                           │
-  │   - Network hop (1-5ms)                                  │
-  │   - Single source of truth for cached data               │
-  │   - Use for: session, hot data, rate limiting            │
+  │   - Network hop (1-5ms)                                   │
+  │   - Single source of truth for cached data                │
+  │   - Use for: session, hot data, rate limiting             │
   │                                                           │
   │ TWO-TIER CACHE (Local + Distributed):                     │
-  │   - Local cache with short TTL (10-60 seconds)           │
-  │   - Distributed cache as fallback                        │
-  │   - Best of both worlds                                  │
-  │   - Complexity: invalidation across tiers                │
+  │   - Local cache with short TTL (10-60 seconds)            │
+  │   - Distributed cache as fallback                         │
+  │   - Best of both worlds                                   │
+  │   - Complexity: invalidation across tiers                 │
   │                                                           │
-  │ NEAR CACHE (e.g., Hazelcast):                            │
-  │   - Local copy of distributed cache entries              │
-  │   - Automatically synced with distributed cache          │
-  │   - Managed by the caching framework                     │
-  └────────────────────────────────────────────────────────────┘
+  │ NEAR CACHE (e.g., Hazelcast):                             │
+  │   - Local copy of distributed cache entries               │
+  │   - Automatically synced with distributed cache           │
+  │   - Managed by the caching framework                      │
+  └───────────────────────────────────────────────────────────┘
 
   CACHE INVALIDATION PATTERNS:
   ┌───────────────────────────────────────────────────────────┐
@@ -1920,11 +1920,11 @@ demand at a target performance level.
   │                                                           │
   │ Event-driven: DB change → event → invalidate cache        │
   │   More complex, near-real-time consistency                │
-  │   Implementation: CDC (Debezium) → Kafka → cache updater │
+  │   Implementation: CDC (Debezium) → Kafka → cache updater  │
   │                                                           │
   │ Version-based: Include version in cache key               │
-  │   cache_key = f"user:{user_id}:v{version}"              │
-  │   Increment version on write → old cache ignored         │
+  │   cache_key = f"user:{user_id}:v{version}"                │
+  │   Increment version on write → old cache ignored          │
   │                                                           │
   │ Write-through: Write to cache AND DB simultaneously       │
   │   Strong consistency, higher write latency                │
@@ -1938,56 +1938,56 @@ demand at a target performance level.
 instead of creating new ones per request.
 
   WHY IT MATTERS:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Creating a PostgreSQL connection:                         │
-  │   TCP handshake:       1ms                                │
-  │   TLS handshake:       5ms                                │
-  │   Auth + session init: 10ms                               │
-  │   Total: ~16ms per connection                             │
-  │                                                           │
-  │ With pool: Borrow from pool → 0.01ms                     │
-  │ 1600× faster!                                             │
-  └───────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Creating a PostgreSQL connection:                           │
+  │   TCP handshake:       1ms                                  │
+  │   TLS handshake:       5ms                                  │
+  │   Auth + session init: 10ms                                 │
+  │   Total: ~16ms per connection                               │
+  │                                                             │
+  │ With pool: Borrow from pool → 0.01ms                        │
+  │ 1600× faster!                                               │
+  └─────────────────────────────────────────────────────────────┘
 
   CONNECTION POOL SIZING:
-  ┌───────────────────────────────────────────────────────────┐
-  │ FORMULA (for databases):                                  │
+  ┌─────────────────────────────────────────────────────────────┐
+  │ FORMULA (for databases):                                    │
   │ pool_size = num_physical_cores × 2 + effective_spindle_count│
-  │                                                           │
-  │ For SSD (spindle_count ≈ 0):                              │
-  │   pool_size ≈ cores × 2                                   │
-  │                                                           │
-  │ Example: 8-core DB server                                 │
-  │   pool_size = 8 × 2 = 16 connections                      │
-  │                                                           │
-  │ COMMON MISTAKE: Setting pool too large!                   │
-  │   100 connections per app × 10 app instances              │
-  │   = 1000 connections to DB!                               │
-  │   → Context switching overhead kills DB performance       │
-  │   → Use PgBouncer/ProxySQL between app and DB            │
-  │                                                           │
-  │ CONFIGURATION PARAMETERS:                                 │
-  │   min_pool_size:    Minimum connections kept open         │
-  │   max_pool_size:    Maximum connections allowed           │
-  │   idle_timeout:     Close idle connections after duration │
-  │   max_lifetime:     Recycle connection after duration     │
-  │   connection_timeout: Wait time for available connection  │
-  │   validation_query: Test connection health ("SELECT 1")   │
-  └───────────────────────────────────────────────────────────┘
+  │                                                             │
+  │ For SSD (spindle_count ≈ 0):                                │
+  │   pool_size ≈ cores × 2                                     │
+  │                                                             │
+  │ Example: 8-core DB server                                   │
+  │   pool_size = 8 × 2 = 16 connections                        │
+  │                                                             │
+  │ COMMON MISTAKE: Setting pool too large!                     │
+  │   100 connections per app × 10 app instances                │
+  │   = 1000 connections to DB!                                 │
+  │   → Context switching overhead kills DB performance         │
+  │   → Use PgBouncer/ProxySQL between app and DB               │
+  │                                                             │
+  │ CONFIGURATION PARAMETERS:                                   │
+  │   min_pool_size:    Minimum connections kept open           │
+  │   max_pool_size:    Maximum connections allowed             │
+  │   idle_timeout:     Close idle connections after duration   │
+  │   max_lifetime:     Recycle connection after duration       │
+  │   connection_timeout: Wait time for available connection    │
+  │   validation_query: Test connection health ("SELECT 1")     │
+  └─────────────────────────────────────────────────────────────┘
 
   CONNECTION POOL FOR MICROSERVICES:
-  ┌────────────────────────────────────────────────────────────┐
-  │                                                           │
-  │ App Instance 1 ──(pool: 20)──┐                           │
-  │ App Instance 2 ──(pool: 20)──┤                           │
-  │ App Instance 3 ──(pool: 20)──├──→ PgBouncer ──→ PostgreSQL│
-  │ App Instance 4 ──(pool: 20)──┤    (pool: 30)   (max: 30) │
-  │ App Instance 5 ──(pool: 20)──┘                           │
-  │                                                           │
-  │ Without PgBouncer: 100 connections to DB!                 │
-  │ With PgBouncer: 30 connections to DB, 100 to PgBouncer  │
-  │ PgBouncer multiplexes using transaction-level pooling    │
-  └────────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │                                                             │
+  │ App Instance 1 ──(pool: 20)──┐                              │
+  │ App Instance 2 ──(pool: 20)──┤                              │
+  │ App Instance 3 ──(pool: 20)──├────→ PgBouncer ──→ PostgreSQL│
+  │ App Instance 4 ──(pool: 20)──┤    (pool: 30)   (max: 30)    │
+  │ App Instance 5 ──(pool: 20)──┘                              │
+  │                                                             │
+  │ Without PgBouncer: 100 connections to DB!                   │
+  │ With PgBouncer: 30 connections to DB, 100 to PgBouncer      │
+  │ PgBouncer multiplexes using transaction-level pooling       │
+  └─────────────────────────────────────────────────────────────┘
 
   HTTP CONNECTION POOLING:
   - HTTP/1.1 Keep-Alive: reuse TCP connections
@@ -2012,7 +2012,7 @@ instead of creating new ones per request.
   │                                                           │
   │ 3. QUERY PATTERNS TO AVOID:                               │
   │    ✗ SELECT * (fetch only needed columns)                 │
-  │    ✗ N+1 queries (use JOINs or batch fetches)            │
+  │    ✗ N+1 queries (use JOINs or batch fetches)             │
   │    ✗ OFFSET-based pagination (use cursor/keyset)          │
   │    ✗ Functions in WHERE (prevents index use)              │
   │    ✗ LIKE '%prefix' (can't use B-tree index)              │
@@ -2026,7 +2026,7 @@ instead of creating new ones per request.
   │   DB scans 10020 rows, returns 20. Gets slower with page. │
   │                                                           │
   │ KEYSET / CURSOR (good):                                   │
-  │   SELECT * FROM items WHERE id &gt; :last_seen_id LIMIT 20  │
+  │   SELECT * FROM items WHERE id &gt; :last_seen_id LIMIT 20   │
   │   Uses index, constant performance regardless of page.    │
   │   Limitation: can't jump to page N directly.              │
   │                                                           │
@@ -2044,7 +2044,7 @@ instead of creating new ones per request.
   │ 4. Caching layer (Redis for hot data)                     │
   │ 5. Vertical partitioning (split tables by column)         │
   │ 6. Horizontal sharding (split by shard key)               │
-  │ 7. Move to distributed DB (CockroachDB, Spanner)         │
+  │ 7. Move to distributed DB (CockroachDB, Spanner)          │
   │                                                           │
   │ Each step adds complexity. Only proceed when needed.      │
   └───────────────────────────────────────────────────────────┘
@@ -2055,45 +2055,45 @@ instead of creating new ones per request.
   - Write buffering: batch writes to hot rows
   - In-memory counters: aggregate, flush to DB periodically
   - Separate hot data: move frequently accessed to Redis</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-41"><div class="q-h"><span class="q-n">&bull;</span><h3>9. CDN and Edge Optimization</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-41"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CDN ARCHITECTURE:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Client → Nearest Edge POP → Origin (if cache miss)       │
-  │                                                           │
-  │ POP = Point of Presence (data center with cache servers)  │
-  │ Global CDNs: 200-300+ POPs worldwide                      │
-  │                                                           │
-  │ TYPES:                                                    │
-  │ Pull CDN: Edge fetches from origin on cache miss          │
-  │   Pros: No pre-warming needed                             │
-  │   Cons: First request is slow (cache miss)                │
-  │                                                           │
-  │ Push CDN: Content pre-pushed to all edges                 │
-  │   Pros: First request is fast                             │
-  │   Cons: Storage cost, must know what to push              │
-  └───────────────────────────────────────────────────────────┘
+  ┌──────────────────────────────────────────────────────────────┐
+  │ Client → Nearest Edge POP → Origin (if cache miss)           │
+  │                                                              │
+  │ POP = Point of Presence (data center with cache servers)     │
+  │ Global CDNs: 200-300+ POPs worldwide                         │
+  │                                                              │
+  │ TYPES:                                                       │
+  │ Pull CDN: Edge fetches from origin on cache miss             │
+  │   Pros: No pre-warming needed                                │
+  │   Cons: First request is slow (cache miss)                   │
+  │                                                              │
+  │ Push CDN: Content pre-pushed to all edges                    │
+  │   Pros: First request is fast                                │
+  │   Cons: Storage cost, must know what to push                 │
+  └──────────────────────────────────────────────────────────────┘
 
   WHAT TO CACHE AT CDN:
-  ┌──────────────────┬──────────────────────────────────────────┐
-  │ Static assets    │ JS, CSS, images, fonts (long TTL, hash) │
-  │ API responses    │ GET endpoints with cache headers         │
-  │ HTML pages       │ SSR/SSG pages (short TTL)               │
-  │ Video chunks     │ HLS/DASH segments (long TTL)            │
-  │ Edge compute     │ Cloudflare Workers, Lambda@Edge          │
-  └──────────────────┴──────────────────────────────────────────┘
+  ┌──────────────────┬───────────────────────────────────────────┐
+  │ Static assets    │ JS, CSS, images, fonts (long TTL, hash)   │
+  │ API responses    │ GET endpoints with cache headers          │
+  │ HTML pages       │ SSR/SSG pages (short TTL)                 │
+  │ Video chunks     │ HLS/DASH segments (long TTL)              │
+  │ Edge compute     │ Cloudflare Workers, Lambda@Edge           │
+  └──────────────────┴───────────────────────────────────────────┘
 
   CACHE HEADERS:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Cache-Control: public, max-age=31536000, immutable        │
-  │   (static assets with hash in filename)                   │
-  │                                                           │
+  ┌──────────────────────────────────────────────────────────────┐
+  │ Cache-Control: public, max-age=31536000, immutable           │
+  │   (static assets with hash in filename)                      │
+  │                                                              │
   │ Cache-Control: public, max-age=60, stale-while-revalidate=300│
-  │   (API responses: serve stale while fetching fresh)       │
-  │                                                           │
-  │ Cache-Control: private, no-cache                          │
-  │   (user-specific data: CDN doesn't cache, browser may)    │
-  │                                                           │
-  │ Cache-Control: no-store                                   │
-  │   (never cache: PII, authentication responses)            │
-  └───────────────────────────────────────────────────────────┘
+  │   (API responses: serve stale while fetching fresh)          │
+  │                                                              │
+  │ Cache-Control: private, no-cache                             │
+  │   (user-specific data: CDN doesn't cache, browser may)       │
+  │                                                              │
+  │ Cache-Control: no-store                                      │
+  │   (never cache: PII, authentication responses)               │
+  └──────────────────────────────────────────────────────────────┘
 
   EDGE COMPUTE:
   - Run code at CDN edge (close to users)
@@ -2104,12 +2104,12 @@ instead of creating new ones per request.
 based on demand.
 
   SCALING DIMENSIONS:
-  ┌──────────────────┬──────────────────────────────────────────┐
-  │ Horizontal       │ Add/remove instances (most common)       │
-  │ Vertical         │ Resize instance (limited, downtime)      │
-  │ Functional       │ Scale different functions independently  │
-  │ Database         │ Read replicas (auto), shards (manual)    │
-  └──────────────────┴──────────────────────────────────────────┘
+  ┌──────────────────┬────────────────────────────────────────┐
+  │ Horizontal       │ Add/remove instances (most common)     │
+  │ Vertical         │ Resize instance (limited, downtime)    │
+  │ Functional       │ Scale different functions independently│
+  │ Database         │ Read replicas (auto), shards (manual)  │
+  └──────────────────┴────────────────────────────────────────┘
 
   SCALING POLICIES:
   ┌───────────────────────────────────────────────────────────┐
@@ -2119,9 +2119,9 @@ based on demand.
   │   Simplest, self-adjusting                                │
   │                                                           │
   │ STEP SCALING:                                             │
-  │   CPU 60-70% → add 1 instance                            │
-  │   CPU 70-80% → add 2 instances                           │
-  │   CPU &gt; 80%  → add 3 instances                           │
+  │   CPU 60-70% → add 1 instance                             │
+  │   CPU 70-80% → add 2 instances                            │
+  │   CPU &gt; 80%  → add 3 instances                            │
   │   More control, requires tuning                           │
   │                                                           │
   │ SCHEDULED SCALING:                                        │
@@ -2131,7 +2131,7 @@ based on demand.
   │ PREDICTIVE SCALING:                                       │
   │   ML model predicts traffic based on historical patterns  │
   │   Scales proactively (before spike arrives)               │
-  │   AWS Predictive Scaling, GCP Predictive Autoscaling     │
+  │   AWS Predictive Scaling, GCP Predictive Autoscaling      │
   └───────────────────────────────────────────────────────────┘
 
   SCALING METRICS:
@@ -2145,24 +2145,24 @@ based on demand.
   └───────────────────────────────────────────────────────────┘
 
   SCALING BEST PRACTICES:
-  ┌────────────────────────────────────────────────────────────┐
-  │ 1. Scale out faster than scaling in (asymmetric timing)  │
+  ┌───────────────────────────────────────────────────────────┐
+  │ 1. Scale out faster than scaling in (asymmetric timing)   │
   │    Scale out: 1 minute cooldown                           │
-  │    Scale in: 5-10 minute cooldown (avoid flapping)       │
+  │    Scale in: 5-10 minute cooldown (avoid flapping)        │
   │                                                           │
-  │ 2. Use multiple metrics (CPU AND request count)          │
+  │ 2. Use multiple metrics (CPU AND request count)           │
   │                                                           │
-  │ 3. Set minimum instances ≥ 2 (always available)          │
+  │ 3. Set minimum instances ≥ 2 (always available)           │
   │                                                           │
-  │ 4. Pre-warm on deploy (health check before receiving     │
+  │ 4. Pre-warm on deploy (health check before receiving      │
   │    traffic: load caches, warm JIT, establish connections) │
   │                                                           │
-  │ 5. Design for sudden scale: stateless services,          │
+  │ 5. Design for sudden scale: stateless services,           │
   │    externalized state, fast startup time                  │
   │                                                           │
-  │ 6. Test scaling: simulate traffic spikes, measure time   │
-  │    to scale and impact on latency                        │
-  └────────────────────────────────────────────────────────────┘
+  │ 6. Test scaling: simulate traffic spikes, measure time    │
+  │    to scale and impact on latency                         │
+  └───────────────────────────────────────────────────────────┘
 
   KUBERNETES HPA (Horizontal Pod Autoscaler):
   - Scales pods based on metrics (CPU, memory, custom)
@@ -2199,20 +2199,20 @@ based on demand.
   - Artillery (Node.js, YAML config)
 
   PERFORMANCE TEST CHECKLIST:
-  ┌──────────────────────────────────────────────────────────┐
-  │ 1. Test in production-like environment                    │
-  │ 2. Use realistic data (size, distribution)               │
-  │ 3. Include warm-up period (caches, JIT, pools)           │
-  │ 4. Run for sufficient duration (&gt;10 minutes)             │
-  │ 5. Measure: P50, P95, P99, error rate, throughput        │
-  │ 6. Monitor: CPU, memory, disk, network, DB connections   │
-  │ 7. Test with realistic user patterns (not just GET /)    │
-  │ 8. Include write operations (not just reads)             │
-  │ 9. Run multiple times (results should be reproducible)   │
-  │ 10. Compare with baseline (previous run)                 │
-  │ 11. Test auto-scaling behavior                           │
-  │ 12. Include performance tests in CI/CD pipeline          │
-  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-44"><div class="q-h"><span class="q-n">&bull;</span><h3>12. Performance Anti-Patterns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-44"><span></span></label></div><div class="q-a"><div class="diagram"><pre>PERFORMANCE ANTI-PATTERNS:
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 1. Test in production-like environment                      │
+  │ 2. Use realistic data (size, distribution)                  │
+  │ 3. Include warm-up period (caches, JIT, pools)              │
+  │ 4. Run for sufficient duration (&gt;10 minutes)                │
+  │ 5. Measure: P50, P95, P99, error rate, throughput           │
+  │ 6. Monitor: CPU, memory, disk, network, DB connections      │
+  │ 7. Test with realistic user patterns (not just GET /)       │
+  │ 8. Include write operations (not just reads)                │
+  │ 9. Run multiple times (results should be reproducible)      │
+  │ 10. Compare with baseline (previous run)                    │
+  │ 11. Test auto-scaling behavior                              │
+  │ 12. Include performance tests in CI/CD pipeline             │
+  └─────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-44"><div class="q-h"><span class="q-n">&bull;</span><h3>12. Performance Anti-Patterns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-44"><span></span></label></div><div class="q-a"><div class="diagram"><pre>PERFORMANCE ANTI-PATTERNS:
 
   1. N+1 QUERY:
      Fetch 100 users → 100 queries for their orders
@@ -2267,7 +2267,7 @@ based on demand.
   ┌──────────────────────────────────────────────────────────┐
   │ 1. Measure (can't optimize what you can't measure)       │
   │ 2. Find the bottleneck (profiling, tracing)              │
-  │ 3. Fix algorithmic issues (O(n²) → O(n log n))         │
+  │ 3. Fix algorithmic issues (O(n²) → O(n log n))           │
   │ 4. Reduce I/O (caching, batching, connection pooling)    │
   │ 5. Parallelize (async, concurrent, distributed)          │
   │ 6. Scale out (more instances, replicas)                  │
@@ -2279,15 +2279,15 @@ they cause outages.
 
   PRINCIPLES (from Netflix):
   ┌────────────────────────────────────────────────────────────┐
-  │ 1. Define steady state (normal behavior metrics)          │
-  │ 2. Hypothesize: "System will remain in steady state      │
-  │    when [failure] occurs"                                │
-  │ 3. Introduce real-world failures                         │
-  │ 4. Disprove the hypothesis (find weaknesses)             │
-  │ 5. Fix and improve                                       │
-  │                                                           │
-  │ Start small, in staging. Graduate to production.          │
-  │ Always have a STOP button (blast radius control).         │
+  │ 1. Define steady state (normal behavior metrics)           │
+  │ 2. Hypothesize: "System will remain in steady state        │
+  │    when [failure] occurs"                                  │
+  │ 3. Introduce real-world failures                           │
+  │ 4. Disprove the hypothesis (find weaknesses)               │
+  │ 5. Fix and improve                                         │
+  │                                                            │
+  │ Start small, in staging. Graduate to production.           │
+  │ Always have a STOP button (blast radius control).          │
   └────────────────────────────────────────────────────────────┘
 
   CHAOS EXPERIMENTS:
@@ -2300,8 +2300,8 @@ they cause outages.
   ├──────────────────────────┼─────────────────────────────────┤
   │ NETWORK                  │                                 │
   │ Add latency (100-500ms)  │ Test timeout handling           │
-  │ Drop packets (10-50%)    │ Test retry logic               │
-  │ Partition between services│ Test circuit breakers           │
+  │ Drop packets (10-50%)    │ Test retry logic                │
+  │ Partition between services│ Test circuit breakers          │
   │ DNS failure              │ Test DNS caching, fallbacks     │
   ├──────────────────────────┼─────────────────────────────────┤
   │ APPLICATION              │                                 │
@@ -2332,49 +2332,49 @@ they cause outages.
 operating reliable, scalable production systems.
 
   SLI / SLO / SLA:
-  ┌────────────────────────────────────────────────────────────┐
-  │ SLI (Service Level Indicator):                            │
-  │   The metric you measure                                  │
-  │   Examples:                                               │
-  │   - Request latency (P99 &lt; 200ms)                        │
-  │   - Error rate (% of 5xx responses)                      │
-  │   - Availability (% of successful requests)              │
-  │   - Throughput (requests successfully served per second)  │
-  │   - Freshness (data staleness in read replicas)          │
-  │                                                           │
-  │ SLO (Service Level Objective):                            │
-  │   The target value for the SLI                            │
-  │   "99.9% of requests will complete within 200ms"         │
-  │   "99.95% availability over 30 days"                     │
-  │   Internal promise (to your team/organization)           │
-  │                                                           │
-  │ SLA (Service Level Agreement):                            │
-  │   The contract with customers, with consequences          │
-  │   "99.9% uptime or we credit 10% of monthly fee"        │
-  │   SLA should be LESS strict than SLO (buffer)            │
-  └────────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │ SLI (Service Level Indicator):                              │
+  │   The metric you measure                                    │
+  │   Examples:                                                 │
+  │   - Request latency (P99 &lt; 200ms)                           │
+  │   - Error rate (% of 5xx responses)                         │
+  │   - Availability (% of successful requests)                 │
+  │   - Throughput (requests successfully served per second)    │
+  │   - Freshness (data staleness in read replicas)             │
+  │                                                             │
+  │ SLO (Service Level Objective):                              │
+  │   The target value for the SLI                              │
+  │   "99.9% of requests will complete within 200ms"            │
+  │   "99.95% availability over 30 days"                        │
+  │   Internal promise (to your team/organization)              │
+  │                                                             │
+  │ SLA (Service Level Agreement):                              │
+  │   The contract with customers, with consequences            │
+  │   "99.9% uptime or we credit 10% of monthly fee"            │
+  │   SLA should be LESS strict than SLO (buffer)               │
+  └─────────────────────────────────────────────────────────────┘
 
   ERROR BUDGET:
-  ┌──────────────────────────────────────────────────────────┐
-  │ Error budget = 1 - SLO                                   │
-  │                                                          │
-  │ SLO = 99.9% → Error budget = 0.1%                        │
-  │   Per month (30 days): 43.2 minutes of downtime          │
-  │   Per quarter: 2.16 hours of downtime                    │
-  │                                                          │
-  │ SLO = 99.95% → Error budget = 0.05%                      │
-  │   Per month: 21.6 minutes                                │
-  │                                                          │
-  │ SLO = 99.99% → Error budget = 0.01%                      │
-  │   Per month: 4.3 minutes                                 │
-  │                                                          │
-  │ HOW TO USE ERROR BUDGET:                                 │
-  │ Budget remaining? → Ship features, experiment, deploy.   │
-  │ Budget spent? → STOP feature work. Focus on reliability. │
-  │                                                          │
-  │ This creates alignment between dev (speed) and ops       │
-  │ (reliability). Both teams share the same metric.         │
-  └──────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Error budget = 1 - SLO                                      │
+  │                                                             │
+  │ SLO = 99.9% → Error budget = 0.1%                           │
+  │   Per month (30 days): 43.2 minutes of downtime             │
+  │   Per quarter: 2.16 hours of downtime                       │
+  │                                                             │
+  │ SLO = 99.95% → Error budget = 0.05%                         │
+  │   Per month: 21.6 minutes                                   │
+  │                                                             │
+  │ SLO = 99.99% → Error budget = 0.01%                         │
+  │   Per month: 4.3 minutes                                    │
+  │                                                             │
+  │ HOW TO USE ERROR BUDGET:                                    │
+  │ Budget remaining? → Ship features, experiment, deploy.      │
+  │ Budget spent? → STOP feature work. Focus on reliability.    │
+  │                                                             │
+  │ This creates alignment between dev (speed) and ops          │
+  │ (reliability). Both teams share the same metric.            │
+  └─────────────────────────────────────────────────────────────┘
 
   TOIL:
   - Manual, repetitive, automatable operational work
@@ -2383,25 +2383,25 @@ operating reliable, scalable production systems.
   - Track and report toil to justify automation investment
 
   INCIDENT MANAGEMENT:
-  ┌──────────────────────────────────────────────────────────┐
-  │ SEVERITY LEVELS:                                         │
-  │ P0 / SEV-1: Revenue impact, data loss, full outage       │
-  │ P1 / SEV-2: Significant degradation, partial outage      │
-  │ P2 / SEV-3: Minor impact, workaround available           │
-  │ P3 / SEV-4: Cosmetic, low priority                       │
-  │                                                          │
-  │ INCIDENT LIFECYCLE:                                      │
-  │ Detection → Triage → Mitigation → Resolution → Postmortem│
-  │                                                          │
-  │ BLAMELESS POSTMORTEM:                                    │
-  │ - What happened (timeline)                               │
-  │ - Root cause analysis (5 whys)                           │
-  │ - Impact (duration, users affected, revenue)             │
-  │ - Action items (with owners and deadlines)               │
-  │ - What went well                                         │
-  │ - What could be improved                                 │
-  │ - NO blame. Focus on system improvements.                │
-  └──────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │ SEVERITY LEVELS:                                            │
+  │ P0 / SEV-1: Revenue impact, data loss, full outage          │
+  │ P1 / SEV-2: Significant degradation, partial outage         │
+  │ P2 / SEV-3: Minor impact, workaround available              │
+  │ P3 / SEV-4: Cosmetic, low priority                          │
+  │                                                             │
+  │ INCIDENT LIFECYCLE:                                         │
+  │ Detection → Triage → Mitigation → Resolution → Postmortem   │
+  │                                                             │
+  │ BLAMELESS POSTMORTEM:                                       │
+  │ - What happened (timeline)                                  │
+  │ - Root cause analysis (5 whys)                              │
+  │ - Impact (duration, users affected, revenue)                │
+  │ - Action items (with owners and deadlines)                  │
+  │ - What went well                                            │
+  │ - What could be improved                                    │
+  │ - NO blame. Focus on system improvements.                   │
+  └─────────────────────────────────────────────────────────────┘
 
   OBSERVABILITY STACK:
   ┌──────────────────┬──────────────────────────────────────────┐
@@ -2423,33 +2423,33 @@ operating reliable, scalable production systems.
   └──────────────────┴──────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-47"><div class="q-h"><span class="q-n">&bull;</span><h3>15. Cost Optimization</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-47"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CLOUD COST OPTIMIZATION:
 
   COMPUTE:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Right-sizing: Match instance type to actual usage         │
-  │   Monitor CPU/memory for 2 weeks → resize accordingly    │
+  │   Monitor CPU/memory for 2 weeks → resize accordingly     │
   │                                                           │
-  │ Reserved instances: 1-3 year commitment → 30-70% savings │
-  │   Use for: stable, predictable workloads (databases, base│
+  │ Reserved instances: 1-3 year commitment → 30-70% savings  │
+  │   Use for: stable, predictable workloads (databases, base │
   │   load API servers)                                       │
   │                                                           │
-  │ Spot/Preemptible: Up to 90% cheaper, can be interrupted  │
-  │   Use for: batch processing, CI/CD, stateless workers    │
+  │ Spot/Preemptible: Up to 90% cheaper, can be interrupted   │
+  │   Use for: batch processing, CI/CD, stateless workers     │
   │   NOT for: databases, stateful services                   │
   │                                                           │
   │ Serverless (Lambda/Cloud Functions): Pay per invocation   │
-  │   Best for: infrequent, bursty, event-driven workloads   │
-  │   Beware: cold starts, execution time limits             │
-  └────────────────────────────────────────────────────────────┘
+  │   Best for: infrequent, bursty, event-driven workloads    │
+  │   Beware: cold starts, execution time limits              │
+  └───────────────────────────────────────────────────────────┘
 
   STORAGE:
   ┌───────────────────────────────────────────────────────────┐
-  │ Tiered storage: Hot → Warm → Cold → Archive              │
-  │   S3 Standard → S3 IA → S3 Glacier → Glacier Deep Archive│
+  │ Tiered storage: Hot → Warm → Cold → Archive               │
+  │   S3 Standard → S3 IA → S3 Glacier → Glacier Deep Archive │
   │   Automate with lifecycle policies                        │
   │                                                           │
   │ Data lifecycle: Don't keep data you don't need            │
   │   Set retention policies, delete old logs/backups         │
   │                                                           │
-  │ Compression: Store compressed data (Parquet &gt; CSV)       │
+  │ Compression: Store compressed data (Parquet &gt; CSV)        │
   └───────────────────────────────────────────────────────────┘
 
   NETWORK:
@@ -2462,12 +2462,12 @@ operating reliable, scalable production systems.
   └───────────────────────────────────────────────────────────┘
 
   DATABASE:
-  ┌──────────────────────────────────────────────────────────┐
-  │ RDS: Use reserved instances for production DBs           │
-  │ Serverless DB: Aurora Serverless for variable workloads  │
-  │ Read replicas: Scale reads without upgrading primary     │
-  │ Connection pooling: Fewer connections = smaller instance │
-  └──────────────────────────────────────────────────────────┘
+  ┌───────────────────────────────────────────────────────────┐
+  │ RDS: Use reserved instances for production DBs            │
+  │ Serverless DB: Aurora Serverless for variable workloads   │
+  │ Read replicas: Scale reads without upgrading primary      │
+  │ Connection pooling: Fewer connections = smaller instance  │
+  └───────────────────────────────────────────────────────────┘
 
   FinOps PRACTICES:
   1. Tag all resources (team, project, environment)

@@ -999,14 +999,14 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
     Each app is an MCP client.
     N apps × M tools = N + M implementations + everyone connects.
   
-  ┌─────────────┐     MCP Protocol    ┌─────────────────┐
+  ┌─────────────┐     MCP Protocol    ┌──────────────────┐
   │  MCP Client  │◄──────────────────►│  MCP Server      │
   │  (LLM App)   │    JSON-RPC 2.0    │  (Tool/Data)     │
   │              │                    │                  │
   │  - Claude    │    Resources ◄──── │  - Database      │
-  │  - VS Code   │    Tools    ◄──── │  - File system   │
-  │  - Custom    │    Prompts  ◄──── │  - API wrapper   │
-  └─────────────┘                    └─────────────────┘</pre></div>
+  │  - VS Code   │    Tools    ◄──── │  - File system    │
+  │  - Custom    │    Prompts  ◄──── │  - API wrapper    │
+  └─────────────┘                    └───────────────────┘</pre></div>
 <h3>MCP at a glance (visual)</h3>
 <p><strong>One host runs many clients; each client keeps a dedicated 1:1 connection to one server.</strong> That's how the N×M integration mess collapses into N + M:</p>
 <pre class="code" data-lang="mermaid"><code>graph LR
@@ -1055,36 +1055,36 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
   MCP servers often use function calling internally.
   LangChain converts MCP tools → LLM function calls automatically.</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01MCPNotesmd-3"><div class="q-h"><span class="q-n">&bull;</span><h3>3. Architecture &amp; Protocol</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01MCPNotesmd-3"><span></span></label></div><div class="q-a"><p><abbr title="Model Context Protocol">MCP</abbr>'s architecture consists of three layers: the transport layer (stdio, SSE, Streamable HTTP), the message layer (JSON-RPC 2.0 request/response/notification), and the application layer (Resources, Tools, Prompts). This layered design separates communication concerns from business logic, enabling the same server to work across different deployment environments.</p>
 <div class="diagram"><pre>MCP PROTOCOL LAYERS:
-  ┌─────────────────────────────────────────────┐
-  │              Application Layer              │
-  │  Resources, Tools, Prompts, Sampling        │
-  ├─────────────────────────────────────────────┤
-  │              Message Layer                  │
-  │  JSON-RPC 2.0 (request/response/notify)     │
-  ├─────────────────────────────────────────────┤
-  │              Transport Layer                │
-  │  stdio, SSE, Streamable HTTP                │
-  └─────────────────────────────────────────────┘
+  ┌───────────────────────────────────────────────┐
+  │              Application Layer                │
+  │  Resources, Tools, Prompts, Sampling          │
+  ├───────────────────────────────────────────────┤
+  │              Message Layer                    │
+  │  JSON-RPC 2.0 (request/response/notify)       │
+  ├───────────────────────────────────────────────┤
+  │              Transport Layer                  │
+  │  stdio, SSE, Streamable HTTP                  │
+  └───────────────────────────────────────────────┘
 
   THREE PRIMITIVES:
-  ┌──────────────────────────────────────────────┐
-  │  RESOURCES                                   │
-  │  Data the server exposes (read-only context) │
-  │  URI-based: "file:///path", "db://table"     │
-  │  Example: database schemas, file contents    │
-  └──────────────────────────────────────────────┘
-  ┌──────────────────────────────────────────────┐
-  │  TOOLS                                       │
+  ┌───────────────────────────────────────────────┐
+  │  RESOURCES                                    │
+  │  Data the server exposes (read-only context)  │
+  │  URI-based: "file:///path", "db://table"      │
+  │  Example: database schemas, file contents     │
+  └───────────────────────────────────────────────┘
+  ┌───────────────────────────────────────────────┐
+  │  TOOLS                                        │
   │  Actions the server can perform (side effects)│
-  │  Have input schema (JSON Schema)             │
-  │  Example: run SQL, create file, send email   │
-  └──────────────────────────────────────────────┘
-  ┌──────────────────────────────────────────────┐
-  │  PROMPTS                                     │
-  │  Reusable prompt templates                   │
-  │  Can include dynamic arguments               │
-  │  Example: "summarize-code", "review-pr"      │
-  └──────────────────────────────────────────────┘
+  │  Have input schema (JSON Schema)              │
+  │  Example: run SQL, create file, send email    │
+  └───────────────────────────────────────────────┘
+  ┌───────────────────────────────────────────────┐
+  │  PROMPTS                                      │
+  │  Reusable prompt templates                    │
+  │  Can include dynamic arguments                │
+  │  Example: "summarize-code", "review-pr"       │
+  └───────────────────────────────────────────────┘
 
   JSON-RPC 2.0 MESSAGE FORMAT:
   Request:  {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {...}}
@@ -1945,13 +1945,13 @@ UNAUTHORIZED_HEADERS = {
 <p><strong>Where it fits in this folder:</strong> MCP is the <em>plumbing layer under tool-calling</em>. Everything in <a href="../08_LangChain_and_LangGraph/production.html#f40AgenticAIFai">Agentic AI Failure Modes</a> (loop limits, validate tool I/O, untrusted tool output, <abbr title="human in the loop">HITL</abbr> on dangerous actions) <strong>still applies</strong> — MCP standardizes <em>how</em> tools are exposed; it does <strong>not</strong> make them safe. It also <em>widens</em> the attack surface, which is the second half of this file.</p>
 </div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02MCPProductio-26"><div class="q-h"><span class="q-n">&bull;</span><h3>Key Definitions (read first)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02MCPProductio-26"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">MCP</span><span class="kt">Host</span><span class="kt">Client</span><span class="kt">one client per server connection</span><span class="kt">Server</span><span class="kt">Tool</span></div><div class="note">
 <div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Term</th><th>Plain-language definition</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong><abbr title="Model Context Protocol">MCP</abbr></strong></td><td>Model Context Protocol — an open standard (JSON-RPC 2.0) for connecting <abbr title="large language model">LLM</abbr> apps to external tools, data, and prompts. Introduced by Anthropic (Nov 2024), now broadly adopted.</td></tr><tr class="g0"><td class="c-term"><strong>Host</strong></td><td>The LLM application the user interacts with (an IDE assistant, a chat app, <em>your</em> agent). It owns the model and orchestrates everything.</td></tr><tr class="g1"><td class="c-term"><strong>Client</strong></td><td>A connector <em>inside</em> the host — <strong>one client per server connection</strong>, managing that session.</td></tr><tr class="g0"><td class="c-term"><strong>Server</strong></td><td>A program that exposes capabilities (tools/resources/prompts) over MCP. Can be local (a subprocess) or remote (a service).</td></tr><tr class="g1"><td class="c-term"><strong>Tool</strong> <em>(primitive)</em></td><td>A <strong>model-controlled</strong> action the agent can invoke — a function with a schema (search, query DB, send email). The agentic verb.</td></tr><tr class="g0"><td class="c-term"><strong>Resource</strong> <em>(primitive)</em></td><td><strong>App/user-controlled</strong> read-only context the host can load (a file, a DB row, a doc) — data, <em>not</em> an action.</td></tr><tr class="g1"><td class="c-term"><strong>Prompt</strong> <em>(primitive)</em></td><td>A <strong>user-controlled</strong> reusable template/workflow the server offers (e.g. a "/summarize-PR" command).</td></tr><tr class="g0"><td class="c-term"><strong>Discovery</strong></td><td>At connect time the client asks the server <code>list_tools</code> / <code>list_resources</code> / <code>list_prompts</code> — capabilities are learned <strong>at runtime</strong>, not hard-coded.</td></tr><tr class="g1"><td class="c-term"><strong>Transport</strong></td><td>How client↔server bytes move: <strong>stdio</strong> (local subprocess) or <strong>Streamable HTTP</strong> (remote; superseded the older HTTP+SSE transport).</td></tr><tr class="g0"><td class="c-term"><strong>Sampling</strong></td><td>A server asking the <em>host's</em> model to run a completion (server-initiated LLM call) — host stays in control/approves.</td></tr><tr class="g1"><td class="c-term"><strong>Roots</strong></td><td>The set of filesystem/URI boundaries the host grants a server access to.</td></tr><tr class="g0"><td class="c-term"><strong>Elicitation</strong></td><td>A server requesting additional input from the user mid-operation (newer spec capability).</td></tr><tr class="g1"><td class="c-term"><strong>Tool poisoning</strong></td><td>A malicious/changed tool <em>description</em> carrying hidden instructions to the model — injection via the tool definition itself.</td></tr><tr class="g0"><td class="c-term"><strong>Rug pull</strong></td><td>A server that behaves benignly during approval, then changes a tool's behavior after it's trusted.</td></tr></tbody></table></div>
-</div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02MCPProductio-27"><div class="q-h"><span class="q-n">&bull;</span><h3>Architecture: Host → Clients → Servers</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02MCPProductio-27"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">host</span><span class="kt">approval/HITL</span><span class="kt">Discovery is dynamic</span></div><div class="diagram"><pre>┌──────────────────────── HOST (your agent / IDE / chat app) ────────────────────────┐
+</div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02MCPProductio-27"><div class="q-h"><span class="q-n">&bull;</span><h3>Architecture: Host → Clients → Servers</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02MCPProductio-27"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">host</span><span class="kt">approval/HITL</span><span class="kt">Discovery is dynamic</span></div><div class="diagram"><pre>┌───────────────────────── HOST (your agent / IDE / chat app) ────────────────────────┐
 │   owns the LLM + orchestration + the SECURITY BOUNDARY (approvals, which tools run) │
 │                                                                                     │
 │   ┌─ Client A ─┐        ┌─ Client B ─┐        ┌─ Client C ─┐   (one client/server)  │
 └───┼────────────┼────────┼────────────┼────────┼────────────┼────────────────────────┘
-    │ stdio      │        │ HTTP        │       │ HTTP        │
- ┌──▼──────────┐ │     ┌──▼──────────┐  │    ┌──▼──────────┐  │
+    │ stdio      │        │ HTTP        │       │ HTTP                                │
+ ┌──▼──────────┐ │     ┌──▼──────────┐  │    ┌──▼──────────┐                          │
  │ Filesystem  │ │     │ GitHub      │  │    │ Postgres    │  │   MCP SERVERS
  │ server      │ │     │ server (SaaS)│ │    │ server      │  │   expose tools/
  └─────────────┘ │     └─────────────┘  │    └─────────────┘  │   resources/prompts</pre></div>

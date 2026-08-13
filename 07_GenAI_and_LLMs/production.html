@@ -1435,7 +1435,7 @@ After FT:   task accuracy 92% | general benchmark 61%   ← forgot a lot</pre></
  user  ───▶ │ injection/jailbreak scan · PII redact ·  │ ───▶  LLM  ───▶
             │ scope/topic filter · rate limit          │
             └──────────────────────────────────────────┘
-                                                            ┌──── OUTPUT GUARDRAILS ────┐
+                                                            ┌───── OUTPUT GUARDRAILS ────┐
                                                        ───▶ │ moderation · PII/secret    │ ───▶ user
                                                             │ scan · schema · grounding  │
                                                             └────────────────────────────┘</pre></div>
@@ -1772,8 +1772,8 @@ Question: {question}
 Answer:"""</span>
 prompt = TEMPLATE.<span class="fn">format</span>(context=ctx, question=q)</code></pre>
 <p><strong>Universal rules:</strong> instructions <strong>before</strong> data; <strong>delimiters</strong> (XML tags / triple backticks) separate instructions from user content (also an injection defense); be explicit about output format; decompose complex tasks; <em>"answer only from context; say 'I don't know'"</em> is the top anti-hallucination lever; iterate against an eval set, change one thing at a time.</p></div><div class="parthead" id="f24LLMSystemsIn-p5"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>6. AI Agents</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p><strong>Definition:</strong> an <abbr title="large language model">LLM</abbr> that, in a loop, <strong>decides actions → uses tools → observes results → plans</strong> toward a goal.</p>
-<div class="diagram"><pre>        ┌──────────────────────────────────────────┐
-        ▼                                            │
+<div class="diagram"><pre>        ┌──────────────────────────────────────────────────┐
+        ▼                                                  │
    [LLM reason] ─► pick tool + args ─► [execute] ─► observe ─┘   (repeat until done)
         ▲                                                  │
         └─────────────── memory (short + long term) ◄──────┘</pre></div></div><article class="q" id="f24LLMSystemsIn-80"><div class="q-h"><span class="q-n">&bull;</span><h3>Function / Tool Calling</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f24LLMSystemsIn-80"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">outputs a structured call</span><span class="kt">parallel</span></div><p>Given JSON tool schemas (name, description, params), the model <strong>outputs a structured call</strong>; <em>your code</em> executes it and feeds the result back. The model chooses <em>which</em> tool + <em>what</em> args — it never runs anything itself. "Tools" generalize to retrievers, code interpreters, web search, sub-agents, <abbr title="Model Context Protocol">MCP</abbr> servers. Modern APIs allow <strong>parallel</strong> tool calls. Good tool design (clear names/descriptions, narrow scope, validated args) is what makes agents reliable.</p>
@@ -1858,8 +1858,8 @@ app = <span class="fn">FastAPI</span>()
                                   ▼                ▼                  ▼
                            Vector DB +        LLM serving        Cache (semantic
                            metadata filter    (vLLM/managed,     + prompt + KV)
-                                  │            streaming)              │
-                                  └──────────► post-process / validate ◄┘
+                                  │            streaming)            │
+                                  └───────► post-process / validate ◄┘
                                                    │
                               response (streamed) + logging/observability + feedback loop</pre></div>
 <p>Cross-cutting: caching (semantic + prompt + <abbr title="key-value — the attention keys and values cached for tokens already generated">KV</abbr>), multi-tenancy/isolation, cost controls, fallbacks.</p>
@@ -2372,14 +2372,14 @@ Meta-prompting / APE    LLM writes/optimizes the prompt itself → prompt not ye
 4. <strong>Output format</strong> — schema, style, length.
 5. <strong><abbr title="tying a generated answer to retrieved evidence rather than model memory">Grounding</abbr> instruction</strong> — "answer only from the provided context; say 'I don't know' if it's not there" (this single line is the cheapest hallucination-reduction lever in <abbr title="retrieval-augmented generation">RAG</abbr>).
 6. <strong>Few-shot examples</strong> — for tasks needing exact format matching (last, closest to the actual query — recency helps).</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f19ClientRoundP-126"><div class="q-h"><span class="q-n">&bull;</span><h3>Context engineering — what actually goes in the window, and why it's an engineering problem</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f19ClientRoundP-126"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">scarce, contested resource budget</span><span class="kt">Write</span><span class="kt">Select</span><span class="kt">Compress</span><span class="kt">Isolate</span><span class="kt">Order for recency bias</span></div><p>Think of the <abbr title="the total number of tokens a model can attend to in a single call">context window</abbr> as a <strong>scarce, contested resource budget</strong>, not free real estate:</p>
-<div class="diagram"><pre>┌─────────────────────────────── context window ───────────────────────────────┐
-│ system prompt (role, rules, tool schemas)      ← static, cached prefix        │
-│ long-term memory recall (user prefs, facts)    ← retrieved, small             │
+<div class="diagram"><pre>┌────────────────────────────── context window ──────────────────────────────────┐
+│ system prompt (role, rules, tool schemas)      ← static, cached prefix         │
+│ long-term memory recall (user prefs, facts)    ← retrieved, small              │
 │ RAG-retrieved chunks                            ← dynamic, reranked, capped    │
 │ tool outputs from this episode                  ← pruned/summarized as it grows│
 │ conversation history                            ← windowed / summarized        │
-│ current user turn                               ← always present, near the end│
-└─────────────────────────────────────────────────────────────────────────────┘</pre></div>
+│ current user turn                               ← always present, near the end │
+└────────────────────────────────────────────────────────────────────────────────┘</pre></div>
 <p>Core moves an interviewer expects you to name:
 - <strong>Write</strong> — persist information outside the window (scratchpad file, memory store) instead of keeping it all in-context.
 - <strong>Select</strong> — retrieve only the relevant slice back in (<abbr title="retrieval-augmented generation">RAG</abbr>, memory search, tool-result filtering) rather than dumping everything.

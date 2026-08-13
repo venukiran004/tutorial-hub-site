@@ -1941,10 +1941,10 @@ sem = asyncio.<span class="fn">Semaphore</span>(<span class="num">10</span>)
 <div class="diagram"><pre>        ┌─────────────┐
         │  Supervisor │  decides who acts next (routing)
         └──────┬──────┘
-   ┌───────────┼───────────┐
+   ┌───────────┼──────┐
    ▼           ▼           ▼
  Agent A     Agent B     Agent C     ← each reads/writes the SHARED STATE
-   └───────────┴───────────┘
+   └───────────┴──────┘
         (messages + scratchpad)</pre></div>
 <p><strong>Communication channels:</strong> (1) a <strong>shared message/state object</strong> every agent reads and appends to; (2) the supervisor's <strong>routing decision</strong> (which agent runs next); (3) <strong>handoff</strong> — one agent returns control with a result/next-hop. Optionally a <strong>blackboard</strong> (shared memory) for artifacts.</p>
 <h3>LangGraph / LangChain implementation (sketch)</h3>
@@ -2162,7 +2162,7 @@ Note: PUT = idempotent create/replace; PATCH = partial update; DELETE = remove.<
 <p>Say: <em>"My first move is to </em><em>profile per-stage latency with tracing</em><em> (LangSmith/OpenTelemetry) to localize the bottleneck before changing anything. p95 breakdown tells me whether it's generation, retrieval, or reranking — then I optimize that one stage. Most often it's generation, so streaming + a smaller model + semantic cache is the first fix."</em></p>
 </div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f20GenAIRound2E-271"><div class="q-h"><span class="q-n">&bull;</span><h3>13. Design an Underwriting Chat Assistant (complex PDF)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f20GenAIRound2E-271"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Problem</span><span class="kt">Parsing is the make-or-break step</span><span class="kt">layout-aware document-AI parser</span><span class="kt">not</span><span class="kt">tables as HTML/Markdown</span><span class="kt">nested tables/grids</span></div><p><strong>Problem:</strong> PDFs are <em>complex</em> — nested tables, grids, images, charts, mixed paragraphs. Naive text extraction destroys table structure → wrong numbers → unacceptable for underwriting. The whole design hinges on <strong>parsing fidelity + grounded, cited answers + human-in-the-loop</strong>.</p>
 <h3>Architecture</h3>
-<div class="diagram"><pre>┌── INGESTION (offline) ────────────────────────────────────────────────┐
+<div class="diagram"><pre>┌── INGESTION (offline) ─────────────────────────────────────────────────┐
 │ PDF → Layout-aware parser (Unstructured / LlamaParse / Azure Doc       │
 │        Intelligence / Textract / Docling) → detect blocks:             │
 │        {paragraphs, TABLES (keep as HTML/Markdown), images, KV pairs}  │
@@ -2175,8 +2175,8 @@ Note: PUT = idempotent create/replace; PATCH = partial update; DELETE = remove.<
 └────────────────────────────────────────────────────────────────────────┘
 
 ┌── QUERY (online) ──────────────────────────────────────────────────────┐
-│ User Q → guardrails/PII → query rewrite                                 │
-│   → Hybrid retrieve (dense + BM25) + metadata filter (policy, section)  │
+│ User Q → guardrails/PII → query rewrite                                │
+│   → Hybrid retrieve (dense + BM25) + metadata filter (policy, section) │
 │   → Rerank (cross-encoder) → context compress                          │
 │   → LLM (with table HTML in context) → Answer + CITATIONS (page/table) │
 │   → groundedness/faithfulness check → HUMAN-IN-THE-LOOP for decisions  │

@@ -2137,7 +2137,7 @@ cp.<span class="fn">register</span>(a); cp.<span class="fn">register</span>(b)  
                          ▼                          ▼
                    [CDN] static                [API Gateway]  ← auth, rate limit (24,28)
                                                     │
-                        ┌──── Load Balancer (1) ────┤
+                        ┌─── Load Balancer (1) ────┤
                         ▼                            ▼
               [stateless services] (2)      [stateless services]
                  │  resilience: Circuit Breaker(21) · Retry(22) · Bulkhead(23) · Failover(25)
@@ -2167,10 +2167,10 @@ cp.<span class="fn">register</span>(a); cp.<span class="fn">register</span>(b)  
 <li><strong>Trade-off:</strong> configuration complexity. You now own CIDR planning, route tables, gateways, and peering; a poorly chosen address range (one that overlaps on-prem or another VPC) blocks future peering/VPN without painful re-addressing.</li>
 </ul>
 <p><strong>Real-world example — AWS VPC.</strong> Every AWS account ships with a <em>default</em> VPC so you can launch an instance immediately, but real deployments define a <em>custom</em> VPC to get control. A typical company gives its production VPC the range <code>10.0.0.0/16</code> (65,536 private addresses) and splits it into <strong>public</strong> subnets that hold internet-facing load balancers and NAT gateways, and <strong>private</strong> subnets that hold the application servers and the database. The database is given <em>no route to the internet at all</em> — it is reachable only from the app servers inside the VPC, which is the isolation guarantee the whole structure exists to provide. Companies like Netflix and Airbnb go further and put production, staging, and test into <em>separate</em> VPCs, then connect the ones that must talk via <strong>VPC peering</strong> or a <strong>Transit Gateway</strong>. This is exactly where the trade-off bites: peering only works if the two VPCs' CIDR ranges don't overlap, so address planning that looks like busywork on day one is what keeps the network connectable on day 500. <strong>Google Cloud VPC</strong> and <strong>Azure VNet</strong> are the same concept under different names.</p>
-<div class="diagram"><pre>            ┌──────────────── VPC  prod  10.0.0.0/16 ────────────────┐
+<div class="diagram"><pre>            ┌───────────────── VPC  prod  10.0.0.0/16 ────────────────┐
  internet ──┤ Internet Gateway                                        │
-            │   ┌── public subnet 10.0.1.0/24 ──┐  ┌── private subnet 10.0.2.0/24 ──┐
-            │   │  load balancer · NAT gateway  │  │  app servers · database         │
+            │   ┌── public subnet 10.0.1.0/24 ──┐  ┌──── private subnet 10.0.2.0/24 ──┐
+            │   │  load balancer · NAT gateway  │  │  app servers · database          │
             │   └────────────────────────────────┘  └─────────────────────────────────┘
             │   route: 0.0.0.0/0 → IGW              route: 0.0.0.0/0 → NAT (outbound only)
             └──────────── isolated from every other tenant's VPC ─────┘</pre></div>
@@ -2216,13 +2216,13 @@ staging = <span class="fn">VPC</span>(<span class="str">"staging"</span>, <span 
 <li><strong>Trade-off:</strong> sizing is semi-permanent — you fix each subnet's CIDR mask up front, so too small and you exhaust IPs (cloud providers also reserve a handful per subnet), too large and you waste address space and leave no room for other subnets. And because a subnet lives in <em>one</em> AZ, high availability requires duplicating each tier's subnet across multiple AZs.</li>
 </ul>
 <p><strong>Real-world example — the classic 3-tier layout.</strong> The canonical web architecture maps each tier to its own subnet, replicated across two or three availability zones. A <strong>public</strong> subnet holds the application load balancer and the NAT gateway; a <strong>private app</strong> subnet holds the EC2 instances or containers; a <strong>private data</strong> subnet holds the RDS database. Routing differs by subnet — the public subnet's route table points the default route at the internet gateway, the private subnets point it at the NAT gateway — and <strong>security groups</strong> lock down traffic <em>between</em> subnets, e.g. the database subnet accepts port 5432 only from the app subnet, never from the internet. Spreading each tier across <code>us-east-1a</code> and <code>us-east-1b</code> means losing an entire availability zone takes out one copy of each tier, not the system. The trade-off shows up operationally: AWS reserves 5 addresses in every subnet, so a <code>/28</code> yields only 11 usable IPs, and a busy Kubernetes/EKS cluster that assigns an IP per pod can <em>exhaust a subnet</em>, which is exactly why teams size data-plane subnets generously (a <code>/24</code> or larger) from the start.</p>
-<div class="diagram"><pre>        ┌──────────────── VPC  10.0.0.0/16 ────────────────┐
-        │   AZ us-east-1a                AZ us-east-1b       │
+<div class="diagram"><pre>        ┌───────────────── VPC  10.0.0.0/16 ────────────────┐
+        │   AZ us-east-1a                AZ us-east-1b      │
         │  ┌ public  10.0.1.0/24 ┐     ┌ public  10.0.3.0/24 ┐   → route 0.0.0.0/0 → IGW
-        │  │  load balancer       │     │  load balancer      │
+        │  │  load balancer       │     │  load balancer    │
         │  ├ private 10.0.2.0/24 ─┤     ├ private 10.0.4.0/24 ┤   → route 0.0.0.0/0 → NAT
         │  │  app · database       │     │  app · database     │   (no inbound from internet)
-        │  └──────────────────────┘     └─────────────────────┘
+        │  └──────────────────────┘     └───────────────────┘
         └───────────────────────────────────────────────────┘
               same tier in 2 AZs → survives losing a whole zone</pre></div>
 <pre class="code" data-lang="python"><code><span class="kw">class</span> Subnet:
@@ -2300,12 +2300,12 @@ db  = vpc.<span class="fn">add_subnet</span>(<span class="fn">Subnet</span>(<spa
   teams each owning a bounded context.
 
   ARCHITECTURE DECISION FACTORS:
-  ┌──────────────────┬──────────────────────────────────────┐
-  │ &lt; 5 engineers    │ Monolith (maybe modular)             │
-  │ 5-20 engineers   │ Modular monolith or 3-5 services     │
-  │ 20-100 engineers │ Microservices (domain-aligned teams)  │
-  │ 100+ engineers   │ Platform + domain services + cells    │
-  └──────────────────┴──────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-37"><div class="q-h"><span class="q-n">&bull;</span><h3>2. Domain-Driven Design (DDD)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-37"><span></span></label></div><div class="q-a"><div class="diagram"><pre>DDD is a software design approach that focuses on modeling
+  ┌──────────────────┬────────────────────────────────────────┐
+  │ &lt; 5 engineers    │ Monolith (maybe modular)               │
+  │ 5-20 engineers   │ Modular monolith or 3-5 services       │
+  │ 20-100 engineers │ Microservices (domain-aligned teams)   │
+  │ 100+ engineers   │ Platform + domain services + cells     │
+  └──────────────────┴────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-37"><div class="q-h"><span class="q-n">&bull;</span><h3>2. Domain-Driven Design (DDD)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-37"><span></span></label></div><div class="q-a"><div class="diagram"><pre>DDD is a software design approach that focuses on modeling
 the core business domain and building architecture around it.
 Created by Eric Evans (2003).
 
@@ -2314,19 +2314,19 @@ STRATEGIC DDD (big-picture)
 ═══════════════════════════════════════════════════════════════
 
   BOUNDED CONTEXT:
-  ┌───────────────────────────────────────────────────────────┐
-  │ A boundary within which a particular domain model applies │
-  │ and terms have specific, consistent meanings.             │
-  │                                                           │
-  │ Example: "Product" means different things in:             │
-  │   Catalog context: name, description, images, categories  │
-  │   Inventory context: SKU, quantity, warehouse location    │
-  │   Billing context: price, tax rules, discount eligibility │
-  │   Shipping context: weight, dimensions, shipping class    │
-  │                                                           │
-  │ Each bounded context has its OWN model of "Product"       │
-  │ with only the attributes it needs.                        │
-  └───────────────────────────────────────────────────────────┘
+  ┌────────────────────────────────────────────────────────────┐
+  │ A boundary within which a particular domain model applies  │
+  │ and terms have specific, consistent meanings.              │
+  │                                                            │
+  │ Example: "Product" means different things in:              │
+  │   Catalog context: name, description, images, categories   │
+  │   Inventory context: SKU, quantity, warehouse location     │
+  │   Billing context: price, tax rules, discount eligibility  │
+  │   Shipping context: weight, dimensions, shipping class     │
+  │                                                            │
+  │ Each bounded context has its OWN model of "Product"        │
+  │ with only the attributes it needs.                         │
+  └────────────────────────────────────────────────────────────┘
 
   UBIQUITOUS LANGUAGE:
   - Shared vocabulary between developers and domain experts
@@ -2355,7 +2355,7 @@ STRATEGIC DDD (big-picture)
   │                       │ for multiple consumers             │
   ├───────────────────────┼────────────────────────────────────┤
   │ Published Language    │ Shared schema (JSON Schema,        │
-  │                       │ Protobuf, Avro) for integration   │
+  │                       │ Protobuf, Avro) for integration    │
   └───────────────────────┴────────────────────────────────────┘
 
   SUBDOMAINS:
@@ -2384,14 +2384,14 @@ TACTICAL DDD (code-level patterns)
   - Other aggregates referenced by ID only (not object reference)
   - Example: Order (root) → OrderItems, ShippingAddress
 
-  ┌─────────────────────────────────────────────────────────┐
-  │ AGGREGATE RULES:                                        │
-  │ 1. Reference other aggregates by ID only                │
-  │ 2. One aggregate per transaction                        │
-  │ 3. Keep aggregates small (performance + concurrency)   │
-  │ 4. Use eventual consistency between aggregates          │
-  │ 5. Aggregate root enforces all invariants               │
-  └─────────────────────────────────────────────────────────┘
+  ┌────────────────────────────────────────────────────────────┐
+  │ AGGREGATE RULES:                                           │
+  │ 1. Reference other aggregates by ID only                   │
+  │ 2. One aggregate per transaction                           │
+  │ 3. Keep aggregates small (performance + concurrency)       │
+  │ 4. Use eventual consistency between aggregates             │
+  │ 5. Aggregate root enforces all invariants                  │
+  └────────────────────────────────────────────────────────────┘
   
   DOMAIN EVENT:
   - Something that happened in the domain
@@ -2413,68 +2413,68 @@ TACTICAL DDD (code-level patterns)
   - Enforces creation invariants
 
   EXAMPLE — E-COMMERCE:
-  ┌─────────────────────────────────────────────────────────┐
-  │ Order Context:                                          │
-  │   Aggregate: Order (root)                               │
-  │     ├── OrderItem (entity, local identity)              │
-  │     ├── ShippingAddress (value object)                  │
-  │     └── OrderStatus (value object)                      │
-  │   Domain Events: OrderPlaced, OrderShipped, OrderCancelled│
-  │   Repository: OrderRepository                           │
-  │                                                         │
-  │ Inventory Context:                                      │
-  │   Aggregate: InventoryItem (root)                       │
-  │     ├── StockLevel (value object)                       │
-  │     └── ReservationList (entity)                        │
-  │   Listens to: OrderPlaced → reserve stock               │
-  │   Domain Events: StockReserved, StockDepleted           │
-  └─────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-38"><div class="q-h"><span class="q-n">&bull;</span><h3>3. Hexagonal Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-38"><span></span></label></div><div class="q-a"><div class="diagram"><pre>HEXAGONAL ARCHITECTURE (Ports &amp; Adapters)
+  ┌────────────────────────────────────────────────────────────┐
+  │ Order Context:                                             │
+  │   Aggregate: Order (root)                                  │
+  │     ├── OrderItem (entity, local identity)                 │
+  │     ├── ShippingAddress (value object)                     │
+  │     └── OrderStatus (value object)                         │
+  │   Domain Events: OrderPlaced, OrderShipped, OrderCancelled │
+  │   Repository: OrderRepository                              │
+  │                                                            │
+  │ Inventory Context:                                         │
+  │   Aggregate: InventoryItem (root)                          │
+  │     ├── StockLevel (value object)                          │
+  │     └── ReservationList (entity)                           │
+  │   Listens to: OrderPlaced → reserve stock                  │
+  │   Domain Events: StockReserved, StockDepleted              │
+  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-38"><div class="q-h"><span class="q-n">&bull;</span><h3>3. Hexagonal Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-38"><span></span></label></div><div class="q-a"><div class="diagram"><pre>HEXAGONAL ARCHITECTURE (Ports &amp; Adapters)
 Created by Alistair Cockburn (2005)
 
   CORE IDEA: The application core is isolated from external
   concerns (DB, UI, APIs) through PORTS (interfaces) and
   ADAPTERS (implementations).
 
-  ┌─────────────────────────────────────────────────────────────┐
-  │                                                             │
-  │    ┌──────────┐     ┌──────────────────┐    ┌──────────┐   │
+  ┌──────────────────────────────────────────────────────────────┐
+  │                                                              │
+  │    ┌──────────┐     ┌──────────────────┐    ┌──────────┐     │
   │    │  REST     │     │                  │    │ PostgreSQL│   │
   │    │  Adapter  ├────→│   PORT           │    │  Adapter  │   │
-  │    └──────────┘     │  (Interface)     │    └──────────┘   │
-  │                      │       ↓          │                   │
-  │    ┌──────────┐     │  ┌──────────┐   │    ┌──────────┐   │
-  │    │  GraphQL  │     │  │ DOMAIN   │   │    │  Redis    │   │
-  │    │  Adapter  ├────→│  │ LOGIC    │───├───→│  Adapter  │   │
-  │    └──────────┘     │  │ (Core)   │   │    └──────────┘   │
-  │                      │  └──────────┘   │                   │
-  │    ┌──────────┐     │       ↓          │    ┌──────────┐   │
+  │    └──────────┘     │  (Interface)     │    └──────────┘     │
+  │                      │       ↓          │                    │
+  │    ┌──────────┐     │  ┌──────────┐   │    ┌──────────┐      │
+  │    │  GraphQL  │     │  │ DOMAIN   │   │    │  Redis    │    │
+  │    │  Adapter  ├────→│  │ LOGIC    │───├───→│  Adapter  │    │
+  │    └──────────┘     │  │ (Core)   │   │    └──────────┘      │
+  │                      │  └──────────┘   │                     │
+  │    ┌──────────┐     │       ↓          │    ┌──────────┐     │
   │    │  CLI      │     │   PORT           │    │  Kafka    │   │
   │    │  Adapter  ├────→│  (Interface)     │    │  Adapter  │   │
-  │    └──────────┘     │                  │    └──────────┘   │
-  │                      └──────────────────┘                   │
-  │  DRIVING (input)          CORE          DRIVEN (output)    │
-  │  Adapters                                Adapters           │
-  └─────────────────────────────────────────────────────────────┘
+  │    └──────────┘     │                  │    └──────────┘     │
+  │                      └──────────────────┘                    │
+  │  DRIVING (input)          CORE          DRIVEN (output)      │
+  │  Adapters                                Adapters            │
+  └──────────────────────────────────────────────────────────────┘
 
   PORTS (Interfaces):
-  ┌──────────────────┬───────────────────────────────────────┐
-  │ Driving Ports    │ How the outside world USES the app    │
-  │ (Primary/Input)  │ e.g., CreateOrderUseCase,             │
-  │                  │      SearchProductsQuery              │
-  ├──────────────────┼───────────────────────────────────────┤
-  │ Driven Ports     │ What the app NEEDS from the outside   │
-  │ (Secondary/Output)│ e.g., OrderRepository,               │
-  │                  │      PaymentGateway, EmailSender      │
-  └──────────────────┴───────────────────────────────────────┘
+  ┌──────────────────┬───────────────────────────────────────────┐
+  │ Driving Ports    │ How the outside world USES the app        │
+  │ (Primary/Input)  │ e.g., CreateOrderUseCase,                 │
+  │                  │      SearchProductsQuery                  │
+  ├──────────────────┼───────────────────────────────────────────┤
+  │ Driven Ports     │ What the app NEEDS from the outside       │
+  │ (Secondary/Output)│ e.g., OrderRepository,                   │
+  │                  │      PaymentGateway, EmailSender          │
+  └──────────────────┴───────────────────────────────────────────┘
 
   ADAPTERS (Implementations):
-  ┌──────────────────┬───────────────────────────────────────┐
-  │ Driving Adapters │ REST controller, GraphQL resolver,    │
-  │                  │ CLI handler, gRPC service, test       │
-  ├──────────────────┼───────────────────────────────────────┤
-  │ Driven Adapters  │ PostgresOrderRepo, StripePayment,    │
-  │                  │ SendGridEmail, InMemoryRepo (test)   │
-  └──────────────────┴───────────────────────────────────────┘
+  ┌──────────────────┬───────────────────────────────────────────┐
+  │ Driving Adapters │ REST controller, GraphQL resolver,        │
+  │                  │ CLI handler, gRPC service, test           │
+  ├──────────────────┼───────────────────────────────────────────┤
+  │ Driven Adapters  │ PostgresOrderRepo, StripePayment,         │
+  │                  │ SendGridEmail, InMemoryRepo (test)        │
+  └──────────────────┴───────────────────────────────────────────┘
 
   BENEFITS:
   - Domain logic has ZERO dependency on infrastructure
@@ -2483,100 +2483,100 @@ Created by Alistair Cockburn (2005)
   - Multiple entry points (REST + CLI + gRPC) share domain
 
   PROJECT STRUCTURE:
-  ┌─────────────────────────────────────────────────────────┐
-  │ src/                                                    │
-  │ ├── domain/           ← Entities, Value Objects, Events │
-  │ │   ├── order.py                                        │
-  │ │   └── events.py                                       │
-  │ ├── ports/            ← Interfaces (ABC)                │
-  │ │   ├── order_repository.py                             │
-  │ │   └── payment_gateway.py                              │
-  │ ├── application/      ← Use cases / Application services│
-  │ │   ├── create_order.py                                 │
-  │ │   └── cancel_order.py                                 │
-  │ └── adapters/         ← Infrastructure implementations  │
-  │     ├── api/                                            │
-  │     │   └── rest_controller.py                          │
-  │     ├── persistence/                                    │
-  │     │   └── postgres_order_repo.py                      │
-  │     └── messaging/                                      │
-  │         └── kafka_publisher.py                          │
-  └─────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-39"><div class="q-h"><span class="q-n">&bull;</span><h3>4. Clean Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-39"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CLEAN ARCHITECTURE (Robert C. Martin, 2012)
+  ┌──────────────────────────────────────────────────────────────┐
+  │ src/                                                         │
+  │ ├── domain/           ← Entities, Value Objects, Events      │
+  │ │   ├── order.py                                             │
+  │ │   └── events.py                                            │
+  │ ├── ports/            ← Interfaces (ABC)                     │
+  │ │   ├── order_repository.py                                  │
+  │ │   └── payment_gateway.py                                   │
+  │ ├─────── application/      ← Use cases / Application services│
+  │ │   ├── create_order.py                                      │
+  │ │   └── cancel_order.py                                      │
+  │ └── adapters/         ← Infrastructure implementations       │
+  │     ├── api/                                                 │
+  │     │   └── rest_controller.py                               │
+  │     ├── persistence/                                         │
+  │     │   └── postgres_order_repo.py                           │
+  │     └── messaging/                                           │
+  │         └── kafka_publisher.py                               │
+  └──────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-39"><div class="q-h"><span class="q-n">&bull;</span><h3>4. Clean Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-39"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CLEAN ARCHITECTURE (Robert C. Martin, 2012)
 The Dependency Rule: Source code dependencies can only
 point INWARD. Nothing in an inner circle can know about
 anything in an outer circle.
 
-  ┌───────────────────────────────────────────────────────────┐
-  │                                                           │
-  │  ┌─────────────────────────────────────────────────────┐  │
-  │  │                                                     │  │
-  │  │  ┌─────────────────────────────────────────────┐   │  │
-  │  │  │                                             │   │  │
-  │  │  │  ┌───────────────────────────────────┐     │   │  │
-  │  │  │  │         ENTITIES                  │     │   │  │
-  │  │  │  │   (Enterprise Business Rules)     │     │   │  │
-  │  │  │  └───────────────────────────────────┘     │   │  │
-  │  │  │         USE CASES                          │   │  │
-  │  │  │   (Application Business Rules)             │   │  │
-  │  │  └─────────────────────────────────────────────┘   │  │
-  │  │         INTERFACE ADAPTERS                         │  │
-  │  │   (Controllers, Gateways, Presenters)              │  │
-  │  └─────────────────────────────────────────────────────┘  │
-  │         FRAMEWORKS &amp; DRIVERS                              │
-  │   (DB, Web, UI, External Interfaces)                      │
-  └───────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │                                                             │
+  │  ┌─────────────────────────────────────────────────────┐    │
+  │  │                                                     │    │
+  │  │  ┌─────────────────────────────────────────────┐   │     │
+  │  │  │                                             │   │     │
+  │  │  │  ┌───────────────────────────────────┐     │   │      │
+  │  │  │  │         ENTITIES                  │     │   │      │
+  │  │  │  │   (Enterprise Business Rules)     │     │   │      │
+  │  │  │  └───────────────────────────────────┘     │   │      │
+  │  │  │         USE CASES                          │   │      │
+  │  │  │   (Application Business Rules)             │   │      │
+  │  │  └─────────────────────────────────────────────┘   │     │
+  │  │         INTERFACE ADAPTERS                         │     │
+  │  │   (Controllers, Gateways, Presenters)              │     │
+  │  └─────────────────────────────────────────────────────┘    │
+  │         FRAMEWORKS &amp; DRIVERS                                │
+  │   (DB, Web, UI, External Interfaces)                        │
+  └─────────────────────────────────────────────────────────────┘
 
   LAYERS:
-  ┌─────────────────┬──────────────────────────────────────────┐
+  ┌─────────────────┬───────────────────────────────────────────┐
   │ Entities         │ Core business objects, domain logic      │
   │                  │ Least likely to change                   │
   │                  │ No framework dependencies                │
-  ├─────────────────┼──────────────────────────────────────────┤
+  ├─────────────────┼───────────────────────────────────────────┤
   │ Use Cases        │ Application-specific business rules      │
-  │                  │ Orchestrates entity interactions          │
+  │                  │ Orchestrates entity interactions         │
   │                  │ One class per use case                   │
-  ├─────────────────┼──────────────────────────────────────────┤
-  │ Interface        │ Converts data between use cases and     │
+  ├─────────────────┼───────────────────────────────────────────┤
+  │ Interface        │ Converts data between use cases and      │
   │ Adapters         │ external format. Controllers, presenters,│
   │                  │ gateways.                                │
-  ├─────────────────┼──────────────────────────────────────────┤
+  ├─────────────────┼───────────────────────────────────────────┤
   │ Frameworks &amp;     │ Databases, web frameworks, UI            │
   │ Drivers          │ "Glue code" — most volatile              │
-  └─────────────────┴──────────────────────────────────────────┘
+  └─────────────────┴───────────────────────────────────────────┘
 
   CLEAN vs HEXAGONAL vs ONION:
-  ┌────────────────────────────────────────────────────────────┐
-  │ All three express the same fundamental idea:               │
-  │ "Domain logic at center, infrastructure at edges"          │
-  │                                                            │
-  │ Clean:     4 concentric circles with explicit layers       │
-  │ Hexagonal: Ports &amp; Adapters, emphasis on symmetry          │
-  │ Onion:     Similar to Clean, originated independently      │
-  │                                                            │
-  │ In practice: Pick one and be consistent. The principle     │
-  │ matters more than which variant.                           │
-  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-40"><div class="q-h"><span class="q-n">&bull;</span><h3>5. Event-Driven Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-40"><span></span></label></div><div class="q-a"><div class="diagram"><pre>EVENT-DRIVEN ARCHITECTURE (EDA):
+  ┌─────────────────────────────────────────────────────────────┐
+  │ All three express the same fundamental idea:                │
+  │ "Domain logic at center, infrastructure at edges"           │
+  │                                                             │
+  │ Clean:     4 concentric circles with explicit layers        │
+  │ Hexagonal: Ports &amp; Adapters, emphasis on symmetry           │
+  │ Onion:     Similar to Clean, originated independently       │
+  │                                                             │
+  │ In practice: Pick one and be consistent. The principle      │
+  │ matters more than which variant.                            │
+  └─────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-40"><div class="q-h"><span class="q-n">&bull;</span><h3>5. Event-Driven Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-40"><span></span></label></div><div class="q-a"><div class="diagram"><pre>EVENT-DRIVEN ARCHITECTURE (EDA):
 Systems communicate through events — immutable records
 of something that happened.
 
   EVENT TYPES:
-  ┌──────────────────┬───────────────────────────────────────┐
-  │ Domain Event     │ Something happened in the business    │
-  │                  │ OrderPlaced, PaymentReceived          │
-  │                  │ Fine-grained, domain-specific         │
-  ├──────────────────┼───────────────────────────────────────┤
-  │ Integration Event│ Communication between bounded contexts│
-  │                  │ Coarser-grained, versioned schema     │
-  │                  │ May be a projection of domain events  │
-  ├──────────────────┼───────────────────────────────────────┤
-  │ Notification     │ Minimal data ("something happened")   │
-  │                  │ Consumer fetches details if needed    │
-  │                  │ Reduces coupling                      │
-  ├──────────────────┼───────────────────────────────────────┤
-  │ Event-Carried    │ Contains full state needed by consumer│
-  │ State Transfer   │ Consumer doesn't need to call back    │
-  │                  │ Higher coupling but lower latency     │
-  └──────────────────┴───────────────────────────────────────┘
+  ┌──────────────────┬────────────────────────────────────────┐
+  │ Domain Event     │ Something happened in the business     │
+  │                  │ OrderPlaced, PaymentReceived           │
+  │                  │ Fine-grained, domain-specific          │
+  ├──────────────────┼────────────────────────────────────────┤
+  │ Integration Event│ Communication between bounded contexts │
+  │                  │ Coarser-grained, versioned schema      │
+  │                  │ May be a projection of domain events   │
+  ├──────────────────┼────────────────────────────────────────┤
+  │ Notification     │ Minimal data ("something happened")    │
+  │                  │ Consumer fetches details if needed     │
+  │                  │ Reduces coupling                       │
+  ├──────────────────┼────────────────────────────────────────┤
+  │ Event-Carried    │ Contains full state needed by consumer │
+  │ State Transfer   │ Consumer doesn't need to call back     │
+  │                  │ Higher coupling but lower latency      │
+  └──────────────────┴────────────────────────────────────────┘
 
   EDA TOPOLOGIES:
   
@@ -2597,12 +2597,12 @@ of something that happened.
   │ CHOREOGRAPHY:                                             │
   │ OrderService → emits OrderPlaced                          │
   │ InventoryService → listens, reserves stock,               │
-  │                    emits StockReserved                     │
+  │                    emits StockReserved                    │
   │ PaymentService → listens, charges card,                   │
   │                  emits PaymentProcessed                   │
   │ ShippingService → listens, creates shipment               │
   │                                                           │
-  │ Pros: Loose coupling, no SPOF, each service autonomous   │
+  │ Pros: Loose coupling, no SPOF, each service autonomous    │
   │ Cons: Hard to understand flow, debugging is painful,      │
   │       implicit dependencies, no central view              │
   ├───────────────────────────────────────────────────────────┤
@@ -2611,7 +2611,7 @@ of something that happened.
   │   1. Call InventoryService.reserve()                      │
   │   2. Call PaymentService.charge()                         │
   │   3. Call ShippingService.createShipment()                │
-  │   On failure at step N → compensate steps N-1...1        │
+  │   On failure at step N → compensate steps N-1...1         │
   │                                                           │
   │ Pros: Clear flow, easy to monitor, centralized errors     │
   │ Cons: Orchestrator is SPOF, coupling to orchestrator      │
@@ -2623,9 +2623,9 @@ of something that happened.
   │ 2. Backward compatible: new consumers read old events     │
   │ 3. Forward compatible: old consumers read new events      │
   │ 4. Full compatible: both directions                       │
-  │ 5. Version events: OrderPlaced_v1, OrderPlaced_v2        │
+  │ 5. Version events: OrderPlaced_v1, OrderPlaced_v2         │
   │ 6. Use Avro or Protobuf (schema evolution built-in)       │
-  │ 7. NEVER remove required fields, only add optional ones  │
+  │ 7. NEVER remove required fields, only add optional ones   │
   └───────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-41"><div class="q-h"><span class="q-n">&bull;</span><h3>6. CQRS + Event Sourcing Deep Dive</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-41"><span></span></label></div><div class="q-a"><div class="diagram"><pre>═══════════════════════════════════════════════════════════════
 CQRS (Command Query Responsibility Segregation)
 ═══════════════════════════════════════════════════════════════
@@ -2634,7 +2634,7 @@ CQRS (Command Query Responsibility Segregation)
 
   ┌─────────────────────────────────────────────────────────┐
   │                                                         │
-  │  Client ──Command──→ ┌──────────────┐                  │
+  │  Client ──Command──→ ┌──────────────┐                   │
   │                       │ Write Model  │──→ Event Store   │
   │                       │ (normalized) │                  │
   │                       └──────────────┘                  │
@@ -2677,25 +2677,25 @@ EVENT SOURCING
     → Current state: balance = 500
 
   BENEFITS:
-  ┌──────────────────────────────────────────────────────────┐
-  │ 1. Complete audit trail (every change is recorded)       │
-  │ 2. Time travel: reconstruct state at any point in time   │
-  │ 3. Event replay: rebuild read models or fix bugs         │
-  │ 4. Debugging: see exactly what happened and when         │
-  │ 5. New projections: add new read models retroactively    │
-  │ 6. Natural fit with event-driven architecture            │
-  └──────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────┐
+  │ 1. Complete audit trail (every change is recorded)      │
+  │ 2. Time travel: reconstruct state at any point in time  │
+  │ 3. Event replay: rebuild read models or fix bugs        │
+  │ 4. Debugging: see exactly what happened and when        │
+  │ 5. New projections: add new read models retroactively   │
+  │ 6. Natural fit with event-driven architecture           │
+  └─────────────────────────────────────────────────────────┘
 
   CHALLENGES:
-  ┌──────────────────────────────────────────────────────────┐
-  │ 1. Event schema evolution (old events + new format)      │
-  │ 2. Snapshots needed for long event streams               │
-  │    (can't replay 10M events on every request)            │
-  │ 3. Eventual consistency (read model lags behind writes)  │
-  │ 4. Complexity: harder to understand than CRUD            │
-  │ 5. Deleting data (GDPR): "crypto-shredding" pattern      │
-  │    (encrypt PII with per-user key, delete key to forget) │
-  └──────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────┐
+  │ 1. Event schema evolution (old events + new format)     │
+  │ 2. Snapshots needed for long event streams              │
+  │    (can't replay 10M events on every request)           │
+  │ 3. Eventual consistency (read model lags behind writes) │
+  │ 4. Complexity: harder to understand than CRUD           │
+  │ 5. Deleting data (GDPR): "crypto-shredding" pattern     │
+  │    (encrypt PII with per-user key, delete key to forget)│
+  └─────────────────────────────────────────────────────────┘
 
   SNAPSHOTS:
     Store periodic snapshots of aggregate state
@@ -2717,16 +2717,16 @@ EVENT SOURCING
   - DynamoDB (with version-based concurrency)
 
   CQRS + EVENT SOURCING TOGETHER:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Command → Aggregate → Validate → Emit Events →            │
-  │ Event Store → Projection → Read Model                     │
-  │                                                           │
-  │ This is the MOST POWERFUL but MOST COMPLEX combination.   │
-  │ Only use when the domain truly warrants it:               │
-  │ - Financial systems (audit trail + complex rules)          │
-  │ - Collaborative editing (conflict resolution)             │
-  │ - Complex domains with many state transitions             │
-  └───────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-42"><div class="q-h"><span class="q-n">&bull;</span><h3>7. Microservices Patterns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-42"><span></span></label></div><div class="q-a"><div class="diagram"><pre>═══════════════════════════════════════════════════════════════
+  ┌─────────────────────────────────────────────────────────┐
+  │ Command → Aggregate → Validate → Emit Events →          │
+  │ Event Store → Projection → Read Model                   │
+  │                                                         │
+  │ This is the MOST POWERFUL but MOST COMPLEX combination. │
+  │ Only use when the domain truly warrants it:             │
+  │ - Financial systems (audit trail + complex rules)       │
+  │ - Collaborative editing (conflict resolution)           │
+  │ - Complex domains with many state transitions           │
+  └─────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-42"><div class="q-h"><span class="q-n">&bull;</span><h3>7. Microservices Patterns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-42"><span></span></label></div><div class="q-a"><div class="diagram"><pre>═══════════════════════════════════════════════════════════════
 DECOMPOSITION PATTERNS
 ═══════════════════════════════════════════════════════════════
 
@@ -2751,11 +2751,11 @@ COMMUNICATION PATTERNS
 
   ┌──────────────────┬───────────────────────────────────────┐
   │ Synchronous      │ REST, gRPC                            │
-  │                  │ Simple, immediate response             │
-  │                  │ Risk: temporal coupling, cascading     │
-  │                  │ failure if downstream is slow/down     │
+  │                  │ Simple, immediate response            │
+  │                  │ Risk: temporal coupling, cascading    │
+  │                  │ failure if downstream is slow/down    │
   ├──────────────────┼───────────────────────────────────────┤
-  │ Asynchronous     │ Message queues, event streams          │
+  │ Asynchronous     │ Message queues, event streams         │
   │                  │ Decoupled, resilient, scalable        │
   │                  │ Complexity: eventual consistency,     │
   │                  │ message ordering, debugging           │
@@ -2784,18 +2784,18 @@ DATA PATTERNS
   - Risk: latency (sequential calls), partial failures
 
   TRANSACTIONAL OUTBOX:
-  ┌───────────────────────────────────────────────────────┐
-  │ Problem: Write to DB AND publish event atomically     │
-  │ Solution:                                             │
-  │   1. Write business data + event to outbox table      │
-  │      in SAME transaction                              │
-  │   2. Separate process (CDC or poller) reads outbox    │
-  │   3. Publishes event to message broker                │
-  │   4. Marks outbox entry as published                  │
-  │                                                       │
-  │ CDC approach: Debezium reads DB WAL → Kafka            │
-  │ Polling approach: Periodic query on outbox table      │
-  └───────────────────────────────────────────────────────┘
+  ┌──────────────────────────────────────────────────────────┐
+  │ Problem: Write to DB AND publish event atomically        │
+  │ Solution:                                                │
+  │   1. Write business data + event to outbox table         │
+  │      in SAME transaction                                 │
+  │   2. Separate process (CDC or poller) reads outbox       │
+  │   3. Publishes event to message broker                   │
+  │   4. Marks outbox entry as published                     │
+  │                                                          │
+  │ CDC approach: Debezium reads DB WAL → Kafka              │
+  │ Polling approach: Periodic query on outbox table         │
+  └──────────────────────────────────────────────────────────┘
 
 ═══════════════════════════════════════════════════════════════
 RESILIENCE PATTERNS
@@ -2835,12 +2835,12 @@ RESILIENCE PATTERNS
   │ Phase 1: Route all traffic through API Gateway/Proxy    │
   │                                                         │
   │ Phase 2: Extract ONE bounded context to new service     │
-  │          Route its traffic to new service                │
+  │          Route its traffic to new service               │
   │          Keep everything else in monolith               │
   │                                                         │
   │ Phase 3: Repeat for next bounded context                │
   │                                                         │
-  │ Phase 4: Eventually monolith is empty → decommission   │
+  │ Phase 4: Eventually monolith is empty → decommission    │
   │                                                         │
   │ CRITICAL RULES:                                         │
   │ 1. Never rewrite from scratch (Joel Spolsky's warning)  │
@@ -2864,41 +2864,41 @@ RESILIENCE PATTERNS
   - Switch over when confident
 
   DATA DECOMPOSITION STRATEGIES:
-  ┌──────────────────┬───────────────────────────────────────┐
-  │ Shared DB        │ Start here. Multiple services share   │
-  │ (temporary)      │ one DB. Allows gradual decomposition. │
-  ├──────────────────┼───────────────────────────────────────┤
-  │ DB View          │ New service gets a read-only view     │
-  │                  │ of the monolith's DB tables.          │
-  ├──────────────────┼───────────────────────────────────────┤
-  │ CDC Sync         │ Capture changes from monolith DB,     │
-  │                  │ replicate to service's own DB.        │
-  ├──────────────────┼───────────────────────────────────────┤
-  │ Own DB           │ Final state. Service owns its data.   │
-  │                  │ Sync via events, not DB access.       │
-  └──────────────────┴───────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-44"><div class="q-h"><span class="q-n">&bull;</span><h3>9. Cell-Based Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-44"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CELL-BASED ARCHITECTURE:
+  ┌──────────────────┬──────────────────────────────────────┐
+  │ Shared DB        │ Start here. Multiple services share  │
+  │ (temporary)      │ one DB. Allows gradual decomposition.│
+  ├──────────────────┼──────────────────────────────────────┤
+  │ DB View          │ New service gets a read-only view    │
+  │                  │ of the monolith's DB tables.         │
+  ├──────────────────┼──────────────────────────────────────┤
+  │ CDC Sync         │ Capture changes from monolith DB,    │
+  │                  │ replicate to service's own DB.       │
+  ├──────────────────┼──────────────────────────────────────┤
+  │ Own DB           │ Final state. Service owns its data.  │
+  │                  │ Sync via events, not DB access.      │
+  └──────────────────┴──────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-44"><div class="q-h"><span class="q-n">&bull;</span><h3>9. Cell-Based Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-44"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CELL-BASED ARCHITECTURE:
 Divide the system into independent, self-contained cells
 that each serve a subset of users or traffic.
 
-  ┌────────────────────────────────────────────────────────────┐
-  │                                                            │
-  │  Cell Router (routes by user_id / region / tenant)        │
-  │       │                │                │                  │
-  │       ↓                ↓                ↓                  │
+  ┌──────────────────────────────────────────────────────────┐
+  │                                                          │
+  │  Cell Router (routes by user_id / region / tenant)       │
+  │       │                │                │                │
+  │       ↓                ↓                ↓                │
   │  ┌─────────┐    ┌─────────┐    ┌─────────┐               │
   │  │ Cell A  │    │ Cell B  │    │ Cell C  │               │
   │  │ Users   │    │ Users   │    │ Users   │               │
-  │  │ 1-1M   │    │ 1M-2M  │    │ 2M-3M  │               │
+  │  │ 1-1M   │    │ 1M-2M  │    │ 2M-3M  │                  │
   │  │         │    │         │    │         │               │
   │  │ [API]   │    │ [API]   │    │ [API]   │               │
   │  │ [DB]    │    │ [DB]    │    │ [DB]    │               │
   │  │ [Cache] │    │ [Cache] │    │ [Cache] │               │
   │  │ [Queue] │    │ [Queue] │    │ [Queue] │               │
   │  └─────────┘    └─────────┘    └─────────┘               │
-  │                                                            │
-  │  Each cell is a complete, independent deployment          │
-  │  Failure in Cell A does NOT affect Cell B or C            │
-  └────────────────────────────────────────────────────────────┘
+  │                                                          │
+  │  Each cell is a complete, independent deployment         │
+  │  Failure in Cell A does NOT affect Cell B or C           │
+  └──────────────────────────────────────────────────────────┘
 
   WHY CELLS:
   - Blast radius containment (failure isolated to one cell)
@@ -2928,20 +2928,20 @@ A single deployable unit organized into well-defined modules
 with clear boundaries — the best of monolith simplicity
 and microservices modularity.
 
-  ┌─────────────────────────────────────────────────────────┐
-  │                    Single Deployment                    │
-  │                                                         │
-  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐ │
-  │  │ Orders   │  │ Payments │  │ Shipping │  │ Catalog  │ │
-  │  │ Module   │  │ Module   │  │ Module   │  │ Module   │ │
-  │  │          │  │          │  │          │  │          │ │
-  │  │ API      │  │ API      │  │ API      │  │ API      │ │
-  │  │ Domain   │  │ Domain   │  │ Domain   │  │ Domain   │ │
-  │  │ DB Schema│  │ DB Schema│  │ DB Schema│  │ DB Schema│ │
-  │  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘ │
-  │       └──────events──┴────────────┴────────────┘       │
-  │                 Internal Event Bus                       │
-  └─────────────────────────────────────────────────────────┘
+  ┌───────────────────────────────────────────────────────────┐
+  │                    Single Deployment                      │
+  │                                                           │
+  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
+  │  │ Orders   │  │ Payments │  │ Shipping │  │ Catalog  │   │
+  │  │ Module   │  │ Module   │  │ Module   │  │ Module   │   │
+  │  │          │  │          │  │          │  │          │   │
+  │  │ API      │  │ API      │  │ API      │  │ API      │   │
+  │  │ Domain   │  │ Domain   │  │ Domain   │  │ Domain   │   │
+  │  │ DB Schema│  │ DB Schema│  │ DB Schema│  │ DB Schema│   │
+  │  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘   │
+  │       └──────events──┴────────────┴────────────┘          │
+  │                 Internal Event Bus                        │
+  └───────────────────────────────────────────────────────────┘
 
   RULES:
   1. Each module has its own DB schema (no cross-module tables)
@@ -2959,7 +2959,7 @@ and microservices modularity.
   │ Communication       │ In-process   │ Network (HTTP/gRPC)  │
   │ Transaction         │ ACID possible│ Sagas (eventual)     │
   │ Debugging           │ Easy         │ Distributed tracing  │
-  │ Operational cost    │ Low          │ High (K8s, mesh...) │
+  │ Operational cost    │ Low          │ High (K8s, mesh...)  │
   │ Team independence   │ Medium       │ High                 │
   │ Scale independently │ No           │ Yes                  │
   │ Technology choice   │ Same stack   │ Polyglot possible    │
@@ -2978,17 +2978,17 @@ and microservices modularity.
 A dedicated infrastructure layer for service-to-service
 communication, typically implemented via sidecar proxies.
 
-  ┌──────────────────────────────────────────────────────────┐
-  │                                                          │
-  │  Service A ←──→ Sidecar A ←──→ Sidecar B ←──→ Service B│
-  │                    ↑                ↑                    │
-  │                    └────────────────┘                    │
-  │                    Control Plane (Istiod)                │
-  │                    - Service discovery                   │
-  │                    - Traffic management                  │
-  │                    - Security policies                   │
-  │                    - Observability config                │
-  └──────────────────────────────────────────────────────────┘
+  ┌───────────────────────────────────────────────────────┐
+  │                                                       │
+  │  Service A ←─→ Sidecar A ←──→ Sidecar B ←──→ Service B│
+  │                    ↑                ↑                 │
+  │                    └────────────────┘                 │
+  │                    Control Plane (Istiod)             │
+  │                    - Service discovery                │
+  │                    - Traffic management               │
+  │                    - Security policies                │
+  │                    - Observability config             │
+  └───────────────────────────────────────────────────────┘
 
   DATA PLANE (Sidecar proxy — Envoy):
   ┌───────────────────────────────────────────────────────┐
@@ -3066,38 +3066,38 @@ A decentralized sociotechnical approach to managing
 analytical data at scale.
 
   FOUR PRINCIPLES:
-  ┌───────────────────────────────────────────────────────────┐
-  │ 1. DOMAIN OWNERSHIP:                                      │
-  │    Each business domain owns and serves its analytical    │
-  │    data as a product. No central data team bottleneck.    │
-  │                                                           │
-  │ 2. DATA AS A PRODUCT:                                     │
-  │    Domain data has: SLOs, documentation, discoverability, │
-  │    schema, quality guarantees, access controls.           │
-  │    Treat data consumers as customers.                     │
-  │                                                           │
-  │ 3. SELF-SERVE DATA PLATFORM:                              │
-  │    Platform team provides infrastructure:                 │
-  │    storage, compute, pipelines, access control, catalog.  │
-  │    Domain teams use it without deep infra knowledge.      │
-  │                                                           │
-  │ 4. FEDERATED COMPUTATIONAL GOVERNANCE:                    │
-  │    Standards for interoperability: naming conventions,    │
-  │    data quality rules, access policies, schema standards. │
-  │    Enforced computationally, not by committee.            │
-  └───────────────────────────────────────────────────────────┘
+  ┌───────────────────────────────────────────────────────────────────┐
+  │ 1. DOMAIN OWNERSHIP:                                              │
+  │    Each business domain owns and serves its analytical            │
+  │    data as a product. No central data team bottleneck.            │
+  │                                                                   │
+  │ 2. DATA AS A PRODUCT:                                             │
+  │    Domain data has: SLOs, documentation, discoverability,         │
+  │    schema, quality guarantees, access controls.                   │
+  │    Treat data consumers as customers.                             │
+  │                                                                   │
+  │ 3. SELF-SERVE DATA PLATFORM:                                      │
+  │    Platform team provides infrastructure:                         │
+  │    storage, compute, pipelines, access control, catalog.          │
+  │    Domain teams use it without deep infra knowledge.              │
+  │                                                                   │
+  │ 4. FEDERATED COMPUTATIONAL GOVERNANCE:                            │
+  │    Standards for interoperability: naming conventions,            │
+  │    data quality rules, access policies, schema standards.         │
+  │    Enforced computationally, not by committee.                    │
+  └───────────────────────────────────────────────────────────────────┘
 
   DATA MESH vs DATA WAREHOUSE vs DATA LAKE:
-  ┌──────────────────┬──────────────┬────────────┬───────────┐
-  │                  │ Data Warehouse│ Data Lake  │ Data Mesh │
-  ├──────────────────┼──────────────┼────────────┼───────────┤
-  │ Ownership        │ Central team │ Central    │ Domain    │
-  │ Architecture     │ Centralized  │ Centralized│ Distributed│
-  │ Schema           │ Schema-on-write│Schema-on-read│Domain-defined│
-  │ Governance       │ Central      │ Central    │ Federated │
+  ┌──────────────────┬──────────────┬────────────┬────────────────────┐
+  │                  │ Data Warehouse│ Data Lake  │ Data Mesh         │
+  ├──────────────────┼──────────────┼────────────┼────────────────────┤
+  │ Ownership        │ Central team │ Central    │ Domain             │
+  │ Architecture     │ Centralized  │ Centralized│ Distributed        │
+  │ Schema           │ Schema-on-write│Schema-on-read│Domain-defined  │
+  │ Governance       │ Central      │ Central    │ Federated          │
   │ Scalability      │ Team bottleneck│Team bottleneck│Scales with org│
-  │ Best for         │ &lt;10 domains  │ &lt;10 domains│ 10+ domains│
-  └──────────────────┴──────────────┴────────────┴───────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-49"><div class="q-h"><span class="q-n">&bull;</span><h3>14. Architecture Decision Records</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-49"><span></span></label></div><div class="q-a"><div class="diagram"><pre>ADR (Architecture Decision Record):
+  │ Best for         │ &lt;10 domains  │ &lt;10 domains│ 10+ domains        │
+  └──────────────────┴──────────────┴────────────┴────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-49"><div class="q-h"><span class="q-n">&bull;</span><h3>14. Architecture Decision Records</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-49"><span></span></label></div><div class="q-a"><div class="diagram"><pre>ADR (Architecture Decision Record):
 A short document capturing an important architectural decision
 and its context.
 
@@ -3119,7 +3119,7 @@ and its context.
   │ ## Alternatives Considered                                │
   │ - MySQL: Fewer features, less capable query planner       │
   │ - MongoDB: No ACID across documents, not needed           │
-  │ - CockroachDB: Distributed but higher latency, overkill  │
+  │ - CockroachDB: Distributed but higher latency, overkill   │
   │                                                           │
   │ ## Consequences                                           │
   │ + Mature, well-supported, ACID transactions               │
@@ -3151,7 +3151,7 @@ across multiple dimensions.
 
   CORE CONCEPT — FITNESS FUNCTIONS:
   ┌──────────────────────────────────────────────────────────┐
-  │ Automated tests that verify architectural characteristics │
+  │ Automated tests that verify architectural characteristics│
   │                                                          │
   │ Examples:                                                │
   │ - No circular dependencies between modules               │
@@ -3172,13 +3172,13 @@ across multiple dimensions.
   │ Feature Flags    │ Toggle new features without deploy    │
   │                  │ Gradual rollout, A/B testing          │
   ├──────────────────┼───────────────────────────────────────┤
-  │ Canary Deploy    │ Route 1% traffic to new version      │
+  │ Canary Deploy    │ Route 1% traffic to new version       │
   │                  │ Monitor, gradually increase           │
   ├──────────────────┼───────────────────────────────────────┤
   │ Blue-Green       │ Two identical environments            │
   │                  │ Switch traffic atomically             │
   ├──────────────────┼───────────────────────────────────────┤
-  │ Expand-Contract  │ Expand: add new, support both old+new│
+  │ Expand-Contract  │ Expand: add new, support both old+new │
   │                  │ Migrate: move consumers to new        │
   │                  │ Contract: remove old                  │
   ├──────────────────┼───────────────────────────────────────┤
@@ -3277,9 +3277,9 @@ across multiple dimensions.
   │ Wide-column / time-series│ Cassandra / TimescaleDB      │
   │ Graph                    │ Neo4j                        │
   │ Search                   │ Elasticsearch / OpenSearch   │
-  │ Global distributed      │ CockroachDB / Spanner        │
+  │ Global distributed      │ CockroachDB / Spanner         │
   │ Vector / embeddings      │ Pinecone / pgvector / Milvus │
-  │ Ledger / immutable      │ QLDB / Event Store           │
+  │ Ledger / immutable      │ QLDB / Event Store            │
   └──────────────────────────┴──────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07Architecture-53"><div class="q-h"><span class="q-n">&bull;</span><h3>18. Interview Deep Dive</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07Architecture-53"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Catalog</span><span class="kt">Ordering</span><span class="kt">Payment</span><span class="kt">Shipping</span><span class="kt">Customer</span><span class="kt">Step 1</span></div><h3>Q1: Explain DDD and how you'd apply it to an e-commerce platform.</h3>
 <p><strong>A:</strong> DDD is about modeling software around the business domain. For e-commerce, I'd identify bounded contexts: <strong>Catalog</strong> (product information, categories, search), <strong>Ordering</strong> (cart, checkout, order lifecycle), <strong>Payment</strong> (transactions, refunds), <strong>Shipping</strong> (fulfillment, tracking), <strong>Customer</strong> (profiles, preferences). Each context has its own model — "Product" in Catalog has description/images, while in Ordering it's just product_id/price/quantity. Communication between contexts via domain events (OrderPlaced → Payment processes → PaymentConfirmed → Shipping creates fulfillment). Each context maps to a team (inverse Conway). Aggregates: Order is an aggregate root with OrderItems; invariant — order total must equal sum of items. Reference Payment by order_id, not object reference.</p>
 <h3>Q2: When would you choose a modular monolith over microservices?</h3>

@@ -1202,26 +1202,26 @@ AUTOMATED ROLLBACK TRIGGERS:
 <p><strong>Question:</strong> Design the serving architecture.</p>
 <p><strong>Answer:</strong></p>
 <div class="diagram"><pre>ARCHITECTURE:
-                    ┌─────────────┐
+                    ┌──────────────┐
   Request ────────→ │ API Gateway  │
                     │ (FastAPI)    │
-                    └──────┬──────┘
-                           │
-              ┌────────────┼────────────┐
+                    └──────┬───────┘
+                                   │
+              ┌────────────┼───────┐
               ▼            ▼            ▼
-        ┌──────────┐ ┌──────────┐ ┌──────────┐
+        ┌──────────┐ ┌──────────┐ ┌─────────────┐
         │ PARALLEL  │ │ PARALLEL  │ │ PARALLEL  │
         │ Search    │ │ Recommend │ │ Ad Rank   │
         │ (50ms)    │ │ (80ms)    │ │ (40ms)    │
-        └──────────┘ └──────────┘ └──────────┘
-                           │
+        └──────────┘ └──────────┘ └─────────────┘
+                                   │
                            ▼
                     ┌──────────────┐
                     │ SEQUENTIAL   │
                     │ Fraud Score  │ (can't parallelize — needs
                     │ (30ms)       │  ranking results)
                     └──────────────┘
-                           │
+                                   │
                            ▼
                     ┌──────────────┐
                     │ Price Opt    │ (depends on fraud score
@@ -1321,17 +1321,17 @@ INFRASTRUCTURE:
     [Monitoring] ← All services emit metrics to
 
 SERVICE BOUNDARIES:
-  ┌─────────────┐  ┌──────────────┐  ┌──────────────┐
+  ┌─────────────┐  ┌──────────────┐  ┌───────────────┐
   │ Training     │  │ Feature      │  │ Model Serving│
   │ Pipeline     │──│ Service      │──│ API          │
   │ (batch)      │  │ (shared)     │  │ (real-time)  │
-  └─────────────┘  └──────────────┘  └──────────────┘
+  └─────────────┘  └──────────────┘  └───────────────┘
         │                                            │
         ▼                                     ▼
-  ┌─────────────┐                    ┌──────────────┐
-  │ Model       │                    │ Monitoring   │
-  │ Registry    │                    │ &amp; Alerting   │
-  └─────────────┘                    └──────────────┘
+  ┌─────────────┐                    ┌───────────────┐
+  │ Model       │                    │ Monitoring    │
+  │ Registry    │                    │ &amp; Alerting    │
+  └─────────────┘                    └───────────────┘
 
 Key: Don't decompose everything at once. Extract one service at a time,
 validate it works, then move to the next.</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10MLOpsScenari-13"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 14: Data Pipeline SLA Miss</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10MLOpsScenari-13"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Situation</span><span class="kt">Question</span><span class="kt">Answer</span><span class="kt">Incremental processing</span><span class="kt">Streaming architecture</span><span class="kt">Pipeline parallelism</span></div><p><strong>Situation:</strong> Your ML pipeline has a 6 AM <abbr title="service level agreement">SLA</abbr> for daily predictions. The data extraction from the data warehouse takes 3 hours (midnight to 3 AM), feature engineering takes 1.5 hours, model inference takes 30 minutes. Lately, data warehouse queries are running longer, and you're missing the SLA.</p>
@@ -1447,11 +1447,11 @@ service DataService {
 <li>Service meshes (Istio, Envoy)</li>
 </ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07gRPCvsRESTmd-22"><div class="q-h"><span class="q-n">&bull;</span><h3>Common Architecture Pattern</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07gRPCvsRESTmd-22"><span></span></label></div><div class="q-a"><p>A typical production system uses <strong>both</strong>:</p>
 <div class="diagram"><pre>[Browser / Mobile App]
-         │
+               │
          │  REST (HTTP/JSON) — public, flexible, browser-native
          ▼
 [API Gateway / Backend for Frontend]
-         │
+               │
          │  gRPC (Protobuf/HTTP2) — fast, streaming, typed
          ▼
 [Internal Microservices]

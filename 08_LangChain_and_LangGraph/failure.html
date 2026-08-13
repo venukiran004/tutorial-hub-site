@@ -1371,14 +1371,14 @@ app.<span class="fn">invoke</span>(<span class="kw">None</span>, config)      <s
                        │  reads state.error → picks a verb:      │
                        │  retry · fallback · degrade · escalate  │
                        └─────────────────────────────────────────┘
-      ┌───────────────┬──────────────┴───────┬──────────────┬──────────────┐
+      ┌───────────────┬──────────────┴───────┬──────────────┬────┐
       ▼               ▼                      ▼              ▼              ▼
  ┌─────────┐    ┌─────────┐            ┌─────────┐   ┌──────────┐   ┌──────────┐
  │worker A │    │worker B │  …fan-out  │worker N │   │  human   │   │ aggregate│
  │(bulkhead│    │(bulkhead│            │(bulkhead│   │  review  │   │ (quorum/ │
- │ budget) │    │ budget) │            │ budget) │   │ (HITL)  │   │ degrade) │
+ │ budget) │    │ budget) │            │ budget) │   │ (HITL)  │   │ degrade)  │
  └────┬────┘    └────┬────┘            └────┬────┘   └────┬─────┘   └────┬─────┘
-      │  each: safe_node (catch→error), RetryPolicy,      │              │
+      │  each: safe_node (catch→error), RetryPolicy,      │                    │
       │  timeout, circuit breaker, idempotent side-effects│              ▼
       └──────────── all write to shared state ────────────┘            END
    Cross-cutting: checkpointer (resume-after-crash) · budget_guard · observability</pre></div>

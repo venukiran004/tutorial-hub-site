@@ -985,12 +985,12 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
 </div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06DistributedS-1"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Why Distributed Systems Are Hard</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06DistributedS-1"><span></span></label></div><div class="q-a"><div class="diagram"><pre>THE FUNDAMENTAL CHALLENGES:
 
   1. PARTIAL FAILURE
-     ┌───────────────────────────────────────────────────────┐
-     │ In a single machine: either everything works or       │
-     │ everything fails. In distributed systems: some parts  │
-     │ can fail while others continue, and you can't even    │
-     │ TELL which parts have failed.                         │
-     └───────────────────────────────────────────────────────┘
+     ┌──────────────────────────────────────────────────────────────┐
+     │ In a single machine: either everything works or              │
+     │ everything fails. In distributed systems: some parts         │
+     │ can fail while others continue, and you can't even           │
+     │ TELL which parts have failed.                                │
+     └──────────────────────────────────────────────────────────────┘
 
   2. UNRELIABLE NETWORKS
      - Messages can be lost, delayed, duplicated, or reordered
@@ -1045,7 +1045,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
   │ 5. BYZANTINE                                              │
   │    Node behaves arbitrarily (send wrong data, lie)        │
   │    Could be malicious or due to bugs/corruption           │
-  │    Hardest to handle. Requires 3f+1 nodes for f faults.  │
+  │    Hardest to handle. Requires 3f+1 nodes for f faults.   │
   └───────────────────────────────────────────────────────────┘
 
   PRACTICAL FAILURE CATEGORIES:
@@ -1074,76 +1074,76 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
   - Debugging: Correlating logs across services
 
 PHYSICAL CLOCKS:
-  ┌──────────────────────────────────────────────────────────┐
-  │ Each machine has a quartz oscillator (drifts 10-100 ppm) │
-  │ 100 ppm = 8.6 seconds per day of drift                   │
-  │                                                          │
-  │ NTP (Network Time Protocol):                             │
-  │   Synchronizes to ~1-50ms accuracy                       │
-  │   Can jump forward or backward                           │
-  │   NOT reliable for ordering events                       │
-  │                                                          │
-  │ Google TrueTime (Spanner):                               │
-  │   GPS + atomic clocks → bounded uncertainty [earliest,   │
-  │   latest]. Wait out uncertainty before commit.           │
-  │   Accuracy: ~1-7ms uncertainty interval                  │
-  │   Enables globally consistent transactions               │
-  └──────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Each machine has a quartz oscillator (drifts 10-100 ppm)    │
+  │ 100 ppm = 8.6 seconds per day of drift                      │
+  │                                                             │
+  │ NTP (Network Time Protocol):                                │
+  │   Synchronizes to ~1-50ms accuracy                          │
+  │   Can jump forward or backward                              │
+  │   NOT reliable for ordering events                          │
+  │                                                             │
+  │ Google TrueTime (Spanner):                                  │
+  │   GPS + atomic clocks → bounded uncertainty [earliest,      │
+  │   latest]. Wait out uncertainty before commit.              │
+  │   Accuracy: ~1-7ms uncertainty interval                     │
+  │   Enables globally consistent transactions                  │
+  └─────────────────────────────────────────────────────────────┘
 
 LAMPORT CLOCKS (Logical):
-  ┌──────────────────────────────────────────────────────────┐
-  │ Each process maintains a counter C                       │
-  │                                                          │
-  │ Rules:                                                   │
-  │   1. Before any event: C = C + 1                         │
-  │   2. Send message: attach C to message                   │
-  │   3. Receive message(C_msg): C = max(C, C_msg) + 1      │
-  │                                                          │
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Each process maintains a counter C                          │
+  │                                                             │
+  │ Rules:                                                      │
+  │   1. Before any event: C = C + 1                            │
+  │   2. Send message: attach C to message                      │
+  │   3. Receive message(C_msg): C = max(C, C_msg) + 1          │
+  │                                                             │
   │ Property: If A → B (A causally precedes B), then C(A) &lt; C(B)│
-  │ BUT: C(A) &lt; C(B) does NOT imply A → B (concurrent events)│
-  │                                                          │
-  │ Example:                                                 │
-  │   Process P1:  [1] ──send──→ [2]           [5]          │
-  │   Process P2:         [1] [2] ──recv──→ [3] ──send──→[4]│
-  │   Process P3:              [1]        [2]   ──recv──→[5] │
-  └──────────────────────────────────────────────────────────┘
+  │ BUT: C(A) &lt; C(B) does NOT imply A → B (concurrent events)   │
+  │                                                             │
+  │ Example:                                                    │
+  │   Process P1:  [1] ──send──→ [2]           [5]              │
+  │   Process P2:         [1] [2] ──────recv──→ [3] ──send──→[4]│
+  │   Process P3:              [1]        [2]   ──recv──→[5]    │
+  └─────────────────────────────────────────────────────────────┘
 
 VECTOR CLOCKS:
-  ┌──────────────────────────────────────────────────────────┐
-  │ Each process maintains a vector of counters              │
-  │ (one entry per process in the system)                    │
-  │                                                          │
-  │ Rules:                                                   │
-  │   1. Before event: increment own entry                   │
-  │   2. Send: attach entire vector                          │
-  │   3. Receive: take element-wise max, then increment own  │
-  │                                                          │
-  │ Property: Can detect CONCURRENT events                   │
-  │   V(A) &lt; V(B): A happened before B                      │
-  │   V(A) || V(B): A and B are concurrent (conflict!)      │
-  │                                                          │
-  │ Example (3 processes):                                   │
-  │   P1: [1,0,0] → send → [2,0,0]                         │
-  │   P2: [0,1,0] → recv → [2,2,0] → send → [2,3,0]       │
-  │   P3: [0,0,1] → recv → [2,3,2]                         │
-  │                                                          │
-  │ Problem: Vector size grows with # processes              │
-  │ Used by: DynamoDB, Riak (for conflict detection)         │
-  └──────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Each process maintains a vector of counters                 │
+  │ (one entry per process in the system)                       │
+  │                                                             │
+  │ Rules:                                                      │
+  │   1. Before event: increment own entry                      │
+  │   2. Send: attach entire vector                             │
+  │   3. Receive: take element-wise max, then increment own     │
+  │                                                             │
+  │ Property: Can detect CONCURRENT events                      │
+  │   V(A) &lt; V(B): A happened before B                          │
+  │   V(A) || V(B): A and B are concurrent (conflict!)          │
+  │                                                             │
+  │ Example (3 processes):                                      │
+  │   P1: [1,0,0] → send → [2,0,0]                              │
+  │   P2: [0,1,0] → recv → [2,2,0] → send → [2,3,0]             │
+  │   P3: [0,0,1] → recv → [2,3,2]                              │
+  │                                                             │
+  │ Problem: Vector size grows with # processes                 │
+  │ Used by: DynamoDB, Riak (for conflict detection)            │
+  └─────────────────────────────────────────────────────────────┘
 
 HYBRID LOGICAL CLOCKS (HLC):
-  ┌──────────────────────────────────────────────────────────┐
-  │ Combines physical time with logical counter              │
-  │ HLC = (physical_time, logical_counter)                   │
-  │                                                          │
-  │ Benefits:                                                │
-  │   - Bounded drift from physical time                     │
-  │   - Captures causality like Lamport clocks               │
-  │   - Fixed size (not like vector clocks)                  │
-  │   - Can be used for snapshot reads                       │
-  │                                                          │
-  │ Used by: CockroachDB, YugabyteDB, MongoDB                │
-  └──────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Combines physical time with logical counter                 │
+  │ HLC = (physical_time, logical_counter)                      │
+  │                                                             │
+  │ Benefits:                                                   │
+  │   - Bounded drift from physical time                        │
+  │   - Captures causality like Lamport clocks                  │
+  │   - Fixed size (not like vector clocks)                     │
+  │   - Can be used for snapshot reads                          │
+  │                                                             │
+  │ Used by: CockroachDB, YugabyteDB, MongoDB                   │
+  └─────────────────────────────────────────────────────────────┘
 
 VERSION VECTORS (for replicated data):
   - Like vector clocks but track data versions, not events
@@ -1165,10 +1165,10 @@ RAFT PROTOCOL (most practical, easy to understand)
   ┌──────────┐    timeout    ┌───────────┐   majority    ┌────────┐
   │ Follower │──────────────→│ Candidate │──────────────→│ Leader │
   └──────────┘               └───────────┘               └────────┘
-       ↑                          │                           │
+       ↑                          │                               │
        │                          │ higher term               │ higher term
        │                          ↓                           ↓
-       └──────────────────────────────────────────────────────┘
+       └──────────────────────────────────────────────────────────┘
 
   KEY CONCEPTS:
   Term:    Logical time period. Monotonically increasing.
@@ -1349,14 +1349,14 @@ VIEWSTAMPED REPLICATION
   │ Membership         │ Track which nodes are alive          │
   │                    │ (Cassandra, DynamoDB)                │
   ├────────────────────┼──────────────────────────────────────┤
-  │ Failure Detection  │ Heartbeats via gossip               │
-  │                    │ (SWIM protocol)                     │
+  │ Failure Detection  │ Heartbeats via gossip                │
+  │                    │ (SWIM protocol)                      │
   ├────────────────────┼──────────────────────────────────────┤
   │ State Dissemination│ Spread config/metadata               │
-  │                    │ (Consul, Serf)                      │
+  │                    │ (Consul, Serf)                       │
   ├────────────────────┼──────────────────────────────────────┤
-  │ Aggregate Queries  │ Distributed counts, averages        │
-  │                    │ (monitoring systems)                │
+  │ Aggregate Queries  │ Distributed counts, averages         │
+  │                    │ (monitoring systems)                 │
   └────────────────────┴──────────────────────────────────────┘
 
   SWIM PROTOCOL (Scalable Weakly-consistent Infection-style
@@ -1381,7 +1381,7 @@ VIEWSTAMPED REPLICATION
   │ Challenges:                                               │
   │   - Timeout too short → false positives (healthy node     │
   │     declared dead due to network blip)                    │
-  │   - Timeout too long → slow detection                    │
+  │   - Timeout too long → slow detection                     │
   │   - GC pauses can cause missed heartbeats                 │
   └───────────────────────────────────────────────────────────┘
 
@@ -1392,9 +1392,9 @@ VIEWSTAMPED REPLICATION
   │ Tracks heartbeat arrival times, builds distribution       │
   │ φ = -log₁₀(P(heartbeat_delay ≥ time_since_last))          │
   │                                                           │
-  │ φ = 1 → 10% chance of being wrong                       │
-  │ φ = 2 → 1% chance                                       │
-  │ φ = 3 → 0.1% chance                                     │
+  │ φ = 1 → 10% chance of being wrong                         │
+  │ φ = 2 → 1% chance                                         │
+  │ φ = 3 → 0.1% chance                                       │
   │                                                           │
   │ Application sets threshold based on tolerance             │
   │ Adapts to network conditions automatically                │
@@ -1408,14 +1408,14 @@ VIEWSTAMPED REPLICATION
   - Low false positive rate through indirect probing
 
   PRACTICAL CONSIDERATIONS:
-  ┌──────────────────────────────────────────────────────────┐
-  │ 1. Differentiate: crash vs slow vs network partition     │
-  │ 2. Use multiple detection mechanisms in parallel         │
-  │ 3. Require multiple detectors to agree before action     │
-  │ 4. Implement graceful degradation (suspect state)        │
-  │ 5. Consider asymmetric partitions (A→B works, B→A fails)│
-  │ 6. Log and alert on detection events for debugging       │
-  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06DistributedS-8"><div class="q-h"><span class="q-n">&bull;</span><h3>8. Distributed Locking</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06DistributedS-8"><span></span></label></div><div class="q-a"><div class="diagram"><pre>DISTRIBUTED LOCKS: Coordinate access to shared resources across nodes.
+  ┌───────────────────────────────────────────────────────────┐
+  │ 1. Differentiate: crash vs slow vs network partition      │
+  │ 2. Use multiple detection mechanisms in parallel          │
+  │ 3. Require multiple detectors to agree before action      │
+  │ 4. Implement graceful degradation (suspect state)         │
+  │ 5. Consider asymmetric partitions (A→B works, B→A fails)  │
+  │ 6. Log and alert on detection events for debugging        │
+  └───────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06DistributedS-8"><div class="q-h"><span class="q-n">&bull;</span><h3>8. Distributed Locking</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06DistributedS-8"><span></span></label></div><div class="q-a"><div class="diagram"><pre>DISTRIBUTED LOCKS: Coordinate access to shared resources across nodes.
 
   WHY IT'S HARD:
   - Lock holder can crash while holding lock
@@ -1488,21 +1488,21 @@ FENCING TOKENS (critical safety mechanism)
   │ Client A pauses... lock expires...                        │
   │ Client B gets lock (token=34)                             │
   │ Client A resumes, sends write with token=33               │
-  │ Storage server: 34 &gt; 33 → REJECT Client A's write!       │
+  │ Storage server: 34 &gt; 33 → REJECT Client A's write!        │
   │                                                           │
   │ Requires: storage/resource server to check fencing token  │
   └───────────────────────────────────────────────────────────┘
 
   ARCHITECT GUIDANCE:
-  ┌──────────────────────────────────────────────────────────┐
-  │ • If lock is for EFFICIENCY (prevent duplicate work):    │
-  │   Redis lock is fine (occasional duplicate is OK)        │
-  │ • If lock is for CORRECTNESS (prevent data corruption):  │
-  │   Use ZooKeeper/etcd + fencing tokens                    │
-  │ • NEVER rely on lock timing for safety                   │
-  │ • Always have a TTL to prevent deadlocks                 │
-  │ • Make protected operations idempotent when possible     │
-  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06DistributedS-9"><div class="q-h"><span class="q-n">&bull;</span><h3>9. Consistency Models Deep Dive</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06DistributedS-9"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CONSISTENCY SPECTRUM (weakest → strongest):
+  ┌───────────────────────────────────────────────────────────┐
+  │ • If lock is for EFFICIENCY (prevent duplicate work):     │
+  │   Redis lock is fine (occasional duplicate is OK)         │
+  │ • If lock is for CORRECTNESS (prevent data corruption):   │
+  │   Use ZooKeeper/etcd + fencing tokens                     │
+  │ • NEVER rely on lock timing for safety                    │
+  │ • Always have a TTL to prevent deadlocks                  │
+  │ • Make protected operations idempotent when possible      │
+  └───────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06DistributedS-9"><div class="q-h"><span class="q-n">&bull;</span><h3>9. Consistency Models Deep Dive</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06DistributedS-9"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CONSISTENCY SPECTRUM (weakest → strongest):
 
   Eventual ──→ Causal ──→ Sequential ──→ Linearizable
   (weakest)                                (strongest)
@@ -1574,15 +1574,15 @@ SESSION GUARANTEES (practical middle ground):
   RULE: W + R &gt; N → at least one node has the latest value
 
   EXAMPLES:
-  ┌─────────────┬─────────────┬─────────────┬──────────────────┐
-  │ Config       │ N=3, W=2,  │ N=3, W=1,  │ N=5, W=3,       │
+  ┌─────────────┬─────────────┬─────────────┬───────────────────┐
+  │ Config       │ N=3, W=2,  │ N=3, W=1,  │ N=5, W=3,          │
   │             │ R=2         │ R=3          │ R=3              │
-  ├─────────────┼─────────────┼─────────────┼──────────────────┤
+  ├─────────────┼─────────────┼─────────────┼───────────────────┤
   │ Consistency │ Strong      │ Strong       │ Strong           │
-  │ Write avail │ Tolerate 1  │ Tolerate 2  │ Tolerate 2       │
-  │ Read avail  │ Tolerate 1  │ Tolerate 0  │ Tolerate 2       │
+  │ Write avail │ Tolerate 1  │ Tolerate 2  │ Tolerate 2        │
+  │ Read avail  │ Tolerate 1  │ Tolerate 0  │ Tolerate 2        │
   │ Use case    │ Balanced    │ Write-heavy  │ High availability│
-  └─────────────┴─────────────┴─────────────┴──────────────────┘
+  └─────────────┴─────────────┴─────────────┴───────────────────┘
 
   SLOPPY QUORUM (DynamoDB):
   - During partition, write to ANY N healthy nodes (not just designated)
@@ -1609,7 +1609,7 @@ SESSION GUARANTEES (practical middle ground):
 
   TWO TYPES:
   ┌──────────────────────────────────────────────────────────┐
-  │ State-based (CvRDT):                                    │
+  │ State-based (CvRDT):                                     │
   │   Replicas send full state, merge with join function     │
   │   Merge must be: commutative, associative, idempotent    │
   │   Higher bandwidth, simpler to implement                 │
@@ -1635,10 +1635,10 @@ SESSION GUARANTEES (practical middle ground):
   │ (Add-Wins)        │ with unique tags; add wins conflicts)│
   ├───────────────────┼──────────────────────────────────────┤
   │ LWW-Register      │ Last-Writer-Wins register            │
-  │                   │ (timestamp-based conflict resolution) │
+  │                   │ (timestamp-based conflict resolution)│
   ├───────────────────┼──────────────────────────────────────┤
   │ MV-Register       │ Multi-Value register (keeps all      │
-  │                   │ concurrent values — app resolves)     │
+  │                   │ concurrent values — app resolves)    │
   ├───────────────────┼──────────────────────────────────────┤
   │ LWW-Element-Graph │ For graph structures (edges + nodes  │
   │                   │ with LWW semantics)                  │
@@ -1662,18 +1662,18 @@ SESSION GUARANTEES (practical middle ground):
 distributed system without stopping it.
 
   CHANDY-LAMPORT ALGORITHM:
-  ┌───────────────────────────────────────────────────────────┐
-  │ 1. Initiator saves its own state                          │
-  │ 2. Sends MARKER on all outgoing channels                  │
-  │ 3. On receiving MARKER (first time on a channel):         │
-  │    a. Save own state                                      │
+  ┌────────────────────────────────────────────────────────────┐
+  │ 1. Initiator saves its own state                           │
+  │ 2. Sends MARKER on all outgoing channels                   │
+  │ 3. On receiving MARKER (first time on a channel):          │
+  │    a. Save own state                                       │
   │    b. Record channel state = messages received between     │
-  │       own snapshot and marker on that channel             │
-  │    c. Send MARKER on all outgoing channels                │
-  │ 4. On receiving MARKER (subsequent times):                │
-  │    Stop recording that channel's state                    │
+  │       own snapshot and marker on that channel              │
+  │    c. Send MARKER on all outgoing channels                 │
+  │ 4. On receiving MARKER (subsequent times):                 │
+  │    Stop recording that channel's state                     │
   │ 5. Snapshot complete when all channels have received MARKER│
-  └───────────────────────────────────────────────────────────┘
+  └────────────────────────────────────────────────────────────┘
 
   REQUIREMENTS:
   - FIFO channels (messages arrive in order)
@@ -1700,15 +1700,15 @@ distributed system without stopping it.
   But exactly-once PROCESSING is achievable!
 
   HOW TO ACHIEVE EXACTLY-ONCE PROCESSING:
-  ┌────────────────────────────────────────────────────────────┐
-  │ At-Least-Once Delivery + Idempotent Processing            │
-  │                         = Exactly-Once Semantics           │
-  └────────────────────────────────────────────────────────────┘
+  ┌──────────────────────────────────────────────────────────┐
+  │ At-Least-Once Delivery + Idempotent Processing           │
+  │                         = Exactly-Once Semantics         │
+  └──────────────────────────────────────────────────────────┘
 
   IDEMPOTENCY STRATEGIES:
   ┌───────────────────┬──────────────────────────────────────┐
   │ Natural idempotent│ SET x = 5 (repeating has no effect)  │
-  │                   │ vs SET x = x + 1 (NOT idempotent)   │
+  │                   │ vs SET x = x + 1 (NOT idempotent)    │
   ├───────────────────┼──────────────────────────────────────┤
   │ Deduplication ID  │ Store processed message IDs          │
   │                   │ Reject if ID already processed       │
@@ -1723,22 +1723,22 @@ distributed system without stopping it.
   └───────────────────┴──────────────────────────────────────┘
 
   KAFKA EXACTLY-ONCE:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Producer:                                                 │
-  │   Idempotent producer (enable.idempotence=true)           │
-  │   Assigns sequence number per partition                   │
-  │   Broker deduplicates by (producer_id, sequence)          │
-  │                                                           │
-  │ Transactional producer:                                   │
-  │   Atomic writes across multiple partitions                │
+  ┌──────────────────────────────────────────────────────────┐
+  │ Producer:                                                │
+  │   Idempotent producer (enable.idempotence=true)          │
+  │   Assigns sequence number per partition                  │
+  │   Broker deduplicates by (producer_id, sequence)         │
+  │                                                          │
+  │ Transactional producer:                                  │
+  │   Atomic writes across multiple partitions               │
   │   begin_transaction() → produce() → commit()             │
-  │                                                           │
-  │ Consumer:                                                 │
-  │   Read committed isolation (read_committed)               │
-  │   Only see committed transactional messages               │
-  │   Consume-transform-produce pattern:                      │
+  │                                                          │
+  │ Consumer:                                                │
+  │   Read committed isolation (read_committed)              │
+  │   Only see committed transactional messages              │
+  │   Consume-transform-produce pattern:                     │
   │   read → process → write output + offset in SAME txn     │
-  └───────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06DistributedS-14"><div class="q-h"><span class="q-n">&bull;</span><h3>14. Split-Brain and Network Partitions</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06DistributedS-14"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SPLIT-BRAIN: Two or more parts of a distributed system
+  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06DistributedS-14"><div class="q-h"><span class="q-n">&bull;</span><h3>14. Split-Brain and Network Partitions</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06DistributedS-14"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SPLIT-BRAIN: Two or more parts of a distributed system
 operate independently, each believing it is the sole authority.
 
   CAUSES:
@@ -1798,13 +1798,13 @@ Generals Problem (Lamport, 1982).
 
   PBFT (Practical Byzantine Fault Tolerance):
   ┌────────────────────────────────────────────────────────────┐
-  │ 1. Pre-prepare: Primary broadcasts request with sequence  │
-  │ 2. Prepare: Each replica broadcasts PREPARE to all others │
-  │ 3. Commit: After 2f+1 PREPAREs, broadcast COMMIT         │
-  │ 4. Reply: After 2f+1 COMMITs, execute and reply to client│
-  │                                                           │
-  │ Complexity: O(N²) messages per operation                  │
-  │ Practical for: small clusters (4-20 nodes)               │
+  │ 1. Pre-prepare: Primary broadcasts request with sequence   │
+  │ 2. Prepare: Each replica broadcasts PREPARE to all others  │
+  │ 3. Commit: After 2f+1 PREPAREs, broadcast COMMIT           │
+  │ 4. Reply: After 2f+1 COMMITs, execute and reply to client  │
+  │                                                            │
+  │ Complexity: O(N²) messages per operation                   │
+  │ Practical for: small clusters (4-20 nodes)                 │
   └────────────────────────────────────────────────────────────┘
 
   BLOCKCHAIN CONSENSUS:
@@ -1819,13 +1819,13 @@ Generals Problem (Lamport, 1982).
 upstream traffic, signal the upstream to slow down.
 
   WITHOUT BACKPRESSURE:
-  ┌────────────────────────────────────────────────────────────┐
-  │ Producer (fast) → Consumer (slow)                         │
-  │                                                           │
+  ┌──────────────────────────────────────────────────────────┐
+  │ Producer (fast) → Consumer (slow)                        │
+  │                                                          │
   │ Buffer grows → OOM → crash                               │
   │ OR: Drop messages → data loss                            │
   │ OR: Cascading failures → system-wide outage              │
-  └────────────────────────────────────────────────────────────┘
+  └──────────────────────────────────────────────────────────┘
 
   BACKPRESSURE STRATEGIES:
   ┌──────────────────┬───────────────────────────────────────┐
@@ -1836,13 +1836,13 @@ upstream traffic, signal the upstream to slow down.
   │                  │ (bounded buffer + drop oldest/newest) │
   ├──────────────────┼───────────────────────────────────────┤
   │ Block            │ Stop accepting new requests           │
-  │                  │ (TCP flow control, sync APIs)        │
+  │                  │ (TCP flow control, sync APIs)         │
   ├──────────────────┼───────────────────────────────────────┤
   │ Signal           │ Tell producer to slow down            │
   │                  │ (HTTP 429, Kafka consumer lag metric) │
   ├──────────────────┼───────────────────────────────────────┤
   │ Auto-scale       │ Scale consumers to match load         │
-  │                  │ (K8s HPA, Lambda concurrency)        │
+  │                  │ (K8s HPA, Lambda concurrency)         │
   └──────────────────┴───────────────────────────────────────┘
 
   REACTIVE STREAMS SPECIFICATION:
@@ -1865,7 +1865,7 @@ wrongly assume about networks:
   │    → Retry with exponential backoff, idempotency          │
   │                                                           │
   │ 2. Latency is zero                                        │
-  │    Reality: Cross-DC = 50-150ms, even LAN = 0.5ms        │
+  │    Reality: Cross-DC = 50-150ms, even LAN = 0.5ms         │
   │    → Batch operations, cache aggressively, async design   │
   │                                                           │
   │ 3. Bandwidth is infinite                                  │
@@ -2022,26 +2022,26 @@ ARCHITECT TAKEAWAYS:
   └───────────────────────────────────────────────────────────┘
 
   DATA STRUCTURES ON DISK:
-  ┌──────────────────┬──────────────────────────────────────────┐
-  │ Pages            │ Fixed-size blocks (4KB, 8KB, 16KB)      │
-  │                  │ Basic unit of disk I/O                   │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Heap file        │ Unordered collection of pages           │
-  │                  │ Records stored in insertion order        │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Index            │ Secondary structure pointing to heap    │
-  │                  │ B-tree, hash, GIN, GiST, BRIN           │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Clustered index  │ Data stored in index order              │
-  │                  │ MySQL InnoDB: primary key IS the data   │
-  └──────────────────┴──────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f09DataSystemsI-23"><div class="q-h"><span class="q-n">&bull;</span><h3>2. B-Tree Storage</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09DataSystemsI-23"><span></span></label></div><div class="q-a"><div class="diagram"><pre>B-TREE: Balanced tree structure. The most widely used
+  ┌──────────────────┬────────────────────────────────────────┐
+  │ Pages            │ Fixed-size blocks (4KB, 8KB, 16KB)     │
+  │                  │ Basic unit of disk I/O                 │
+  ├──────────────────┼────────────────────────────────────────┤
+  │ Heap file        │ Unordered collection of pages          │
+  │                  │ Records stored in insertion order      │
+  ├──────────────────┼────────────────────────────────────────┤
+  │ Index            │ Secondary structure pointing to heap   │
+  │                  │ B-tree, hash, GIN, GiST, BRIN          │
+  ├──────────────────┼────────────────────────────────────────┤
+  │ Clustered index  │ Data stored in index order             │
+  │                  │ MySQL InnoDB: primary key IS the data  │
+  └──────────────────┴────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f09DataSystemsI-23"><div class="q-h"><span class="q-n">&bull;</span><h3>2. B-Tree Storage</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09DataSystemsI-23"><span></span></label></div><div class="q-a"><div class="diagram"><pre>B-TREE: Balanced tree structure. The most widely used
 index type in databases for 40+ years.
 
   STRUCTURE:
   ┌───────────────────────────────────────────────────────────┐
   │                  [Root Page]                              │
   │                  [10 | 20 | 30]                           │
-  │                 /    |     |    \                          │
+  │                 /    |     |    \                         │
   │        [1-9]    [10-19] [20-29] [30-39]                   │
   │        /  \       / \     / \     / \                     │
   │    [leaf] [leaf] [leaf] [leaf] [leaf] [leaf]              │
@@ -2073,15 +2073,15 @@ index type in databases for 40+ years.
   └───────────────────────────────────────────────────────────┘
 
   PERFORMANCE CHARACTERISTICS:
-  ┌──────────────────┬──────────────────────────────────────────┐
-  │ Point lookup     │ O(log N) — excellent                    │
+  ┌──────────────────┬────────────────────────────────────────┐
+  │ Point lookup     │ O(log N) — excellent                   │
   │ Range scan       │ O(log N + K) — excellent (K = results) │
-  │ Insert           │ O(log N) — good, but page splits costly │
-  │ Update           │ O(log N) — in-place update              │
-  │ Delete           │ O(log N) — mark deleted, later compact  │
+  │ Insert           │ O(log N) — good, but page splits costly│
+  │ Update           │ O(log N) — in-place update             │
+  │ Delete           │ O(log N) — mark deleted, later compact │
   │ Space amplification│ ~1.0-1.5× (fragmentation)            │
   │ Write amplification│ 1-2× (WAL + page write)              │
-  └──────────────────┴──────────────────────────────────────────┘
+  └──────────────────┴────────────────────────────────────────┘
 
   FRAGMENTATION:
   - Deletes leave holes in pages
@@ -2092,37 +2092,37 @@ Optimize writes by buffering in memory, then flushing
 sorted runs to disk. Background compaction merges runs.
 
   ARCHITECTURE:
-  ┌───────────────────────────────────────────────────────────┐
-  │                                                           │
-  │  Write → MemTable (in-memory sorted tree, e.g., red-black)│
-  │              │                                            │
-  │              │ (when full, ~64MB)                         │
-  │              ↓                                            │
-  │         Flush to disk as SSTable (Sorted String Table)    │
-  │              │                                            │
-  │              ↓                                            │
-  │  Level 0: [SST-1] [SST-2] [SST-3] (may overlap)         │
-  │              │                                            │
-  │              │ (compaction merges)                        │
-  │              ↓                                            │
-  │  Level 1: [SST-A] [SST-B] [SST-C] (non-overlapping)     │
-  │              │                                            │
-  │              │ (compaction merges)                        │
-  │              ↓                                            │
-  │  Level 2: [SST-X] [SST-Y] [SST-Z] (larger, non-overlap) │
-  │                                                           │
-  │  Each level is ~10× larger than the previous             │
-  └───────────────────────────────────────────────────────────┘
+  ┌────────────────────────────────────────────────────────────┐
+  │                                                            │
+  │  Write → MemTable (in-memory sorted tree, e.g., red-black) │
+  │              │                                             │
+  │              │ (when full, ~64MB)                          │
+  │              ↓                                             │
+  │         Flush to disk as SSTable (Sorted String Table)     │
+  │              │                                             │
+  │              ↓                                             │
+  │  Level 0: [SST-1] [SST-2] [SST-3] (may overlap)            │
+  │              │                                             │
+  │              │ (compaction merges)                         │
+  │              ↓                                             │
+  │  Level 1: [SST-A] [SST-B] [SST-C] (non-overlapping)        │
+  │              │                                             │
+  │              │ (compaction merges)                         │
+  │              ↓                                             │
+  │  Level 2: [SST-X] [SST-Y] [SST-Z] (larger, non-overlap)    │
+  │                                                            │
+  │  Each level is ~10× larger than the previous               │
+  └────────────────────────────────────────────────────────────┘
 
   SSTABLE (Sorted String Table):
-  ┌───────────────────────────────────────────────────────────┐
-  │ - Immutable file on disk                                  │
-  │ - Keys sorted within the file                             │
-  │ - Contains: data blocks + index block + bloom filter      │
-  │ - Bloom filter: quickly check "is key POSSIBLY here?"     │
-  │   (false positives possible, false negatives impossible)  │
-  │ - Once written, never modified (append-only)              │
-  └───────────────────────────────────────────────────────────┘
+  ┌────────────────────────────────────────────────────────────┐
+  │ - Immutable file on disk                                   │
+  │ - Keys sorted within the file                              │
+  │ - Contains: data blocks + index block + bloom filter       │
+  │ - Bloom filter: quickly check "is key POSSIBLY here?"      │
+  │   (false positives possible, false negatives impossible)   │
+  │ - Once written, never modified (append-only)               │
+  └────────────────────────────────────────────────────────────┘
 
   WRITE PATH:
   1. Write to WAL (crash recovery)
@@ -2139,30 +2139,30 @@ sorted runs to disk. Background compaction merges runs.
   5. Binary search within SSTable if bloom filter positive
 
   COMPACTION STRATEGIES:
-  ┌──────────────────┬──────────────────────────────────────────┐
-  │ Size-Tiered      │ Merge similarly-sized SSTables           │
-  │ (STCS)           │ Good write throughput, more space        │
-  │                  │ Used by: Cassandra (default), HBase      │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Leveled          │ Each level has fixed size, merge into    │
-  │ (LCS)            │ next level. Better read performance.     │
-  │                  │ Higher write amplification.              │
-  │                  │ Used by: RocksDB, LevelDB                │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ FIFO             │ Delete oldest SSTables (time-series)     │
-  │                  │ No merge, very fast writes               │
-  │                  │ Used for: TTL-based data (metrics)       │
-  └──────────────────┴──────────────────────────────────────────┘
+  ┌──────────────────┬─────────────────────────────────────────┐
+  │ Size-Tiered      │ Merge similarly-sized SSTables          │
+  │ (STCS)           │ Good write throughput, more space       │
+  │                  │ Used by: Cassandra (default), HBase     │
+  ├──────────────────┼─────────────────────────────────────────┤
+  │ Leveled          │ Each level has fixed size, merge into   │
+  │ (LCS)            │ next level. Better read performance.    │
+  │                  │ Higher write amplification.             │
+  │                  │ Used by: RocksDB, LevelDB               │
+  ├──────────────────┼─────────────────────────────────────────┤
+  │ FIFO             │ Delete oldest SSTables (time-series)    │
+  │                  │ No merge, very fast writes              │
+  │                  │ Used for: TTL-based data (metrics)      │
+  └──────────────────┴─────────────────────────────────────────┘
 
   PERFORMANCE CHARACTERISTICS:
-  ┌──────────────────┬──────────────────────────────────────────┐
+  ┌──────────────────┬─────────────────────────────────────────┐
   │ Point lookup     │ O(L × log N) — bloom filters help       │
   │ Range scan       │ Merge across levels — slower than B-tree│
   │ Write            │ O(1) amortized — sequential I/O         │
-  │ Space amplification│ 1.1-2.0× (compaction overhead)       │
-  │ Write amplification│ 10-30× (data rewritten in compaction)│
-  │ Read amplification│ 1-5× (check multiple levels)          │
-  └──────────────────┴──────────────────────────────────────────┘
+  │ Space amplification│ 1.1-2.0× (compaction overhead)        │
+  │ Write amplification│ 10-30× (data rewritten in compaction) │
+  │ Read amplification│ 1-5× (check multiple levels)           │
+  └──────────────────┴─────────────────────────────────────────┘
 
   B-TREE vs LSM-TREE DECISION:
   ┌──────────────────┬──────────────────┬──────────────────────┐
@@ -2181,33 +2181,33 @@ to a sequential log file. If crash occurs, replay log.
 
   WHY WAL:
   ┌────────────────────────────────────────────────────────────┐
-  │ Problem: Database crash mid-write → corrupted data        │
-  │                                                           │
-  │ Solution:                                                 │
-  │ 1. Write change to WAL (sequential, fast)                │
-  │ 2. Respond to client (durable)                           │
-  │ 3. Apply change to actual data pages (async/background)  │
-  │                                                           │
-  │ On crash recovery:                                        │
-  │ 1. Read WAL from last checkpoint                         │
-  │ 2. Replay any committed but unapplied changes            │
-  │ 3. Rollback any uncommitted changes                      │
+  │ Problem: Database crash mid-write → corrupted data         │
+  │                                                            │
+  │ Solution:                                                  │
+  │ 1. Write change to WAL (sequential, fast)                  │
+  │ 2. Respond to client (durable)                             │
+  │ 3. Apply change to actual data pages (async/background)    │
+  │                                                            │
+  │ On crash recovery:                                         │
+  │ 1. Read WAL from last checkpoint                           │
+  │ 2. Replay any committed but unapplied changes              │
+  │ 3. Rollback any uncommitted changes                        │
   └────────────────────────────────────────────────────────────┘
 
   WAL USES BEYOND CRASH RECOVERY:
-  ┌──────────────────┬──────────────────────────────────────────┐
+  ┌──────────────────┬─────────────────────────────────────────┐
   │ Replication      │ Ship WAL to replicas (PostgreSQL        │
-  │                  │ streaming replication, MySQL binlog)     │
-  ├──────────────────┼──────────────────────────────────────────┤
+  │                  │ streaming replication, MySQL binlog)    │
+  ├──────────────────┼─────────────────────────────────────────┤
   │ CDC              │ Read WAL for change data capture        │
   │                  │ (Debezium reads PostgreSQL WAL)         │
-  ├──────────────────┼──────────────────────────────────────────┤
+  ├──────────────────┼─────────────────────────────────────────┤
   │ Point-in-time    │ Base backup + replay WAL to any point   │
   │ recovery         │ in time (PITR)                          │
-  ├──────────────────┼──────────────────────────────────────────┤
+  ├──────────────────┼─────────────────────────────────────────┤
   │ Consensus        │ Raft log is essentially a WAL           │
   │                  │ (replicated state machine)              │
-  └──────────────────┴──────────────────────────────────────────┘
+  └──────────────────┴─────────────────────────────────────────┘
 
   WAL PERFORMANCE:
   - Sequential writes → optimal for both HDD and SSD
@@ -2223,7 +2223,7 @@ can see from concurrent transactions.
   │   T1 writes A = 100                                       │
   │   T2 reads A = 100                                        │
   │   T1 rolls back (A reverts to 50)                         │
-  │   T2 used A = 100 (which was never committed!)           │
+  │   T2 used A = 100 (which was never committed!)            │
   │                                                           │
   │ NON-REPEATABLE READ:                                      │
   │   T1 reads A = 50                                         │
@@ -2231,14 +2231,14 @@ can see from concurrent transactions.
   │   T1 reads A = 100 (different from first read!)           │
   │                                                           │
   │ PHANTOM READ:                                             │
-  │   T1 reads: SELECT * WHERE age &gt; 25 → 10 rows            │
+  │   T1 reads: SELECT * WHERE age &gt; 25 → 10 rows             │
   │   T2 inserts a row with age = 30, commits                 │
-  │   T1 reads same query → 11 rows (new row appeared!)      │
+  │   T1 reads same query → 11 rows (new row appeared!)       │
   │                                                           │
   │ WRITE SKEW:                                               │
   │   Constraint: at least 1 doctor on call                   │
-  │   T1: reads 2 doctors on call, removes self              │
-  │   T2: reads 2 doctors on call, removes self              │
+  │   T1: reads 2 doctors on call, removes self               │
+  │   T2: reads 2 doctors on call, removes self               │
   │   Result: 0 doctors on call! (both committed)             │
   │   Neither saw the other's write.                          │
   └───────────────────────────────────────────────────────────┘
@@ -2256,37 +2256,37 @@ can see from concurrent transactions.
   * PostgreSQL RR actually prevents phantoms too (MVCC snapshot)
 
   DATABASE DEFAULTS:
-  ┌────────────────────┬───────────────────────────────────────┐
-  │ PostgreSQL         │ Read Committed (default)              │
-  │                    │ Repeatable Read (MVCC snapshot)       │
+  ┌────────────────────┬──────────────────────────────────────┐
+  │ PostgreSQL         │ Read Committed (default)             │
+  │                    │ Repeatable Read (MVCC snapshot)      │
   │                    │ Serializable (SSI — no locks!)       │
-  ├────────────────────┼───────────────────────────────────────┤
-  │ MySQL (InnoDB)     │ Repeatable Read (default)             │
-  │                    │ Uses gap locks to prevent phantoms    │
-  ├────────────────────┼───────────────────────────────────────┤
-  │ SQL Server         │ Read Committed (default, locking)     │
-  │                    │ Read Committed Snapshot (MVCC option) │
-  ├────────────────────┼───────────────────────────────────────┤
-  │ Oracle             │ Read Committed (default)              │
-  │                    │ Serializable (MVCC-based)             │
-  └────────────────────┴───────────────────────────────────────┘
+  ├────────────────────┼──────────────────────────────────────┤
+  │ MySQL (InnoDB)     │ Repeatable Read (default)            │
+  │                    │ Uses gap locks to prevent phantoms   │
+  ├────────────────────┼──────────────────────────────────────┤
+  │ SQL Server         │ Read Committed (default, locking)    │
+  │                    │ Read Committed Snapshot (MVCC option)│
+  ├────────────────────┼──────────────────────────────────────┤
+  │ Oracle             │ Read Committed (default)             │
+  │                    │ Serializable (MVCC-based)            │
+  └────────────────────┴──────────────────────────────────────┘
 
   SERIALIZABLE SNAPSHOT ISOLATION (SSI):
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ PostgreSQL's serializable uses SSI (no locks!):           │
   │                                                           │
   │ 1. Each transaction gets a snapshot (like MVCC)           │
-  │ 2. Track read/write dependencies between transactions    │
-  │ 3. If a dangerous cycle is detected → abort one tx       │
-  │ 4. Optimistic: assumes no conflict, aborts if detected   │
+  │ 2. Track read/write dependencies between transactions     │
+  │ 3. If a dangerous cycle is detected → abort one tx        │
+  │ 4. Optimistic: assumes no conflict, aborts if detected    │
   │                                                           │
   │ Benefits vs 2PL (two-phase locking):                      │
-  │ - No blocking: readers never block writers               │
-  │ - No deadlocks: just abort and retry                     │
-  │ - Better performance for read-heavy workloads            │
+  │ - No blocking: readers never block writers                │
+  │ - No deadlocks: just abort and retry                      │
+  │ - Better performance for read-heavy workloads             │
   │                                                           │
-  │ Cost: Occasional aborts (must retry transactions)        │
-  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f09DataSystemsI-27"><div class="q-h"><span class="q-n">&bull;</span><h3>6. MVCC — Multi-Version Concurrency Control</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09DataSystemsI-27"><span></span></label></div><div class="q-a"><div class="diagram"><pre>MVCC: Keep multiple versions of each row. Readers see
+  │ Cost: Occasional aborts (must retry transactions)         │
+  └───────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f09DataSystemsI-27"><div class="q-h"><span class="q-n">&bull;</span><h3>6. MVCC — Multi-Version Concurrency Control</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09DataSystemsI-27"><span></span></label></div><div class="q-a"><div class="diagram"><pre>MVCC: Keep multiple versions of each row. Readers see
 a snapshot from their transaction start time.
 Writers create new versions instead of updating in place.
 
@@ -2321,7 +2321,7 @@ Writers create new versions instead of updating in place.
   │ t=7    COMMIT                                             │
   │                                                           │
   │ T1's snapshot was taken before T2 committed, so T1        │
-  │ sees the version from before T2's update.                │
+  │ sees the version from before T2's update.                 │
   └───────────────────────────────────────────────────────────┘
 
   VACUUM (PostgreSQL):
@@ -2383,14 +2383,14 @@ Writers create new versions instead of updating in place.
   REPLICATION LAG EFFECTS:
   ┌───────────────────────────────────────────────────────────┐
   │ 1. Read-your-writes violation:                            │
-  │    User writes → reads from stale replica → doesn't see  │
+  │    User writes → reads from stale replica → doesn't see   │
   │    their own write!                                       │
   │    Fix: Route reads to primary for recently-written data  │
   │         or track "last_write_timestamp" per user          │
   │                                                           │
   │ 2. Monotonic reads violation:                             │
-  │    User reads from replica A (fresh) → reads from        │
-  │    replica B (stale) → time goes backward!               │
+  │    User reads from replica A (fresh) → reads from         │
+  │    replica B (stale) → time goes backward!                │
   │    Fix: Sticky sessions (route user to same replica)      │
   │                                                           │
   │ 3. Consistent prefix violation:                           │
@@ -2408,253 +2408,253 @@ for scalability and manageability.
   HORIZONTAL PARTITIONING (SHARDING):
   Split rows across nodes by a partition/shard key.
 
-  ┌──────────────────┬──────────────────────────────────────────┐
+  ┌──────────────────┬─────────────────────────────────────────┐
   │ HASH PARTITIONING│                                         │
   │                  │ hash(key) % N → shard assignment        │
   │                  │ + Even distribution                     │
-  │                  │ - Range queries across all shards        │
+  │                  │ - Range queries across all shards       │
   │                  │ - Adding shards requires reshuffling    │
   │                  │ Fix: Consistent hashing                 │
-  ├──────────────────┼──────────────────────────────────────────┤
+  ├──────────────────┼─────────────────────────────────────────┤
   │ RANGE PARTITIONING│                                        │
-  │                  │ key &lt; 1000 → S1, 1000-2000 → S2        │
+  │                  │ key &lt; 1000 → S1, 1000-2000 → S2         │
   │                  │ + Range queries efficient               │
   │                  │ - Hotspots (all recent data in one)     │
   │                  │ Fix: Add prefix/suffix to key           │
-  ├──────────────────┼──────────────────────────────────────────┤
+  ├──────────────────┼─────────────────────────────────────────┤
   │ LIST PARTITIONING│                                         │
   │                  │ country=US → S1, country=EU → S2        │
-  │                  │ + Logical grouping                       │
-  │                  │ - Uneven distribution possible           │
-  ├──────────────────┼──────────────────────────────────────────┤
+  │                  │ + Logical grouping                      │
+  │                  │ - Uneven distribution possible          │
+  ├──────────────────┼─────────────────────────────────────────┤
   │ COMPOSITE        │                                         │
   │                  │ Hash by user_id, then range by date     │
   │                  │ Multi-level partitioning                │
-  └──────────────────┴──────────────────────────────────────────┘
+  └──────────────────┴─────────────────────────────────────────┘
 
   PARTITION KEY SELECTION (most critical decision):
   ┌────────────────────────────────────────────────────────────┐
-  │ GOOD partition key:                                       │
-  │ - High cardinality (many distinct values)                │
-  │ - Even distribution (no hotspots)                        │
-  │ - Matches primary access pattern (query hits one shard)  │
-  │                                                           │
-  │ Examples:                                                 │
-  │ - user_id: Good for user-centric queries                 │
-  │ - order_id: Good for order lookups                       │
-  │ - timestamp: BAD (all recent writes to one partition)    │
-  │ - country: BAD if 50% of users are in US                │
-  │                                                           │
-  │ RULE: Design queries to include partition key             │
-  │ Cross-partition queries = scatter-gather = slow           │
+  │ GOOD partition key:                                        │
+  │ - High cardinality (many distinct values)                  │
+  │ - Even distribution (no hotspots)                          │
+  │ - Matches primary access pattern (query hits one shard)    │
+  │                                                            │
+  │ Examples:                                                  │
+  │ - user_id: Good for user-centric queries                   │
+  │ - order_id: Good for order lookups                         │
+  │ - timestamp: BAD (all recent writes to one partition)      │
+  │ - country: BAD if 50% of users are in US                   │
+  │                                                            │
+  │ RULE: Design queries to include partition key              │
+  │ Cross-partition queries = scatter-gather = slow            │
   └────────────────────────────────────────────────────────────┘
 
   REBALANCING:
   ┌────────────────────────────────────────────────────────────┐
-  │ Fixed number of partitions:                               │
-  │   Pre-create 1000 partitions, distribute across N nodes   │
-  │   Adding node: move some partitions to new node          │
-  │   Used by: Elasticsearch, Cassandra, Riak                │
-  │                                                           │
-  │ Dynamic partitioning:                                     │
-  │   Partition splits when too large, merges when too small │
-  │   Like B-tree splits but for data partitions             │
-  │   Used by: HBase, MongoDB, CockroachDB                  │
-  │                                                           │
-  │ Key-count-based:                                         │
-  │   Split when partition has too many keys                  │
-  │   Ensures bounded partition size                         │
+  │ Fixed number of partitions:                                │
+  │   Pre-create 1000 partitions, distribute across N nodes    │
+  │   Adding node: move some partitions to new node            │
+  │   Used by: Elasticsearch, Cassandra, Riak                  │
+  │                                                            │
+  │ Dynamic partitioning:                                      │
+  │   Partition splits when too large, merges when too small   │
+  │   Like B-tree splits but for data partitions               │
+  │   Used by: HBase, MongoDB, CockroachDB                     │
+  │                                                            │
+  │ Key-count-based:                                           │
+  │   Split when partition has too many keys                   │
+  │   Ensures bounded partition size                           │
   └────────────────────────────────────────────────────────────┘
 
   SECONDARY INDEXES WITH PARTITIONING:
   ┌────────────────────────────────────────────────────────────┐
-  │ LOCAL INDEX (document-partitioned):                       │
-  │   Each partition has its own secondary index              │
-  │   Write: update index on one partition                   │
-  │   Read by secondary key: scatter-gather ALL partitions   │
-  │   Used by: MongoDB, Cassandra                            │
-  │                                                           │
-  │ GLOBAL INDEX (term-partitioned):                         │
-  │   Secondary index is itself partitioned separately        │
-  │   Write: update multiple index partitions (slow writes)  │
-  │   Read by secondary key: query one index partition (fast)│
-  │   Used by: DynamoDB (GSI), CockroachDB                  │
+  │ LOCAL INDEX (document-partitioned):                        │
+  │   Each partition has its own secondary index               │
+  │   Write: update index on one partition                     │
+  │   Read by secondary key: scatter-gather ALL partitions     │
+  │   Used by: MongoDB, Cassandra                              │
+  │                                                            │
+  │ GLOBAL INDEX (term-partitioned):                           │
+  │   Secondary index is itself partitioned separately         │
+  │   Write: update multiple index partitions (slow writes)    │
+  │   Read by secondary key: query one index partition (fast)  │
+  │   Used by: DynamoDB (GSI), CockroachDB                     │
   └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f09DataSystemsI-30"><div class="q-h"><span class="q-n">&bull;</span><h3>9. Change Data Capture (CDC)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09DataSystemsI-30"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CDC: Capture row-level changes from a database and stream
 them to other systems in real-time.
 
   WHY CDC:
-  ┌───────────────────────────────────────────────────────────┐
-  │ 1. Keep read replicas/caches in sync without dual-writes  │
-  │ 2. Build materialized views / search indexes              │
-  │ 3. Feed data pipelines / data warehouse                   │
-  │ 4. Enable event-driven architecture from existing DB      │
-  │ 5. Cross-service data sync without tight coupling         │
-  └───────────────────────────────────────────────────────────┘
+  ┌──────────────────────────────────────────────────────────────┐
+  │ 1. Keep read replicas/caches in sync without dual-writes     │
+  │ 2. Build materialized views / search indexes                 │
+  │ 3. Feed data pipelines / data warehouse                      │
+  │ 4. Enable event-driven architecture from existing DB         │
+  │ 5. Cross-service data sync without tight coupling            │
+  └──────────────────────────────────────────────────────────────┘
 
   CDC APPROACHES:
-  ┌──────────────────┬──────────────────────────────────────────┐
-  │ LOG-BASED        │ Read database WAL/binlog                 │
-  │ (recommended)    │ + No schema changes needed               │
+  ┌──────────────────┬───────────────────────────────────────────┐
+  │ LOG-BASED        │ Read database WAL/binlog                  │
+  │ (recommended)    │ + No schema changes needed                │
   │                  │ + Captures all changes (including DELETEs)│
-  │                  │ + Low overhead on source DB              │
+  │                  │ + Low overhead on source DB               │
   │                  │ - DB-specific implementation              │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ TRIGGER-BASED    │ DB triggers write changes to outbox table│
-  │                  │ + Works with any DB                      │
-  │                  │ - Performance impact on source DB        │
-  │                  │ - Must maintain trigger code             │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ QUERY-BASED      │ Poll table periodically for changes     │
-  │                  │ (WHERE updated_at &gt; last_poll)           │
-  │                  │ + Simplest to implement                  │
-  │                  │ - Can't capture DELETEs (use soft delete)│
-  │                  │ - Higher latency, higher DB load        │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ OUTBOX PATTERN   │ Application writes event to outbox table │
-  │                  │ in same transaction as business data     │
-  │                  │ CDC reads outbox → publishes to broker  │
-  │                  │ + Guarantees exactly-once semantics      │
-  │                  │ - Application must write to outbox      │
-  └──────────────────┴──────────────────────────────────────────┘
+  ├──────────────────┼───────────────────────────────────────────┤
+  │ TRIGGER-BASED    │ DB triggers write changes to outbox table │
+  │                  │ + Works with any DB                       │
+  │                  │ - Performance impact on source DB         │
+  │                  │ - Must maintain trigger code              │
+  ├──────────────────┼───────────────────────────────────────────┤
+  │ QUERY-BASED      │ Poll table periodically for changes       │
+  │                  │ (WHERE updated_at &gt; last_poll)            │
+  │                  │ + Simplest to implement                   │
+  │                  │ - Can't capture DELETEs (use soft delete) │
+  │                  │ - Higher latency, higher DB load          │
+  ├──────────────────┼───────────────────────────────────────────┤
+  │ OUTBOX PATTERN   │ Application writes event to outbox table  │
+  │                  │ in same transaction as business data      │
+  │                  │ CDC reads outbox → publishes to broker    │
+  │                  │ + Guarantees exactly-once semantics       │
+  │                  │ - Application must write to outbox        │
+  └──────────────────┴───────────────────────────────────────────┘
 
   DEBEZIUM (most popular CDC tool):
-  ┌───────────────────────────────────────────────────────────┐
-  │ Source DB ──(WAL/binlog)──→ Debezium ──→ Kafka ──→ Sink  │
-  │                                                           │
-  │ Supported sources:                                        │
-  │   PostgreSQL (logical decoding)                           │
-  │   MySQL (binlog)                                          │
-  │   MongoDB (change streams)                                │
-  │   SQL Server (CT)                                         │
-  │   Oracle (LogMiner)                                       │
-  │                                                           │
-  │ Sink connectors:                                          │
-  │   Elasticsearch, Redis, S3, Snowflake, etc.               │
-  │                                                           │
-  │ Event format: {before, after, source, op, ts_ms}         │
-  │   op: c (create), u (update), d (delete), r (read/snaps)  │
-  └───────────────────────────────────────────────────────────┘
+  ┌──────────────────────────────────────────────────────────────┐
+  │ Source DB ──(WAL/binlog)──→ Debezium ──→ Kafka ──→ Sink      │
+  │                                                              │
+  │ Supported sources:                                           │
+  │   PostgreSQL (logical decoding)                              │
+  │   MySQL (binlog)                                             │
+  │   MongoDB (change streams)                                   │
+  │   SQL Server (CT)                                            │
+  │   Oracle (LogMiner)                                          │
+  │                                                              │
+  │ Sink connectors:                                             │
+  │   Elasticsearch, Redis, S3, Snowflake, etc.                  │
+  │                                                              │
+  │ Event format: {before, after, source, op, ts_ms}             │
+  │   op: c (create), u (update), d (delete), r (read/snaps)     │
+  └──────────────────────────────────────────────────────────────┘
 
   CDC ARCHITECTURE PATTERN:
-  ┌───────────────────────────────────────────────────────────┐
-  │                                                           │
-  │  Microservice ──write──→ PostgreSQL                       │
-  │                              │                            │
-  │                         (WAL/Debezium)                    │
-  │                              │                            │
-  │                              ↓                            │
-  │                           Kafka                           │
-  │                        /    |     \                       │
-  │                       ↓     ↓      ↓                     │
-  │                   Elastic  Redis  Data Warehouse          │
-  │                   (search) (cache) (analytics)            │
-  │                                                           │
-  │  No dual-writes! Single source of truth (PostgreSQL).     │
-  │  All derived stores populated via CDC.                    │
-  └───────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f09DataSystemsI-31"><div class="q-h"><span class="q-n">&bull;</span><h3>10. Stream Processing Internals</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09DataSystemsI-31"><span></span></label></div><div class="q-a"><div class="diagram"><pre>STREAM PROCESSING: Continuous computation on unbounded
+  ┌──────────────────────────────────────────────────────────────┐
+  │                                                              │
+  │  Microservice ──write──→ PostgreSQL                          │
+  │                              │                               │
+  │                         (WAL/Debezium)                       │
+  │                              │                               │
+  │                              ↓                               │
+  │                           Kafka                              │
+  │                        /    |     \                          │
+  │                       ↓     ↓      ↓                         │
+  │                   Elastic  Redis  Data Warehouse             │
+  │                   (search) (cache) (analytics)               │
+  │                                                              │
+  │  No dual-writes! Single source of truth (PostgreSQL).        │
+  │  All derived stores populated via CDC.                       │
+  └──────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f09DataSystemsI-31"><div class="q-h"><span class="q-n">&bull;</span><h3>10. Stream Processing Internals</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09DataSystemsI-31"><span></span></label></div><div class="q-a"><div class="diagram"><pre>STREAM PROCESSING: Continuous computation on unbounded
 data as it arrives, rather than batch processing.
 
   KAFKA INTERNALS:
-  ┌───────────────────────────────────────────────────────────┐
-  │ TOPIC:                                                    │
-  │   Logical channel for messages                            │
-  │   Partitioned for parallelism                             │
-  │                                                           │
-  │ PARTITION:                                                │
-  │   Ordered, immutable log of records                       │
-  │   Each record has an offset (position in the log)         │
-  │   Replicated across brokers (leader + followers)          │
-  │                                                           │
-  │ PRODUCER:                                                 │
-  │   Writes to partition based on key hash                   │
-  │   Same key always → same partition → ordering guarantee  │
-  │   Acks: 0 (fire-forget), 1 (leader), all (ISR replicas)   │
-  │                                                           │
-  │ CONSUMER GROUP:                                           │
-  │   Each partition assigned to exactly ONE consumer in group│
-  │   Consumers in same group: load balance                   │
-  │   Different groups: each gets all messages (pub-sub)      │
-  │   Consumer commits offset → tracks progress               │
-  │                                                           │
-  │ RETENTION:                                                │
-  │   Time-based (default 7 days) or size-based               │
-  │   Compacted topics: keep latest value per key            │
-  │   (perfect for changelog/CDC topics)                      │
-  └───────────────────────────────────────────────────────────┘
+  ┌────────────────────────────────────────────────────────────┐
+  │ TOPIC:                                                     │
+  │   Logical channel for messages                             │
+  │   Partitioned for parallelism                              │
+  │                                                            │
+  │ PARTITION:                                                 │
+  │   Ordered, immutable log of records                        │
+  │   Each record has an offset (position in the log)          │
+  │   Replicated across brokers (leader + followers)           │
+  │                                                            │
+  │ PRODUCER:                                                  │
+  │   Writes to partition based on key hash                    │
+  │   Same key always → same partition → ordering guarantee    │
+  │   Acks: 0 (fire-forget), 1 (leader), all (ISR replicas)    │
+  │                                                            │
+  │ CONSUMER GROUP:                                            │
+  │   Each partition assigned to exactly ONE consumer in group │
+  │   Consumers in same group: load balance                    │
+  │   Different groups: each gets all messages (pub-sub)       │
+  │   Consumer commits offset → tracks progress                │
+  │                                                            │
+  │ RETENTION:                                                 │
+  │   Time-based (default 7 days) or size-based                │
+  │   Compacted topics: keep latest value per key              │
+  │   (perfect for changelog/CDC topics)                       │
+  └────────────────────────────────────────────────────────────┘
 
   STREAM PROCESSING PATTERNS:
-  ┌──────────────────┬──────────────────────────────────────────┐
+  ┌──────────────────┬─────────────────────────────────────────┐
   │ Stateless        │ Filter, map, transform each record      │
   │                  │ No state between records                │
-  ├──────────────────┼──────────────────────────────────────────┤
+  ├──────────────────┼─────────────────────────────────────────┤
   │ Stateful         │ Aggregation, joins, windowing           │
   │                  │ State stored locally + checkpointed     │
-  ├──────────────────┼──────────────────────────────────────────┤
+  ├──────────────────┼─────────────────────────────────────────┤
   │ Windowing        │ Group events by time window             │
   │                  │ Tumbling: [0-5min][5-10min] (no overlap)│
   │                  │ Sliding: [0-5][1-6][2-7] (overlapping)  │
-  │                  │ Session: gap-based per user              │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Stream-Table     │ Join streaming events with table         │
+  │                  │ Session: gap-based per user             │
+  ├──────────────────┼─────────────────────────────────────────┤
+  │ Stream-Table     │ Join streaming events with table        │
   │ Join             │ (KTable in Kafka Streams)               │
   │                  │ Enrich events with reference data       │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Stream-Stream    │ Join two streams by time window          │
+  ├──────────────────┼─────────────────────────────────────────┤
+  │ Stream-Stream    │ Join two streams by time window         │
   │ Join             │ Match events from different sources     │
-  └──────────────────┴──────────────────────────────────────────┘
+  └──────────────────┴─────────────────────────────────────────┘
 
   FLINK INTERNALS:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Dataflow graph: Source → Operators → Sink                 │
-  │ State backends: RocksDB (large state) or Heap (fast)      │
-  │ Checkpointing: Chandy-Lamport algorithm                   │
-  │   - Barriers flow through the dataflow graph              │
-  │   - On barrier: operator snapshots state to durable store │
-  │   - Enables exactly-once processing                       │
-  │ Watermarks: Track event time progress                     │
-  │   - Handle late-arriving events                           │
-  │   - W(t) = "all events with timestamp ≤ t have arrived"  │
-  │   - Late data: side output or allowed lateness            │
-  │ Savepoints: Manual checkpoint for upgrades/migration     │
-  └───────────────────────────────────────────────────────────┘
+  ┌────────────────────────────────────────────────────────────┐
+  │ Dataflow graph: Source → Operators → Sink                  │
+  │ State backends: RocksDB (large state) or Heap (fast)       │
+  │ Checkpointing: Chandy-Lamport algorithm                    │
+  │   - Barriers flow through the dataflow graph               │
+  │   - On barrier: operator snapshots state to durable store  │
+  │   - Enables exactly-once processing                        │
+  │ Watermarks: Track event time progress                      │
+  │   - Handle late-arriving events                            │
+  │   - W(t) = "all events with timestamp ≤ t have arrived"    │
+  │   - Late data: side output or allowed lateness             │
+  │ Savepoints: Manual checkpoint for upgrades/migration       │
+  └────────────────────────────────────────────────────────────┘
 
   BATCH vs STREAMING vs UNIFIED:
   ┌──────────────────┬──────────────────┬──────────────────────┐
-  │ Lambda Arch       │ Kappa Arch       │ Unified              │
-  │ Batch + Stream    │ Stream only      │ (Flink, Spark)       │
-  │ layers separately │ reprocess via    │ Same code for both   │
-  │ More complex      │ replay           │ Simplest, modern     │
+  │ Lambda Arch       │ Kappa Arch       │ Unified             │
+  │ Batch + Stream    │ Stream only      │ (Flink, Spark)      │
+  │ layers separately │ reprocess via    │ Same code for both  │
+  │ More complex      │ replay           │ Simplest, modern    │
   └──────────────────┴──────────────────┴──────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f09DataSystemsI-32"><div class="q-h"><span class="q-n">&bull;</span><h3>11. Data Lake Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09DataSystemsI-32"><span></span></label></div><div class="q-a"><div class="diagram"><pre>MODERN DATA LAKE: Object storage (S3/GCS) + Table Format
                   + Query Engine = Data Lakehouse
 
   TABLE FORMATS (the game-changers):
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ APACHE ICEBERG:                                           │
   │ - Snapshot-based: each commit creates immutable snapshot  │
   │ - Time travel: query any historical snapshot              │
-  │ - Schema evolution: add/remove/rename columns safely     │
+  │ - Schema evolution: add/remove/rename columns safely      │
   │ - Partition evolution: change partitioning without rewrite│
-  │ - Hidden partitioning: users don't specify partition     │
-  │ - Used by: Netflix, Apple, LinkedIn                      │
+  │ - Hidden partitioning: users don't specify partition      │
+  │ - Used by: Netflix, Apple, LinkedIn                       │
   │                                                           │
   │ DELTA LAKE (Databricks):                                  │
   │ - ACID transactions on data lake                          │
-  │ - Transaction log (JSON-based)                           │
-  │ - Time travel, schema enforcement                        │
-  │ - Optimized for Spark ecosystem                          │
-  │ - Used by: Databricks customers, Microsoft               │
+  │ - Transaction log (JSON-based)                            │
+  │ - Time travel, schema enforcement                         │
+  │ - Optimized for Spark ecosystem                           │
+  │ - Used by: Databricks customers, Microsoft                │
   │                                                           │
   │ APACHE HUDI:                                              │
-  │ - Record-level upserts and deletes                       │
-  │ - Copy-on-Write (COW) and Merge-on-Read (MOR) tables    │
-  │ - Incremental queries                                    │
-  │ - Used by: Uber, Amazon, ByteDance                       │
-  └────────────────────────────────────────────────────────────┘
+  │ - Record-level upserts and deletes                        │
+  │ - Copy-on-Write (COW) and Merge-on-Read (MOR) tables      │
+  │ - Incremental queries                                     │
+  │ - Used by: Uber, Amazon, ByteDance                        │
+  └───────────────────────────────────────────────────────────┘
 
   DATA LAKEHOUSE ARCHITECTURE:
   ┌───────────────────────────────────────────────────────────┐
   │                                                           │
-  │  Sources → Ingestion → Object Storage → Table Format →   │
+  │  Sources → Ingestion → Object Storage → Table Format →    │
   │            (Kafka,     (S3/GCS/ADLS)   (Iceberg/Delta)    │
   │             Flink)                                        │
   │                                ↓                          │
@@ -2665,26 +2665,26 @@ data as it arrives, rather than batch processing.
   │                                                           │
   │  BENEFITS:                                                │
   │  - ACID transactions on object storage                    │
-  │  - Schema evolution without downtime                     │
-  │  - Time travel for debugging and reproducibility         │
+  │  - Schema evolution without downtime                      │
+  │  - Time travel for debugging and reproducibility          │
   │  - Separation of storage and compute                      │
   │  - Cost: object storage is 10-100× cheaper than DW        │
   └───────────────────────────────────────────────────────────┘
 
   FILE FORMATS:
-  ┌──────────────────┬──────────────────────────────────────────┐
-  │ Parquet          │ Columnar, compressed, most common        │
-  │                  │ Best for: analytics, read-heavy          │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ ORC              │ Columnar, optimized for Hive/Spark       │
-  │                  │ Better compression than Parquet          │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Avro             │ Row-based, schema evolution, compact     │
-  │                  │ Best for: streaming, schema evolution    │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ JSON/CSV         │ Human-readable, no compression          │
-  │                  │ Best for: debugging, small files only   │
-  └──────────────────┴──────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f09DataSystemsI-33"><div class="q-h"><span class="q-n">&bull;</span><h3>12. Choosing the Right Data Store</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09DataSystemsI-33"><span></span></label></div><div class="q-a"><div class="diagram"><pre>DATA STORE SELECTION GUIDE:
+  ┌──────────────────┬────────────────────────────────────────┐
+  │ Parquet          │ Columnar, compressed, most common      │
+  │                  │ Best for: analytics, read-heavy        │
+  ├──────────────────┼────────────────────────────────────────┤
+  │ ORC              │ Columnar, optimized for Hive/Spark     │
+  │                  │ Better compression than Parquet        │
+  ├──────────────────┼────────────────────────────────────────┤
+  │ Avro             │ Row-based, schema evolution, compact   │
+  │                  │ Best for: streaming, schema evolution  │
+  ├──────────────────┼────────────────────────────────────────┤
+  │ JSON/CSV         │ Human-readable, no compression         │
+  │                  │ Best for: debugging, small files only  │
+  └──────────────────┴────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f09DataSystemsI-33"><div class="q-h"><span class="q-n">&bull;</span><h3>12. Choosing the Right Data Store</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09DataSystemsI-33"><span></span></label></div><div class="q-a"><div class="diagram"><pre>DATA STORE SELECTION GUIDE:
 
   ┌────────────────────────────┬──────────────────────────────┐
   │ Requirement                │ Recommended Store            │
@@ -2698,7 +2698,7 @@ data as it arrives, rather than batch processing.
   │ Wide-column at scale       │ Cassandra, ScyllaDB          │
   │ Graph relationships        │ Neo4j, Amazon Neptune        │
   │ Full-text search           │ Elasticsearch, OpenSearch    │
-  │ Vector embeddings          │ pgvector, Pinecone, Milvus  │
+  │ Vector embeddings          │ pgvector, Pinecone, Milvus   │
   │ Event streaming            │ Kafka, Pulsar                │
   │ Event store                │ EventStoreDB                 │
   │ Data warehouse             │ Snowflake, BigQuery, Redshift│
@@ -2721,9 +2721,9 @@ data as it arrives, rather than batch processing.
   │   Analytics: Snowflake (complex queries, dashboards)      │
   │   User sessions: Redis (TTL-based)                        │
   │   Product images: S3 + CDN                                │
-  │   Recommendations: Redis (serving) + S3 (training data)  │
+  │   Recommendations: Redis (serving) + S3 (training data)   │
   │                                                           │
-  │ Sync between stores: CDC (Debezium) or Event Bus (Kafka) │
+  │ Sync between stores: CDC (Debezium) or Event Bus (Kafka)  │
   └───────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f09DataSystemsI-34"><div class="q-h"><span class="q-n">&bull;</span><h3>13. Interview Deep Dive</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09DataSystemsI-34"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">B-tree</span><span class="kt">LSM-tree</span><span class="kt">Choose B-tree</span><span class="kt">Choose LSM-tree</span><span class="kt">Source</span><span class="kt">Capture</span></div><h3>Q1: Explain B-tree vs LSM-tree. When would you choose each?</h3>
 <p><strong>A:</strong> <strong>B-tree</strong>: Data stored in sorted pages, updates are in-place. Excellent for reads (O(log N) with high branching factor — 3-4 disk reads for billions of keys). Good for workloads with lots of point lookups and range scans. Downsides: random I/O on writes (page splits), write amplification from <abbr title="write-ahead log">WAL</abbr> + page write. <strong>LSM-tree</strong>: Writes go to in-memory MemTable, flushed as sorted SSTables, merged via <abbr title="replacing older conversation turns with a summary to reclaim context budget">compaction</abbr>. Excellent write throughput (sequential I/O). Downsides: read amplification (check multiple levels), compaction can cause latency spikes. <strong>Choose B-tree</strong>: <abbr title="online transaction processing">OLTP</abbr> with balanced read/write, transactions (PostgreSQL, MySQL). <strong>Choose LSM-tree</strong>: Write-heavy (logging, metrics, IoT), append-heavy (Cassandra, RocksDB). In practice, CockroachDB and TiKV use RocksDB (<abbr title="log-structured merge tree">LSM</abbr>) underneath but provide SQL/transaction semantics on top.</p>
 <h3>Q2: What happens when you run a PostgreSQL transaction at Serializable isolation?</h3>

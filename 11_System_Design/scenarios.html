@@ -1208,33 +1208,33 @@ WHERE id = :id AND version = :expected_version;   -- 0 rows =&gt; conflict, retr
 <p><em>"Design a system where an AI agent investigates transactions flagged as potentially fraudulent, pulls relevant context (account history, past cases, policy docs), explains why it's suspicious, and drafts a report for a human investigator — at production scale, low latency, and controlled cost."</em></p>
 </div>
 <h3>Architecture</h3>
-<div class="diagram"><pre>                                   ┌─────────────────────────────────────────┐
-  streaming txn events ──────────►│ (1) FRAUD ML SCORER  (§6)                │
-  (Kafka/Flink)                   │   online feature store + XGBoost/LGBM    │
-                                   │   rules engine + ML score, &lt;100ms        │
-                                   └───────────────────┬───────────────────────┘
+<div class="diagram"><pre>                                   ┌────────────────────────────────────────────────────┐
+  streaming txn events ──────────►│ (1) FRAUD ML SCORER  (§6)                           │
+  (Kafka/Flink)                   │   online feature store + XGBoost/LGBM               │
+                                   │   rules engine + ML score, &lt;100ms                  │
+                                   └───────────────────┬────────────────────────────────┘
                                                         │ score &gt; threshold → flagged case
                                                         ▼
-                          ┌─────────────────────────────────────────────────────┐
-                          │ (2) SUPERVISOR AGENT   (LangGraph StateGraph, §3/§5)│
-                          │     routes the case, bounds cost/steps, owns HITL   │
-                          └───┬───────────────┬──────────────────┬──────────────┘
+                          ┌─────────────────────────────────────────────────────────────┐
+                          │ (2) SUPERVISOR AGENT   (LangGraph StateGraph, §3/§5)        │
+                          │     routes the case, bounds cost/steps, owns HITL           │
+                          └───┬───────────────┬──────────────────┬──────────────────────┘
                               ▼               ▼                  ▼
-                 ┌─────────────────┐ ┌────────────────┐ ┌──────────────────────┐
-                 │ (3) RETRIEVAL    │ │ (4) RISK-SCORE  │ │ (5) REPORT-DRAFTING   │
-                 │     AGENT        │ │     TOOL CALL   │ │     AGENT             │
-                 │  Agentic RAG     │ │  (calls the §6  │ │  synthesizes findings │
-                 │  over case notes,│ │   model as a    │ │  into investigator-   │
-                 │  account history,│ │   deterministic │ │  readable narrative + │
-                 │  policy docs;    │ │   tool — LLM     │ │  cited evidence       │
-                 │  hybrid search + │ │   never re-     │ └───────────┬───────────┘
-                 │  CRAG-style      │ │   derives the    │             │
+                 ┌─────────────────┐ ┌────────────────┐ ┌───────────────────────────────┐
+                 │ (3) RETRIEVAL    │ │ (4) RISK-SCORE  │ │ (5) REPORT-DRAFTING         │
+                 │     AGENT        │ │     TOOL CALL   │ │     AGENT                   │
+                 │  Agentic RAG     │ │  (calls the §6  │ │  synthesizes findings       │
+                 │  over case notes,│ │   model as a    │ │  into investigator-         │
+                 │  account history,│ │   deterministic │ │  readable narrative +       │
+                 │  policy docs;    │ │   tool — LLM     │ │  cited evidence            │
+                 │  hybrid search + │ │   never re-     │ └───────────┬─────────────────┘
+                 │  CRAG-style      │ │   derives the    │                              │
                  │  evidence grading│ │   score itself)  │             ▼
-                 └────────┬─────────┘ └─────────────────┘   ┌──────────────────────┐
-                          │                                  │ (6) HUMAN-APPROVAL   │
-                          └─────────────► synthesized ───────►│     INTERRUPT        │
-                                          context               │  investigator       │
-                                                                 │  reviews/edits/     │
+                 └────────┬─────────┘ └─────────────────┘   ┌───────────────────────────┐
+                          │                                  │ (6) HUMAN-APPROVAL       │
+                          └─────────────► synthesized ───────►│     INTERRUPT           │
+                                          context               │  investigator         │
+                                                                 │  reviews/edits/      │
                                                                  │  approves action     │
                                                                  └──────────┬───────────┘
                                                                             ▼

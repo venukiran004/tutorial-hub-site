@@ -1186,10 +1186,10 @@ RAG:         question ─▶ retrieve YOUR docs ─▶ [docs + question] ─▶ 
 <div class="note">
 <p><strong>Verdict:</strong> use <strong>long context</strong> for a handful of known, relevant documents (e.g. "summarize these 3 contracts"); use <strong>RAG</strong> when the knowledge base is large, changing, private, or needs citations — i.e. almost all production search/QA. The two combine well: RAG to <em>select</em> the right 20 docs, long context to <em>reason over</em> them.</p>
 </div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f41RAGinProduct-16"><div class="q-h"><span class="q-n">&bull;</span><h3>The RAG Pipeline</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f41RAGinProduct-16"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Mental model</span><span class="kt">So debug retrieval first, always</span></div><div class="diagram"><pre>INGESTION (offline, batch)                         QUERY (online, per request)
-┌──────────────────────────────┐                  ┌────────────────────────────────────┐
+┌──────────────────────────────┐                  ┌───────────────────────────────────────┐
 │ load → clean → CHUNK → EMBED  │                  │ embed query → RETRIEVE (dense+sparse)│
 │      → INDEX (vector + BM25)  │   ──────────▶    │   → RERANK → assemble context        │
-└──────────────────────────────┘   knowledge base │   → GENERATE (grounded + cite)       │
+└──────────────────────────────┘   knowledge base │   → GENERATE (grounded + cite)        │
                                                    │   → faithfulness gate → answer       │
                                                    └──────────────────────────────────────┘</pre></div>
 <div class="note">
@@ -2224,19 +2224,19 @@ Step 3: retrieve("drug interactions with {treatment from step 2}") → refined a
 <p><strong>Where it fits relative to the other patterns:</strong> GraphRAG is a <strong>retrieval-substrate</strong> choice (what you search over), not an agent-loop choice (how the model decides to search) — it's often <em>paired</em> with an agentic loop (route to the graph when the question is relational, pattern #1) rather than being an alternative to agentic RAG. High ingestion cost (graph construction) — reach for it only when eval shows plain multi-hop retrieval genuinely can't assemble relational answers.</p>
 <div class="note">
 <p><strong>Picking among the eight:</strong> start with routing (#1, cheapest) → add decomposition (#2) or CRAG (#3/#4) for the specific gap your eval shows → reach for iterative retrieval (#5), tool-augmentation (#6), multi-agent (#7), or GraphRAG (#8) only when the simpler patterns provably can't cover the question shape. This mirrors the upgrade-ladder discipline of <a href="production.html#f44RAGandAgentD">21</a> A4 rungs 7–8, expanded.</p>
-</div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f46AgenticRAGmd-88"><div class="q-h"><span class="q-n">&bull;</span><h3>Architecture: a production agentic RAG system, assembled</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f46AgenticRAGmd-88"><span></span></label></div><div class="q-a"><div class="diagram"><pre>                                  ┌─────────────────────────────────────────┐
+</div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f46AgenticRAGmd-88"><div class="q-h"><span class="q-n">&bull;</span><h3>Architecture: a production agentic RAG system, assembled</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f46AgenticRAGmd-88"><span></span></label></div><div class="q-a"><div class="diagram"><pre>                                  ┌──────────────────────────────────────────┐
 query ──▶ [1. ROUTE] ──▶ needs retrieval? ──no──▶ answer directly            │
               │                                                              │
              yes                                                             │
               ▼                                                              │
       [2. DECOMPOSE?] ──single-hop──▶ [RETRIEVE] ──────────┐                 │
-              │                                             │                 │
-          multi-hop                                         ▼                 │
+              │                                             │                │
+          multi-hop                                         ▼                │
               ▼                                    [3/4. GRADE evidence]     │
-    per sub-question:                                       │                 │
+    per sub-question:                                       │                │
     [RETRIEVE] → evidence_i                        ┌─sufficient──▶ [GENERATE + cite] ──▶ answer
-              │                                    │                                       │
-      [synthesize evidences] ─────────────────────┘                                       │
+              │                                    │                                        │
+      [synthesize evidences] ─────────────────────┘                                         │
                                                      │                                      │
                                           insufficient (capped retries, [5])                │
                                                      ▼                                      │
@@ -2578,7 +2578,7 @@ total                                               ≈ 2,025ms   (~2.3x vanilla
                                                 │
                          ┌─────────────────────────────────────────────────────┐
   UNDERNEATH              │  Tool-result caching, distributed tracing,          │  cost/reliability-bound
-                         │  load balancing, autoscaling, backpressure           │
+                         │  load balancing, autoscaling, backpressure          │
                          └─────────────────────────────────────────────────────┘</pre></div>
 <p><strong>The interview framing that ties both halves together:</strong> a hard cap (steps, cost, time) is simultaneously the fix for the scaling problem (bound how much capacity one run can consume) and the fix for the failure problem (bound how much damage one runaway run can do). It is the single mechanism this whole file keeps returning to.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f49ScalingOptim-123"><div class="q-h"><span class="q-n">&bull;</span><h3>Key Definitions (read first)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f49ScalingOptim-123"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Agent loop / step</span><span class="kt">Runaway loop</span><span class="kt">Error compounding</span><span class="kt">Stateless worker</span><span class="kt">Checkpointer</span><span class="kt">Global budget</span></div><div class="note">
 <div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Term</th><th>Plain-language definition</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>Agent loop / step</strong></td><td>One decide→act→observe cycle. Cost, latency, and risk all scale with step count, decided at runtime, not fixed in advance.</td></tr><tr class="g0"><td class="c-term"><strong>Runaway loop</strong></td><td>The agent keeps taking actions but never reaches "done" — the signature agent failure, and a scaling failure too (it consumes capacity meant for other runs).</td></tr><tr class="g1"><td class="c-term"><strong>Error compounding</strong></td><td>A wrong result in an early step becomes the <em>input</em> to later steps, amplifying rather than staying contained.</td></tr><tr class="g0"><td class="c-term"><strong>Stateless worker</strong></td><td>A compute unit holding no agent state itself — state lives in an external checkpointer — the precondition for horizontally scaling an agent service at all.</td></tr><tr class="g1"><td class="c-term"><strong>Checkpointer</strong></td><td>Persists agent state after every step (Postgres/Redis) — enables crash recovery, <abbr title="human in the loop">HITL</abbr> pause/resume, and time-travel debugging.</td></tr><tr class="g0"><td class="c-term"><strong>Global budget</strong></td><td>A step/cost/time cap enforced <strong>across a whole multi-agent system</strong>, not just per individual agent — a per-agent budget alone doesn't stop N agents from collectively blowing the total.</td></tr><tr class="g1"><td class="c-term"><strong>Distributed tracing</strong></td><td>Every model call, tool call, and routing decision instrumented as a span, linked by a propagated run ID — the only way to localize <em>which hop</em> is slow, wrong, or looping.</td></tr><tr class="g0"><td class="c-term"><strong>Model <abbr title="training a smaller model to reproduce a larger model&#x27;s behaviour">distillation</abbr> (for agent sub-tasks)</strong></td><td>A small (1B–8B param) model fine-tuned on one narrow, atomic job — tool-arg formatting, output parsing, classification — instead of the frontier model on every step.</td></tr></tbody></table></div>
