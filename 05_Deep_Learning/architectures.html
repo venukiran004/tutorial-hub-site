@@ -146,7 +146,15 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
 .diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
 .diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
-.diagram pre{margin:0;padding-top:12px;background:none;border:none;font-family:var(--mono);font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+/* Box-drawing glyphs must come from the same font as the letters or the borders go
+   ragged: the default stack resolved them from a fallback whose advance width did
+   not match, so a run of horizontal rule ended short of the verticals around it.
+   These faces all carry U+2500..257F at the monospace advance. */
+.diagram pre{margin:0;padding-top:12px;background:none;border:none;
+  font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
+    "Courier New",monospace;
+  font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
+  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1667,14 +1675,14 @@ LSTM:  Cₜ = fₜ⊙Cₜ₋₁ + iₜ⊙C̃ₜ       ← ADDITIVE, gradient flo
 <span class="cmt"># Usage</span>
 model = <span class="fn">LSTMClassifier</span>(vocab_size=<span class="num">10000</span>, embed_dim=<span class="num">128</span>, hidden_dim=<span class="num">256</span>, output_dim=<span class="num">2</span>)</code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-93"><div class="q-h"><span class="q-n">&bull;</span><h3>3.7 Bidirectional LSTM</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-93"><span></span></label></div><div class="q-a"><div class="flow" style="flex-direction:column;align-items:flex-start;gap:8px"><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="fl">Forward</span><span class="st">The</span><span class="ar">&rarr;</span><span class="st">movie</span><span class="ar">&rarr;</span><span class="st">was</span><span class="ar">&rarr;</span><span class="st">great</span><span class="ar">&rarr;</span><span class="st">h_forward</span></div><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="fl">Backward</span><span class="st">great</span><span class="ar">&rarr;</span><span class="st">was</span><span class="ar">&rarr;</span><span class="st">movie</span><span class="ar">&rarr;</span><span class="st">The</span><span class="ar">&rarr;</span><span class="st">h_backward</span></div><div style="display:flex;flex-wrap:wrap;align-items:center"><span class="fl">Final</span><span class="st">[h_forward ; h_backward]</span><span class="ar">&rarr;</span><span class="st">richer representation</span></div></div>
 <p>Use case: When full sequence is available (text classification, <abbr title="named entity recognition">NER</abbr>). <strong>Not</strong> suitable for real-time/autoregressive generation.</p></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="frnnlstmgrutran-p4"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>5. GRU (Gated Recurrent Unit)</span><i></i></div><article class="q" id="frnnlstmgrutran-94"><div class="q-h"><span class="q-n">&bull;</span><h3>4.1 Motivation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-94"><span></span></label></div><div class="q-a"><p><abbr title="gated recurrent unit">GRU</abbr> simplifies <abbr title="long short-term memory">LSTM</abbr> by merging the forget and input gates into a single <strong>update gate</strong> and combining cell state + hidden state. Fewer parameters → faster training with similar performance.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-95"><div class="q-h"><span class="q-n">&bull;</span><h3>4.2 Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-95"><span></span></label></div><div class="q-a"><div class="diagram"><pre>         ┌───────────────────────────────────────┐
-         │              GRU Cell                  │
+         │              GRU Cell                 │
          │                                       │
   xₜ ──→ │   ┌────────┐    ┌────────┐            │
   hₜ₋₁→ │   │ Reset  │    │ Update │            │ ──→ hₜ
          │   │ Gate rₜ│    │ Gate zₜ│            │
          │   └────────┘    └────────┘            │
          │        ↓              ↓               │
-         │   Candidate h̃ₜ     Interpolation     │
+         │   Candidate h̃ₜ     Interpolation      │
          └───────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-96"><div class="q-h"><span class="q-n">&bull;</span><h3>4.3 Mathematical Formulation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-96"><span></span></label></div><div class="q-a"><h4>Reset Gate — "How much past to forget"</h4>
 <span class="mth mth-block"><i>r</i><sub><i>t</i></sub> <span class="mth-op">=</span> <span class="mth-gr">σ</span>(<i>W</i><sub><i>r</i></sub> · [<i>h</i><sub><i>t</i><span class="mth-op">−</span>1</sub>, <i>x</i><sub><i>t</i></sub>] <span class="mth-op">+</span> <i>b</i><sub><i>r</i></sub>)</span>
 <h4>Update Gate — "Balance between old and new"</h4>
@@ -1728,13 +1736,13 @@ model = <span class="fn">GRUPredictor</span>(input_size=<span class="num">5</spa
 x = torch.<span class="fn">randn</span>(<span class="num">16</span>, <span class="num">7</span>, <span class="num">5</span>)  <span class="cmt"># batch=16, seq_len=7, features=5 (temp, humidity, etc.)</span>
 pred = <span class="fn">model</span>(x)              <span class="cmt"># shape: (16, 1)</span></code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="frnnlstmgrutran-p5"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-message"/></svg>6. Transformer</span><i></i></div><article class="q" id="frnnlstmgrutran-100"><div class="q-h"><span class="q-n">&bull;</span><h3>5.1 Motivation: The Problems with RNN/LSTM/GRU</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-100"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Sequential processing</span><span class="kt">Long-range dependency</span><span class="kt">Training speed</span><span class="kt">Information bottleneck</span><span class="kt">Transformer&#x27;s solution</span><span class="kt">all tokens simultaneously</span></div><div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Problem</th><th>Detail</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>Sequential processing</strong></td><td>Can't parallelize — must process token by token</td></tr><tr class="g0"><td class="c-term"><strong>Long-range dependency</strong></td><td>Even <abbr title="long short-term memory">LSTM</abbr> struggles with 500+ tokens</td></tr><tr class="g1"><td class="c-term"><strong>Training speed</strong></td><td>Slow due to sequential nature</td></tr><tr class="g0"><td class="c-term"><strong>Information bottleneck</strong></td><td>Entire sequence compressed into fixed-size hidden state</td></tr></tbody></table></div>
 <p><strong>Transformer's solution:</strong> Process <strong>all tokens simultaneously</strong> using <strong>Self-Attention</strong>.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="frnnlstmgrutran-101"><div class="q-h"><span class="q-n">&bull;</span><h3>5.2 High-Level Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-101"><span></span></label></div><div class="q-a"><div class="diagram"><pre>              ┌─────────────────────────────────────┐
-              │           TRANSFORMER                │
+              │           TRANSFORMER               │
               │                                     │
   Input ──→   │  ┌──────────┐    ┌──────────┐      │ ──→ Output
               │  │ ENCODER  │    │ DECODER  │      │
               │  │ (×N)     │──→ │ (×N)     │      │
               │  └──────────┘    └──────────┘      │
-              └─────────────────────────────────────┘
+              └────────────────────────────────────┘
 
   Encoder-only:  BERT, sentence classification
   Decoder-only:  GPT, text generation

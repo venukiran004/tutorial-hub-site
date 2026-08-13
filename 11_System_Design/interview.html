@@ -146,7 +146,15 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
 .diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
 .diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
-.diagram pre{margin:0;padding-top:12px;background:none;border:none;font-family:var(--mono);font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+/* Box-drawing glyphs must come from the same font as the letters or the borders go
+   ragged: the default stack resolved them from a fallback whose advance width did
+   not match, so a run of horizontal rule ended short of the verticals around it.
+   These faces all carry U+2500..257F at the monospace advance. */
+.diagram pre{margin:0;padding-top:12px;background:none;border:none;
+  font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
+    "Courier New",monospace;
+  font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
+  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -993,13 +1001,13 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
   │   Designs systems considering org + business context     │
   │   Multi-system / cross-team architecture                 │
   │   Technology strategy and migration paths                │
-  │   Conway's Law awareness (org ↔ architecture)           │
+  │   Conway's Law awareness (org ↔ architecture)            │
   │   Long-term evolution and technical debt management     │
   │                                                          │
   │ DISTINGUISHED (L8+):                                     │
   │   Industry-level impact                                  │
   │   Novel approaches to unsolved problems                  │
-  │   Defines technical direction for organization          │
+  │   Defines technical direction for organization           │
   └──────────────────────────────────────────────────────────┘
 
   MINDSET SHIFT FOR STAFF+:
@@ -1023,7 +1031,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
   │   "What scale are we designing for?"                     │
   │   "What's the latency requirement?"                      │
   │   "What's more important: consistency or availability?"  │
-  │   "Any compliance requirements? (GDPR, HIPAA)"          │
+  │   "Any compliance requirements? (GDPR, HIPAA)"           │
   │                                                          │
   │ CONSTRAINTS:                                             │
   │   "Existing tech stack?"                                 │
@@ -1041,12 +1049,12 @@ STEP 2: HIGH-LEVEL DESIGN (10 min)
   │   Client → Load Balancer → API Gateway →                │
   │   Services → Database / Cache / Queue                    │
   │                                                          │
-  │ Define APIs:                                              │
+  │ Define APIs:                                             │
   │   POST /api/v1/resource { body }                         │
   │   GET  /api/v1/resource/{id}                             │
   │                                                          │
   │ Data model:                                              │
-  │   Key entities, relationships, access patterns          │
+  │   Key entities, relationships, access patterns           │
   │                                                          │
   │ Data flow:                                               │
   │   Walk through a request end-to-end                      │
@@ -1062,10 +1070,10 @@ STEP 3: DETAILED DESIGN (15 min)
   │   (Ask interviewer: "Which area should we dig into?")   │
   │                                                          │
   │ For each component:                                      │
-  │   - Data storage: schema, partitioning, replication     │
-  │   - Algorithms: ranking, matching, deduplication        │
-  │   - Scaling: how does this handle 10x, 100x traffic?    │
-  │   - Failure modes: what happens when X fails?           │
+  │   - Data storage: schema, partitioning, replication      │
+  │   - Algorithms: ranking, matching, deduplication         │
+  │   - Scaling: how does this handle 10x, 100x traffic?     │
+  │   - Failure modes: what happens when X fails?            │
   │                                                          │
   │ STAFF+ TIP: Proactively address:                         │
   │   - Hot spots and bottlenecks                            │
@@ -1074,18 +1082,18 @@ STEP 3: DETAILED DESIGN (15 min)
   └──────────────────────────────────────────────────────────┘
 
 STEP 4: WRAP-UP (5 min)
-  ┌──────────────────────────────────────────────────────────┐
-  │ Scaling plan: "As we grow 10x, we'd need to..."        │
+  ┌─────────────────────────────────────────────────────────┐
+  │ Scaling plan: "As we grow 10x, we'd need to..."         │
   │ Monitoring: "Key metrics I'd track: ..."                │
   │ Known limitations: "This design doesn't handle..."      │
   │ Future improvements: "Next iteration would add..."      │
-  │                                                          │
+  │                                                         │
   │ STAFF+ TIP: Discuss operational readiness:               │
   │   - Deployment strategy (canary, blue-green)            │
   │   - Alerting and on-call implications                   │
   │   - Cost estimate and optimization path                 │
   │   - Team structure to build and operate this            │
-  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-3"><div class="q-h"><span class="q-n">&bull;</span><h3>3. Capacity Estimation Cheat Sheet</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-3"><span></span></label></div><div class="q-a"><div class="diagram"><pre>KEY NUMBERS TO MEMORIZE:
+  └─────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-3"><div class="q-h"><span class="q-n">&bull;</span><h3>3. Capacity Estimation Cheat Sheet</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-3"><span></span></label></div><div class="q-a"><div class="diagram"><pre>KEY NUMBERS TO MEMORIZE:
   ┌──────────────────────────────────────────────────────────┐
   │ LATENCY:                                                 │
   │   L1 cache:          0.5 ns                              │
@@ -1096,23 +1104,23 @@ STEP 4: WRAP-UP (5 min)
   │   Same datacenter RT: 0.5 ms                             │
   │   Cross-continent RT: 150 ms                             │
   │                                                          │
-  │ THROUGHPUT:                                               │
+  │ THROUGHPUT:                                              │
   │   SSD sequential:    1 GB/s                              │
   │   HDD sequential:    100 MB/s                            │
   │   1 Gbps network:    125 MB/s                            │
   │   10 Gbps network:   1.25 GB/s                           │
   │                                                          │
-  │ STORAGE:                                                  │
-  │   1 char = 1 byte (ASCII) / 2-4 bytes (UTF-8)           │
+  │ STORAGE:                                                 │
+  │   1 char = 1 byte (ASCII) / 2-4 bytes (UTF-8)            │
   │   UUID = 16 bytes (128 bits)                             │
   │   Typical tweet = 140 bytes                              │
   │   Average web page = 2 MB                                │
   │   Average photo = 200 KB (compressed)                    │
   │   1080p video minute = 150 MB                            │
   │                                                          │
-  │ SCALE:                                                    │
+  │ SCALE:                                                   │
   │   86,400 seconds/day ≈ 100K                              │
-  │   2.5M seconds/month ≈ 2.5M                             │
+  │   2.5M seconds/month ≈ 2.5M                              │
   │   1M requests/day ≈ 12 requests/second                   │
   │   1B requests/day ≈ 12K requests/second                  │
   └──────────────────────────────────────────────────────────┘
@@ -1121,17 +1129,17 @@ STEP 4: WRAP-UP (5 min)
   ┌──────────────────────────────────────────────────────────┐
   │ Given: 100M DAU, each user does 10 actions/day           │
   │                                                          │
-  │ QPS: 100M × 10 / 86,400 ≈ 12,000 QPS                   │
-  │ Peak QPS: 12,000 × 3 (peak factor) = 36,000 QPS         │
+  │ QPS: 100M × 10 / 86,400 ≈ 12,000 QPS                     │
+  │ Peak QPS: 12,000 × 3 (peak factor) = 36,000 QPS          │
   │                                                          │
   │ Storage (per year):                                      │
-  │ 100M × 10 × 365 × 500 bytes/action = 182 TB/year       │
+  │ 100M × 10 × 365 × 500 bytes/action = 182 TB/year         │
   │                                                          │
   │ Bandwidth:                                               │
-  │ 36,000 QPS × 500 bytes = 18 MB/s (negligible)           │
+  │ 36,000 QPS × 500 bytes = 18 MB/s (negligible)            │
   │                                                          │
   │ TIP: Round aggressively. Precision doesn't matter.      │
-  │ 86,400 ≈ 100,000. Goal is order of magnitude.           │
+  │ 86,400 ≈ 100,000. Goal is order of magnitude.            │
   └──────────────────────────────────────────────────────────┘
 
   DATABASE QPS BENCHMARKS:
@@ -1139,7 +1147,7 @@ STEP 4: WRAP-UP (5 min)
   │ MySQL/PostgreSQL:   ~5K-10K QPS (single node)            │
   │ Redis:              ~100K QPS (single node)              │
   │ Cassandra:          ~10K-50K writes/s per node           │
-  │ DynamoDB:           ~25K RCU/WCU default (auto-scales)  │
+  │ DynamoDB:           ~25K RCU/WCU default (auto-scales)   │
   │ Elasticsearch:      ~10K queries/s per node              │
   │ Kafka:              ~1M messages/s per broker            │
   └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-4"><div class="q-h"><span class="q-n">&bull;</span><h3>4. Trade-Off Analysis Framework</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-4"><span></span></label></div><div class="q-a"><div class="diagram"><pre>THE TRADE-OFF MATRIX:
@@ -1157,7 +1165,7 @@ STEP 4: WRAP-UP (5 min)
   │ Cost          │ Higher          │ Lower                  │
   │ Ops burden    │ Lower           │ Higher                 │
   │                                                          │
-  │ Decision: Option B because our requirements prioritize  │
+  │ Decision: Option B because our requirements prioritize   │
   │ availability and latency over strict consistency.        │
   │ Mitigation: Add reconciliation job for eventual         │
   │ consistency gaps.                                        │
@@ -1166,28 +1174,28 @@ STEP 4: WRAP-UP (5 min)
   COMMON TRADE-OFFS:
   ┌──────────────────────────────────────────────────────────┐
   │ 1. SQL vs NoSQL                                          │
-  │    SQL: ACID, joins, flexible queries, schema enforced  │
+  │    SQL: ACID, joins, flexible queries, schema enforced   │
   │    NoSQL: Scale horizontally, flexible schema, fast      │
   │    Decision driver: query patterns + consistency needs  │
   │                                                          │
   │ 2. Push vs Pull (fan-out write vs read)                  │
-  │    Push: Fast reads, slow writes, more storage          │
-  │    Pull: Slow reads, fast writes, less storage          │
+  │    Push: Fast reads, slow writes, more storage           │
+  │    Pull: Slow reads, fast writes, less storage           │
   │    Decision driver: read/write ratio                    │
   │                                                          │
   │ 3. Sync vs Async communication                           │
-  │    Sync: Simple, immediate response, tight coupling     │
-  │    Async: Decoupled, resilient, complex debugging       │
+  │    Sync: Simple, immediate response, tight coupling      │
+  │    Async: Decoupled, resilient, complex debugging        │
   │    Decision driver: latency requirement + failure modes │
   │                                                          │
   │ 4. Monolith vs Microservices                             │
   │    Monolith: Simple, fast dev, single deploy            │
-  │    Micro: Independent scaling, team autonomy, complex   │
+  │    Micro: Independent scaling, team autonomy, complex    │
   │    Decision driver: team size + org structure           │
   │                                                          │
   │ 5. Cache aside vs Write-through                          │
   │    Aside: Simple, stale reads possible                   │
-  │    Write-through: Consistent, write latency higher      │
+  │    Write-through: Consistent, write latency higher       │
   │    Decision driver: consistency requirement             │
   │                                                          │
   │ 6. CP vs AP (CAP theorem)                                │
@@ -1197,7 +1205,7 @@ STEP 4: WRAP-UP (5 min)
   │                                                          │
   │ 7. Batch vs Stream processing                            │
   │    Batch: Higher throughput, higher latency (hours)      │
-  │    Stream: Lower latency (seconds), more complex        │
+  │    Stream: Lower latency (seconds), more complex         │
   │    Decision driver: freshness requirement               │
   └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-5"><div class="q-h"><span class="q-n">&bull;</span><h3>5. Architecture Decision Records</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-5"><span></span></label></div><div class="q-a"><div class="diagram"><pre>ADR TEMPLATE:
   ┌──────────────────────────────────────────────────────────┐
@@ -1209,27 +1217,27 @@ STEP 4: WRAP-UP (5 min)
   │                                                          │
   │ Context:                                                 │
   │   We need a primary data store for our order service.   │
-  │   Requirements: ACID transactions for financial data,   │
+  │   Requirements: ACID transactions for financial data,    │
   │   complex queries for reporting, moderate write volume   │
-  │   (~5K writes/sec).                                     │
+  │   (~5K writes/sec).                                      │
   │                                                          │
   │ Decision:                                                │
-  │   Use PostgreSQL with read replicas for reporting.      │
+  │   Use PostgreSQL with read replicas for reporting.       │
   │                                                          │
   │ Alternatives Considered:                                 │
-  │   1. MySQL: Similar but weaker JSON support, less       │
+  │   1. MySQL: Similar but weaker JSON support, less        │
   │      extensible. Our team has more PostgreSQL expertise. │
-  │   2. DynamoDB: Better write scaling but no joins, no    │
-  │      ACID across items. Reporting would require ETL.    │
+  │   2. DynamoDB: Better write scaling but no joins, no     │
+  │      ACID across items. Reporting would require ETL.     │
   │                                                          │
   │ Consequences:                                            │
   │   + Strong consistency for financial data               │
   │   + Rich query capability for reporting                 │
   │   + Team expertise exists                               │
-  │   - Vertical scaling limits (~50K QPS max)              │
-  │   - Need to shard if we exceed 10TB                     │
+  │   - Vertical scaling limits (~50K QPS max)               │
+  │   - Need to shard if we exceed 10TB                      │
   │   Mitigation: If we outgrow single node, evaluate       │
-  │   Citus (distributed PostgreSQL) or CQRS with read store│
+  │   Citus (distributed PostgreSQL) or CQRS with read store │
   └──────────────────────────────────────────────────────────┘
 
   WHY ADRs MATTER IN INTERVIEWS:
@@ -1279,41 +1287,41 @@ STEP 4: WRAP-UP (5 min)
   │   □ On-call and incident response                        │
   │   □ Cost management                                      │
   │                                                          │
-  │ 99.9% = 8.76 hours downtime/year                        │
-  │ 99.99% = 52.6 minutes downtime/year                     │
-  │ 99.999% = 5.26 minutes downtime/year                    │
+  │ 99.9% = 8.76 hours downtime/year                         │
+  │ 99.99% = 52.6 minutes downtime/year                      │
+  │ 99.999% = 5.26 minutes downtime/year                     │
   └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-7"><div class="q-h"><span class="q-n">&bull;</span><h3>7. Common System Design Problems</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-7"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CATEGORIZED BY DIFFICULTY:
 
   MEDIUM (Senior):
-  ┌──────────────────────────────────────────────────────────┐
+  ┌─────────────────────────────────────────────────────────┐
   │ URL Shortener           │ Pastebin                      │
   │ Rate Limiter            │ Key-Value Store               │
   │ Unique ID Generator     │ Autocomplete / Typeahead      │
   │ Web Crawler             │ Notification System           │
-  └──────────────────────────────────────────────────────────┘
+  └─────────────────────────────────────────────────────────┘
 
   HARD (Staff):
-  ┌──────────────────────────────────────────────────────────┐
+  ┌─────────────────────────────────────────────────────────┐
   │ Chat System (WhatsApp)  │ News Feed (Facebook)          │
   │ Search Engine           │ Video Streaming (YouTube)     │
   │ Ride Sharing (Uber)     │ Payment System (Stripe)       │
   │ Social Network          │ E-commerce (Amazon)           │
   │ Google Maps / Navigation│ Ticket Booking (Ticketmaster) │
-  └──────────────────────────────────────────────────────────┘
+  └─────────────────────────────────────────────────────────┘
 
   VERY HARD (Principal):
-  ┌──────────────────────────────────────────────────────────┐
+  ┌─────────────────────────────────────────────────────────┐
   │ Distributed Database    │ Ad Serving System             │
   │ Search Ranking          │ Recommendation Engine         │
   │ Real-time Gaming        │ Collaborative Editor (Docs)   │
   │ Stock Exchange          │ ML Feature Store              │
   │ CDN Design              │ Distributed Task Scheduler    │
-  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-8"><div class="q-h"><span class="q-n">&bull;</span><h3>8. Staff+ Level Expectations</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-8"><span></span></label></div><div class="q-a"><div class="diagram"><pre>WHAT SEPARATES STAFF FROM SENIOR IN INTERVIEWS:
+  └─────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-8"><div class="q-h"><span class="q-n">&bull;</span><h3>8. Staff+ Level Expectations</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-8"><span></span></label></div><div class="q-a"><div class="diagram"><pre>WHAT SEPARATES STAFF FROM SENIOR IN INTERVIEWS:
 
   ┌──────────────────────────────────────────────────────────┐
   │ SENIOR says:                  STAFF says:                │
   │ ─────────────────────────── ──────────────────────────── │
-  │ "Use Redis for caching"     "Use Redis for caching      │
+  │ "Use Redis for caching"     "Use Redis for caching       │
   │                              because our access pattern  │
   │                              is point lookups with &lt;1ms  │
   │                              requirement. TTL-based      │
@@ -1348,10 +1356,10 @@ STEP 4: WRAP-UP (5 min)
   │ 1. "What happens when the database goes down?"           │
   │ 2. "How do we deploy this without downtime?"             │
   │ 3. "What metrics would I monitor?"                       │
-  │ 4. "How does this handle 10x traffic growth?"           │
+  │ 4. "How does this handle 10x traffic growth?"            │
   │ 5. "What are the cost implications?"                     │
-  │ 6. "How do we test this at scale before launch?"        │
-  │ 7. "What's the migration path from current state?"      │
+  │ 6. "How do we test this at scale before launch?"         │
+  │ 7. "What's the migration path from current state?"       │
   │ 8. "Which team owns which component?"                    │
   └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-9"><div class="q-h"><span class="q-n">&bull;</span><h3>9. Design Walkthrough: URL Shortener</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-9"><span></span></label></div><div class="q-a"><div class="diagram"><pre>STEP 1: REQUIREMENTS
   ┌──────────────────────────────────────────────────────────┐
@@ -1359,19 +1367,19 @@ STEP 4: WRAP-UP (5 min)
   │   - Shorten URL: long URL → short URL                    │
   │   - Redirect: short URL → 301/302 to long URL          │
   │   - Custom aliases (optional)                            │
-  │   - Analytics (click count, geo)                        │
+  │   - Analytics (click count, geo)                         │
   │                                                          │
   │ Non-functional:                                          │
   │   - 100M URLs created/day                                │
   │   - Read-heavy (100:1 read/write ratio)                  │
   │   - Low latency redirect (&lt; 50ms)                       │
   │   - High availability (99.99%)                           │
-  │   - URLs expire after configurable TTL                  │
+  │   - URLs expire after configurable TTL                   │
   │                                                          │
   │ Capacity:                                                │
   │   Write: 100M/day ≈ 1,200/sec                            │
   │   Read: 10B/day ≈ 120,000/sec                            │
-  │   Storage: 100M × 365 × 5 years × 500 bytes = 91 TB    │
+  │   Storage: 100M × 365 × 5 years × 500 bytes = 91 TB      │
   └──────────────────────────────────────────────────────────┘
 
 STEP 2: HIGH-LEVEL DESIGN
@@ -1388,7 +1396,7 @@ STEP 2: HIGH-LEVEL DESIGN
   │   GET  /api/v1/stats/{short_code} → analytics           │
   │                                                          │
   │   Data model:                                            │
-  │   urls: { short_code (PK), long_url, user_id,           │
+  │   urls: { short_code (PK), long_url, user_id,            │
   │           created_at, expires_at }                       │
   └──────────────────────────────────────────────────────────┘
 
@@ -1425,18 +1433,18 @@ STEP 3: DETAILED DESIGN
   │   301 (Permanent): Browser caches, less server load     │
   │   302 (Temporary): Every request hits server, better for │
   │                     analytics tracking                   │
-  │   Decision: 302 if analytics matter, 301 otherwise      │
+  │   Decision: 302 if analytics matter, 301 otherwise       │
   └──────────────────────────────────────────────────────────┘
 
 STEP 4: SCALING &amp; OPERATIONS
-  ┌──────────────────────────────────────────────────────────┐
-  │ Database: Shard by short_code hash                       │
+  ┌─────────────────────────────────────────────────────────┐
+  │ Database: Shard by short_code hash                      │
   │ Cache: 80/20 rule — cache top 20% URLs (serve 80% reads)│
   │ Read replicas for read-heavy load                       │
   │ CDN for static redirects (most popular URLs)            │
   │ Analytics: async via Kafka (don't slow redirect path)   │
   │ Monitoring: redirect latency P99, cache hit rate, QPS   │
-  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-10"><div class="q-h"><span class="q-n">&bull;</span><h3>10. Design Walkthrough: Distributed Cache</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-10"><span></span></label></div><div class="q-a"><div class="diagram"><pre>STEP 1: REQUIREMENTS
+  └─────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-10"><div class="q-h"><span class="q-n">&bull;</span><h3>10. Design Walkthrough: Distributed Cache</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-10"><span></span></label></div><div class="q-a"><div class="diagram"><pre>STEP 1: REQUIREMENTS
   ┌──────────────────────────────────────────────────────────┐
   │ Functional:                                              │
   │   - Put(key, value, TTL)                                 │
@@ -1445,23 +1453,23 @@ STEP 4: SCALING &amp; OPERATIONS
   │   - Support for 100M+ keys, values up to 1MB            │
   │                                                          │
   │ Non-functional:                                          │
-  │   - Sub-millisecond read/write latency                  │
+  │   - Sub-millisecond read/write latency                   │
   │   - High availability (cache miss = DB hit, not failure) │
-  │   - Horizontally scalable                               │
+  │   - Horizontally scalable                                │
   │   - Eviction when memory full                           │
   └──────────────────────────────────────────────────────────┘
 
 STEP 2: HIGH-LEVEL DESIGN
-  ┌──────────────────────────────────────────────────────────┐
-  │                                                          │
+  ┌─────────────────────────────────────────────────────────┐
+  │                                                         │
   │   Client → Cache Client Library → Hash Ring →           │
   │   Cache Server 1, 2, 3, ... N                           │
-  │                                                          │
+  │                                                         │
   │   Each server: in-memory hash map + eviction            │
   │   Partitioning: consistent hashing (virtual nodes)      │
   │   No replication (cache, not source of truth)           │
   │   OR: replicate for availability (Redis Cluster model)  │
-  └──────────────────────────────────────────────────────────┘
+  └─────────────────────────────────────────────────────────┘
 
 STEP 3: DETAILED DESIGN
 
@@ -1479,43 +1487,43 @@ STEP 3: DETAILED DESIGN
   └──────────────────────────────────────────────────────────┘
 
   EVICTION POLICIES:
-  ┌──────────────────────────────────────────────────────────┐
+  ┌─────────────────────────────────────────────────────────┐
   │ LRU (Least Recently Used): Most common. Evict least     │
   │   recently accessed key. Good general-purpose policy.   │
-  │                                                          │
+  │                                                         │
   │ LFU (Least Frequently Used): Evict least frequently     │
   │   accessed. Better for skewed access patterns.          │
-  │                                                          │
+  │                                                         │
   │ TTL-based: Keys auto-expire. Good for session data.     │
-  │                                                          │
+  │                                                         │
   │ Random: Simple, surprisingly good in practice.          │
-  │                                                          │
+  │                                                         │
   │ Redis: Approximate LRU (sample N keys, evict oldest).   │
   │   More memory-efficient than true LRU.                  │
-  └──────────────────────────────────────────────────────────┘
+  └─────────────────────────────────────────────────────────┘
 
   CACHE PATTERNS:
-  ┌──────────────────────────────────────────────────────────┐
-  │ Cache-Aside (Lazy Loading):                              │
+  ┌─────────────────────────────────────────────────────────┐
+  │ Cache-Aside (Lazy Loading):                             │
   │   Read: App checks cache → miss → read DB → write cache │
   │   Write: App writes DB → invalidate cache               │
   │   Most flexible. Handles cache failure gracefully.      │
-  │                                                          │
-  │ Write-Through:                                           │
+  │                                                         │
+  │ Write-Through:                                          │
   │   Write: App writes cache → cache writes DB (sync)      │
   │   Read: Always hits cache (data always present)         │
   │   Consistent but slower writes.                         │
-  │                                                          │
-  │ Write-Behind (Write-Back):                               │
+  │                                                         │
+  │ Write-Behind (Write-Back):                              │
   │   Write: App writes cache → cache writes DB (async)     │
   │   Faster writes but risk data loss if cache crashes.    │
-  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-11"><div class="q-h"><span class="q-n">&bull;</span><h3>11. Design Walkthrough: Rate Limiter</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-11"><span></span></label></div><div class="q-a"><div class="diagram"><pre>STEP 1: REQUIREMENTS
+  └─────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-11"><div class="q-h"><span class="q-n">&bull;</span><h3>11. Design Walkthrough: Rate Limiter</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-11"><span></span></label></div><div class="q-a"><div class="diagram"><pre>STEP 1: REQUIREMENTS
   ┌──────────────────────────────────────────────────────────┐
   │ Functional:                                              │
   │   - Limit requests per user/IP/API key                   │
-  │   - Configurable rules (100 req/min for endpoint X)     │
-  │   - Return 429 Too Many Requests when limit exceeded    │
-  │   - Rate limit headers in response                      │
+  │   - Configurable rules (100 req/min for endpoint X)      │
+  │   - Return 429 Too Many Requests when limit exceeded     │
+  │   - Rate limit headers in response                       │
   │                                                          │
   │ Non-functional:                                          │
   │   - Very low latency (&lt; 1ms — on hot path)              │
@@ -1535,7 +1543,7 @@ STEP 2: HIGH-LEVEL DESIGN
   │                                                          │
   │   Rate limiter as middleware in API Gateway              │
   │   Rules stored in config (database or config service)   │
-  │   Counters in Redis (fast, distributed)                 │
+  │   Counters in Redis (fast, distributed)                  │
   └──────────────────────────────────────────────────────────┘
 
 STEP 3: ALGORITHM SELECTION
@@ -1554,7 +1562,7 @@ STEP 3: ALGORITHM SELECTION
   │   local refill_rate = tonumber(ARGV[2])                  │
   │   local now = tonumber(ARGV[3])                          │
   │                                                          │
-  │   local bucket = redis.call('HMGET', key,               │
+  │   local bucket = redis.call('HMGET', key,                │
   │     'tokens', 'last_refill')                             │
   │   local tokens = tonumber(bucket[1]) or max_tokens       │
   │   local last = tonumber(bucket[2]) or now                │
@@ -1566,37 +1574,37 @@ STEP 3: ALGORITHM SELECTION
   │                                                          │
   │   if tokens &gt;= 1 then                                    │
   │     tokens = tokens - 1                                  │
-  │     redis.call('HMSET', key, 'tokens', tokens,          │
+  │     redis.call('HMSET', key, 'tokens', tokens,           │
   │       'last_refill', now)                                │
-  │     redis.call('EXPIRE', key, max_tokens/refill_rate*2) │
+  │     redis.call('EXPIRE', key, max_tokens/refill_rate*2)  │
   │     return 1  -- allowed                                 │
   │   else                                                   │
   │     return 0  -- rejected                                │
   │   end                                                    │
   │                                                          │
   │ Advantages:                                              │
-  │   Allows bursts (up to bucket size)                     │
+  │   Allows bursts (up to bucket size)                      │
   │   Smooth rate limiting over time                        │
-  │   Simple Redis implementation                           │
-  │   Used by: Stripe, AWS API Gateway                      │
+  │   Simple Redis implementation                            │
+  │   Used by: Stripe, AWS API Gateway                       │
   └──────────────────────────────────────────────────────────┘
 
   DISTRIBUTED CONSIDERATIONS:
-  ┌──────────────────────────────────────────────────────────┐
+  ┌─────────────────────────────────────────────────────────┐
   │ Challenge: Multiple API servers share rate limit state  │
-  │                                                          │
+  │                                                         │
   │ Option A: Centralized Redis (simple, adds ~1ms latency) │
   │ Option B: Local counting + sync (complex, fast)         │
   │ Option C: Sticky sessions (bypass distribution)         │
-  │                                                          │
+  │                                                         │
   │ Recommendation: Redis. 1ms latency is acceptable.       │
   │   Redis Cluster for availability.                       │
   │   Fail open: if Redis unavailable, allow all requests.  │
-  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-12"><div class="q-h"><span class="q-n">&bull;</span><h3>12. Design Walkthrough: Notification System</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-12"><span></span></label></div><div class="q-a"><div class="diagram"><pre>STEP 1: REQUIREMENTS
+  └─────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-12"><div class="q-h"><span class="q-n">&bull;</span><h3>12. Design Walkthrough: Notification System</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-12"><span></span></label></div><div class="q-a"><div class="diagram"><pre>STEP 1: REQUIREMENTS
   ┌──────────────────────────────────────────────────────────┐
   │ Functional:                                              │
   │   - Send push, SMS, email notifications                  │
-  │   - User preferences (opt-in, channels, frequency)      │
+  │   - User preferences (opt-in, channels, frequency)       │
   │   - Template-based content                               │
   │   - Scheduled + real-time notifications                  │
   │   - Analytics (delivered, opened, clicked)              │
@@ -1609,27 +1617,27 @@ STEP 3: ALGORITHM SELECTION
   └──────────────────────────────────────────────────────────┘
 
 STEP 2: HIGH-LEVEL DESIGN
-  ┌──────────────────────────────────────────────────────────┐
-  │                                                          │
+  ┌─────────────────────────────────────────────────────────┐
+  │                                                         │
   │   Services → Notification API → Kafka →                 │
-  │                                                          │
+  │                                                         │
   │   ┌──── Push Worker ──── APNS / FCM                     │
   │   ├──── Email Worker ──── SendGrid / SES                │
   │   └──── SMS Worker ──── Twilio / SNS                    │
-  │                                                          │
+  │                                                         │
   │   + Preference Service (user settings)                  │
   │   + Template Service (render content)                    │
   │   + Analytics Service (delivery tracking)               │
   │   + Scheduler (cron-based notifications)                │
   │   + Dedup Store (Redis — prevent duplicates)            │
-  └──────────────────────────────────────────────────────────┘
+  └─────────────────────────────────────────────────────────┘
 
 STEP 3: DETAILED DESIGN
 
   REQUEST FLOW:
-  ┌──────────────────────────────────────────────────────────┐
+  ┌─────────────────────────────────────────────────────────┐
   │ 1. Service sends: {user_id, event_type, data}           │
-  │ 2. Notification API:                                     │
+  │ 2. Notification API:                                    │
   │    a. Check user preferences (opted in? which channels?)│
   │    b. Check rate limiting (max N notifications/hour)    │
   │    c. Dedup check (idempotency key in Redis)            │
@@ -1640,7 +1648,7 @@ STEP 3: DETAILED DESIGN
   │    b. Handle failures with retry (exponential backoff)  │
   │    c. Update delivery status in DB                      │
   │    d. Emit analytics event                              │
-  └──────────────────────────────────────────────────────────┘
+  └─────────────────────────────────────────────────────────┘
 
   EXACTLY-ONCE NOTIFICATION:
   ┌──────────────────────────────────────────────────────────┐
@@ -1658,15 +1666,15 @@ STEP 3: DETAILED DESIGN
   └──────────────────────────────────────────────────────────┘
 
   PRIORITY HANDLING:
-  ┌──────────────────────────────────────────────────────────┐
+  ┌─────────────────────────────────────────────────────────┐
   │ Urgent (P0): OTP, security alerts → separate topic,     │
-  │              more consumers, no batching                 │
+  │              more consumers, no batching                │
   │ Normal (P1): Social notifications → standard processing │
   │ Low (P2):    Marketing → batched, time-windowed         │
-  │                                                          │
+  │                                                         │
   │ Separate Kafka topics per priority level                │
   │ More consumer instances for high-priority topics        │
-  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-13"><div class="q-h"><span class="q-n">&bull;</span><h3>13. Red Flags &amp; Green Flags</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-13"><span></span></label></div><div class="q-a"><div class="diagram"><pre>RED FLAGS (things that make interviewers say "no"):
+  └─────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f12ArchitectInt-13"><div class="q-h"><span class="q-n">&bull;</span><h3>13. Red Flags &amp; Green Flags</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f12ArchitectInt-13"><span></span></label></div><div class="q-a"><div class="diagram"><pre>RED FLAGS (things that make interviewers say "no"):
   ┌──────────────────────────────────────────────────────────┐
   │ ❌ Jumping to solution without understanding requirements│
   │ ❌ Using buzzwords without understanding them            │
@@ -1677,7 +1685,7 @@ STEP 3: DETAILED DESIGN
   │ ❌ Not discussing trade-offs                             │
   │ ❌ Over-engineering (Kubernetes for a CRUD app)          │
   │ ❌ Under-engineering (no caching for read-heavy system)  │
-  │ ❌ Can't go deep on any component                       │
+  │ ❌ Can't go deep on any component                        │
   │ ❌ Silent for too long (not communicating thought process)│
   │ ❌ Defensive when challenged on design choices           │
   └──────────────────────────────────────────────────────────┘
@@ -1737,7 +1745,7 @@ COMPUTE SELECTION:
   └──────────────────────────────────────────────────────────┘
 
 QUICK DECISION FRAMEWORK:
-  ┌──────────────────────────────────────────────────────────┐
+  ┌─────────────────────────────────────────────────────────┐
   │ "When in doubt:"                                        │
   │   Database: PostgreSQL (most flexible, hardest to       │
   │     outgrow, handles 80% of use cases)                  │
@@ -1747,10 +1755,10 @@ QUICK DECISION FRAMEWORK:
   │   API: REST for external, gRPC for internal             │
   │   Monitoring: Datadog or Grafana/Prometheus stack       │
   │   IaC: Terraform                                        │
-  │                                                          │
+  │                                                         │
   │ "Boring technology" is almost always the right choice.  │
   │ Novel tech should be justified by novel requirements.   │
-  └──────────────────────────────────────────────────────────┘</pre></div>
+  └─────────────────────────────────────────────────────────┘</pre></div>
 <hr />
 <p><em>Previous: <a href="security.html#f11SecurityandC">11_Security_and_Cloud_Architecture.md</a> | Next: <a href="../../11_System_Design/README.md">Return to README</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f13SystemDesign"><header class="filehead"><div class="fh-top"><span class="fh-num">13 &middot; System-design interview</span><span class="fh-count">71 sections</span></div><h2>System Design Interview Questions — 200 Questions (General + ML)</h2><div class="note">
 <p><strong>Scope:</strong> Fundamentals &amp; scalability, database design, caching &amp; <abbr title="content delivery network">CDN</abbr>, messaging &amp; communication, API &amp; microservices design, classic system design problems, ML system design, <abbr title="large language model">LLM</abbr> system design.<br />

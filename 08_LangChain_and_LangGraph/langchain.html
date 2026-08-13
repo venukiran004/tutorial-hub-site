@@ -146,7 +146,15 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
 .diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
 .diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
-.diagram pre{margin:0;padding-top:12px;background:none;border:none;font-family:var(--mono);font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+/* Box-drawing glyphs must come from the same font as the letters or the borders go
+   ragged: the default stack resolved them from a fallback whose advance width did
+   not match, so a run of horizontal rule ended short of the verticals around it.
+   These faces all carry U+2500..257F at the monospace advance. */
+.diagram pre{margin:0;padding-top:12px;background:none;border:none;
+  font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
+    "Courier New",monospace;
+  font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
+  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -976,7 +984,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
 <div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Term</th><th>Plain-language definition</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>LangChain</strong></td><td>A modular framework of <abbr title="large language model">LLM</abbr> building blocks + a composition syntax (<abbr title="LangChain Expression Language">LCEL</abbr>).</td></tr><tr class="g0"><td class="c-term"><strong>Runnable</strong></td><td>The universal interface — everything supports <code>.invoke()/.stream()/.batch()/.ainvoke()</code>.</td></tr><tr class="g1"><td class="c-term"><strong>LCEL</strong></td><td>LangChain Expression Language — compose components with the pipe <code>|</code> into a Runnable.</td></tr><tr class="g0"><td class="c-term"><strong>Chat model</strong></td><td>The LLM wrapper (<code>ChatOpenAI</code>, <code>ChatAnthropic</code>) you call with messages.</td></tr><tr class="g1"><td class="c-term"><strong>Prompt template</strong></td><td>A parameterized prompt (<code>ChatPromptTemplate</code>, FewShot) filled at runtime.</td></tr><tr class="g0"><td class="c-term"><strong>Output parser / structured output</strong></td><td>Turn model text into a typed object (<code>with_structured_output</code>).</td></tr><tr class="g1"><td class="c-term"><strong>Chain</strong></td><td>Components wired together — Sequential, Parallel, Branching, with Fallbacks.</td></tr><tr class="g0"><td class="c-term"><strong>Fallbacks / retry</strong></td><td><code>with_fallbacks</code> / <code>with_retry</code> for resilience against errors and rate limits.</td></tr><tr class="g1"><td class="c-term"><strong>Tool / <abbr title="the model emitting a structured request for a function the application then executes">tool calling</abbr></strong></td><td>A function the model can invoke (<code>@tool</code> decorator).</td></tr><tr class="g0"><td class="c-term"><strong>Agent</strong></td><td>An LLM that chooses tools in a loop. Built via <code>create_agent</code> (LangChain 1.0) or LangGraph's <code>create_react_agent</code> — not legacy AgentExecutor.</td></tr><tr class="g1"><td class="c-term"><strong>Middleware</strong></td><td>LangChain 1.0 hooks that run around every model/tool call inside an agent (trim context, gate tools, redact <abbr title="personally identifiable information">PII</abbr>, fallbacks) — see §8.</td></tr><tr class="g0"><td class="c-term"><strong>Memory</strong></td><td>Conversation history handling (modern apps use LangGraph persistence).</td></tr><tr class="g1"><td class="c-term"><strong>Retriever / <abbr title="a database that indexes embeddings for nearest-neighbour search">vector store</abbr></strong></td><td>Returns relevant docs / stores embeddings — the <abbr title="retrieval-augmented generation">RAG</abbr> pieces.</td></tr><tr class="g0"><td class="c-term"><strong>Callbacks / LangSmith</strong></td><td>Hooks for tracing, logging, and observability of runs.</td></tr><tr class="g1"><td class="c-term"><strong>Caching</strong></td><td>Skip the API call for identical prompts (<code>set_llm_cache</code>).</td></tr></tbody></table></div>
 </div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01LangChainNot-1"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Architecture &amp; Core Concepts</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01LangChainNot-1"><span></span></label></div><div class="q-a"><p>LangChain v0.3 is a modular Python framework for building applications powered by large language models. Its architecture is split into core packages (<code>langchain-core</code> for base abstractions, partner packages for provider-specific integrations, and <code>langgraph</code> for stateful agents), all unified by the Runnable interface and <abbr title="LangChain Expression Language">LCEL</abbr> pipe syntax.</p>
 <div class="diagram"><pre>LANGCHAIN v0.3 ARCHITECTURE:
-  ┌─────────────────────────────────────────────┐
+  ┌──────────────────────────────────────────────┐
   │  langchain           — high-level chains     │
   │  langchain-core      — LCEL, base interfaces │
   │  langchain-community — 3rd-party integrations│
@@ -984,7 +992,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
   │  langchain-anthropic — Anthropic-specific    │
   │  langgraph           — stateful agents       │
   │  langsmith           — observability         │
-  └─────────────────────────────────────────────┘
+  └──────────────────────────────────────────────┘
   
   KEY CONCEPTS:
   - Runnable: Base unit — anything with invoke/ainvoke/stream/astream

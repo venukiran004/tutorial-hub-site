@@ -146,7 +146,15 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
 .diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
 .diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
-.diagram pre{margin:0;padding-top:12px;background:none;border:none;font-family:var(--mono);font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+/* Box-drawing glyphs must come from the same font as the letters or the borders go
+   ragged: the default stack resolved them from a fallback whose advance width did
+   not match, so a run of horizontal rule ended short of the verticals around it.
+   These faces all carry U+2500..257F at the monospace advance. */
+.diagram pre{margin:0;padding-top:12px;background:none;border:none;
+  font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
+    "Courier New",monospace;
+  font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
+  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -980,22 +988,22 @@ AUTHORIZATION (AuthZ):  "What can you do?"
   ┌──────────────────────────────────────────────────────────┐
   │                    IDENTITY STACK                        │
   │                                                          │
-  │  Layer 4: SSO / Federation  (SAML, OIDC, social login)  │
-  │  Layer 3: Token Management  (JWT, sessions, refresh)    │
-  │  Layer 2: Authentication    (password, MFA, biometric)  │
-  │  Layer 1: Identity Store    (LDAP, DB, IdP)             │
+  │  Layer 4: SSO / Federation  (SAML, OIDC, social login)   │
+  │  Layer 3: Token Management  (JWT, sessions, refresh)     │
+  │  Layer 2: Authentication    (password, MFA, biometric)   │
+  │  Layer 1: Identity Store    (LDAP, DB, IdP)              │
   └──────────────────────────────────────────────────────────┘
 
   AUTHENTICATION METHODS:
-  ┌──────────────────────────────────────────────────────────┐
+  ┌─────────────────────────────────────────────────────────┐
   │ Password-based: Hash (bcrypt/argon2) + salt              │
   │ MFA/2FA:        TOTP, SMS, push notification, hardware  │
-  │                  keys (WebAuthn/FIDO2)                   │
+  │                  keys (WebAuthn/FIDO2)                  │
   │ Passwordless:   Magic links, biometric, passkeys        │
   │ Certificate:    mTLS (mutual TLS) for service-to-service│
   │ API Keys:       For machine-to-machine (not users!)     │
   │ SSO:            SAML 2.0 (enterprise), OIDC (modern)    │
-  └──────────────────────────────────────────────────────────┘
+  └─────────────────────────────────────────────────────────┘
 
   AUTHORIZATION MODELS:
   ┌──────────────────────────────────────────────────────────┐
@@ -1008,17 +1016,17 @@ AUTHORIZATION (AuthZ):  "What can you do?"
   │   Policy evaluates attributes: user, resource, env       │
   │   "Managers in finance dept can view Q3 reports          │
   │    during business hours from corporate network"         │
-  │   Fine-grained but complex to manage                    │
+  │   Fine-grained but complex to manage                     │
   │                                                          │
   │ ReBAC: Relationship-Based Access Control                 │
   │   Based on relationships between entities                │
   │   "Can view if owner OR member of owning org"            │
-  │   Used by: Google Zanzibar (Google Docs sharing model)  │
-  │   Tools: SpiceDB, Ory Keto, AuthZed                     │
+  │   Used by: Google Zanzibar (Google Docs sharing model)   │
+  │   Tools: SpiceDB, Ory Keto, AuthZed                      │
   │                                                          │
   │ Policy-as-Code: OPA (Open Policy Agent)                  │
   │   Rego language for policy definition                    │
-  │   Decoupled from application logic                      │
+  │   Decoupled from application logic                       │
   │   Unified policy across services, K8s, APIs             │
   └──────────────────────────────────────────────────────────┘
 
@@ -1035,14 +1043,14 @@ AUTHORIZATION (AuthZ):  "What can you do?"
   │ Features:                                                │
   │   - Relationship expansion (viewer ← member ← admin)    │
   │   - Consistent check (new zookie = consistency token)    │
-  │   - Global scale with Spanner backend                   │
+  │   - Global scale with Spanner backend                    │
   │   - &lt; 10ms P99 for Check API                            │
   └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f11SecurityandC-2"><div class="q-h"><span class="q-n">&bull;</span><h3>2. OAuth 2.0 &amp; OpenID Connect Deep Dive</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f11SecurityandC-2"><span></span></label></div><div class="q-a"><div class="diagram"><pre>OAUTH 2.0: Authorization framework (delegates access)
 OIDC: Authentication layer ON TOP of OAuth 2.0
 
   OAUTH 2.0 GRANT TYPES:
   ┌──────────────────────────────────────────────────────────┐
-  │ 1. AUTHORIZATION CODE (most common, most secure)        │
+  │ 1. AUTHORIZATION CODE (most common, most secure)         │
   │    For: Server-side web apps                             │
   │    Flow:                                                 │
   │    User → App → Redirect to AuthZ Server →               │
@@ -1065,8 +1073,8 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │    Device shows code → User enters on another device     │
   │    Device polls for token                                │
   │                                                          │
-  │ ❌ DEPRECATED:                                            │
-  │    Implicit grant (token in URL — security risk)          │
+  │ ❌ DEPRECATED:                                           │
+  │    Implicit grant (token in URL — security risk)         │
   │    Resource owner password (shares password with app)    │
   └──────────────────────────────────────────────────────────┘
 
@@ -1096,7 +1104,7 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │ Access Token:  Short-lived (5-60 min). Used for API calls│
   │ Refresh Token: Long-lived. Used to get new access tokens │
   │ ID Token:      OIDC only. Contains user identity claims  │
-  │                (sub, email, name, etc.)                   │
+  │                (sub, email, name, etc.)                  │
   │                                                          │
   │ Token storage:                                           │
   │   Server-side: HTTP-only secure cookies (best for web)   │
@@ -1112,9 +1120,9 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   ┌──────────────────────────────────────────────────────────┐
   │ header.payload.signature                                 │
   │                                                          │
-  │ Header: {"alg": "RS256", "typ": "JWT", "kid": "key-1"} │
-  │ Payload: {"sub": "user123", "role": "admin",            │
-  │           "iat": 1700000000, "exp": 1700003600}         │
+  │ Header: {"alg": "RS256", "typ": "JWT", "kid": "key-1"}   │
+  │ Payload: {"sub": "user123", "role": "admin",             │
+  │           "iat": 1700000000, "exp": 1700003600}          │
   │ Signature: RS256(base64(header) + "." + base64(payload),│
   │            privateKey)                                    │
   │                                                          │
@@ -1124,13 +1132,13 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   ALGORITHMS:
   ┌──────────────────────────────────────────────────────────┐
   │ HS256: HMAC-SHA256 (symmetric — same key sign &amp; verify) │
-  │   Pro: Simple. Con: Shared secret must be distributed.  │
+  │   Pro: Simple. Con: Shared secret must be distributed.   │
   │                                                          │
   │ RS256: RSA-SHA256 (asymmetric — private sign, public     │
   │   verify). Best for distributed systems. Auth server     │
   │   signs, any service verifies with public key.          │
   │                                                          │
-  │ ES256: ECDSA-SHA256 (asymmetric, smaller keys).         │
+  │ ES256: ECDSA-SHA256 (asymmetric, smaller keys).          │
   │   Preferred for mobile/constrained environments.        │
   │                                                          │
   │ ❌ NEVER set alg: "none" — disables verification!        │
@@ -1145,14 +1153,14 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │ ✅ Publish public keys via JWKS endpoint                 │
   │                                                          │
   │ ❌ Don't store sensitive data in payload (it's base64,   │
-  │    not encrypted — anyone can decode it)                  │
+  │    not encrypted — anyone can decode it)                 │
   │ ❌ Don't use JWT for sessions (can't revoke easily)      │
   │ ❌ Don't put JWT in URL (logged, cached, leaked)         │
   │ ❌ Don't skip audience (aud) validation                  │
   └──────────────────────────────────────────────────────────┘
 
   JWT vs OPAQUE TOKENS:
-  ┌──────────────────────────────────────────────────────────┐
+  ┌─────────────────────────────────────────────────────────┐
   │              JWT               │    Opaque Token         │
   │ ─────────────────────────────  │  ──────────────────── │
   │ Self-contained (no DB lookup)  │  Requires DB lookup    │
@@ -1160,7 +1168,7 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │ Larger size (~800 bytes)       │  Small (~32 bytes)     │
   │ Good for microservices         │  Good for monoliths    │
   │ Stateless verification         │  Stateful verification │
-  └──────────────────────────────────────────────────────────┘
+  └─────────────────────────────────────────────────────────┘
 
   JWT REVOCATION STRATEGIES (when you must revoke):
   ┌──────────────────────────────────────────────────────────┐
@@ -1171,7 +1179,7 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │    JWT contains version. On revoke, increment version.  │
   │    Check version match on critical operations only.     │
   │ 4. Event-driven: Publish revocation event, services      │
-  │    maintain local blacklist with TTL auto-cleanup.      │
+  │    maintain local blacklist with TTL auto-cleanup.       │
   └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f11SecurityandC-4"><div class="q-h"><span class="q-n">&bull;</span><h3>4. Zero Trust Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f11SecurityandC-4"><span></span></label></div><div class="q-a"><div class="diagram"><pre>PRINCIPLE: "Never trust, always verify"
   Traditional: Castle-and-moat (trust inside network)
   Zero Trust: Verify every request regardless of source
@@ -1184,12 +1192,12 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │     Based on: identity, device, location, behavior      │
   │                                                          │
   │  2. LEAST PRIVILEGE ACCESS                               │
-  │     Just-in-time (JIT) and just-enough-access (JEA)     │
-  │     Time-bound access grants                            │
-  │     Default deny — explicit allow                       │
+  │     Just-in-time (JIT) and just-enough-access (JEA)      │
+  │     Time-bound access grants                             │
+  │     Default deny — explicit allow                        │
   │                                                          │
   │  3. ASSUME BREACH                                        │
-  │     Minimize blast radius with segmentation             │
+  │     Minimize blast radius with segmentation              │
   │     Encrypt all traffic (even internal)                  │
   │     Continuous monitoring and anomaly detection          │
   └──────────────────────────────────────────────────────────┘
@@ -1246,7 +1254,7 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │    Fix: Strong auth, short tokens, rotate secrets        │
   │                                                          │
   │ 3. Broken Object Property Level Authorization            │
-  │    API returns more fields than user should see           │
+  │    API returns more fields than user should see          │
   │    Fix: Response filtering based on user role            │
   │                                                          │
   │ 4. Unrestricted Resource Consumption                     │
@@ -1254,7 +1262,7 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │    Fix: Rate limit, pagination, max payload size         │
   │                                                          │
   │ 5. Broken Function Level Authorization                   │
-  │    Regular user accesses admin endpoints                  │
+  │    Regular user accesses admin endpoints                 │
   │    Fix: Role-based endpoint access control               │
   │                                                          │
   │ 6. Unrestricted Access to Sensitive Flows                │
@@ -1281,27 +1289,27 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   RATE LIMITING PATTERNS:
   ┌──────────────────────────────────────────────────────────┐
   │ Fixed Window:     100 req/min per user                   │
-  │   Simple but allows burst at window boundary            │
+  │   Simple but allows burst at window boundary             │
   │                                                          │
   │ Sliding Window:   Weighted average of current + previous │
   │   Smoother distribution                                  │
   │                                                          │
   │ Token Bucket:     Tokens added at fixed rate, consumed   │
-  │   per request. Allows controlled bursts.                │
-  │   Used by: AWS API Gateway, Stripe                      │
+  │   per request. Allows controlled bursts.                 │
+  │   Used by: AWS API Gateway, Stripe                       │
   │                                                          │
   │ Leaky Bucket:     Requests queued, processed at fixed    │
-  │   rate. Smooths traffic. Drops when queue full.         │
+  │   rate. Smooths traffic. Drops when queue full.          │
   │                                                          │
   │ Distributed rate limiting:                               │
   │   Redis + Lua script (atomic increment + expire)        │
   │   Or: centralized rate limiter service                   │
-  │   Headers: X-RateLimit-Limit, X-RateLimit-Remaining     │
+  │   Headers: X-RateLimit-Limit, X-RateLimit-Remaining      │
   └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f11SecurityandC-6"><div class="q-h"><span class="q-n">&bull;</span><h3>6. Encryption &amp; Data Protection</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f11SecurityandC-6"><span></span></label></div><div class="q-a"><div class="diagram"><pre>ENCRYPTION AT REST:
   ┌──────────────────────────────────────────────────────────┐
   │ Level 1: Full-disk encryption (BitLocker, LUKS)          │
   │   OS-level, transparent to applications                  │
-  │   Protects against: physical theft                      │
+  │   Protects against: physical theft                       │
   │                                                          │
   │ Level 2: Database-level encryption (TDE)                 │
   │   DB encrypts data files automatically                   │
@@ -1309,20 +1317,20 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │                                                          │
   │ Level 3: Application-level encryption (field-level)      │
   │   Encrypt specific fields (SSN, credit card)             │
-  │   Protects against: DB admin access, SQL injection      │
-  │   Most secure but adds complexity                       │
+  │   Protects against: DB admin access, SQL injection       │
+  │   Most secure but adds complexity                        │
   │                                                          │
   │ Envelope Encryption:                                     │
-  │   Data encrypted with DEK (data encryption key)         │
-  │   DEK encrypted with KEK (key encryption key) from KMS  │
-  │   Only encrypted DEK stored alongside data              │
-  │   Used by: AWS KMS, Google Cloud KMS, Azure Key Vault   │
+  │   Data encrypted with DEK (data encryption key)          │
+  │   DEK encrypted with KEK (key encryption key) from KMS   │
+  │   Only encrypted DEK stored alongside data               │
+  │   Used by: AWS KMS, Google Cloud KMS, Azure Key Vault    │
   └──────────────────────────────────────────────────────────┘
 
   ENCRYPTION IN TRANSIT:
   ┌──────────────────────────────────────────────────────────┐
   │ TLS 1.3 (minimum standard):                              │
-  │   Faster handshake (1-RTT, 0-RTT for resumption)        │
+  │   Faster handshake (1-RTT, 0-RTT for resumption)         │
   │   Removed weak ciphers (RC4, 3DES, SHA-1)               │
   │   Perfect forward secrecy mandatory                      │
   │                                                          │
@@ -1333,16 +1341,16 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │                                                          │
   │ Certificate Management:                                  │
   │   Let's Encrypt: Free, automated certificates            │
-  │   cert-manager (K8s): Automated cert lifecycle          │
+  │   cert-manager (K8s): Automated cert lifecycle           │
   │   Rotation: Automate. Short-lived certs (hours/days).   │
   └──────────────────────────────────────────────────────────┘
 
   HASHING:
   ┌──────────────────────────────────────────────────────────┐
   │ Passwords: Argon2id (winner of PHC) or bcrypt            │
-  │   NEVER: MD5, SHA-1, SHA-256 alone (too fast!)          │
+  │   NEVER: MD5, SHA-1, SHA-256 alone (too fast!)           │
   │   Always salt (unique per user)                          │
-  │   Cost factor: tune to ~250ms per hash                  │
+  │   Cost factor: tune to ~250ms per hash                   │
   │                                                          │
   │ Data integrity: SHA-256 (checksums, content addressing)  │
   │ HMAC: SHA-256 with key (message authentication)          │
@@ -1350,7 +1358,7 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
 
   ❌ ANTI-PATTERNS:
   ┌──────────────────────────────────────────────────────────┐
-  │ Secrets in code (git history is FOREVER)                  │
+  │ Secrets in code (git history is FOREVER)                 │
   │ Secrets in environment variables (ps -e exposes them)    │
   │ Shared credentials across environments                   │
   │ Long-lived secrets never rotated                         │
@@ -1360,22 +1368,22 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   SECRETS MANAGEMENT SOLUTIONS:
   ┌──────────────────────────────────────────────────────────┐
   │ HashiCorp Vault:                                         │
-  │   - Dynamic secrets (generate on demand, auto-expire)   │
+  │   - Dynamic secrets (generate on demand, auto-expire)    │
   │   - Secret rotation (automatic)                          │
   │   - Encryption as a service (transit engine)             │
-  │   - Auth: K8s, AWS IAM, OIDC, certificates             │
-  │   - Audit logging of all access                         │
+  │   - Auth: K8s, AWS IAM, OIDC, certificates               │
+  │   - Audit logging of all access                          │
   │                                                          │
   │ AWS Secrets Manager:                                     │
   │   - Automatic rotation with Lambda                       │
-  │   - Cross-account sharing                               │
+  │   - Cross-account sharing                                │
   │   - RDS, Redshift integration                            │
   │                                                          │
   │ K8s Secrets:                                             │
   │   - Base64 encoded (NOT encrypted by default!)           │
-  │   - Must enable encryption at rest (etcd encryption)    │
-  │   - External Secrets Operator: sync from Vault/AWS      │
-  │   - Sealed Secrets: encrypted secrets in git            │
+  │   - Must enable encryption at rest (etcd encryption)     │
+  │   - External Secrets Operator: sync from Vault/AWS       │
+  │   - Sealed Secrets: encrypted secrets in git             │
   └──────────────────────────────────────────────────────────┘
 
   SECRET ROTATION PATTERN:
@@ -1386,7 +1394,7 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │ 4. Verify old version unused                             │
   │ 5. Revoke old version                                    │
   │                                                          │
-  │ Dual-read pattern: always try new, fallback to old      │
+  │ Dual-read pattern: always try new, fallback to old       │
   │ Automate rotation: never rely on manual processes        │
   │ Target: rotate every 30-90 days (shorter = better)      │
   └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f11SecurityandC-8"><div class="q-h"><span class="q-n">&bull;</span><h3>8. Cloud-Native Architecture Patterns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f11SecurityandC-8"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CLOUD-NATIVE PRINCIPLES:
@@ -1426,7 +1434,7 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │   Example: transform logs to common format               │
   │                                                          │
   │ Init Container: Run before main container starts         │
-  │   Example: DB migration, config download, wait for dep  │
+  │   Example: DB migration, config download, wait for dep   │
   │                                                          │
   │ Operator:     Custom controller for stateful apps        │
   │   Example: PostgreSQL operator manages clusters          │
@@ -1438,14 +1446,14 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │ Liveness Probe:  "Is the process alive?"                 │
   │   Failure → K8s kills and restarts the pod              │
   │   Check: process health, deadlock detection              │
-  │   DON'T check: external dependencies!                   │
+  │   DON'T check: external dependencies!                    │
   │                                                          │
   │ Readiness Probe: "Can it handle traffic?"                │
   │   Failure → K8s removes from service endpoints          │
-  │   Check: can connect to DB, cache warmed, etc.          │
+  │   Check: can connect to DB, cache warmed, etc.           │
   │                                                          │
   │ Startup Probe:  "Has it started yet?"                    │
-  │   For slow-starting apps (large model loading)          │
+  │   For slow-starting apps (large model loading)           │
   │   Disables liveness/readiness until startup completes   │
   │                                                          │
   │ Common mistake: liveness probe checks DB → DB goes      │
@@ -1458,17 +1466,17 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │ Base images: Distroless or Alpine (minimal attack surface)│
   │ Non-root: Run containers as non-root user                │
   │ Read-only filesystem: Mount as read-only                 │
-  │ Network policies: Restrict pod-to-pod traffic           │
+  │ Network policies: Restrict pod-to-pod traffic            │
   │ Pod Security Standards: restricted/baseline/privileged   │
-  │ Supply chain: Sign images (cosign/Sigstore)             │
+  │ Supply chain: Sign images (cosign/Sigstore)              │
   └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f11SecurityandC-9"><div class="q-h"><span class="q-n">&bull;</span><h3>9. Serverless Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f11SecurityandC-9"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SERVERLESS COMPUTE:
   ┌──────────────────────────────────────────────────────────┐
-  │ AWS Lambda / Azure Functions / Google Cloud Functions     │
+  │ AWS Lambda / Azure Functions / Google Cloud Functions    │
   │                                                          │
   │ Characteristics:                                         │
   │   No server management                                   │
   │   Pay per invocation (not per hour)                      │
-  │   Auto-scales to zero and to thousands                  │
+  │   Auto-scales to zero and to thousands                   │
   │   Event-driven execution model                           │
   │   Stateless (state in external services)                │
   └──────────────────────────────────────────────────────────┘
@@ -1498,16 +1506,16 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │ Cold start latency by runtime:                           │
   │   Python: 200-500ms                                      │
   │   Node.js: 200-400ms                                     │
-  │   Go/Rust: 50-100ms (compiled, small binary)            │
+  │   Go/Rust: 50-100ms (compiled, small binary)             │
   │   Java: 1-10s (JVM startup + class loading)             │
-  │   .NET: 500ms-3s                                        │
+  │   .NET: 500ms-3s                                         │
   │                                                          │
   │ Mitigation:                                              │
   │   Provisioned concurrency (pre-warm instances)          │
-  │   Smaller packages (minimize dependencies)              │
+  │   Smaller packages (minimize dependencies)               │
   │   GraalVM native-image (for Java — eliminates JVM)      │
-  │   SnapStart (AWS Lambda — snapshot of initialized JVM)  │
-  │   Keep functions warm with periodic pings               │
+  │   SnapStart (AWS Lambda — snapshot of initialized JVM)   │
+  │   Keep functions warm with periodic pings                │
   └──────────────────────────────────────────────────────────┘
 
   SERVERLESS PATTERNS:
@@ -1522,19 +1530,19 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │   SQS queue → Lambda → process (batch of messages)      │
   │   EventBridge → Lambda (scheduled or event-based)       │
   │                                                          │
-  │ Step Functions (workflow orchestration):                  │
+  │ Step Functions (workflow orchestration):                 │
   │   State machine for multi-step processes                 │
-  │   Built-in retry, error handling, parallel execution    │
+  │   Built-in retry, error handling, parallel execution     │
   │   Visual workflow designer                               │
   │                                                          │
   │ Fan-out / Fan-in:                                        │
   │   SNS → multiple SQS queues → multiple Lambdas          │
-  │   Aggregate results in DynamoDB or S3                   │
+  │   Aggregate results in DynamoDB or S3                    │
   └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f11SecurityandC-10"><div class="q-h"><span class="q-n">&bull;</span><h3>10. Multi-Cloud &amp; Hybrid Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f11SecurityandC-10"><span></span></label></div><div class="q-a"><div class="diagram"><pre>MULTI-CLOUD STRATEGIES:
   ┌──────────────────────────────────────────────────────────┐
   │ Strategy 1: BEST-OF-BREED                                │
   │   Use best service from each cloud                       │
-  │   AWS for compute, GCP for ML, Azure for enterprise     │
+  │   AWS for compute, GCP for ML, Azure for enterprise      │
   │   Pro: Optimized. Con: Integration complexity.           │
   │                                                          │
   │ Strategy 2: ACTIVE-ACTIVE REDUNDANCY                     │
@@ -1544,13 +1552,13 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │ Strategy 3: CLOUD-AGNOSTIC ABSTRACTION                   │
   │   Use K8s/Terraform everywhere                           │
   │   Avoid cloud-specific services                          │
-  │   Pro: Portable. Con: Lowest common denominator.        │
+  │   Pro: Portable. Con: Lowest common denominator.         │
   │                                                          │
   │ RECOMMENDATION:                                          │
   │   Pick one primary cloud. Go deep, use managed services.│
-  │   Multi-cloud only when business requires it (M&amp;A,      │
+  │   Multi-cloud only when business requires it (M&amp;A,       │
   │   regulatory, specific service needs).                  │
-  │   "Multi-cloud" ≠ "cloud-agnostic" (usually unnecessary)│
+  │   "Multi-cloud" ≠ "cloud-agnostic" (usually unnecessary) │
   └──────────────────────────────────────────────────────────┘
 
   HYBRID CLOUD PATTERNS:
@@ -1561,22 +1569,22 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │                                                          │
   │ Edge + Cloud:                                            │
   │   Edge for low-latency, cloud for heavy processing      │
-  │   AWS Outposts, Azure Stack, Google Anthos              │
+  │   AWS Outposts, Azure Stack, Google Anthos               │
   │                                                          │
   │ Data Gravity:                                            │
   │   Data stays where it was created                        │
   │   Compute moves to data (not data to compute)           │
-  │   Regulatory: GDPR requires data in EU                  │
+  │   Regulatory: GDPR requires data in EU                   │
   └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f11SecurityandC-11"><div class="q-h"><span class="q-n">&bull;</span><h3>11. Infrastructure as Code</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f11SecurityandC-11"><span></span></label></div><div class="q-a"><div class="diagram"><pre>IaC TOOLS COMPARISON:
   ┌──────────────────────────────────────────────────────────┐
   │ Terraform (HashiCorp):                                   │
-  │   HCL language, multi-cloud, largest ecosystem          │
+  │   HCL language, multi-cloud, largest ecosystem           │
   │   State file tracks infrastructure                       │
   │   Plan → Apply workflow (preview before change)         │
-  │   Modules for reusable infrastructure components        │
+  │   Modules for reusable infrastructure components         │
   │                                                          │
   │ Pulumi:                                                  │
-  │   Real programming languages (Python, TS, Go, C#)       │
+  │   Real programming languages (Python, TS, Go, C#)        │
   │   Same concepts as Terraform (state, preview, etc.)     │
   │   Better for teams who prefer code over DSL             │
   │                                                          │
@@ -1585,16 +1593,16 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │   High-level abstractions (L1, L2, L3 constructs)      │
   │                                                          │
   │ CloudFormation (AWS-only):                               │
-  │   JSON/YAML, deep AWS integration                       │
-  │   StackSets for multi-account, multi-region             │
+  │   JSON/YAML, deep AWS integration                        │
+  │   StackSets for multi-account, multi-region              │
   │                                                          │
   │ Ansible:                                                 │
   │   Configuration management + some IaC                   │
-  │   Agentless (SSH/WinRM), procedural                     │
+  │   Agentless (SSH/WinRM), procedural                      │
   └──────────────────────────────────────────────────────────┘
 
   TERRAFORM BEST PRACTICES:
-  ┌──────────────────────────────────────────────────────────┐
+  ┌─────────────────────────────────────────────────────────┐
   │ 1. Remote state: S3 + DynamoDB locking (never local)    │
   │ 2. State per environment: separate state files          │
   │ 3. Modules: DRY infrastructure components               │
@@ -1605,31 +1613,31 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │ 8. Tag everything (cost tracking, ownership)            │
   │ 9. Drift detection: automated plan checks               │
   │ 10. Policy as code: OPA/Sentinel for guardrails         │
-  └──────────────────────────────────────────────────────────┘
+  └─────────────────────────────────────────────────────────┘
 
   GitOps:
-  ┌──────────────────────────────────────────────────────────┐
+  ┌─────────────────────────────────────────────────────────┐
   │ Git as single source of truth for infrastructure        │
-  │                                                          │
-  │ Tools:                                                   │
+  │                                                         │
+  │ Tools:                                                  │
   │   ArgoCD: K8s-native, pull-based GitOps                 │
   │   Flux: CNCF project, K8s-native                        │
-  │                                                          │
-  │ Workflow:                                                │
+  │                                                         │
+  │ Workflow:                                               │
   │   Developer → PR → Review → Merge →                     │
   │   ArgoCD detects change → Sync to cluster               │
-  │                                                          │
-  │ Benefits:                                                │
+  │                                                         │
+  │ Benefits:                                               │
   │   Audit trail (git history)                             │
   │   Rollback (git revert)                                 │
   │   Self-healing (desired state reconciliation)           │
   │   Consistent environments                               │
-  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f11SecurityandC-12"><div class="q-h"><span class="q-n">&bull;</span><h3>12. Compliance &amp; Governance</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f11SecurityandC-12"><span></span></label></div><div class="q-a"><div class="diagram"><pre>COMPLIANCE FRAMEWORKS:
+  └─────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f11SecurityandC-12"><div class="q-h"><span class="q-n">&bull;</span><h3>12. Compliance &amp; Governance</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f11SecurityandC-12"><span></span></label></div><div class="q-a"><div class="diagram"><pre>COMPLIANCE FRAMEWORKS:
   ┌──────────────────────────────────────────────────────────┐
   │ SOC 2 Type II:  Security, availability, processing      │
   │                 integrity. Required by enterprise buyers.│
   │                                                          │
-  │ GDPR:           EU data protection. Right to be         │
+  │ GDPR:           EU data protection. Right to be          │
   │                 forgotten, data portability, consent.    │
   │                                                          │
   │ HIPAA:          US healthcare data protection.           │
@@ -1647,7 +1655,7 @@ OIDC: Authentication layer ON TOP of OAuth 2.0
   │ □ Data classification (public, internal, confidential)   │
   │ □ Encryption at rest and in transit                      │
   │ □ Access control with audit logging                      │
-  │ □ Data residency (where is data stored geographically?) │
+  │ □ Data residency (where is data stored geographically?)  │
   │ □ Data retention and deletion policies                   │
   │ □ Incident response plan                                 │
   │ □ Business continuity / disaster recovery plan           │

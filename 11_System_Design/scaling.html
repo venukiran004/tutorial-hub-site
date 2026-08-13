@@ -146,7 +146,15 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
 .diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
 .diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
-.diagram pre{margin:0;padding-top:12px;background:none;border:none;font-family:var(--mono);font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+/* Box-drawing glyphs must come from the same font as the letters or the borders go
+   ragged: the default stack resolved them from a fallback whose advance width did
+   not match, so a run of horizontal rule ended short of the verticals around it.
+   These faces all carry U+2500..257F at the monospace advance. */
+.diagram pre{margin:0;padding-top:12px;background:none;border:none;
+  font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
+    "Courier New",monospace;
+  font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
+  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1235,7 +1243,7 @@ handle reads</strong>. This spreads read load and ensures high availability.</p>
 <div class="diagram"><pre>                       WRITE PATH
                           │
                           ▼
-                  ┌────────────────┐
+                  ┌─────────────────┐
                   │ PRIMARY (writes)│
                   └───────┬─────────┘
        data sync ┌────────┼────────┐ data sync
@@ -1316,7 +1324,7 @@ remember RAM is <span class="mag">~100,000×</span> faster than a cross-continen
               │ Return data  │    │ Fetch from DATABASE (disk)  │
               │ INSTANTLY 🚀 │    │ Save a copy to cache        │
               └──────────────┘    │ Return data                 │
-                                  └────────────────────────────┘</pre></div>
+                                  └─────────────────────────────┘</pre></div>
 <p><strong>Where caches live (multiple layers):</strong>
 - <strong>Client / browser cache</strong> (closest, free).
 - <strong><abbr title="content delivery network">CDN</abbr> cache</strong> (edge, for static assets — see <a href="javascript:void(0)">§22</a>).
@@ -1400,7 +1408,7 @@ facilities — e.g., S3's "11 nines" durability), and directly serveable via URL
 <abbr title="content delivery network">CDN</abbr>).</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01TheScalingBl-22"><div class="q-h"><span class="q-n">&bull;</span><h3>22. CDN (Content Delivery Network)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01TheScalingBl-22"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Definition</span><span class="kt">global network of edge servers</span><span class="kt">What to put on a CDN</span><span class="kt">TTL</span><span class="kt">cache-control headers</span></div><p><strong>Definition.</strong> A <strong>global network of edge servers</strong> that <strong>caches static content geographically
 close to users</strong> to eliminate latency and buffering.</p>
 <div class="diagram"><pre>                       ┌──────── ORIGIN (blob storage / your server) ────────┐
-                       │              content pushed/pulled to edges          │
+                       │              content pushed/pulled to edges         │
                        └───────────────────────┬─────────────────────────────┘
        ┌───────────────┬───────────────────────┼───────────────┬───────────────┐
        ▼               ▼                        ▼               ▼               ▼
@@ -1583,7 +1591,7 @@ blueprint of modern system design:</p>
                                                   │  ┌──────────────┐                                     │
                                                   │  │ BLOB STORAGE │ ◀── CDN pulls media from here       │
                                                   │  └──────────────┘                                     │
-                                                  └──────────────────────────────────────────────────────┘</pre></div>
+                                                  └───────────────────────────────────────────────────────┘</pre></div>
 <p><strong>End-to-end request walkthrough:</strong>
 1. <strong>Client → <abbr title="domain name system">DNS</abbr></strong> resolves your domain to an entry IP.
 2. <strong>Static assets</strong> (images/video/CSS/JS) are served from the <strong><abbr title="content delivery network">CDN</abbr> edge</strong> (pulling from
@@ -1619,7 +1627,7 @@ detail so each concept stands on its own.</em></p>
   UTILIZATION: How busy resources are (CPU, memory, I/O, network)
 
   THE PERFORMANCE TRIANGLE:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ You can optimize for TWO of THREE:                        │
   │                                                           │
   │   Throughput ←──────→ Latency ←──────→ Resource Cost      │
@@ -1627,7 +1635,7 @@ detail so each concept stands on its own.</em></p>
   │ High throughput + low latency  = expensive (more hardware)│
   │ High throughput + low cost     = higher latency (batching)│
   │ Low latency    + low cost      = low throughput (few reqs)│
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   KEY NUMBERS EVERY ARCHITECT MUST KNOW:
   ┌──────────────────────────────┬─────────────────────────────┐
@@ -1662,25 +1670,25 @@ detail so each concept stands on its own.</em></p>
 demand at a target performance level.
 
   STEP-BY-STEP:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ 1. TRAFFIC ESTIMATION                                     │
   │    DAU → QPS: QPS = DAU × actions_per_user / 86400        │
   │    Peak QPS ≈ 2-3× average QPS                           │
-  │    Growth: plan for 2-3× current peak                    │
+  │    Growth: plan for 2-3× current peak                     │
   │                                                           │
   │    Example: 10M DAU, 20 actions/day                       │
   │    Avg QPS = 10M × 20 / 86400 ≈ 2,300 QPS               │
-  │    Peak QPS ≈ 2,300 × 3 = 6,900 QPS                     │
-  │    Plan for = 6,900 × 2 = 13,800 QPS                    │
+  │    Peak QPS ≈ 2,300 × 3 = 6,900 QPS                       │
+  │    Plan for = 6,900 × 2 = 13,800 QPS                      │
   │                                                           │
   │ 2. STORAGE ESTIMATION                                     │
   │    Daily new data = new_records × avg_record_size          │
   │    Include: indexes (2-3× data), replicas, backups        │
   │    Retention: how long to keep data                       │
   │                                                           │
-  │    Example: 10M new records/day × 500 bytes = 5 GB/day   │
+  │    Example: 10M new records/day × 500 bytes = 5 GB/day    │
   │    + indexes (2×) = 15 GB/day                            │
-  │    × 365 days × 3 replicas = 16.4 TB/year               │
+  │    × 365 days × 3 replicas = 16.4 TB/year                 │
   │                                                           │
   │ 3. BANDWIDTH ESTIMATION                                   │
   │    Ingress = QPS_write × avg_request_size                 │
@@ -1690,7 +1698,7 @@ demand at a target performance level.
   │    Servers = Peak QPS / QPS_per_server                    │
   │    Add 30-40% headroom for spikes and failures            │
   │    Rule: never run above 70% CPU utilization              │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   SCALING THRESHOLDS:
   ┌──────────────────┬──────────────────────────────────────────┐
@@ -1726,7 +1734,7 @@ demand at a target performance level.
   └────────────────────────────────────────────────────────────┘
 
   QUEUING THEORY KEY INSIGHTS:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ 1. Latency grows NON-LINEARLY with utilization            │
   │                                                           │
   │    Utilization:   Latency multiplier:                     │
@@ -1747,7 +1755,7 @@ demand at a target performance level.
   │    Short burst → queue absorbs, processes later           │
   │    Sustained overload → queue grows → OOM → crash         │
   │    → Always have backpressure (bounded queues)            │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   M/M/c QUEUE MODEL (most practical):
   - Poisson arrivals (M)
@@ -1764,7 +1772,7 @@ demand at a target performance level.
   1-S = fraction that is parallelizable
 
   IMPLICATIONS:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Serial %  │ Max speedup with ∞ processors                │
   │ 1%        │ 100×                                          │
   │ 5%        │ 20×                                           │
@@ -1774,7 +1782,7 @@ demand at a target performance level.
   │                                                           │
   │ Even 5% serial code limits you to 20× speedup!           │
   │ → Optimize the serial parts first                        │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   SERIAL BOTTLENECKS IN DISTRIBUTED SYSTEMS:
   ┌──────────────────┬──────────────────────────────────────────┐
@@ -1799,14 +1807,14 @@ demand at a target performance level.
   → Network overhead, distributed locks, cross-service calls
 
   ARCHITECT INSIGHT:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌──────────────────────────────────────────────────────────┐
   │ Before adding servers:                                    │
   │ 1. Profile: where is the actual bottleneck?              │
   │ 2. Optimize: can the serial part be made parallel?       │
   │ 3. Cache: can we avoid the bottleneck entirely?          │
   │ 4. Partition: can we shard the hot resource?             │
   │ 5. Then scale: add servers for the parallel parts        │
-  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-37"><div class="q-h"><span class="q-n">&bull;</span><h3>5. Latency Analysis</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-37"><span></span></label></div><div class="q-a"><div class="diagram"><pre>LATENCY PERCENTILES:
+  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-37"><div class="q-h"><span class="q-n">&bull;</span><h3>5. Latency Analysis</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-37"><span></span></label></div><div class="q-a"><div class="diagram"><pre>LATENCY PERCENTILES:
   P50 (median): 50% of requests are faster than this
   P90: 90% are faster (1 in 10 is slower)
   P95: 95% are faster (1 in 20 is slower)
@@ -1850,8 +1858,8 @@ demand at a target performance level.
      rather than making everyone slow
 
   LATENCY BUDGETING:
-  ┌────────────────────────────────────────────────────────────┐
-  │ Total budget: 200ms                                       │
+  ┌──────────────────────────────────────────────────────────┐
+  │ Total budget: 200ms                                      │
   │ ├── API Gateway:    10ms                                  │
   │ ├── Auth check:     15ms (cached JWT validation)         │
   │ ├── Feature fetch:  30ms (Redis, parallel)               │
@@ -1859,10 +1867,10 @@ demand at a target performance level.
   │ ├── Business logic: 20ms                                 │
   │ ├── DB write:       40ms                                 │
   │ └── Buffer:         35ms (for variance)                  │
-  │                                                           │
+  │                                                          │
   │ Rule: Each component's P99 should be within its budget   │
   │ Alert when P95 approaches budget (early warning)         │
-  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-38"><div class="q-h"><span class="q-n">&bull;</span><h3>6. Caching Architectures</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-38"><span></span></label></div><div class="q-a"><div class="diagram"><pre>MULTI-TIER CACHING:
+  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-38"><div class="q-h"><span class="q-n">&bull;</span><h3>6. Caching Architectures</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-38"><span></span></label></div><div class="q-a"><div class="diagram"><pre>MULTI-TIER CACHING:
 
   Browser → CDN Edge → API Gateway → App Cache → DB Cache → DB
   
@@ -1906,7 +1914,7 @@ demand at a target performance level.
   └────────────────────────────────────────────────────────────┘
 
   CACHE INVALIDATION PATTERNS:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ TTL-based: Set expiry on cache entries                    │
   │   Simple, eventual consistency (stale for TTL duration)   │
   │                                                           │
@@ -1919,8 +1927,8 @@ demand at a target performance level.
   │   Increment version on write → old cache ignored         │
   │                                                           │
   │ Write-through: Write to cache AND DB simultaneously       │
-  │   Strong consistency, higher write latency               │
-  └────────────────────────────────────────────────────────────┘
+  │   Strong consistency, higher write latency                │
+  └───────────────────────────────────────────────────────────┘
 
   CACHE WARMING STRATEGIES:
   - Pre-populate on deploy (for predictable hot data)
@@ -1930,7 +1938,7 @@ demand at a target performance level.
 instead of creating new ones per request.
 
   WHY IT MATTERS:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Creating a PostgreSQL connection:                         │
   │   TCP handshake:       1ms                                │
   │   TLS handshake:       5ms                                │
@@ -1939,18 +1947,18 @@ instead of creating new ones per request.
   │                                                           │
   │ With pool: Borrow from pool → 0.01ms                     │
   │ 1600× faster!                                             │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   CONNECTION POOL SIZING:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ FORMULA (for databases):                                  │
   │ pool_size = num_physical_cores × 2 + effective_spindle_count│
   │                                                           │
-  │ For SSD (spindle_count ≈ 0):                             │
-  │   pool_size ≈ cores × 2                                  │
+  │ For SSD (spindle_count ≈ 0):                              │
+  │   pool_size ≈ cores × 2                                   │
   │                                                           │
   │ Example: 8-core DB server                                 │
-  │   pool_size = 8 × 2 = 16 connections                     │
+  │   pool_size = 8 × 2 = 16 connections                      │
   │                                                           │
   │ COMMON MISTAKE: Setting pool too large!                   │
   │   100 connections per app × 10 app instances              │
@@ -1959,13 +1967,13 @@ instead of creating new ones per request.
   │   → Use PgBouncer/ProxySQL between app and DB            │
   │                                                           │
   │ CONFIGURATION PARAMETERS:                                 │
-  │   min_pool_size:    Minimum connections kept open          │
-  │   max_pool_size:    Maximum connections allowed            │
-  │   idle_timeout:     Close idle connections after duration  │
-  │   max_lifetime:     Recycle connection after duration      │
+  │   min_pool_size:    Minimum connections kept open         │
+  │   max_pool_size:    Maximum connections allowed           │
+  │   idle_timeout:     Close idle connections after duration │
+  │   max_lifetime:     Recycle connection after duration     │
   │   connection_timeout: Wait time for available connection  │
   │   validation_query: Test connection health ("SELECT 1")   │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   CONNECTION POOL FOR MICROSERVICES:
   ┌────────────────────────────────────────────────────────────┐
@@ -1989,14 +1997,14 @@ instead of creating new ones per request.
   - Configure: max connections per host, keep-alive timeout</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-40"><div class="q-h"><span class="q-n">&bull;</span><h3>8. Database Performance Tuning</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-40"><span></span></label></div><div class="q-a"><div class="diagram"><pre>DATABASE PERFORMANCE OPTIMIZATION:
 
   QUERY OPTIMIZATION:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ 1. EXPLAIN ANALYZE every slow query                       │
   │    Look for: Sequential Scans, Nested Loops, Sort on disk │
   │                                                           │
   │ 2. INDEX STRATEGY:                                        │
   │    - Index WHERE, JOIN, ORDER BY columns                  │
   │    - Composite index: (a, b, c) serves queries on         │
-  │      (a), (a,b), (a,b,c) — NOT (b), (c), (b,c)          │
+  │      (a), (a,b), (a,b,c) — NOT (b), (c), (b,c)            │
   │    - Covering index: includes all SELECT columns          │
   │      (index-only scan, no table lookup)                   │
   │    - Partial index: WHERE is_active = true                │
@@ -2007,29 +2015,29 @@ instead of creating new ones per request.
   │    ✗ N+1 queries (use JOINs or batch fetches)            │
   │    ✗ OFFSET-based pagination (use cursor/keyset)          │
   │    ✗ Functions in WHERE (prevents index use)              │
-  │    ✗ LIKE '%prefix' (can't use B-tree index)             │
+  │    ✗ LIKE '%prefix' (can't use B-tree index)              │
   │    ✗ OR on different columns (use UNION instead)          │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   PAGINATION STRATEGIES:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ OFFSET (bad for large offsets):                           │
-  │   SELECT * FROM items OFFSET 10000 LIMIT 20              │
-  │   DB scans 10020 rows, returns 20. Gets slower with page.│
+  │   SELECT * FROM items OFFSET 10000 LIMIT 20               │
+  │   DB scans 10020 rows, returns 20. Gets slower with page. │
   │                                                           │
   │ KEYSET / CURSOR (good):                                   │
   │   SELECT * FROM items WHERE id &gt; :last_seen_id LIMIT 20  │
   │   Uses index, constant performance regardless of page.    │
-  │   Limitation: can't jump to page N directly.             │
+  │   Limitation: can't jump to page N directly.              │
   │                                                           │
   │ CURSOR-BASED (opaque token):                              │
   │   Encode (last_id, last_sort_value) into opaque token     │
   │   Client passes cursor, server decodes and queries.       │
   │   Used by: GraphQL Relay, Facebook Graph API              │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   DATABASE SCALING PATTERNS:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ 1. Optimize queries and indexes (first!)                  │
   │ 2. Add read replicas (read scaling)                       │
   │ 3. Connection pooling (PgBouncer, ProxySQL)               │
@@ -2039,7 +2047,7 @@ instead of creating new ones per request.
   │ 7. Move to distributed DB (CockroachDB, Spanner)         │
   │                                                           │
   │ Each step adds complexity. Only proceed when needed.      │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   HOT SPOT MITIGATION:
   - Shard key selection: avoid sequential keys (timestamps)
@@ -2047,7 +2055,7 @@ instead of creating new ones per request.
   - Write buffering: batch writes to hot rows
   - In-memory counters: aggregate, flush to DB periodically
   - Separate hot data: move frequently accessed to Redis</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-41"><div class="q-h"><span class="q-n">&bull;</span><h3>9. CDN and Edge Optimization</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-41"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CDN ARCHITECTURE:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Client → Nearest Edge POP → Origin (if cache miss)       │
   │                                                           │
   │ POP = Point of Presence (data center with cache servers)  │
@@ -2056,12 +2064,12 @@ instead of creating new ones per request.
   │ TYPES:                                                    │
   │ Pull CDN: Edge fetches from origin on cache miss          │
   │   Pros: No pre-warming needed                             │
-  │   Cons: First request is slow (cache miss)               │
+  │   Cons: First request is slow (cache miss)                │
   │                                                           │
   │ Push CDN: Content pre-pushed to all edges                 │
   │   Pros: First request is fast                             │
-  │   Cons: Storage cost, must know what to push             │
-  └────────────────────────────────────────────────────────────┘
+  │   Cons: Storage cost, must know what to push              │
+  └───────────────────────────────────────────────────────────┘
 
   WHAT TO CACHE AT CDN:
   ┌──────────────────┬──────────────────────────────────────────┐
@@ -2073,7 +2081,7 @@ instead of creating new ones per request.
   └──────────────────┴──────────────────────────────────────────┘
 
   CACHE HEADERS:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Cache-Control: public, max-age=31536000, immutable        │
   │   (static assets with hash in filename)                   │
   │                                                           │
@@ -2081,11 +2089,11 @@ instead of creating new ones per request.
   │   (API responses: serve stale while fetching fresh)       │
   │                                                           │
   │ Cache-Control: private, no-cache                          │
-  │   (user-specific data: CDN doesn't cache, browser may)   │
+  │   (user-specific data: CDN doesn't cache, browser may)    │
   │                                                           │
   │ Cache-Control: no-store                                   │
   │   (never cache: PII, authentication responses)            │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   EDGE COMPUTE:
   - Run code at CDN edge (close to users)
@@ -2104,7 +2112,7 @@ based on demand.
   └──────────────────┴──────────────────────────────────────────┘
 
   SCALING POLICIES:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ TARGET TRACKING:                                          │
   │   Maintain metric at target value                         │
   │   Example: Keep avg CPU at 60%                            │
@@ -2117,24 +2125,24 @@ based on demand.
   │   More control, requires tuning                           │
   │                                                           │
   │ SCHEDULED SCALING:                                        │
-  │   Scale up at 9am, scale down at 6pm (known patterns)    │
+  │   Scale up at 9am, scale down at 6pm (known patterns)     │
   │   Pre-warm for expected traffic spikes                    │
   │                                                           │
   │ PREDICTIVE SCALING:                                       │
   │   ML model predicts traffic based on historical patterns  │
   │   Scales proactively (before spike arrives)               │
   │   AWS Predictive Scaling, GCP Predictive Autoscaling     │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   SCALING METRICS:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ CPU Utilization:     Most common, simple, but lagging     │
   │ Request Count (RPS): Direct traffic metric                │
   │ Queue Depth:         For async workers                    │
   │ Latency (P95/P99):   Scale based on user experience       │
   │ Custom Metrics:      Active users, ML inference queue     │
   │ Concurrent Requests: For connection-heavy workloads       │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   SCALING BEST PRACTICES:
   ┌────────────────────────────────────────────────────────────┐
@@ -2191,7 +2199,7 @@ based on demand.
   - Artillery (Node.js, YAML config)
 
   PERFORMANCE TEST CHECKLIST:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌──────────────────────────────────────────────────────────┐
   │ 1. Test in production-like environment                    │
   │ 2. Use realistic data (size, distribution)               │
   │ 3. Include warm-up period (caches, JIT, pools)           │
@@ -2204,7 +2212,7 @@ based on demand.
   │ 10. Compare with baseline (previous run)                 │
   │ 11. Test auto-scaling behavior                           │
   │ 12. Include performance tests in CI/CD pipeline          │
-  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-44"><div class="q-h"><span class="q-n">&bull;</span><h3>12. Performance Anti-Patterns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-44"><span></span></label></div><div class="q-a"><div class="diagram"><pre>PERFORMANCE ANTI-PATTERNS:
+  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-44"><div class="q-h"><span class="q-n">&bull;</span><h3>12. Performance Anti-Patterns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-44"><span></span></label></div><div class="q-a"><div class="diagram"><pre>PERFORMANCE ANTI-PATTERNS:
 
   1. N+1 QUERY:
      Fetch 100 users → 100 queries for their orders
@@ -2256,16 +2264,16 @@ based on demand.
       Fix: Set timeout on EVERY external call
 
   OPTIMIZATION ORDER OF OPERATIONS:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌──────────────────────────────────────────────────────────┐
   │ 1. Measure (can't optimize what you can't measure)       │
   │ 2. Find the bottleneck (profiling, tracing)              │
   │ 3. Fix algorithmic issues (O(n²) → O(n log n))         │
   │ 4. Reduce I/O (caching, batching, connection pooling)    │
   │ 5. Parallelize (async, concurrent, distributed)          │
-  │ 6. Scale out (more instances, replicas)                   │
+  │ 6. Scale out (more instances, replicas)                  │
   │ 7. Optimize hot paths (JIT, compiled, native)            │
-  │ NEVER start at step 6!                                    │
-  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-45"><div class="q-h"><span class="q-n">&bull;</span><h3>13. Chaos Engineering</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-45"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CHAOS ENGINEERING: Deliberately inject failures into
+  │ NEVER start at step 6!                                   │
+  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f08Scalabilitya-45"><div class="q-h"><span class="q-n">&bull;</span><h3>13. Chaos Engineering</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08Scalabilitya-45"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CHAOS ENGINEERING: Deliberately inject failures into
 production (or staging) to discover weaknesses before
 they cause outages.
 
@@ -2347,26 +2355,26 @@ operating reliable, scalable production systems.
   └────────────────────────────────────────────────────────────┘
 
   ERROR BUDGET:
-  ┌────────────────────────────────────────────────────────────┐
-  │ Error budget = 1 - SLO                                    │
-  │                                                           │
+  ┌──────────────────────────────────────────────────────────┐
+  │ Error budget = 1 - SLO                                   │
+  │                                                          │
   │ SLO = 99.9% → Error budget = 0.1%                        │
-  │   Per month (30 days): 43.2 minutes of downtime           │
+  │   Per month (30 days): 43.2 minutes of downtime          │
   │   Per quarter: 2.16 hours of downtime                    │
-  │                                                           │
+  │                                                          │
   │ SLO = 99.95% → Error budget = 0.05%                      │
   │   Per month: 21.6 minutes                                │
-  │                                                           │
+  │                                                          │
   │ SLO = 99.99% → Error budget = 0.01%                      │
   │   Per month: 4.3 minutes                                 │
-  │                                                           │
-  │ HOW TO USE ERROR BUDGET:                                  │
+  │                                                          │
+  │ HOW TO USE ERROR BUDGET:                                 │
   │ Budget remaining? → Ship features, experiment, deploy.   │
   │ Budget spent? → STOP feature work. Focus on reliability. │
-  │                                                           │
+  │                                                          │
   │ This creates alignment between dev (speed) and ops       │
   │ (reliability). Both teams share the same metric.         │
-  └────────────────────────────────────────────────────────────┘
+  └──────────────────────────────────────────────────────────┘
 
   TOIL:
   - Manual, repetitive, automatable operational work
@@ -2375,25 +2383,25 @@ operating reliable, scalable production systems.
   - Track and report toil to justify automation investment
 
   INCIDENT MANAGEMENT:
-  ┌────────────────────────────────────────────────────────────┐
-  │ SEVERITY LEVELS:                                          │
+  ┌──────────────────────────────────────────────────────────┐
+  │ SEVERITY LEVELS:                                         │
   │ P0 / SEV-1: Revenue impact, data loss, full outage       │
   │ P1 / SEV-2: Significant degradation, partial outage      │
   │ P2 / SEV-3: Minor impact, workaround available           │
   │ P3 / SEV-4: Cosmetic, low priority                       │
-  │                                                           │
-  │ INCIDENT LIFECYCLE:                                       │
+  │                                                          │
+  │ INCIDENT LIFECYCLE:                                      │
   │ Detection → Triage → Mitigation → Resolution → Postmortem│
-  │                                                           │
-  │ BLAMELESS POSTMORTEM:                                     │
-  │ - What happened (timeline)                                │
+  │                                                          │
+  │ BLAMELESS POSTMORTEM:                                    │
+  │ - What happened (timeline)                               │
   │ - Root cause analysis (5 whys)                           │
   │ - Impact (duration, users affected, revenue)             │
   │ - Action items (with owners and deadlines)               │
   │ - What went well                                         │
   │ - What could be improved                                 │
   │ - NO blame. Focus on system improvements.                │
-  └────────────────────────────────────────────────────────────┘
+  └──────────────────────────────────────────────────────────┘
 
   OBSERVABILITY STACK:
   ┌──────────────────┬──────────────────────────────────────────┐
@@ -2433,7 +2441,7 @@ operating reliable, scalable production systems.
   └────────────────────────────────────────────────────────────┘
 
   STORAGE:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Tiered storage: Hot → Warm → Cold → Archive              │
   │   S3 Standard → S3 IA → S3 Glacier → Glacier Deep Archive│
   │   Automate with lifecycle policies                        │
@@ -2442,24 +2450,24 @@ operating reliable, scalable production systems.
   │   Set retention policies, delete old logs/backups         │
   │                                                           │
   │ Compression: Store compressed data (Parquet &gt; CSV)       │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   NETWORK:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Data transfer: Cross-region and egress are expensive      │
   │   Keep traffic within same AZ when possible               │
   │   Use VPC endpoints for AWS service access                │
-  │   Cache at edge (CDN) to reduce origin traffic           │
+  │   Cache at edge (CDN) to reduce origin traffic            │
   │   Compress API responses (gzip/br)                        │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   DATABASE:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌──────────────────────────────────────────────────────────┐
   │ RDS: Use reserved instances for production DBs           │
   │ Serverless DB: Aurora Serverless for variable workloads  │
   │ Read replicas: Scale reads without upgrading primary     │
   │ Connection pooling: Fewer connections = smaller instance │
-  └────────────────────────────────────────────────────────────┘
+  └──────────────────────────────────────────────────────────┘
 
   FinOps PRACTICES:
   1. Tag all resources (team, project, environment)

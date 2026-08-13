@@ -146,7 +146,15 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
 .diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
 .diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
-.diagram pre{margin:0;padding-top:12px;background:none;border:none;font-family:var(--mono);font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+/* Box-drawing glyphs must come from the same font as the letters or the borders go
+   ragged: the default stack resolved them from a fallback whose advance width did
+   not match, so a run of horizontal rule ended short of the verticals around it.
+   These faces all carry U+2500..257F at the monospace advance. */
+.diagram pre{margin:0;padding-top:12px;background:none;border:none;
+  font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
+    "Courier New",monospace;
+  font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
+  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1934,8 +1942,8 @@ ansible-playbook deploy_ml_service.yml -i inventory.ini</code></pre></div><butto
 <p><em>Previous: <a href="mlops.html#f01MLOpsmd">01_MLOps.md</a> | Next: <a href="mlops.html#f03CloudMLmd">03_Cloud_ML.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="f03CloudMLmd"><header class="filehead"><div class="fh-top"><span class="fh-num">Cloud ML</span><span class="fh-count">14 sections</span></div><h2>Cloud ML Platforms — Complete Engineering Reference</h2><div class="note">
 <p><strong>Scope:</strong> AWS SageMaker, GCP Vertex AI, Azure ML, Databricks, GPU selection, spot/preemptible instances, model serving, data pipelines, MLflow integration, serverless ML, cost optimization, data governance, production deployment, interview Q&amp;A.</p>
 </div></header><article class="q" id="f03CloudMLmd-32"><div class="q-h"><span class="q-n">&bull;</span><h3>1. Platform Landscape</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03CloudMLmd-32"><span></span></label></div><div class="q-a"><p>The cloud ML platform landscape encompasses managed services from AWS, GCP, and Azure that cover the full ML lifecycle—from notebooks and training to serving and monitoring. Understanding the capabilities and trade-offs of each platform is essential for selecting the right infrastructure for your ML workloads.</p>
-<div class="diagram"><pre>┌─────────────────────────────────────────────────────────────────┐
-│                   CLOUD ML PLATFORM COMPARISON                  │
+<div class="diagram"><pre>┌────────────────────────────────────────────────────────────────┐
+│                   CLOUD ML PLATFORM COMPARISON                 │
 ├──────────────┬──────────────┬──────────────┬───────────────────┤
 │  Capability  │ AWS SageMaker│  GCP Vertex  │    Azure ML       │
 ├──────────────┼──────────────┼──────────────┼───────────────────┤
@@ -2072,8 +2080,8 @@ returned_job = ml_client.jobs.<span class="fn">create_or_update</span>(job)
 <span class="cmt"># MLflow:           Native integration (Databricks created MLflow)</span>
 <span class="cmt"># Spark MLlib:      Distributed training on large datasets</span>
 <span class="cmt"># AutoML:           Glass-box AutoML (shows code)</span></code></pre></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03CloudMLmd-37"><div class="q-h"><span class="q-n">&bull;</span><h3>6. GPU Instance Selection</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03CloudMLmd-37"><span></span></label></div><div class="q-a"><p>GPU instance selection involves matching the right accelerator (T4, A10G, A100, H100) to your workload based on VRAM requirements, compute throughput, and cost. Proper GPU sizing—informed by model parameter count and precision format—prevents both under-provisioning and wasted spend.</p>
-<div class="diagram"><pre>┌──────────────────────────────────────────────────────────────────────────┐
-│                        GPU SELECTION GUIDE                               │
+<div class="diagram"><pre>┌─────────────────────────────────────────────────────────────────────────┐
+│                        GPU SELECTION GUIDE                              │
 ├──────────────┬──────────┬───────────┬──────────────┬────────────────────┤
 │ GPU          │ VRAM     │ Cost/hr   │ Best For     │ Cloud Instance     │
 ├──────────────┼──────────┼───────────┼──────────────┼────────────────────┤
@@ -2185,7 +2193,7 @@ FEATURE STORE ARCHITECTURE:
   │  │ (DynamoDB/     │  │
   │  │  Redis/Bigtable│  │
   │  └───────────────┘  │
-  └─────────────────────┘
+  └──────────────────────┘
   
   KEY BENEFIT: Same feature logic for training and serving
   → Eliminates training-serving skew</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03CloudMLmd-42"><div class="q-h"><span class="q-n">&bull;</span><h3>11. Serverless ML</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03CloudMLmd-42"><span></span></label></div><div class="q-a"><p>Serverless ML platforms—such as SageMaker Serverless Endpoints, Cloud Run, and Azure Functions—eliminate infrastructure management by auto-scaling compute to zero when idle and billing per request. They are best suited for low-traffic or unpredictable workloads with small CPU-based models.</p>
@@ -2427,15 +2435,15 @@ MONITORING ESSENTIALS:
   │ ments    │──┐
   └──────────┘  │
                 ▼
-           ┌──────────┐
+           ┌─────────────┐
            │ Design   │──┐
            └──────────┘  │
                          ▼
-                    ┌──────────┐
+                    ┌─────────────┐
                     │ Coding   │──┐
                     └──────────┘  │
                                   ▼
-                             ┌──────────┐
+                             ┌─────────────┐
                              │ Testing  │──┐
                              └──────────┘  │
                                            ▼
@@ -2548,28 +2556,28 @@ SCRUM ARTIFACTS:
   Increment:         Working, potentially shippable product at end of sprint
 
 SCRUM EVENTS (CEREMONIES):
-  ┌─────────────────────────────────────────────────────────────────┐
+  ┌────────────────────────────────────────────────────────────────┐
   │  Sprint (1-4 weeks, typically 2 weeks)                         │
-  │                                                                 │
+  │                                                                │
   │  Sprint Planning (2-4 hrs)                                     │
   │    → What can we deliver? How will we do it?                   │
   │    → Team pulls items from Product Backlog → Sprint Backlog    │
   │    → Define Sprint Goal                                        │
-  │                                                                 │
+  │                                                                │
   │  Daily Standup (15 min, every day)                             │
   │    → What did I do yesterday?                                  │
   │    → What will I do today?                                     │
   │    → Any blockers?                                             │
-  │                                                                 │
+  │                                                                │
   │  Sprint Review / Demo (1-2 hrs, end of sprint)                 │
   │    → Demo working software to stakeholders                     │
   │    → Get feedback → update Product Backlog                     │
-  │                                                                 │
+  │                                                                │
   │  Sprint Retrospective (1-1.5 hrs, after review)                │
   │    → What went well?                                           │
   │    → What didn't go well?                                      │
   │    → What will we improve next sprint?                         │
-  └─────────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-63"><div class="q-h"><span class="q-n">&bull;</span><h3>4.3 User Stories &amp; Estimation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-63"><span></span></label></div><div class="q-a"><div class="diagram"><pre>USER STORY FORMAT:
+  └────────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-63"><div class="q-h"><span class="q-n">&bull;</span><h3>4.3 User Stories &amp; Estimation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-63"><span></span></label></div><div class="q-a"><div class="diagram"><pre>USER STORY FORMAT:
   "As a [role], I want [feature], so that [benefit]."
   
   Example:
@@ -2997,7 +3005,7 @@ KEY DIFFERENCES:
   Maintenance         Bug fixes              Data drift, retraining
   Dependencies        Libraries              Libraries + training data
   Reproducibility     Same input → output    Random seeds, hardware, order</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06SDLCmd-79"><div class="q-h"><span class="q-n">&bull;</span><h3>14.2 CRISP-DM (Cross-Industry Standard Process for Data Mining)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06SDLCmd-79"><span></span></label></div><div class="q-a"><div class="diagram"><pre>CRISP-DM PHASES:
-  ┌─────────────────┐
+  ┌─────────────────────┐
   │ Business        │───┐
   │ Understanding   │   │
   └────────┬────────┘   │

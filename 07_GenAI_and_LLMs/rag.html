@@ -146,7 +146,15 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
 .diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
 .diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
-.diagram pre{margin:0;padding-top:12px;background:none;border:none;font-family:var(--mono);font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+/* Box-drawing glyphs must come from the same font as the letters or the borders go
+   ragged: the default stack resolved them from a fallback whose advance width did
+   not match, so a run of horizontal rule ended short of the verticals around it.
+   These faces all carry U+2500..257F at the monospace advance. */
+.diagram pre{margin:0;padding-top:12px;background:none;border:none;
+  font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
+    "Courier New",monospace;
+  font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
+  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -2182,10 +2190,10 @@ results = <span class="fn">evaluate</span>(dataset, metrics=[faithfulness, answe
 <span class="cmt"># {'faithfulness': 0.92, 'answer_relevancy': 0.88, 'context_precision': 0.85}</span></code></pre>
 <div class="diagram"><pre>RAGAS METRICS — DETAILED DEFINITIONS:
 
-  ┌─────────────────────────────────────────────────────────────────────────────┐
-  │ FAITHFULNESS (Groundedness / Hallucination-Free)                           │
-  ├─────────────────────────────────────────────────────────────────────────────┤
-  │ Definition: Measures whether EVERY claim in the generated answer is        │
+  ┌───────────────────────────────────────────────────────────────────────────┐
+  │ FAITHFULNESS (Groundedness / Hallucination-Free)                          │
+  ├───────────────────────────────────────────────────────────────────────────┤
+  │ Definition: Measures whether EVERY claim in the generated answer is       │
   │ supported by the retrieved context. A faithful answer contains NO          │
   │ information that cannot be traced back to the provided documents.          │
   │                                                                           │
@@ -2202,12 +2210,12 @@ results = <span class="fn">evaluate</span>(dataset, metrics=[faithfulness, answe
   │   • Use Self-RAG (model self-checks for hallucination)                    │
   │   • Reduce temperature to decrease creative generation                    │
   │   • Add citation requirements ("cite the source for each claim")          │
-  └─────────────────────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────────────────────┘
 
-  ┌─────────────────────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────────────────────┐
   │ ANSWER RELEVANCY                                                          │
-  ├─────────────────────────────────────────────────────────────────────────────┤
-  │ Definition: Measures how well the generated answer addresses the           │
+  ├───────────────────────────────────────────────────────────────────────────┤
+  │ Definition: Measures how well the generated answer addresses the          │
   │ user's original question. An answer can be faithful (grounded in          │
   │ context) but irrelevant (doesn't answer what was asked).                  │
   │                                                                           │
@@ -2223,11 +2231,11 @@ results = <span class="fn">evaluate</span>(dataset, metrics=[faithfulness, answe
   │   • Better query transformation (HyDE, multi-query)                       │
   │   • Improve prompt: "Answer the question directly and concisely"          │
   │   • Re-rank retrieved docs to prioritize most relevant                    │
-  └─────────────────────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────────────────────┘
 
-  ┌─────────────────────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────────────────────┐
   │ CONTEXT PRECISION                                                         │
-  ├─────────────────────────────────────────────────────────────────────────────┤
+  ├───────────────────────────────────────────────────────────────────────────┤
   │ Definition: Measures whether the retrieved documents are RELEVANT to       │
   │ the question. High precision means most retrieved chunks are useful;      │
   │ low precision means the retriever is pulling in noisy, irrelevant docs.   │
@@ -2245,11 +2253,11 @@ results = <span class="fn">evaluate</span>(dataset, metrics=[faithfulness, answe
   │   • Add metadata filtering (date, source, category)                       │
   │   • Use re-ranking (cross-encoder) to push relevant docs up              │
   │   • Better embedding model for your domain                                │
-  └─────────────────────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────────────────────┘
 
-  ┌─────────────────────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────────────────────┐
   │ CONTEXT RECALL                                                            │
-  ├─────────────────────────────────────────────────────────────────────────────┤
+  ├───────────────────────────────────────────────────────────────────────────┤
   │ Definition: Measures whether ALL relevant documents were retrieved         │
   │ (not just some). Low recall means the retriever is missing important      │
   │ documents that contain the answer. Requires ground_truth reference.       │
@@ -2267,11 +2275,11 @@ results = <span class="fn">evaluate</span>(dataset, metrics=[faithfulness, answe
   │   • Use hybrid search (BM25 + vector — catches keyword matches)           │
   │   • Multi-query retrieval (rephrase question multiple ways)               │
   │   • Improve chunking (ensure relevant info isn't split across chunks)     │
-  └─────────────────────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────────────────────┘
 
-  ┌─────────────────────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────────────────────┐
   │ OTHER IMPORTANT RAG EVALUATION METRICS                                    │
-  ├─────────────────────────────────────────────────────────────────────────────┤
+  ├───────────────────────────────────────────────────────────────────────────┤
   │                                                                           │
   │ Answer Correctness:  Does the answer match the ground truth?              │
   │   • Combines factual similarity + semantic similarity                     │
@@ -2292,7 +2300,7 @@ results = <span class="fn">evaluate</span>(dataset, metrics=[faithfulness, answe
   │ Cost per Query:      Embedding + retrieval + LLM token costs              │
   │   • Track input/output tokens per query                                   │
   │   • Cache embeddings and frequent queries                                 │
-  └─────────────────────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────────────────────┘
 
   TARGET SCORES:
     &gt; 0.9: Excellent — production ready

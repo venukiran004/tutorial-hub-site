@@ -146,7 +146,15 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
 .diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
 .diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
-.diagram pre{margin:0;padding-top:12px;background:none;border:none;font-family:var(--mono);font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+/* Box-drawing glyphs must come from the same font as the letters or the borders go
+   ragged: the default stack resolved them from a fallback whose advance width did
+   not match, so a run of horizontal rule ended short of the verticals around it.
+   These faces all carry U+2500..257F at the monospace advance. */
+.diagram pre{margin:0;padding-top:12px;background:none;border:none;
+  font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
+    "Courier New",monospace;
+  font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
+  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1059,10 +1067,10 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
   │  - Updated daily/hourly via Spark              │
   └────────────────────────────────────────────────┘
   ┌────────────────────────────────────────────────┐
-  │  Real-time features (computed at request):      │
+  │  Real-time features (computed at request):     │
   │  - Items viewed in current session              │
-  │  - Time since last purchase                     │
-  │  - Current cart contents                        │
+  │  - Time since last purchase                    │
+  │  - Current cart contents                       │
   │  - Computed via Flink or app-level              │
   └────────────────────────────────────────────────┘
   
@@ -1270,7 +1278,7 @@ SEMANTIC SEARCH:
 KEY ARCHITECTURAL DECISIONS:
 
   MICROSERVICES (700+ services):
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Started as monolith → migrated to microservices (2008-12) │
   │ Each service: independent team, own data store, own CI/CD │
   │ Communication: REST + gRPC between services               │
@@ -1278,17 +1286,17 @@ KEY ARCHITECTURAL DECISIONS:
   │ Circuit breaker: Hystrix → resilience4j                   │
   │ API Gateway: Zuul → Spring Cloud Gateway                  │
   │ IPC: Ribbon (client-side load balancing)                  │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   CONTENT DELIVERY:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Open Connect: Netflix's own CDN (1000+ locations)         │
   │ Appliances placed inside ISP networks                     │
   │ During off-peak: pre-populate predicted popular content   │
   │ Adaptive streaming: VMAF quality metric, per-title encode │
   │ Shot-based encoding: different bitrate per scene          │
   │ Result: best quality at lowest bandwidth                  │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   DATA PLATFORM:
   ┌────────────────────────────────────────────────────────────┐
@@ -1300,18 +1308,18 @@ KEY ARCHITECTURAL DECISIONS:
   └────────────────────────────────────────────────────────────┘
 
   CHAOS ENGINEERING (invented here):
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Chaos Monkey: random instance termination                 │
   │ Chaos Kong: simulate full region outage                   │
-  │ FIT (Failure Injection Testing): controlled experiments  │
+  │ FIT (Failure Injection Testing): controlled experiments   │
   │ Everything runs on AWS (except Open Connect)              │
   │ Multi-region active-active deployment                     │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   KEY LESSON:
   "The best way to avoid failure is to fail constantly."
   — Netflix engineering philosophy</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-20"><div class="q-h"><span class="q-n">&bull;</span><h3>2. Google / YouTube Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-20"><span></span></label></div><div class="q-a"><div class="diagram"><pre>GOOGLE SEARCH:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ CRAWL → INDEX → SERVE                                    │
   │                                                           │
   │ Crawl:                                                    │
@@ -1329,10 +1337,10 @@ KEY ARCHITECTURAL DECISIONS:
   │   Ranking: 200+ signals (PageRank, freshness, user       │
   │   context, ML models, quality scores)                     │
   │   Latency target: &lt; 200ms end-to-end                     │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   GOOGLE INFRASTRUCTURE:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Spanner:    Globally distributed SQL with strong          │
   │             consistency. TrueTime (GPS + atomic clocks).  │
   │             Commit-wait: wait for uncertainty window.     │
@@ -1341,19 +1349,19 @@ KEY ARCHITECTURAL DECISIONS:
   │             Sorted by row key. Column families.           │
   │             Used by: Gmail, Maps, Analytics.              │
   │                                                           │
-  │ Colossus:   Distributed file system (successor to GFS).  │
+  │ Colossus:   Distributed file system (successor to GFS).   │
   │             Foundation for all Google storage.            │
   │                                                           │
   │ Borg:       Container orchestration (predecessor of K8s). │
   │             Manages all Google workloads.                 │
   │                                                           │
   │ MapReduce → Flume → Dataflow (streaming + batch unified) │
-  │ Pub/Sub:   Messaging at global scale                     │
+  │ Pub/Sub:   Messaging at global scale                      │
   │ Dremel:    Columnar query engine → BigQuery              │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   YOUTUBE:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ 500+ hours of video uploaded per minute                   │
   │                                                           │
   │ Upload pipeline:                                          │
@@ -1369,31 +1377,31 @@ KEY ARCHITECTURAL DECISIONS:
   │   Two-stage: Candidate generation (deep neural nets) →    │
   │   Ranking (engagement prediction model)                   │
   │   Billions of candidates → thousands → tens              │
-  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-21"><div class="q-h"><span class="q-n">&bull;</span><h3>3. Amazon / AWS Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-21"><span></span></label></div><div class="q-a"><div class="diagram"><pre>AMAZON RETAIL + AWS:
+  └───────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-21"><div class="q-h"><span class="q-n">&bull;</span><h3>3. Amazon / AWS Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-21"><span></span></label></div><div class="q-a"><div class="diagram"><pre>AMAZON RETAIL + AWS:
 
   TWO-PIZZA TEAMS:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Each team: 6-10 people, owns a service end-to-end        │
   │ "You build it, you run it" — Werner Vogels                │
   │ Thousands of services (SOA since 2001)                    │
   │ API-first mandate: all teams MUST expose APIs             │
   │ No direct database access between services                │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   DYNAMO (DynamoDB foundation):
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Designed for: always-available shopping cart               │
   │ Architecture: consistent hashing + vector clocks          │
   │ Quorum: configurable W and R                              │
   │ Conflict resolution: last-writer-wins or app-level        │
   │ Sloppy quorum + hinted handoff for high availability     │
-  │ Anti-entropy: Merkle trees for replica sync              │
+  │ Anti-entropy: Merkle trees for replica sync               │
   │                                                           │
   │ DynamoDB (managed):                                       │
   │   Single-digit millisecond latency at any scale           │
   │   Auto-scaling, global tables, TTL                        │
   │   Streams (CDC) for event-driven architectures           │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   CELL-BASED ARCHITECTURE:
   ┌────────────────────────────────────────────────────────────┐
@@ -1405,7 +1413,7 @@ KEY ARCHITECTURAL DECISIONS:
   └────────────────────────────────────────────────────────────┘
 
   KEY PRINCIPLES:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ 1. Everything fails: design for failure                   │
   │ 2. Favor simplicity over perfection                       │
   │ 3. Automate everything                                    │
@@ -1413,41 +1421,41 @@ KEY ARCHITECTURAL DECISIONS:
   │ 5. Static stability (pre-provisioned, no cascading       │
   │    discovery during failures)                             │
   │ 6. Avoid thundering herds (jitter in retries and caching)│
-  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-22"><div class="q-h"><span class="q-n">&bull;</span><h3>4. Meta / Facebook Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-22"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SCALE: 3B+ monthly active users
+  └───────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-22"><div class="q-h"><span class="q-n">&bull;</span><h3>4. Meta / Facebook Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-22"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SCALE: 3B+ monthly active users
 
   NEWS FEED:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌──────────────────────────────────────────────────────────┐
   │ Fan-out on write (push) + pull hybrid:                    │
-  │                                                           │
+  │                                                          │
   │ Normal user posts → fan-out to followers' feeds (push)   │
   │ Celebrity posts → fan-out on read (pull at view time)    │
-  │                                                           │
+  │                                                          │
   │ Feed ranking: ML model predicting engagement             │
   │ Features: affinity, content type, recency, interactions  │
   │ Re-rank at view time with latest signals                 │
-  └────────────────────────────────────────────────────────────┘
+  └──────────────────────────────────────────────────────────┘
 
   DATA INFRASTRUCTURE:
-  ┌────────────────────────────────────────────────────────────┐
-  │ TAO: Graph store (social graph)                           │
+  ┌──────────────────────────────────────────────────────────┐
+  │ TAO: Graph store (social graph)                          │
   │   Objects (users, posts) + Associations (friendship, like)│
   │   Read-optimized, cache-first architecture               │
   │   MySQL backend + distributed cache (Memcached)          │
   │   Cache hit rate: 99.8%                                  │
-  │                                                           │
+  │                                                          │
   │ Memcached (at massive scale):                             │
   │   Thousands of Memcached servers                          │
   │   Custom UDP-based protocol for gets (lower overhead)    │
   │   Lease mechanism to prevent thundering herds            │
   │   Regional pools + cross-region invalidation             │
-  │                                                           │
+  │                                                          │
   │ RocksDB: Embedded storage engine (open-sourced)          │
   │   Used in MySQL (MyRocks), ZippyDB, LogDevice           │
-  │                                                           │
+  │                                                          │
   │ Scuba: Real-time analytics (in-memory, fast queries)     │
   │ Presto/Trino: Interactive SQL on data lake               │
   │ Hive: Batch processing on data warehouse                 │
-  └────────────────────────────────────────────────────────────┘
+  └──────────────────────────────────────────────────────────┘
 
   MESSAGING (WhatsApp):
   ┌────────────────────────────────────────────────────────────┐
@@ -1459,13 +1467,13 @@ KEY ARCHITECTURAL DECISIONS:
   └────────────────────────────────────────────────────────────┘
 
   AI/ML AT SCALE:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌──────────────────────────────────────────────────────────┐
   │ PyTorch: Developed by Meta (most popular ML framework)   │
   │ Training: Custom AI clusters (16K+ GPUs per cluster)     │
   │ Inference: Runs on every feed load, every ad, every      │
-  │   content moderation decision                             │
+  │   content moderation decision                            │
   │ LLaMA: Open-source LLM family                            │
-  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-23"><div class="q-h"><span class="q-n">&bull;</span><h3>5. Uber Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-23"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SCALE: 130M+ monthly users, millions of trips/day
+  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-23"><div class="q-h"><span class="q-n">&bull;</span><h3>5. Uber Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-23"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SCALE: 130M+ monthly users, millions of trips/day
 
   GEOSPATIAL:
   ┌────────────────────────────────────────────────────────────┐
@@ -1486,13 +1494,13 @@ KEY ARCHITECTURAL DECISIONS:
   └────────────────────────────────────────────────────────────┘
 
   ARCHITECTURE EVOLUTION:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌──────────────────────────────────────────────────────────┐
   │ v1 (2010): Python monolith                                │
   │ v2 (2014): SOA with domain services                       │
   │ v3 (2018): Domain-Oriented Microservice Architecture     │
   │            (DOMA) — group services into domains            │
-  │                                                           │
-  │ DOMA:                                                     │
+  │                                                          │
+  │ DOMA:                                                    │
   │ ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
   │ │ Marketplace  │  │ Payments     │  │ Maps         │     │
   │ │ Domain       │  │ Domain       │  │ Domain       │     │
@@ -1501,29 +1509,29 @@ KEY ARCHITECTURAL DECISIONS:
   │ │ [Services]   │  │ [Services]   │  │ [Services]   │     │
   │ │ [Data Store] │  │ [Data Store] │  │ [Data Store] │     │
   │ └──────────────┘  └──────────────┘  └──────────────┘     │
-  │                                                           │
+  │                                                          │
   │ Each domain: gateway (single entry), internal services,  │
   │ own data stores. Cross-domain: via domain gateways only. │
-  └────────────────────────────────────────────────────────────┘
+  └──────────────────────────────────────────────────────────┘
 
   KEY TECHNOLOGIES:
-  ┌────────────────────────────────────────────────────────────┐
-  │ Cadence/Temporal: Workflow engine (open-sourced)          │
+  ┌──────────────────────────────────────────────────────────┐
+  │ Cadence/Temporal: Workflow engine (open-sourced)         │
   │   Durable execution for long-running business processes  │
   │   Trip lifecycle, payment flows, driver onboarding       │
-  │                                                           │
+  │                                                          │
   │ Kafka: Event backbone (trillions of messages/day)        │
   │ Cassandra: Driver/rider data (write-heavy)               │
   │ MySQL: Transactional data (orders, payments)             │
   │ Redis: Caching, rate limiting, real-time features        │
   │ Elasticsearch: Search (restaurants, destinations)        │
   │ Pinot: Real-time analytics (Apache Pinot, open-sourced)  │
-  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-24"><div class="q-h"><span class="q-n">&bull;</span><h3>6. Slack / Discord Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-24"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SLACK:
-  ┌────────────────────────────────────────────────────────────┐
+  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-24"><div class="q-h"><span class="q-n">&bull;</span><h3>6. Slack / Discord Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-24"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SLACK:
+  ┌───────────────────────────────────────────────────────────┐
   │ Cell-based architecture:                                  │
   │   Each workspace assigned to a cell                       │
   │   Cell = complete stack (API, WebSocket, DB, cache)       │
-  │   Failure in one cell doesn't affect other workspaces    │
+  │   Failure in one cell doesn't affect other workspaces     │
   │                                                           │
   │ Real-time messaging:                                      │
   │   WebSocket connections for real-time updates             │
@@ -1534,8 +1542,8 @@ KEY ARCHITECTURAL DECISIONS:
   │ Evolution:                                                │
   │   PHP monolith → Java services + MySQL                   │
   │   WebSocket gateway (Envoy-based)                        │
-  │   Vitess for MySQL sharding at scale                     │
-  └────────────────────────────────────────────────────────────┘
+  │   Vitess for MySQL sharding at scale                      │
+  └───────────────────────────────────────────────────────────┘
 
 DISCORD:
   ┌────────────────────────────────────────────────────────────┐
@@ -1563,16 +1571,16 @@ DISCORD:
   └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-25"><div class="q-h"><span class="q-n">&bull;</span><h3>7. Stripe Payment Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-25"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SCALE: Hundreds of billions in payment volume
 
   ARCHITECTURE PRINCIPLES:
-  ┌────────────────────────────────────────────────────────────┐
-  │ 1. IDEMPOTENCY EVERYWHERE                                │
+  ┌───────────────────────────────────────────────────────────┐
+  │ 1. IDEMPOTENCY EVERYWHERE                                 │
   │    Every API call has an idempotency key                  │
   │    Retries are safe — same result regardless              │
   │    Critical for payments: can't charge twice!             │
   │                                                           │
-  │ 2. EXACTLY-ONCE PROCESSING                               │
+  │ 2. EXACTLY-ONCE PROCESSING                                │
   │    Idempotent consumers + at-least-once delivery          │
   │    Outbox pattern for event publishing                    │
-  │    Request IDs tracked in persistent store               │
+  │    Request IDs tracked in persistent store                │
   │                                                           │
   │ 3. API-FIRST DESIGN                                       │
   │    RESTful APIs with meticulous versioning                │
@@ -1583,7 +1591,7 @@ DISCORD:
   │    Financial correctness requires strong consistency      │
   │    Double-entry bookkeeping (every credit has a debit)   │
   │    Reconciliation pipelines verify consistency daily     │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   PAYMENT FLOW:
   ┌────────────────────────────────────────────────────────────┐
@@ -1597,7 +1605,7 @@ DISCORD:
   └────────────────────────────────────────────────────────────┘
 
   TECHNOLOGY:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Ruby on Rails: Main API layer (monorepo)                  │
   │ MySQL: Primary data store (strong consistency)            │
   │ Redis: Caching, rate limiting                             │
@@ -1607,10 +1615,10 @@ DISCORD:
   │                                                           │
   │ Interesting: Stripe kept Ruby on Rails at massive scale  │
   │ (proves monolith can work with discipline + good tooling)│
-  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-26"><div class="q-h"><span class="q-n">&bull;</span><h3>8. Twitter / X Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-26"><span></span></label></div><div class="q-a"><div class="diagram"><pre>KEY CHALLENGES: Fan-out for timeline, real-time delivery
+  └───────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-26"><div class="q-h"><span class="q-n">&bull;</span><h3>8. Twitter / X Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-26"><span></span></label></div><div class="q-a"><div class="diagram"><pre>KEY CHALLENGES: Fan-out for timeline, real-time delivery
 
   TIMELINE:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ HYBRID FAN-OUT:                                           │
   │                                                           │
   │ Normal users (&lt; 5K followers):                            │
@@ -1623,12 +1631,12 @@ DISCORD:
   │   (fan-out on read for these users)                       │
   │                                                           │
   │ This hybrid solves the "Lady Gaga problem":               │
-  │   80M followers × fan-out on write = 80M Redis writes!   │
-  │   Instead: store once, merge on read.                    │
-  └────────────────────────────────────────────────────────────┘
+  │   80M followers × fan-out on write = 80M Redis writes!    │
+  │   Instead: store once, merge on read.                     │
+  └───────────────────────────────────────────────────────────┘
 
   INFRASTRUCTURE:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Manhattan: In-house distributed KV store (replaced MySQL) │
   │ Snowflake: Distributed ID generation                      │
   │   (timestamp | datacenter | machine | sequence)            │
@@ -1640,10 +1648,10 @@ DISCORD:
   │ Redis: Timeline cache                                     │
   │ Elasticsearch: Tweet search                               │
   │ Scala/Java: Backend services                              │
-  └────────────────────────────────────────────────────────────┘
+  └───────────────────────────────────────────────────────────┘
 
   SNOWFLAKE ID FORMAT:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ 64-bit ID:                                                │
   │ [1 bit unused][41 bits timestamp][5 bits datacenter]      │
   │ [5 bits machine][12 bits sequence]                        │
@@ -1654,7 +1662,7 @@ DISCORD:
   │ → 4096 IDs per millisecond per machine                   │
   │                                                           │
   │ No coordination between machines → zero bottleneck       │
-  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-27"><div class="q-h"><span class="q-n">&bull;</span><h3>9. LinkedIn Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-27"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SCALE: 1B+ members, millions of concurrent sessions
+  └───────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-27"><div class="q-h"><span class="q-n">&bull;</span><h3>9. LinkedIn Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-27"><span></span></label></div><div class="q-a"><div class="diagram"><pre>SCALE: 1B+ members, millions of concurrent sessions
 
   ARCHITECTURE:
   ┌────────────────────────────────────────────────────────────┐
@@ -1670,38 +1678,38 @@ DISCORD:
   └────────────────────────────────────────────────────────────┘
 
   DATA INFRASTRUCTURE:
-  ┌────────────────────────────────────────────────────────────┐
-  │ Espresso: NoSQL document store (LinkedIn's main DB)       │
+  ┌──────────────────────────────────────────────────────────┐
+  │ Espresso: NoSQL document store (LinkedIn's main DB)      │
   │   Built on MySQL + custom routing + caching              │
   │   Auto-sharding, online migration                        │
-  │                                                           │
+  │                                                          │
   │ Ambry: Distributed object store (profile photos, files)  │
-  │                                                           │
+  │                                                          │
   │ Venice: Derived data platform (read-only stores)         │
   │   Batch-computed datasets served at low latency          │
   │   Used for: "People You May Know", feed ranking features │
-  │                                                           │
+  │                                                          │
   │ Brooklin: Change data capture + streaming bridge          │
-  │                                                           │
-  │ Apache Kafka (created at LinkedIn):                       │
+  │                                                          │
+  │ Apache Kafka (created at LinkedIn):                      │
   │   Backbone for all event streaming                       │
   │   Trillions of messages per day                          │
   │   Used for: activity tracking, CDC, metrics, logs        │
-  │                                                           │
-  │ Apache Samza (created at LinkedIn):                       │
+  │                                                          │
+  │ Apache Samza (created at LinkedIn):                      │
   │   Stream processing framework                            │
   │   Built on Kafka + YARN                                  │
-  └────────────────────────────────────────────────────────────┘
+  └──────────────────────────────────────────────────────────┘
 
   GRAPH &amp; AI:
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ Economic Graph: World's professionals, companies, skills  │
   │ Recommendation: Graph neural networks for PYMK            │
   │ Search: Query understanding + ML ranking                  │
   │ Feed: Real-time ML ranking (engagement + relevance)       │
-  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-28"><div class="q-h"><span class="q-n">&bull;</span><h3>10. Common Patterns Across Giants</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-28"><span></span></label></div><div class="q-a"><div class="diagram"><pre>PATTERNS EVERY TECH GIANT USES:
+  └───────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-28"><div class="q-h"><span class="q-n">&bull;</span><h3>10. Common Patterns Across Giants</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-28"><span></span></label></div><div class="q-a"><div class="diagram"><pre>PATTERNS EVERY TECH GIANT USES:
 
-  ┌────────────────────────────────────────────────────────────┐
+  ┌───────────────────────────────────────────────────────────┐
   │ 1. EVENT-DRIVEN BACKBONE                                  │
   │    Kafka (or equivalent) as the central nervous system   │
   │    All state changes published as events                  │
@@ -1719,13 +1727,13 @@ DISCORD:
   │                                                           │
   │ 4. CACHING AT EVERY LAYER                                 │
   │    CDN → Gateway → App (Redis) → DB query cache          │
-  │    Cache hit rates: 90-99.8%                             │
+  │    Cache hit rates: 90-99.8%                              │
   │    Used by: ALL of them                                   │
   │                                                           │
   │ 5. CUSTOM INFRASTRUCTURE                                  │
-  │    At extreme scale, off-the-shelf doesn't work          │
-  │    Build custom: storage (DynamoDB), messaging (Kafka),  │
-  │    file system (Colossus), graph store (TAO)             │
+  │    At extreme scale, off-the-shelf doesn't work           │
+  │    Build custom: storage (DynamoDB), messaging (Kafka),   │
+  │    file system (Colossus), graph store (TAO)              │
   │    Lesson: you DON'T need this until you're at their scale│
   │                                                           │
   │ 6. OBSERVABILITY-FIRST                                    │
@@ -1736,59 +1744,59 @@ DISCORD:
   │                                                           │
   │ 7. PROGRESSIVE DEPLOYMENT                                 │
   │    Canary → 1% → 5% → 25% → 100%                        │
-  │    Automatic rollback on metric regression               │
-  │    Feature flags for instant killswitch                  │
+  │    Automatic rollback on metric regression                │
+  │    Feature flags for instant killswitch                   │
   │    Used by: ALL of them                                   │
   │                                                           │
   │ 8. SCHEMA-FIRST APIS                                      │
-  │    Protobuf, Thrift, or OpenAPI schemas                  │
-  │    Auto-generated clients                                │
+  │    Protobuf, Thrift, or OpenAPI schemas                   │
+  │    Auto-generated clients                                 │
   │    Schema registry for evolution                         │
   │    Used by: Google, Meta, LinkedIn, Uber                  │
-  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-29"><div class="q-h"><span class="q-n">&bull;</span><h3>11. Lessons for Your Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-29"><span></span></label></div><div class="q-a"><div class="diagram"><pre>LESSONS APPLICABLE AT ANY SCALE:
+  └───────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-29"><div class="q-h"><span class="q-n">&bull;</span><h3>11. Lessons for Your Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-29"><span></span></label></div><div class="q-a"><div class="diagram"><pre>LESSONS APPLICABLE AT ANY SCALE:
 
-  ┌────────────────────────────────────────────────────────────┐
+  ┌──────────────────────────────────────────────────────────┐
   │ 1. START SIMPLE, ADD COMPLEXITY ONLY WHEN PROVEN NEEDED  │
-  │    Stripe runs on Rails. LinkedIn started as a monolith.  │
-  │    Complexity should be earned, not assumed.              │
-  │                                                           │
-  │ 2. CONWAY'S LAW IS REAL                                   │
-  │    Your architecture WILL mirror your org structure.      │
+  │    Stripe runs on Rails. LinkedIn started as a monolith. │
+  │    Complexity should be earned, not assumed.             │
+  │                                                          │
+  │ 2. CONWAY'S LAW IS REAL                                  │
+  │    Your architecture WILL mirror your org structure.     │
   │    Use inverse Conway: structure teams for the arch you   │
   │    want. Amazon's 2-pizza teams → microservices.         │
-  │                                                           │
-  │ 3. EVENTS ARE THE BACKBONE                                │
+  │                                                          │
+  │ 3. EVENTS ARE THE BACKBONE                               │
   │    Kafka (or similar) should be your integration layer.  │
   │    Services publish events, consumers build derived state.│
   │    This is the most important architectural decision     │
   │    after your database choice.                           │
-  │                                                           │
-  │ 4. CACHE AGGRESSIVELY, INVALIDATE CAREFULLY               │
+  │                                                          │
+  │ 4. CACHE AGGRESSIVELY, INVALIDATE CAREFULLY              │
   │    Meta gets 99.8% cache hit rates.                      │
   │    Cache everything that can be stale for even 1 second. │
   │    TTL + event-driven invalidation = best combination.   │
-  │                                                           │
-  │ 5. DESIGN FOR FAILURE FROM DAY ONE                        │
+  │                                                          │
+  │ 5. DESIGN FOR FAILURE FROM DAY ONE                       │
   │    Timeouts on every call. Circuit breakers on every dep.│
   │    Retry with backoff + jitter. Idempotency everywhere.  │
   │    These patterns cost nothing to add early but are      │
   │    painful to retrofit later.                            │
-  │                                                           │
-  │ 6. OBSERVABILITY IS NOT OPTIONAL                          │
+  │                                                          │
+  │ 6. OBSERVABILITY IS NOT OPTIONAL                         │
   │    Structured logs, distributed traces, metrics.         │
   │    If you can't observe it, you can't debug it.          │
   │    OpenTelemetry is the industry standard.               │
-  │                                                           │
-  │ 7. IDEMPOTENCY IS THE MOST IMPORTANT PATTERN              │
+  │                                                          │
+  │ 7. IDEMPOTENCY IS THE MOST IMPORTANT PATTERN             │
   │    Networks fail. Retries happen. Duplicates happen.     │
   │    Make every operation safe to retry.                   │
   │    This is non-negotiable for financial systems.         │
-  │                                                           │
+  │                                                          │
   │ 8. DON'T COPY GOOGLE/NETFLIX ARCHITECTURE                │
   │    They built for billions of users with thousands of    │
   │    engineers. You probably have neither.                  │
   │    Use their PRINCIPLES, not their SOLUTIONS.            │
-  └────────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-30"><div class="q-h"><span class="q-n">&bull;</span><h3>12. Interview Deep Dive</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-30"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Hybrid fan-out approach</span><span class="kt">Data flow</span><span class="kt">Scaling</span><span class="kt">ID generation</span><span class="kt">Numbers</span><span class="kt">&quot;You build it, you run it&quot;</span></div><h3>Q1: How would you design a system like Twitter's timeline?</h3>
+  └──────────────────────────────────────────────────────────┘</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f10RealWorldArc-30"><div class="q-h"><span class="q-n">&bull;</span><h3>12. Interview Deep Dive</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f10RealWorldArc-30"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Hybrid fan-out approach</span><span class="kt">Data flow</span><span class="kt">Scaling</span><span class="kt">ID generation</span><span class="kt">Numbers</span><span class="kt">&quot;You build it, you run it&quot;</span></div><h3>Q1: How would you design a system like Twitter's timeline?</h3>
 <p><strong>A:</strong> <strong>Hybrid fan-out approach</strong>. For normal users (&lt; 5K followers): fan-out on write — when they tweet, push to all followers' timeline caches (Redis sorted sets by timestamp). For high-follower users (celebrities): fan-out on read — store tweet centrally, merge on timeline read. <strong>Data flow</strong>: Tweet → Write to tweet store (MySQL sharded) → If normal user: Kafka event → Fan-out workers → Write to each follower's Redis timeline. On read: Fetch pre-built timeline from Redis + merge any celebrity tweets. <strong>Scaling</strong>: Timeline cache in Redis (sorted set per user, truncated to ~800 entries). Tweet IDs only in cache, fetch full tweet content separately (can be cached). <strong>ID generation</strong>: Snowflake IDs (64-bit, roughly time-sorted, no coordination). <strong>Numbers</strong>: 500M tweets/day, ~300K tweets/sec peak. Each tweet fans out to ~200 avg followers = 60M timeline writes/sec.</p>
 <h3>Q2: What can we learn from Amazon's architecture for our own systems?</h3>
 <p><strong>A:</strong> Key lessons from Amazon: (1) <strong>"You build it, you run it"</strong> — teams own services end-to-end including operations. This creates accountability and faster incident response. (2) <strong>API-first mandate</strong> — every team must expose its functionality via API. No exceptions. This enabled AWS to exist. (3) <strong>Cell-based architecture with shuffle <abbr title="splitting one dataset across machines by a partition key">sharding</abbr></strong> — isolate failure blast radius. Even if you can't implement cells, you can isolate tenants or regions. (4) <strong>Static stability</strong> — system should work even when dependencies for scaling/discovery are down. Pre-provision capacity, cache service endpoints. (5) <strong>Backoff and jitter everywhere</strong> — never retry without exponential backoff + random jitter. Simple but prevents cascading failures. (6) <strong>Database per service</strong> — no shared databases. Services communicate via APIs/events only. Start with this principle even in a monolith (separate schemas).</p>
