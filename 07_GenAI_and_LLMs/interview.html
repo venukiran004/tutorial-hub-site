@@ -765,6 +765,12 @@ body.js .toc-g.on{display:block}
 @media(max-width:1060px){
   .app.has-toc,.app{grid-template-columns:minmax(0,1fr)}
 }
+/* the dimmed page behind the open drawer - it is also the tap target that closes it */
+@media(max-width:1060px){
+  body.nav-open::before{content:"";position:fixed;inset:0;z-index:99;
+    background:rgba(0,0,0,.5);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+  body.nav-open{overflow:hidden}
+}
 
 /* ---------- breadcrumb ---------- */
 .crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.2px;color:var(--ink-mut);
@@ -2481,8 +2487,23 @@ window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
 
 var sb=document.getElementById('sidebar'), mb=document.getElementById('menuBtn');
-if(mb)mb.onclick=function(){sb.classList.toggle('open')};
-if(sb)sb.addEventListener('click',function(e){if(e.target.tagName==='A'&&window.innerWidth<=1060)sb.classList.remove('open')});
+function setNav(open){
+  if(!sb)return;
+  sb.classList.toggle('open',open);
+  document.body.classList.toggle('nav-open',open);
+}
+if(mb)mb.onclick=function(e){e.stopPropagation();setNav(!sb.classList.contains('open'))};
+if(sb)sb.addEventListener('click',function(e){if(e.target.tagName==='A'&&window.innerWidth<=1060)setNav(false)});
+/* an open drawer has to be dismissable without hunting for the button again: tapping
+   the page behind it, or Escape, closes it */
+document.addEventListener('click',function(e){
+  if(!sb||!sb.classList.contains('open'))return;
+  if(sb.contains(e.target)||(mb&&mb.contains(e.target)))return;
+  setNav(false);
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&sb&&sb.classList.contains('open'))setNav(false);
+});
 
 document.addEventListener('keydown',function(e){
   if(e.target.tagName==='INPUT'){if(e.key==='Escape'){e.target.value='';runSearch();e.target.blur()}return}
