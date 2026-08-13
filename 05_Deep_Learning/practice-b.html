@@ -4929,7 +4929,7 @@ step 1170: loss NaN   ← diverged</pre></div>
 - <strong>LR too high for the current region</strong> → add <strong>warmup</strong> + a <strong>decay schedule</strong> (cosine/linear).
 - <strong>A pathological batch</strong> (outliers, a corrupt sample) → <strong>gradient clipping</strong> bounds its damage; consider data cleaning.
 - <strong>No warmup on large-batch / Transformer training</strong> → warmup is near-mandatory there.
-- <strong>Recover from a spike:</strong> keep periodic <strong>checkpoints</strong> so you can roll back to before the spike and resume with a lower LR (ties to <a href="../../10_MLOps_and_Deployment/24_Model_Versioning_and_Reproducibility.md">24_Model_Versioning_and_Reproducibility.md</a>).</p>
+- <strong>Recover from a spike:</strong> keep periodic <strong>checkpoints</strong> so you can roll back to before the spike and resume with a lower LR (ties to <a href="../10_MLOps_and_Deployment/production.html#f24ModelVersion">Model Versioning and Reproducibility</a>).</p>
 <pre class="code" data-lang="python"><code><span class="cmt"># LR warmup + cosine decay (the standard recipe for stable deep training)</span>
 <span class="kw">import</span> math
 <span class="kw">def</span> <span class="fn">lr_at</span>(step, base_lr, warmup, total):
@@ -4974,7 +4974,7 @@ scaler = <span class="fn">GradScaler</span>()                       <span class=
 <h3>Dataloader bottleneck (GPUs starved)</h3>
 <p>GPUs sit idle (<span class="mag">&lt;50%</span> util) because the <strong>CPU can't feed data fast enough</strong> — the GPU finishes the batch before the next one is ready.
 - <strong>Symptom:</strong> low GPU utilization despite a "GPU-bound" job.
-- <strong>Fixes:</strong> more <code>num_workers</code>, <code>pin_memory=True</code>, <code>prefetch_factor</code>, faster storage/format (WebDataset, sharded files), do augmentation on GPU, cache decoded data. (Cross-ref the utilization metric in <a href="../../10_MLOps_and_Deployment/21_Latency_and_Performance.md">21_Latency_and_Performance.md</a>.)</p>
+- <strong>Fixes:</strong> more <code>num_workers</code>, <code>pin_memory=True</code>, <code>prefetch_factor</code>, faster storage/format (WebDataset, sharded files), do augmentation on GPU, cache decoded data. (Cross-ref the utilization metric in <a href="../10_MLOps_and_Deployment/production.html#f21LatencyandPe">Latency and Performance</a>.)</p>
 <pre class="code" data-lang="python"><code>loader = torch.utils.data.<span class="fn">DataLoader</span>(
     dataset, batch_size=<span class="num">256</span>,
     num_workers=<span class="num">8</span>,          <span class="cmt"># parallel CPU data prep so the GPU never waits</span>
@@ -5015,10 +5015,8 @@ scaler = <span class="fn">GradScaler</span>()                       <span class=
 <li>[ ] Distributed: identical collectives per rank, NCCL timeout set, per-rank step-time monitored</li>
 <li>[ ] Sharded-checkpoint API used for large models; checkpoint reload verified</li>
 <li>[ ] GPU utilization monitored; dataloader tuned (workers/prefetch/pin_memory) if <span class="mag">&lt;50%</span></li>
-<li>[ ] Seeds set + run logged for reproducibility (see <a href="../../10_MLOps_and_Deployment/24_Model_Versioning_and_Reproducibility.md">24_Model_Versioning_and_Reproducibility.md</a>)</li>
-</ul>
-<hr />
-<p><em>Previous: <a href="../../07_GenAI_and_LLMs/21_LLM_Cost_and_Token_Optimization.md">21_LLM_Cost_and_Token_Optimization.md</a> | Next: <a href="../../07_GenAI_and_LLMs/22_LLM_Eval_Prompts_and_Finetuning.md">22_LLM_Eval_Prompts_and_Finetuning.md</a></em></p></div><button class="reveal">Reveal answer</button></article></section>
+<li>[ ] Seeds set + run logged for reproducibility (see <a href="../10_MLOps_and_Deployment/production.html#f24ModelVersion">Model Versioning and Reproducibility</a>)</li>
+</ul></div><button class="reveal">Reveal answer</button></article></section>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
 <nav class="pnav"><a class="prev" href="practice-a.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrowl"/></svg><span class="pnav-t"><span>Previous</span><b>Practice 1</b></span></a><a class="next" href="interview.html"><span class="pnav-t"><span>Next</span><b>Interview</b></span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></a></nav>
 <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
