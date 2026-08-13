@@ -806,6 +806,56 @@ svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
   .trk-go{display:none}
 }
 
+/* ---------- maths ----------
+   The source carries ~3,650 LaTeX expressions and this site loads no external script,
+   so mathhtml.py renders them to these spans and the layout happens here: fractions
+   stack, roots get an overline, and big operators carry their limits above and below
+   in display mode. */
+.mth{font-family:"Cambria Math","Latin Modern Math","STIX Two Math",Georgia,serif;
+  font-size:1.03em;line-height:1.35;white-space:nowrap}
+.mth i{font-style:italic;font-family:inherit}
+.mth sub,.mth sup{font-size:.72em;line-height:0}
+.mth-block{display:block;margin:16px 0;padding:12px 10px;text-align:center;
+  font-size:1.16em;overflow-x:auto;overflow-y:hidden;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:10px}
+.mth-op{padding:0 .26em}
+.mth-fn,.mth-rm,.mth-txt{font-style:normal}
+.mth-txt{padding:0 .12em}
+.mth-fn{padding-right:.12em}
+.mth-gr,.mth-cal{font-style:italic}
+.mth-d{padding:0 .04em}
+.mth-big{font-size:1.9em;vertical-align:-.32em}
+.mth-bigop{font-size:1.34em;vertical-align:-.16em;padding:0 .06em}
+/* fraction: two centred rows with a rule between them */
+.mth-frac{display:inline-flex;flex-direction:column;vertical-align:-.52em;
+  text-align:center;margin:0 .2em}
+.mth-num{padding:0 .34em .1em;border-bottom:1.2px solid currentColor}
+.mth-den{padding:.1em .34em 0}
+.mth-nobar .mth-num{border-bottom:none}
+/* root: the tick plus an overline across the radicand */
+.mth-sqrt{white-space:nowrap}
+.mth-rad{border-top:1.2px solid currentColor;padding:.1em .18em 0 .1em;margin-left:-.06em}
+.mth-root-i{font-size:.7em;vertical-align:.5em;margin-right:-.34em}
+/* limits above and below a big operator */
+.mth-lim{display:inline-flex;flex-direction:column;align-items:center;
+  vertical-align:-.42em;margin:0 .18em}
+.mth-lim .mth-top,.mth-lim .mth-bot{font-size:.66em;line-height:1.1}
+.mth-op-b{line-height:1}
+.mth-acc{position:relative;display:inline-block}
+.mth-acc-m{position:absolute;left:50%;top:-.52em;transform:translateX(-50%);font-size:.9em}
+.mth-box{border:1.4px solid var(--accent);border-radius:6px;padding:.14em .4em;
+  display:inline-block}
+/* matrices and cases */
+.mth-mat{display:inline-flex;align-items:center;vertical-align:middle}
+.mth-mat table{border-collapse:collapse;margin:0 .12em}
+.mth-mat td{padding:.12em .42em;text-align:center;border:0}
+.mth-cases td:first-child{text-align:left}
+.mth-cases td+td{padding-left:1.1em;font-size:.94em;color:var(--ink-2)}
+.mth-al{border-collapse:collapse;margin:0 auto}
+.mth-al td{padding:.14em .2em}
+.mth-raw{color:var(--crit);font-size:.9em}
+@media (max-width:700px){.mth-block{font-size:1.02em;padding:10px 8px}}
+
 /* ---------- sidebar nav with icons ---------- */
 .nav-grp{display:flex;align-items:center;gap:8px}
 .nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
@@ -3506,7 +3556,7 @@ IG = 1.0 - (<span class="mag">0.6 ×</span> 0.7 + <span class="mag">0.4 ×</span
 1. Training accuracy = <span class="mag">100%</span>
 2. Severe <abbr title="a model that fits the training data&#x27;s noise and generalises worse than a simpler one would">overfitting</abbr>
 3. Poor generalization
-<strong>Explanation:</strong> Unrestricted trees memorize training data, including noise. Must prune or set depth limits.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f04TreesandEnse-401"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 5. How do you prevent overfitting in decision trees?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f04TreesandEnse-401"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">maxdepth</span><span class="kt">minsamplessplit</span><span class="kt">minsamplesleaf</span><span class="kt">maxfeatures</span><span class="kt">Pre-pruning</span></div><p><strong>Answer:</strong>
+<strong>Explanation:</strong> Unrestricted trees memorize training data, including noise. Must prune or set depth limits.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f04TreesandEnse-401"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 5. How do you prevent overfitting in decision trees?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f04TreesandEnse-401"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">max_depth</span><span class="kt">min_samples_split</span><span class="kt">min_samples_leaf</span><span class="kt">max_features</span><span class="kt">Pre-pruning</span></div><p><strong>Answer:</strong>
 1. <strong>max_depth:</strong> Limit tree depth
 2. <strong>min_samples_split:</strong> Minimum samples to attempt split
 3. <strong>min_samples_leaf:</strong> Minimum samples in leaf
@@ -3621,7 +3671,7 @@ SplitInfo = -Σ(|S_j|/|S|) × log₂(|S_j|/|S|)</code></pre>
 - For binary: OHE creates separate features
 - For high-cardinality: Target encoding or ordinal encoding works well with trees
 - LightGBM: Native categorical handling
-<strong>Explanation:</strong> Trees with ordinal encoding of unordered categories: may create suboptimal but reasonable splits.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f04TreesandEnse-430"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 34. What is the effect of max_features parameter in Random Forest?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f04TreesandEnse-430"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">maxfeatures=nfeatures (all)</span><span class="kt">maxfeatures=1</span><span class="kt">maxfeatures=&#x27;sqrt&#x27;</span><span class="kt">maxfeatures=0.33</span><span class="kt">Explanation</span></div><p><strong>Answer:</strong>
+<strong>Explanation:</strong> Trees with ordinal encoding of unordered categories: may create suboptimal but reasonable splits.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f04TreesandEnse-430"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 34. What is the effect of max_features parameter in Random Forest?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f04TreesandEnse-430"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">max_features=n_features (all)</span><span class="kt">max_features=1</span><span class="kt">max_features=&#x27;sqrt&#x27;</span><span class="kt">max_features=0.33</span><span class="kt">Explanation</span></div><p><strong>Answer:</strong>
 - <strong>max_features=n_features (all):</strong> Trees are more correlated → less variance reduction → basically bagging
 - <strong>max_features=1:</strong> Maximum randomness → very diverse but weak trees
 - <strong>max_features='sqrt':</strong> Good balance for classification (default)
@@ -3646,7 +3696,7 @@ rfe.<span class="fn">fit</span>(X, y)</code></pre>
 4. Choose threshold with minimum weighted impurity
 <strong>Explanation:</strong> For n unique values, evaluate n-1 potential splits. Repeat for each feature at each node.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f04TreesandEnse-434"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 38. What is the stability of decision trees and how do Random Forests address this?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f04TreesandEnse-434"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">Random Forest</span><span class="kt">Explanation</span></div><p><strong>Answer:</strong> Single trees are unstable — small data changes can create completely different splits. This is high variance.
 <strong>Random Forest:</strong> Averages many unstable trees → stable predictions.
-<strong>Explanation:</strong> Averaging reduces variance by factor of 1/n (independent trees). With correlation: Var = ρσ² + (1-ρ)σ²/n.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f04TreesandEnse-435"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 39. What is the effect of min_samples_leaf on the decision boundary?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f04TreesandEnse-435"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">minsamplesleaf=1</span><span class="kt">minsamplesleaf=50</span><span class="kt">Explanation</span></div><p><strong>Answer:</strong>
+<strong>Explanation:</strong> Averaging reduces variance by factor of 1/n (independent trees). With correlation: Var = ρσ² + (1-ρ)σ²/n.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f04TreesandEnse-435"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 39. What is the effect of min_samples_leaf on the decision boundary?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f04TreesandEnse-435"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">min_samples_leaf=1</span><span class="kt">min_samples_leaf=50</span><span class="kt">Explanation</span></div><p><strong>Answer:</strong>
 - <strong>min_samples_leaf=1:</strong> Can create very specific regions → may overfit to noise
 - <strong>min_samples_leaf=50:</strong> Smoother boundaries → prevents small noisy regions
 <strong>Explanation:</strong> Larger min_samples_leaf = simpler, smoother model. Good <abbr title="penalising model complexity so it generalises better">regularization</abbr> technique.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f04TreesandEnse-436"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 40. How would you visualize a decision tree?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f04TreesandEnse-436"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span></div><p><strong>Answer:</strong></p>
@@ -3739,7 +3789,7 @@ Sample weight: w_i *= exp(-α_t * y_i * h_t(x_i))</code></pre>
 - <strong>Gradient Boosting:</strong> Fits new model to the residuals (gradient of loss) of previous models</p>
 <pre class="code"><code>F_t(x) = F_{t-1}(x) + η * h_t(x)
 where h_t fits the negative gradient of loss</code></pre>
-<p><strong>Explanation:</strong> Gradient boosting generalizes boosting to any differentiable loss function. More flexible.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f04TreesandEnse-452"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 56. What are the key hyperparameters of Gradient Boosting?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f04TreesandEnse-452"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">nestimators</span><span class="kt">learningrate (η)</span><span class="kt">maxdepth</span><span class="kt">subsample</span><span class="kt">minsamplesleaf</span></div><p><strong>Answer:</strong>
+<p><strong>Explanation:</strong> Gradient boosting generalizes boosting to any differentiable loss function. More flexible.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f04TreesandEnse-452"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 56. What are the key hyperparameters of Gradient Boosting?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f04TreesandEnse-452"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">n_estimators</span><span class="kt">learning_rate (η)</span><span class="kt">max_depth</span><span class="kt">subsample</span><span class="kt">min_samples_leaf</span></div><p><strong>Answer:</strong>
 1. <strong>n_estimators:</strong> Number of boosting stages
 2. <strong>learning_rate (η):</strong> Shrinkage — how much each tree contributes
 3. <strong>max_depth:</strong> Depth of each tree (typically 3-8)
@@ -4352,7 +4402,7 @@ model.<span class="fn">predict_proba</span>(X) <span class="cmt"># Soft: probabi
 - Unknown number of clusters
 - Need to detect outliers/noise
 - Clusters have varying densities (partially)
-<strong>Explanation:</strong> K-Means assumes spherical, equal-sized clusters. DBSCAN finds density-based clusters of any shape and labels outliers as noise.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06Clusteringan-603"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 7. What are the two key parameters of DBSCAN and how do you choose them?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06Clusteringan-603"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">eps (ε)</span><span class="kt">minsamples</span><span class="kt">Choosing</span></div><p><strong>Answer:</strong>
+<strong>Explanation:</strong> K-Means assumes spherical, equal-sized clusters. DBSCAN finds density-based clusters of any shape and labels outliers as noise.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06Clusteringan-603"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 7. What are the two key parameters of DBSCAN and how do you choose them?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06Clusteringan-603"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">eps (ε)</span><span class="kt">min_samples</span><span class="kt">Choosing</span></div><p><strong>Answer:</strong>
 - <strong>eps (ε):</strong> Maximum neighborhood distance
 - <strong>min_samples:</strong> Minimum points to form a dense region
 <strong>Choosing:</strong> k-distance plot — plot sorted distance to k-th nearest neighbor, find the "elbow". min_samples ≥ dimensions + 1 as rule of thumb.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f06Clusteringan-604"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 8. DBSCAN assigns most of your points as noise (-1). What should you do?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06Clusteringan-604"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span></div><p><strong>Answer:</strong> eps is too small or min_samples is too high. Increase eps or decrease min_samples. Also check if data is scaled.
@@ -4982,7 +5032,7 @@ y_pred = <span class="fn">cross_val_predict</span>(model, X, y, cv=<span class="
 
 scorer = <span class="fn">make_scorer</span>(custom_metric)
 <span class="fn">GridSearchCV</span>(model, param_grid, scoring=scorer, cv=<span class="num">5</span>)</code></pre>
-<p><strong>Explanation:</strong> Custom scorers align optimization with business objectives. Use <code>needs_proba=True</code> for probability-based metrics.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07ModelEvaluat-791"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 95. What is the difference between cross_val_score and GridSearchCV?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07ModelEvaluat-791"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">crossvalscore</span><span class="kt">GridSearchCV</span><span class="kt">Explanation</span></div><p><strong>Answer:</strong>
+<p><strong>Explanation:</strong> Custom scorers align optimization with business objectives. Use <code>needs_proba=True</code> for probability-based metrics.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07ModelEvaluat-791"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 95. What is the difference between cross_val_score and GridSearchCV?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07ModelEvaluat-791"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">cross_val_score</span><span class="kt">GridSearchCV</span><span class="kt">Explanation</span></div><p><strong>Answer:</strong>
 - <strong>cross_val_score:</strong> Evaluates ONE model with fixed hyperparameters across K folds
 - <strong>GridSearchCV:</strong> Evaluates MANY models (different hyperparameters) across K folds, selects best
 <strong>Explanation:</strong> <code>cross_val_score</code> for evaluation. <code>GridSearchCV</code> for selection + evaluation. GridSearchCV refits best model on full training data when <code>refit=True</code>.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f07ModelEvaluat-792"><div class="q-h"><span class="q-n">&bull;</span><h3>Scenario 96. How do you handle the computational cost of large search spaces?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07ModelEvaluat-792"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span></div><p><strong>Answer:</strong>

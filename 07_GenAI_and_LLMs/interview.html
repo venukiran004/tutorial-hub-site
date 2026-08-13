@@ -806,6 +806,56 @@ svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
   .trk-go{display:none}
 }
 
+/* ---------- maths ----------
+   The source carries ~3,650 LaTeX expressions and this site loads no external script,
+   so mathhtml.py renders them to these spans and the layout happens here: fractions
+   stack, roots get an overline, and big operators carry their limits above and below
+   in display mode. */
+.mth{font-family:"Cambria Math","Latin Modern Math","STIX Two Math",Georgia,serif;
+  font-size:1.03em;line-height:1.35;white-space:nowrap}
+.mth i{font-style:italic;font-family:inherit}
+.mth sub,.mth sup{font-size:.72em;line-height:0}
+.mth-block{display:block;margin:16px 0;padding:12px 10px;text-align:center;
+  font-size:1.16em;overflow-x:auto;overflow-y:hidden;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:10px}
+.mth-op{padding:0 .26em}
+.mth-fn,.mth-rm,.mth-txt{font-style:normal}
+.mth-txt{padding:0 .12em}
+.mth-fn{padding-right:.12em}
+.mth-gr,.mth-cal{font-style:italic}
+.mth-d{padding:0 .04em}
+.mth-big{font-size:1.9em;vertical-align:-.32em}
+.mth-bigop{font-size:1.34em;vertical-align:-.16em;padding:0 .06em}
+/* fraction: two centred rows with a rule between them */
+.mth-frac{display:inline-flex;flex-direction:column;vertical-align:-.52em;
+  text-align:center;margin:0 .2em}
+.mth-num{padding:0 .34em .1em;border-bottom:1.2px solid currentColor}
+.mth-den{padding:.1em .34em 0}
+.mth-nobar .mth-num{border-bottom:none}
+/* root: the tick plus an overline across the radicand */
+.mth-sqrt{white-space:nowrap}
+.mth-rad{border-top:1.2px solid currentColor;padding:.1em .18em 0 .1em;margin-left:-.06em}
+.mth-root-i{font-size:.7em;vertical-align:.5em;margin-right:-.34em}
+/* limits above and below a big operator */
+.mth-lim{display:inline-flex;flex-direction:column;align-items:center;
+  vertical-align:-.42em;margin:0 .18em}
+.mth-lim .mth-top,.mth-lim .mth-bot{font-size:.66em;line-height:1.1}
+.mth-op-b{line-height:1}
+.mth-acc{position:relative;display:inline-block}
+.mth-acc-m{position:absolute;left:50%;top:-.52em;transform:translateX(-50%);font-size:.9em}
+.mth-box{border:1.4px solid var(--accent);border-radius:6px;padding:.14em .4em;
+  display:inline-block}
+/* matrices and cases */
+.mth-mat{display:inline-flex;align-items:center;vertical-align:middle}
+.mth-mat table{border-collapse:collapse;margin:0 .12em}
+.mth-mat td{padding:.12em .42em;text-align:center;border:0}
+.mth-cases td:first-child{text-align:left}
+.mth-cases td+td{padding-left:1.1em;font-size:.94em;color:var(--ink-2)}
+.mth-al{border-collapse:collapse;margin:0 auto}
+.mth-al td{padding:.14em .2em}
+.mth-raw{color:var(--crit);font-size:.9em}
+@media (max-width:700px){.mth-block{font-size:1.02em;padding:10px 8px}}
+
 /* ---------- sidebar nav with icons ---------- */
 .nav-grp{display:flex;align-items:center;gap:8px}
 .nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
@@ -2043,7 +2093,7 @@ fused = <span class="fn">rrf</span>([bm25_results, dense_results])   <span class
 <p>Say: <em>"KV cache stores past K/V so <abbr title="generating output tokens one at a time after prefill">decode</abbr> is O(n) not O(n²). I don't hand-roll it — I serve on vLLM/TGI where PagedAttention + prefix caching handle it, and I control memory with GQA, fp8 KV <abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">quantization</abbr>, and prompt caching for shared system prompts."</em></p>
 </div>
 <h3>What is <abbr title="a small draft model proposes several tokens ahead; the large model verifies them in one pass">speculative decoding</abbr>?</h3>
-<p>A <strong>small draft model proposes k tokens cheaply; the big target model verifies all k in one parallel forward pass.</strong> Accepted tokens are kept; the first rejected token is resampled from the target. <strong>Output distribution is identical to the target model</strong>, but you get <strong><span class="mag">2–3×</span> faster decode</strong> because one expensive pass yields several tokens. Works because <strong>verification is parallel</strong> but generation is sequential. Variants: <strong>Medusa</strong> (extra prediction heads, no separate model), <strong>EAGLE</strong>, <strong>n-gram/prompt lookahead</strong>. Enable via vLLM <code>speculative_config</code> (draft model or n-gram). Best when a good small draft model exists and the domain is predictable.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f20GenAIRound2E-266"><div class="q-h"><span class="q-n">&bull;</span><h3>8. Cost optimization in a GenAI project</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f20GenAIRound2E-266"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">3 axes — tokens, model, infra</span><span class="kt">Reduce tokens</span><span class="kt">context compression</span><span class="kt">Cap maxtokens</span><span class="kt">Prompt/prefix caching</span><span class="kt">Model routing / cascade</span></div><p>Attack it on <strong>3 axes — tokens, model, infra:</strong></p>
+<p>A <strong>small draft model proposes k tokens cheaply; the big target model verifies all k in one parallel forward pass.</strong> Accepted tokens are kept; the first rejected token is resampled from the target. <strong>Output distribution is identical to the target model</strong>, but you get <strong><span class="mag">2–3×</span> faster decode</strong> because one expensive pass yields several tokens. Works because <strong>verification is parallel</strong> but generation is sequential. Variants: <strong>Medusa</strong> (extra prediction heads, no separate model), <strong>EAGLE</strong>, <strong>n-gram/prompt lookahead</strong>. Enable via vLLM <code>speculative_config</code> (draft model or n-gram). Best when a good small draft model exists and the domain is predictable.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f20GenAIRound2E-266"><div class="q-h"><span class="q-n">&bull;</span><h3>8. Cost optimization in a GenAI project</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f20GenAIRound2E-266"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">3 axes — tokens, model, infra</span><span class="kt">Reduce tokens</span><span class="kt">context compression</span><span class="kt">Cap max_tokens</span><span class="kt">Prompt/prefix caching</span><span class="kt">Model routing / cascade</span></div><p>Attack it on <strong>3 axes — tokens, model, infra:</strong></p>
 <p><strong>Reduce tokens</strong>
 - Trim/compress prompts; shorter system prompts; <strong>context compression</strong> &amp; top-k tuning in <abbr title="retrieval-augmented generation">RAG</abbr>.
 - <strong>Cap <code>max_tokens</code></strong>; stop sequences.
@@ -2187,7 +2237,7 @@ Note: PUT = idempotent create/replace; PATCH = partial update; DELETE = remove.<
 <p>Say: <em>"In LLM systems, interfaces are what give you swappability and composability. LangChain's <code>Runnable</code>/<code>BaseChatModel</code> and LiteLLM are a single interface over every provider, so changing models is one line. RAG components (Retriever, VectorStore, Embeddings) are interfaces too, so I can swap vector DBs freely. Function-calling schemas and MCP are interfaces between the model and my tools. And coding to interfaces lets me inject a mock LLM for testing. It's Strategy + Adapter under the hood."</em></p>
 </div>
 <h3>Related <abbr title="object-oriented programming">OOP</abbr> concepts — quick LLM-flavored takes</h3>
-<div class="tbl-wrap"><table class="t3"><thead><tr><th>Concept</th><th>Plain meaning</th><th>LLM-system example</th></tr></thead><tbody><tr class="g1"><td><strong>Abstraction</strong></td><td>Hide implementation behind a clean API</td><td><code>chain.invoke(q)</code> hides retrieval + prompt + model + parse</td></tr><tr class="g0"><td><strong>Encapsulation</strong></td><td>Bundle state + behavior, hide internals</td><td>A <code>Retriever</code> hides the index/<abbr title="hierarchical navigable small world — the graph index most vector stores use for approximate nearest-neighbour search">HNSW</abbr> params</td></tr><tr class="g1"><td><strong>Polymorphism</strong></td><td>Same call, many implementations</td><td><code>.invoke()</code> works on prompt, LLM, retriever alike</td></tr><tr class="g0"><td><strong>Inheritance</strong></td><td>Reuse/extend a base</td><td><code>class MyRetriever(BaseRetriever)</code></td></tr><tr class="g1"><td><strong>Strategy pattern</strong></td><td>Swap algorithms behind an interface</td><td>Model <strong>routing</strong>: pick cheap vs frontier model at runtime</td></tr><tr class="g0"><td><strong>Adapter pattern</strong></td><td>Wrap a vendor API to a common interface</td><td>LangChain/LiteLLM provider adapters</td></tr><tr class="g1"><td><strong>Dependency Injection</strong></td><td>Pass collaborators in, don't hardcode</td><td>Inject the LLM/retriever → mock them in tests</td></tr><tr class="g0"><td><strong>Factory</strong></td><td>Centralize object creation</td><td><code>get_llm(name)</code> returns the right client</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f20GenAIRound2E-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>C — More likely Round 2 questions</span><i></i></div><article class="q" id="f20GenAIRound2E-273"><div class="q-h"><span class="q-n">&bull;</span><h3>15. More likely Round-2 questions</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f20GenAIRound2E-273"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">async</span><span class="kt">multiprocessing</span><span class="kt">Q. asyncio.gather vs ascompleted?</span><span class="kt">all</span><span class="kt">as each finishes</span><span class="kt">perceived</span></div><p><strong>Q. async vs threading vs multiprocessing — pick for an <abbr title="large language model">LLM</abbr> app?</strong>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Concept</th><th>Plain meaning</th><th>LLM-system example</th></tr></thead><tbody><tr class="g1"><td><strong>Abstraction</strong></td><td>Hide implementation behind a clean API</td><td><code>chain.invoke(q)</code> hides retrieval + prompt + model + parse</td></tr><tr class="g0"><td><strong>Encapsulation</strong></td><td>Bundle state + behavior, hide internals</td><td>A <code>Retriever</code> hides the index/<abbr title="hierarchical navigable small world — the graph index most vector stores use for approximate nearest-neighbour search">HNSW</abbr> params</td></tr><tr class="g1"><td><strong>Polymorphism</strong></td><td>Same call, many implementations</td><td><code>.invoke()</code> works on prompt, LLM, retriever alike</td></tr><tr class="g0"><td><strong>Inheritance</strong></td><td>Reuse/extend a base</td><td><code>class MyRetriever(BaseRetriever)</code></td></tr><tr class="g1"><td><strong>Strategy pattern</strong></td><td>Swap algorithms behind an interface</td><td>Model <strong>routing</strong>: pick cheap vs frontier model at runtime</td></tr><tr class="g0"><td><strong>Adapter pattern</strong></td><td>Wrap a vendor API to a common interface</td><td>LangChain/LiteLLM provider adapters</td></tr><tr class="g1"><td><strong>Dependency Injection</strong></td><td>Pass collaborators in, don't hardcode</td><td>Inject the LLM/retriever → mock them in tests</td></tr><tr class="g0"><td><strong>Factory</strong></td><td>Centralize object creation</td><td><code>get_llm(name)</code> returns the right client</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f20GenAIRound2E-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>C — More likely Round 2 questions</span><i></i></div><article class="q" id="f20GenAIRound2E-273"><div class="q-h"><span class="q-n">&bull;</span><h3>15. More likely Round-2 questions</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f20GenAIRound2E-273"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">async</span><span class="kt">multiprocessing</span><span class="kt">Q. asyncio.gather vs as_completed?</span><span class="kt">all</span><span class="kt">as each finishes</span><span class="kt">perceived</span></div><p><strong>Q. async vs threading vs multiprocessing — pick for an <abbr title="large language model">LLM</abbr> app?</strong>
 I/O-bound LLM/API calls → <strong>async</strong> (or threads for sync SDKs); CPU-bound local <abbr title="a dense numeric vector representing text so that similar meanings sit close together">embedding</abbr>/parsing → <strong>multiprocessing</strong> (<abbr title="global interpreter lock">GIL</abbr>). Often combine: async API layer, process pool for heavy parsing.</p>
 <p><strong>Q. <code>asyncio.gather</code> vs <code>as_completed</code>?</strong>
 <code>gather</code> waits for <strong>all</strong> and returns results in order; <code>as_completed</code> yields results <strong>as each finishes</strong> (good for streaming partials / early use). Bound both with a <code>Semaphore</code> to respect rate limits.</p>

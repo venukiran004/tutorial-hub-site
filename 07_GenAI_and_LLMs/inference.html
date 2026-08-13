@@ -806,6 +806,56 @@ svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
   .trk-go{display:none}
 }
 
+/* ---------- maths ----------
+   The source carries ~3,650 LaTeX expressions and this site loads no external script,
+   so mathhtml.py renders them to these spans and the layout happens here: fractions
+   stack, roots get an overline, and big operators carry their limits above and below
+   in display mode. */
+.mth{font-family:"Cambria Math","Latin Modern Math","STIX Two Math",Georgia,serif;
+  font-size:1.03em;line-height:1.35;white-space:nowrap}
+.mth i{font-style:italic;font-family:inherit}
+.mth sub,.mth sup{font-size:.72em;line-height:0}
+.mth-block{display:block;margin:16px 0;padding:12px 10px;text-align:center;
+  font-size:1.16em;overflow-x:auto;overflow-y:hidden;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:10px}
+.mth-op{padding:0 .26em}
+.mth-fn,.mth-rm,.mth-txt{font-style:normal}
+.mth-txt{padding:0 .12em}
+.mth-fn{padding-right:.12em}
+.mth-gr,.mth-cal{font-style:italic}
+.mth-d{padding:0 .04em}
+.mth-big{font-size:1.9em;vertical-align:-.32em}
+.mth-bigop{font-size:1.34em;vertical-align:-.16em;padding:0 .06em}
+/* fraction: two centred rows with a rule between them */
+.mth-frac{display:inline-flex;flex-direction:column;vertical-align:-.52em;
+  text-align:center;margin:0 .2em}
+.mth-num{padding:0 .34em .1em;border-bottom:1.2px solid currentColor}
+.mth-den{padding:.1em .34em 0}
+.mth-nobar .mth-num{border-bottom:none}
+/* root: the tick plus an overline across the radicand */
+.mth-sqrt{white-space:nowrap}
+.mth-rad{border-top:1.2px solid currentColor;padding:.1em .18em 0 .1em;margin-left:-.06em}
+.mth-root-i{font-size:.7em;vertical-align:.5em;margin-right:-.34em}
+/* limits above and below a big operator */
+.mth-lim{display:inline-flex;flex-direction:column;align-items:center;
+  vertical-align:-.42em;margin:0 .18em}
+.mth-lim .mth-top,.mth-lim .mth-bot{font-size:.66em;line-height:1.1}
+.mth-op-b{line-height:1}
+.mth-acc{position:relative;display:inline-block}
+.mth-acc-m{position:absolute;left:50%;top:-.52em;transform:translateX(-50%);font-size:.9em}
+.mth-box{border:1.4px solid var(--accent);border-radius:6px;padding:.14em .4em;
+  display:inline-block}
+/* matrices and cases */
+.mth-mat{display:inline-flex;align-items:center;vertical-align:middle}
+.mth-mat table{border-collapse:collapse;margin:0 .12em}
+.mth-mat td{padding:.12em .42em;text-align:center;border:0}
+.mth-cases td:first-child{text-align:left}
+.mth-cases td+td{padding-left:1.1em;font-size:.94em;color:var(--ink-2)}
+.mth-al{border-collapse:collapse;margin:0 auto}
+.mth-al td{padding:.14em .2em}
+.mth-raw{color:var(--crit);font-size:.9em}
+@media (max-width:700px){.mth-block{font-size:1.02em;padding:10px 8px}}
+
 /* ---------- sidebar nav with icons ---------- */
 .nav-grp{display:flex;align-items:center;gap:8px}
 .nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
@@ -1286,7 +1336,7 @@ python benchmark_serving.py \
 
 Self-hosted (A100-80GB @ $2/hr):
 - LLaMA-2 70B INT4: ~1500 tokens/sec → ~$0.48 per 1M tokens
-- LLaMA-2 7B FP16: ~3000 tokens/sec → ~$0.24 per 1M tokens</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-43"><div class="q-h"><span class="q-n">&bull;</span><h3>When to Self-Host vs API</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-43"><span></span></label></div><div class="q-a"><div class="tbl-wrap"><table class="t3"><thead><tr><th>Factor</th><th>Self-Host</th><th>API</th></tr></thead><tbody><tr class="g1"><td>Volume</td><td>&gt; 10M tokens/day</td><td>&lt; 10M tokens/day</td></tr><tr class="g0"><td>Latency control</td><td>Full control</td><td>Provider-dependent</td></tr><tr class="g1"><td>Data privacy</td><td>On-premise</td><td>Data leaves org</td></tr><tr class="g0"><td>Customization</td><td>Fine-tuned models</td><td>Limited</td></tr><tr class="g1"><td>Ops overhead</td><td>High (GPUs, infra)</td><td>Zero</td></tr><tr class="g0"><td>Time to deploy</td><td>Weeks</td><td>Hours</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f02LLMInference-p13"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>13. Grammar-Constrained Decoding</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Grammar-constrained decoding forces <abbr title="large language model">LLM</abbr> outputs to conform to a <strong>formal grammar</strong>, eliminating malformed JSON, invalid code syntax, or off-schema responses at the token-sampling level.</p></div><article class="q" id="f02LLMInference-44"><div class="q-h"><span class="q-n">&bull;</span><h3>How It Works</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-44"><span></span></label></div><div class="q-a"><p>At each decoding step, the grammar defines which tokens are <strong>valid continuations</strong>. Invalid tokens are masked (logits set to $-\infty$) before sampling, guaranteeing structurally correct output.</p>
+- LLaMA-2 7B FP16: ~3000 tokens/sec → ~$0.24 per 1M tokens</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-43"><div class="q-h"><span class="q-n">&bull;</span><h3>When to Self-Host vs API</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-43"><span></span></label></div><div class="q-a"><div class="tbl-wrap"><table class="t3"><thead><tr><th>Factor</th><th>Self-Host</th><th>API</th></tr></thead><tbody><tr class="g1"><td>Volume</td><td>&gt; 10M tokens/day</td><td>&lt; 10M tokens/day</td></tr><tr class="g0"><td>Latency control</td><td>Full control</td><td>Provider-dependent</td></tr><tr class="g1"><td>Data privacy</td><td>On-premise</td><td>Data leaves org</td></tr><tr class="g0"><td>Customization</td><td>Fine-tuned models</td><td>Limited</td></tr><tr class="g1"><td>Ops overhead</td><td>High (GPUs, infra)</td><td>Zero</td></tr><tr class="g0"><td>Time to deploy</td><td>Weeks</td><td>Hours</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f02LLMInference-p13"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>13. Grammar-Constrained Decoding</span><i></i></div><div class="q-a" style="margin:0 0 12px"><p>Grammar-constrained decoding forces <abbr title="large language model">LLM</abbr> outputs to conform to a <strong>formal grammar</strong>, eliminating malformed JSON, invalid code syntax, or off-schema responses at the token-sampling level.</p></div><article class="q" id="f02LLMInference-44"><div class="q-h"><span class="q-n">&bull;</span><h3>How It Works</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-44"><span></span></label></div><div class="q-a"><p>At each decoding step, the grammar defines which tokens are <strong>valid continuations</strong>. Invalid tokens are masked (logits set to <span class="mth"><span class="mth-op">−</span>∞</span>) before sampling, guaranteeing structurally correct output.</p>
 <div class="diagram"><pre>Standard Decoding:          Grammar-Constrained Decoding:
 
 Logits → Softmax → Sample   Logits → Grammar Mask → Softmax → Sample
@@ -1322,7 +1372,7 @@ result = <span class="fn">generator</span>(<span class="str">"Extract person inf
 <li class="dl"><b class="dt">Why it matters</b><span class="dd">Captures open-ended quality, instruction following, creativity, and helpfulness — aspects static benchmarks miss.</span></li>
 </ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-50"><div class="q-h"><span class="q-n">&bull;</span><h3>Arena Hard Benchmark</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-50"><span></span></label></div><div class="q-a"><ul>
 <li>Automated version using GPT-4 as judge on 500 challenging Arena prompts.</li>
-<li>Highly correlated with human Arena rankings ($r &gt; 0.95$).</li>
+<li>Highly correlated with human Arena rankings (<span class="mth"><i>r</i> <span class="mth-op">&gt;</span> 0.95</span>).</li>
 <li>Cheaper and faster than live Arena; useful for rapid model iteration.</li>
 </ul></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-51"><div class="q-h"><span class="q-n">&bull;</span><h3>Complementary Evaluation Strategy</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-51"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">MMLU</span><span class="kt">HumanEval / MBPP</span><span class="kt">MT-Bench</span><span class="kt">Chatbot Arena</span><span class="kt">Arena Hard</span><span class="kt">GPQA</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Benchmark</th><th>What It Measures</th><th>Limitation</th></tr></thead><tbody><tr class="g1"><td><strong>MMLU</strong></td><td>Knowledge &amp; reasoning (multiple choice)</td><td>Doesn't test generation quality</td></tr><tr class="g0"><td><strong>HumanEval / MBPP</strong></td><td>Code generation correctness</td><td>Only code, not general tasks</td></tr><tr class="g1"><td><strong>MT-Bench</strong></td><td>Multi-turn conversation quality (<abbr title="large language model">LLM</abbr> judge)</td><td>Judge model bias</td></tr><tr class="g0"><td><strong>Chatbot Arena</strong></td><td>Overall human preference</td><td>Expensive, slow, user-population bias</td></tr><tr class="g1"><td><strong>Arena Hard</strong></td><td>Automated Arena proxy</td><td>Still depends on GPT-4 judge</td></tr><tr class="g0"><td><strong>GPQA</strong></td><td>PhD-level reasoning</td><td>Very narrow domain</td></tr></tbody></table></div>
 <p><strong>Best practice</strong>: Combine <strong>MMLU</strong> (knowledge) + <strong>HumanEval</strong> (code) + <strong>Arena/MT-Bench</strong> (human preference) + <strong>domain-specific evals</strong> for a complete picture. No single benchmark is sufficient.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f02LLMInference-52"><div class="q-h"><span class="q-n">&bull;</span><h3>Key Insight for Interviews</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-52"><span></span></label></div><div class="q-a"><div class="note">

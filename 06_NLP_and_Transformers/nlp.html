@@ -806,6 +806,56 @@ svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
   .trk-go{display:none}
 }
 
+/* ---------- maths ----------
+   The source carries ~3,650 LaTeX expressions and this site loads no external script,
+   so mathhtml.py renders them to these spans and the layout happens here: fractions
+   stack, roots get an overline, and big operators carry their limits above and below
+   in display mode. */
+.mth{font-family:"Cambria Math","Latin Modern Math","STIX Two Math",Georgia,serif;
+  font-size:1.03em;line-height:1.35;white-space:nowrap}
+.mth i{font-style:italic;font-family:inherit}
+.mth sub,.mth sup{font-size:.72em;line-height:0}
+.mth-block{display:block;margin:16px 0;padding:12px 10px;text-align:center;
+  font-size:1.16em;overflow-x:auto;overflow-y:hidden;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:10px}
+.mth-op{padding:0 .26em}
+.mth-fn,.mth-rm,.mth-txt{font-style:normal}
+.mth-txt{padding:0 .12em}
+.mth-fn{padding-right:.12em}
+.mth-gr,.mth-cal{font-style:italic}
+.mth-d{padding:0 .04em}
+.mth-big{font-size:1.9em;vertical-align:-.32em}
+.mth-bigop{font-size:1.34em;vertical-align:-.16em;padding:0 .06em}
+/* fraction: two centred rows with a rule between them */
+.mth-frac{display:inline-flex;flex-direction:column;vertical-align:-.52em;
+  text-align:center;margin:0 .2em}
+.mth-num{padding:0 .34em .1em;border-bottom:1.2px solid currentColor}
+.mth-den{padding:.1em .34em 0}
+.mth-nobar .mth-num{border-bottom:none}
+/* root: the tick plus an overline across the radicand */
+.mth-sqrt{white-space:nowrap}
+.mth-rad{border-top:1.2px solid currentColor;padding:.1em .18em 0 .1em;margin-left:-.06em}
+.mth-root-i{font-size:.7em;vertical-align:.5em;margin-right:-.34em}
+/* limits above and below a big operator */
+.mth-lim{display:inline-flex;flex-direction:column;align-items:center;
+  vertical-align:-.42em;margin:0 .18em}
+.mth-lim .mth-top,.mth-lim .mth-bot{font-size:.66em;line-height:1.1}
+.mth-op-b{line-height:1}
+.mth-acc{position:relative;display:inline-block}
+.mth-acc-m{position:absolute;left:50%;top:-.52em;transform:translateX(-50%);font-size:.9em}
+.mth-box{border:1.4px solid var(--accent);border-radius:6px;padding:.14em .4em;
+  display:inline-block}
+/* matrices and cases */
+.mth-mat{display:inline-flex;align-items:center;vertical-align:middle}
+.mth-mat table{border-collapse:collapse;margin:0 .12em}
+.mth-mat td{padding:.12em .42em;text-align:center;border:0}
+.mth-cases td:first-child{text-align:left}
+.mth-cases td+td{padding-left:1.1em;font-size:.94em;color:var(--ink-2)}
+.mth-al{border-collapse:collapse;margin:0 auto}
+.mth-al td{padding:.14em .2em}
+.mth-raw{color:var(--crit);font-size:.9em}
+@media (max-width:700px){.mth-block{font-size:1.02em;padding:10px 8px}}
+
 /* ---------- sidebar nav with icons ---------- */
 .nav-grp{display:flex;align-items:center;gap:8px}
 .nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
@@ -1583,7 +1633,7 @@ spaCy NER             Fast, production-ready       Needs training data
 Transformer NER       Best accuracy                Slower, needs GPU
 LLM zero-shot         No training needed           Expensive, inconsistent
 ──────────────────────────────────────────────────────────────────</pre></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f01NLPNotesmd-25"><div class="q-h"><span class="q-n">&bull;</span><h3>Conditional Random Fields (CRF)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01NLPNotesmd-25"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">What</span><span class="kt">Why CRF over simple classifiers</span><span class="kt">label dependencies</span></div><p><strong>What:</strong> Discriminative sequence labeling model that models the conditional probability of the entire label sequence given the input sequence.</p>
-<p>$$P(y|x) = \frac{1}{Z(x)} \exp\left(\sum_{t=1}^{T} \sum_k \lambda_k f_k(y_{t-1}, y_t, x, t)\right)$$</p>
+<span class="mth mth-block"><i>P</i>(<i>y</i>|<i>x</i>) <span class="mth-op">=</span> <span class="mth-frac"><span class="mth-num">1</span><span class="mth-den"><i>Z</i>(<i>x</i>)</span></span> <span class="mth-fn">exp</span><span class="mth-d">(</span><span class="mth-lim"><span class="mth-top"><i>T</i></span><span class="mth-op-b"><span class="mth-bigop">∑</span></span><span class="mth-bot"><i>t</i><span class="mth-op">=</span>1</span></span> <span class="mth-lim"><span class="mth-op-b"><span class="mth-bigop">∑</span></span><span class="mth-bot"><i>k</i></span></span> <span class="mth-gr">λ</span><sub><i>k</i></sub> <i>f</i><sub><i>k</i></sub>(<i>y</i><sub><i>t</i><span class="mth-op">−</span>1</sub>, <i>y</i><sub><i>t</i></sub>, <i>x</i>, <i>t</i>)<span class="mth-d">)</span></span>
 <p><strong>Why CRF over simple classifiers:</strong>
 - Considers <strong>label dependencies</strong> (e.g., I-PER cannot follow B-LOC)
 - Global normalization (vs local normalization in HMM/MaxEnt)</p>
@@ -1657,11 +1707,11 @@ doc = <span class="fn">nlp</span>(<span class="str">"The cat chased the mouse ac
 <p><strong>Components:</strong>
 - <strong>States</strong>: Hidden tags (POS tags, <abbr title="named entity recognition">NER</abbr> labels)
 - <strong>Observations</strong>: Words
-- <strong>Transition probabilities</strong>: $P(y_t | y_{t-1})$ — probability of tag given previous tag
-- <strong>Emission probabilities</strong>: $P(x_t | y_t)$ — probability of word given tag
-- <strong>Initial probabilities</strong>: $P(y_1)$</p>
+- <strong>Transition probabilities</strong>: <span class="mth"><i>P</i>(<i>y</i><sub><i>t</i></sub> | <i>y</i><sub><i>t</i><span class="mth-op">−</span>1</sub>)</span> — probability of tag given previous tag
+- <strong>Emission probabilities</strong>: <span class="mth"><i>P</i>(<i>x</i><sub><i>t</i></sub> | <i>y</i><sub><i>t</i></sub>)</span> — probability of word given tag
+- <strong>Initial probabilities</strong>: <span class="mth"><i>P</i>(<i>y</i><sub>1</sub>)</span></p>
 <p><strong>Three problems:</strong></p>
-<div class="tbl-wrap"><table class="t3"><thead><tr><th>Problem</th><th>Algorithm</th><th>Use</th></tr></thead><tbody><tr class="g1"><td>Likelihood: $P(x|\theta)$</td><td>Forward algorithm</td><td>Evaluate model</td></tr><tr class="g0"><td>Decoding: best $y$ for $x$</td><td><strong>Viterbi algorithm</strong></td><td>POS tagging, NER</td></tr><tr class="g1"><td>Learning: estimate $\theta$</td><td>Baum-Welch (EM)</td><td>Train model</td></tr></tbody></table></div>
+<div class="tbl-wrap"><table class="t3"><thead><tr><th>Problem</th><th>Algorithm</th><th>Use</th></tr></thead><tbody><tr class="g1"><td>Likelihood: <span class="mth"><i>P</i>(<i>x</i><span class="mth-rm">|</span><span class="mth-gr">θ</span>)</span></td><td>Forward algorithm</td><td>Evaluate model</td></tr><tr class="g0"><td>Decoding: best $y$ for $x$</td><td><strong>Viterbi algorithm</strong></td><td>POS tagging, NER</td></tr><tr class="g1"><td>Learning: estimate <span class="mth"><span class="mth-gr">θ</span></span></td><td>Baum-Welch (EM)</td><td>Train model</td></tr></tbody></table></div>
 <pre class="code" data-lang="python"><code><span class="kw">import</span> nltk
 <span class="kw">from</span> nltk.tag <span class="kw">import</span> hmm
 
@@ -2478,8 +2528,8 @@ P, R, F1 = <span class="fn">score</span>(candidates, references, lang=<span clas
 - <strong>Stemming</strong> and <strong>synonym matching</strong> (not just exact matches)
 - <strong>Unigram precision AND recall</strong> (BLEU only uses precision)
 - <strong>Fragmentation penalty</strong> for word order</p>
-<p>$$METEOR = F_{mean} \times (1 - Penalty)$$</p>
-<p>Where $F_{mean}$ is the harmonic mean of unigram precision and recall (weighted toward recall), and Penalty penalizes fragmented matches.</p>
+<span class="mth mth-block"><i>M</i><i>E</i><i>T</i><i>E</i><i>O</i><i>R</i> <span class="mth-op">=</span> <i>F</i><sub><i>m</i><i>e</i><i>a</i><i>n</i></sub> × (1 <span class="mth-op">−</span> <i>P</i><i>e</i><i>n</i><i>a</i><i>l</i><i>t</i><i>y</i>)</span>
+<p>Where <span class="mth"><i>F</i><sub><i>m</i><i>e</i><i>a</i><i>n</i></sub></span> is the harmonic mean of unigram precision and recall (weighted toward recall), and Penalty penalizes fragmented matches.</p>
 <pre class="code" data-lang="python"><code><span class="kw">import</span> nltk
 nltk.<span class="fn">download</span>(<span class="str">'wordnet'</span>)
 <span class="kw">from</span> nltk.translate.meteor_score <span class="kw">import</span> meteor_score

@@ -806,6 +806,56 @@ svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
   .trk-go{display:none}
 }
 
+/* ---------- maths ----------
+   The source carries ~3,650 LaTeX expressions and this site loads no external script,
+   so mathhtml.py renders them to these spans and the layout happens here: fractions
+   stack, roots get an overline, and big operators carry their limits above and below
+   in display mode. */
+.mth{font-family:"Cambria Math","Latin Modern Math","STIX Two Math",Georgia,serif;
+  font-size:1.03em;line-height:1.35;white-space:nowrap}
+.mth i{font-style:italic;font-family:inherit}
+.mth sub,.mth sup{font-size:.72em;line-height:0}
+.mth-block{display:block;margin:16px 0;padding:12px 10px;text-align:center;
+  font-size:1.16em;overflow-x:auto;overflow-y:hidden;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:10px}
+.mth-op{padding:0 .26em}
+.mth-fn,.mth-rm,.mth-txt{font-style:normal}
+.mth-txt{padding:0 .12em}
+.mth-fn{padding-right:.12em}
+.mth-gr,.mth-cal{font-style:italic}
+.mth-d{padding:0 .04em}
+.mth-big{font-size:1.9em;vertical-align:-.32em}
+.mth-bigop{font-size:1.34em;vertical-align:-.16em;padding:0 .06em}
+/* fraction: two centred rows with a rule between them */
+.mth-frac{display:inline-flex;flex-direction:column;vertical-align:-.52em;
+  text-align:center;margin:0 .2em}
+.mth-num{padding:0 .34em .1em;border-bottom:1.2px solid currentColor}
+.mth-den{padding:.1em .34em 0}
+.mth-nobar .mth-num{border-bottom:none}
+/* root: the tick plus an overline across the radicand */
+.mth-sqrt{white-space:nowrap}
+.mth-rad{border-top:1.2px solid currentColor;padding:.1em .18em 0 .1em;margin-left:-.06em}
+.mth-root-i{font-size:.7em;vertical-align:.5em;margin-right:-.34em}
+/* limits above and below a big operator */
+.mth-lim{display:inline-flex;flex-direction:column;align-items:center;
+  vertical-align:-.42em;margin:0 .18em}
+.mth-lim .mth-top,.mth-lim .mth-bot{font-size:.66em;line-height:1.1}
+.mth-op-b{line-height:1}
+.mth-acc{position:relative;display:inline-block}
+.mth-acc-m{position:absolute;left:50%;top:-.52em;transform:translateX(-50%);font-size:.9em}
+.mth-box{border:1.4px solid var(--accent);border-radius:6px;padding:.14em .4em;
+  display:inline-block}
+/* matrices and cases */
+.mth-mat{display:inline-flex;align-items:center;vertical-align:middle}
+.mth-mat table{border-collapse:collapse;margin:0 .12em}
+.mth-mat td{padding:.12em .42em;text-align:center;border:0}
+.mth-cases td:first-child{text-align:left}
+.mth-cases td+td{padding-left:1.1em;font-size:.94em;color:var(--ink-2)}
+.mth-al{border-collapse:collapse;margin:0 auto}
+.mth-al td{padding:.14em .2em}
+.mth-raw{color:var(--crit);font-size:.9em}
+@media (max-width:700px){.mth-block{font-size:1.02em;padding:10px 8px}}
+
 /* ---------- sidebar nav with icons ---------- */
 .nav-grp{display:flex;align-items:center;gap:8px}
 .nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
@@ -1061,7 +1111,7 @@ objgraph.<span class="fn">show_backrefs</span>(
     objgraph.<span class="fn">find_backref_chain</span>(leaking, objgraph.is_proper_module),
     filename=<span class="str">"chain.dot"</span>,
 )</code></pre>
-<p>Once you can name the root holding the reference (here, the global <code>CACHE</code>), the fix is usually obvious.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fDebuggingMemor-6"><div class="q-h"><span class="q-n">&bull;</span><h3>7. Step 5 — Fix it</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fDebuggingMemor-6"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Bound the container</span><span class="kt">Use a weak reference</span><span class="kt">Clear it</span><span class="kt">Break the cycle / drop del</span><span class="kt">Scope it</span><span class="kt">re-run Step 1</span></div><p>The fix is always "cut the reference you found in step 4." The common shapes:</p>
+<p>Once you can name the root holding the reference (here, the global <code>CACHE</code>), the fix is usually obvious.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fDebuggingMemor-6"><div class="q-h"><span class="q-n">&bull;</span><h3>7. Step 5 — Fix it</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fDebuggingMemor-6"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Bound the container</span><span class="kt">Use a weak reference</span><span class="kt">Clear it</span><span class="kt">Break the cycle / drop __del__</span><span class="kt">Scope it</span><span class="kt">re-run Step 1</span></div><p>The fix is always "cut the reference you found in step 4." The common shapes:</p>
 <ul>
 <li class="dl"><b class="dt">Bound the container</b><span class="dd">give caches a <code>maxsize</code>; cap or rotate accumulating lists.</span></li>
 <li><strong>Use a weak reference</strong> so the cache/registry doesn't keep the object alive on its own (<code>weakref.WeakValueDictionary</code>, <code>weakref.ref</code>). See <code>Memory_and_PVM.md §11</code>.</li>
@@ -1069,7 +1119,7 @@ objgraph.<span class="fn">show_backrefs</span>(
 <li class="dl"><b class="dt">Break the cycle / drop <code>__del__</code></b><span class="dd">convert a back-pointer to <code>weakref</code>, or use <code>weakref.finalize</code> instead of <code>__del__</code> so the collector can reclaim cycles. See <code>PVM_and_Garbage_Collector_Extended.md</code>.</span></li>
 <li class="dl"><b class="dt">Scope it</b><span class="dd">move a module-level mutable into the function so it dies when the call returns.</span></li>
 </ul>
-<p>Then <strong>re-run Step 1</strong> and confirm the staircase is now a plateau. <em>Always re-measure</em> — "looks fixed" is not fixed.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fDebuggingMemor-7"><div class="q-h"><span class="q-n">&bull;</span><h3>8. The common causes (90% of real cases)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fDebuggingMemor-7"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Module-level / global accumulator</span><span class="kt">Unbounded cache</span><span class="kt">Reference cycle + custom del</span><span class="kt">Growing logs / lists / metrics</span><span class="kt">Un-closed resources</span><span class="kt">C-extension / native memory</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Cause</th><th>Smells like</th><th>Fix</th></tr></thead><tbody><tr class="g1"><td><strong>Module-level / global accumulator</strong></td><td><code>CACHE = []</code> then <code>CACHE.append(...)</code> forever</td><td>Bound it, clear it per cycle, or scope it</td></tr><tr class="g0"><td><strong>Unbounded cache</strong></td><td><code>@lru_cache(maxsize=None)</code>; a hand-rolled <code>dict</code> cache that only grows</td><td>Set <code>maxsize</code>; use <code>WeakValueDictionary</code>; add <abbr title="time to live">TTL</abbr>/<abbr title="least recently used">LRU</abbr> eviction</td></tr><tr class="g1"><td><strong>Reference cycle + custom <code>__del__</code></strong></td><td>objects pointing at each other, one defines <code>__del__</code></td><td>Break the cycle; use <code>weakref</code>; replace <code>__del__</code> with <code>weakref.finalize</code></td></tr><tr class="g0"><td><strong>Closures / callbacks capturing big objects</strong></td><td>event handlers, retries, signals holding <code>self</code></td><td>Capture a <code>weakref.ref(self)</code>; unregister handlers</td></tr><tr class="g1"><td><strong>Growing logs / lists / metrics</strong></td><td>appending one entry per request, never trimmed</td><td>Rotate, cap length, use a bounded <code>collections.deque(maxlen=...)</code></td></tr><tr class="g0"><td><strong>Un-closed resources</strong></td><td>DB sessions, file handles, <code>requests.Session</code>, sockets piling up</td><td>Use context managers / <code>with</code>; close in <code>finally</code>; scope the session</td></tr><tr class="g1"><td><strong>C-extension / native memory</strong></td><td>RSS grows but <code>tracemalloc</code> shows nothing</td><td>See §10 (<code>memray</code>, library-specific tools)</td></tr><tr class="g0"><td><strong>Accidental reference via exception</strong></td><td>tracebacks captured and stored keep whole frames (and their locals) alive</td><td>Don't store live exception objects; store <code>str(exc)</code> / formatted traceback</td></tr></tbody></table></div>
+<p>Then <strong>re-run Step 1</strong> and confirm the staircase is now a plateau. <em>Always re-measure</em> — "looks fixed" is not fixed.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fDebuggingMemor-7"><div class="q-h"><span class="q-n">&bull;</span><h3>8. The common causes (90% of real cases)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fDebuggingMemor-7"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Module-level / global accumulator</span><span class="kt">Unbounded cache</span><span class="kt">Reference cycle + custom __del__</span><span class="kt">Growing logs / lists / metrics</span><span class="kt">Un-closed resources</span><span class="kt">C-extension / native memory</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Cause</th><th>Smells like</th><th>Fix</th></tr></thead><tbody><tr class="g1"><td><strong>Module-level / global accumulator</strong></td><td><code>CACHE = []</code> then <code>CACHE.append(...)</code> forever</td><td>Bound it, clear it per cycle, or scope it</td></tr><tr class="g0"><td><strong>Unbounded cache</strong></td><td><code>@lru_cache(maxsize=None)</code>; a hand-rolled <code>dict</code> cache that only grows</td><td>Set <code>maxsize</code>; use <code>WeakValueDictionary</code>; add <abbr title="time to live">TTL</abbr>/<abbr title="least recently used">LRU</abbr> eviction</td></tr><tr class="g1"><td><strong>Reference cycle + custom <code>__del__</code></strong></td><td>objects pointing at each other, one defines <code>__del__</code></td><td>Break the cycle; use <code>weakref</code>; replace <code>__del__</code> with <code>weakref.finalize</code></td></tr><tr class="g0"><td><strong>Closures / callbacks capturing big objects</strong></td><td>event handlers, retries, signals holding <code>self</code></td><td>Capture a <code>weakref.ref(self)</code>; unregister handlers</td></tr><tr class="g1"><td><strong>Growing logs / lists / metrics</strong></td><td>appending one entry per request, never trimmed</td><td>Rotate, cap length, use a bounded <code>collections.deque(maxlen=...)</code></td></tr><tr class="g0"><td><strong>Un-closed resources</strong></td><td>DB sessions, file handles, <code>requests.Session</code>, sockets piling up</td><td>Use context managers / <code>with</code>; close in <code>finally</code>; scope the session</td></tr><tr class="g1"><td><strong>C-extension / native memory</strong></td><td>RSS grows but <code>tracemalloc</code> shows nothing</td><td>See §10 (<code>memray</code>, library-specific tools)</td></tr><tr class="g0"><td><strong>Accidental reference via exception</strong></td><td>tracebacks captured and stored keep whole frames (and their locals) alive</td><td>Don't store live exception objects; store <code>str(exc)</code> / formatted traceback</td></tr></tbody></table></div>
 <div class="note">
 <p><strong><code>deque(maxlen=N)</code> is the unsung hero</strong> for "I need the last N things" buffers — it drops old items automatically, so it physically <em>cannot</em> grow without bound. Reach for it before a plain list whenever you're keeping a rolling window.</p>
 </div></div><button class="reveal">Reveal answer</button></article><article class="q" id="fDebuggingMemor-8"><div class="q-h"><span class="q-n">&bull;</span><h3>9. Reproducible leak demos you can run</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fDebuggingMemor-8"><span></span></label></div><div class="q-a"><p>Use these to practice the workflow and to confirm your tooling actually flags the line.</p>
@@ -5887,7 +5937,7 @@ uu, xdrlib        → base64, struct</code></pre>
 <p><strong>Further reading:</strong> the official <em>What's New</em> pages (3.10–3.13) and PEPs 634, 654, 680, 695, 701, 703, 744.</p>
 </div></div><button class="reveal">Reveal answer</button></article></section><section class="filesec" id="fModernFeatures"><header class="filehead"><div class="fh-top"><span class="fh-num">Modern Features Detailed</span><span class="fh-count">38 sections</span></div><h2>Python Modern Features (3.10 – 3.13+)</h2><div class="note">
 <p>Pro-level reference for new language features, performance improvements, and typing enhancements introduced in Python 3.10 through 3.13+.</p>
-</div></header><div class="parthead" id="fModernFeatures-p0"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>1. Python 3.10 Features</span><i></i></div><article class="q" id="fModernFeatures-144"><div class="q-h"><span class="q-n">&bull;</span><h3>1.1 Structural Pattern Matching (<code>match</code>/<code>case</code>) — PEP 634</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fModernFeatures-144"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">01CorePython.md → Pattern Matching</span><span class="kt">Why it matters</span></div><div class="note">
+</div></header><div class="parthead" id="fModernFeatures-p0"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>1. Python 3.10 Features</span><i></i></div><article class="q" id="fModernFeatures-144"><div class="q-h"><span class="q-n">&bull;</span><h3>1.1 Structural Pattern Matching (<code>match</code>/<code>case</code>) — PEP 634</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fModernFeatures-144"><span></span></label></div><div class="q-a"><div class="note">
 <p>Covered in detail in <strong>01_Core_Python.md → Pattern Matching</strong>. Quick reference below.</p>
 </div>
 <pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">classify_input</span>(data):
@@ -5902,7 +5952,7 @@ uu, xdrlib        → base64, struct</code></pre>
             <span class="kw">return</span> <span class="str">"unknown"</span>
 
 <span class="fn">print</span>(<span class="fn">classify_input</span>({<span class="str">"type"</span>: <span class="str">"tabular"</span>, <span class="str">"rows"</span>: <span class="num">50000</span>}))  <span class="cmt"># large_dataset</span></code></pre>
-<p><strong>Why it matters:</strong> Replaces complex if/elif chains when routing data through ML pipelines — cleaner dispatching for model selection, data preprocessing steps, and API request handling.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fModernFeatures-145"><div class="q-h"><span class="q-n">&bull;</span><h3>1.2 ParamSpec &amp; TypeVarTuple — PEP 612 / PEP 646</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fModernFeatures-145"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">07TypeHintsandProtocols.md</span><span class="kt">Why it matters</span></div><div class="note">
+<p><strong>Why it matters:</strong> Replaces complex if/elif chains when routing data through ML pipelines — cleaner dispatching for model selection, data preprocessing steps, and API request handling.</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fModernFeatures-145"><div class="q-h"><span class="q-n">&bull;</span><h3>1.2 ParamSpec &amp; TypeVarTuple — PEP 612 / PEP 646</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fModernFeatures-145"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">07_Type_Hints_and_Protocols.md</span><span class="kt">Why it matters</span></div><div class="note">
 <p>Covered in detail in <strong>07_Type_Hints_and_Protocols.md</strong>. Quick reference below.</p>
 </div>
 <pre class="code" data-lang="python"><code><span class="kw">from</span> typing <span class="kw">import</span> ParamSpec, TypeVarTuple, Unpack, Callable
@@ -9317,7 +9367,7 @@ message PredictResponse {
 4. <strong>Learning rate</strong>: Too high LR → divergence. Reduce by 10x and retry
 5. <strong>Mixed precision</strong>: FP16 overflow — use <code>torch.cuda.amp.GradScaler</code> with proper settings
 6. <strong>Numerical stability</strong>: Use <code>log_softmax</code> instead of <code>log(softmax)</code>, add epsilon to divisions
-7. <strong>Bisect</strong>: Disable components (dropout, normalization) to isolate the source</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fDebuggingandSe-269"><div class="q-h"><span class="q-n">&bull;</span><h3>Q2: Why is <code>pickle.loads()</code> on untrusted data dangerous, and what are alternatives?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fDebuggingandSe-269"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">JSON/msgspec</span><span class="kt">safetensors</span><span class="kt">protobuf/msgpack</span><span class="kt">yaml.safeload()</span></div><p><strong>A:</strong> <code>pickle</code> executes arbitrary Python during deserialization via the <code>__reduce__</code> protocol. An attacker can craft a payload that runs <code>os.system("rm -rf /")</code> or opens a reverse shell when unpickled. Alternatives:
+7. <strong>Bisect</strong>: Disable components (dropout, normalization) to isolate the source</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="fDebuggingandSe-269"><div class="q-h"><span class="q-n">&bull;</span><h3>Q2: Why is <code>pickle.loads()</code> on untrusted data dangerous, and what are alternatives?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fDebuggingandSe-269"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">JSON/msgspec</span><span class="kt">safetensors</span><span class="kt">protobuf/msgpack</span><span class="kt">yaml.safe_load()</span></div><p><strong>A:</strong> <code>pickle</code> executes arbitrary Python during deserialization via the <code>__reduce__</code> protocol. An attacker can craft a payload that runs <code>os.system("rm -rf /")</code> or opens a reverse shell when unpickled. Alternatives:
 - <strong>JSON/msgspec</strong>: Safe, fast, widely supported
 - <strong>safetensors</strong>: For ML model weights — no code execution
 - <strong>protobuf/msgpack</strong>: Binary formats without code execution

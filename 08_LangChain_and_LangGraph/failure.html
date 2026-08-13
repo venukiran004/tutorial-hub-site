@@ -806,6 +806,56 @@ svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
   .trk-go{display:none}
 }
 
+/* ---------- maths ----------
+   The source carries ~3,650 LaTeX expressions and this site loads no external script,
+   so mathhtml.py renders them to these spans and the layout happens here: fractions
+   stack, roots get an overline, and big operators carry their limits above and below
+   in display mode. */
+.mth{font-family:"Cambria Math","Latin Modern Math","STIX Two Math",Georgia,serif;
+  font-size:1.03em;line-height:1.35;white-space:nowrap}
+.mth i{font-style:italic;font-family:inherit}
+.mth sub,.mth sup{font-size:.72em;line-height:0}
+.mth-block{display:block;margin:16px 0;padding:12px 10px;text-align:center;
+  font-size:1.16em;overflow-x:auto;overflow-y:hidden;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:10px}
+.mth-op{padding:0 .26em}
+.mth-fn,.mth-rm,.mth-txt{font-style:normal}
+.mth-txt{padding:0 .12em}
+.mth-fn{padding-right:.12em}
+.mth-gr,.mth-cal{font-style:italic}
+.mth-d{padding:0 .04em}
+.mth-big{font-size:1.9em;vertical-align:-.32em}
+.mth-bigop{font-size:1.34em;vertical-align:-.16em;padding:0 .06em}
+/* fraction: two centred rows with a rule between them */
+.mth-frac{display:inline-flex;flex-direction:column;vertical-align:-.52em;
+  text-align:center;margin:0 .2em}
+.mth-num{padding:0 .34em .1em;border-bottom:1.2px solid currentColor}
+.mth-den{padding:.1em .34em 0}
+.mth-nobar .mth-num{border-bottom:none}
+/* root: the tick plus an overline across the radicand */
+.mth-sqrt{white-space:nowrap}
+.mth-rad{border-top:1.2px solid currentColor;padding:.1em .18em 0 .1em;margin-left:-.06em}
+.mth-root-i{font-size:.7em;vertical-align:.5em;margin-right:-.34em}
+/* limits above and below a big operator */
+.mth-lim{display:inline-flex;flex-direction:column;align-items:center;
+  vertical-align:-.42em;margin:0 .18em}
+.mth-lim .mth-top,.mth-lim .mth-bot{font-size:.66em;line-height:1.1}
+.mth-op-b{line-height:1}
+.mth-acc{position:relative;display:inline-block}
+.mth-acc-m{position:absolute;left:50%;top:-.52em;transform:translateX(-50%);font-size:.9em}
+.mth-box{border:1.4px solid var(--accent);border-radius:6px;padding:.14em .4em;
+  display:inline-block}
+/* matrices and cases */
+.mth-mat{display:inline-flex;align-items:center;vertical-align:middle}
+.mth-mat table{border-collapse:collapse;margin:0 .12em}
+.mth-mat td{padding:.12em .42em;text-align:center;border:0}
+.mth-cases td:first-child{text-align:left}
+.mth-cases td+td{padding-left:1.1em;font-size:.94em;color:var(--ink-2)}
+.mth-al{border-collapse:collapse;margin:0 auto}
+.mth-al td{padding:.14em .2em}
+.mth-raw{color:var(--crit);font-size:.9em}
+@media (max-width:700px){.mth-block{font-size:1.02em;padding:10px 8px}}
+
 /* ---------- sidebar nav with icons ---------- */
 .nav-grp{display:flex;align-items:center;gap:8px}
 .nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
@@ -1381,7 +1431,7 @@ DO think:     "each | is a boundary where the left side can be slow, error,
                rate-limit, or return something the right side can't handle —
                and every boundary needs a decided behavior."</pre></div>
 <p>Every recovery decision is one of five verbs (same model as the <a href="failure.html#f14FailureHandl">orchestrator file</a>):</p>
-<div class="tbl-wrap"><table class="t2"><thead><tr><th>Verb</th><th>LangChain mechanism</th></tr></thead><tbody><tr class="g1"><td><strong>Retry</strong></td><td><code>runnable.with_retry(...)</code> — exponential backoff + jitter, on transient errors only</td></tr><tr class="g0"><td><strong>Fallback</strong></td><td><code>runnable.with_fallbacks([alt1, alt2])</code> — swap model/chain/canned answer</td></tr><tr class="g1"><td><strong>Degrade</strong></td><td>return a partial/cached/cheaper result (<abbr title="large language model">LLM</abbr> cache, cheaper model fallback)</td></tr><tr class="g0"><td><strong>Escalate</strong></td><td>route to a human / raise a typed error the caller handles</td></tr><tr class="g1"><td><strong>Abort</strong></td><td>fail fast (<abbr title="stopping calls to a dependency that is already failing, to prevent cascading failure">circuit breaker</abbr>, budget guard) and return a safe error</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f15LangChainFai-18"><div class="q-h"><span class="q-n">&bull;</span><h3>Key Definitions (read first)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f15LangChainFai-18"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Runnable</span><span class="kt">LCEL</span><span class="kt">Transient vs permanent</span><span class="kt">Classify before retrying</span><span class="kt">withretry</span><span class="kt">withfallbacks</span></div><div class="note">
+<div class="tbl-wrap"><table class="t2"><thead><tr><th>Verb</th><th>LangChain mechanism</th></tr></thead><tbody><tr class="g1"><td><strong>Retry</strong></td><td><code>runnable.with_retry(...)</code> — exponential backoff + jitter, on transient errors only</td></tr><tr class="g0"><td><strong>Fallback</strong></td><td><code>runnable.with_fallbacks([alt1, alt2])</code> — swap model/chain/canned answer</td></tr><tr class="g1"><td><strong>Degrade</strong></td><td>return a partial/cached/cheaper result (<abbr title="large language model">LLM</abbr> cache, cheaper model fallback)</td></tr><tr class="g0"><td><strong>Escalate</strong></td><td>route to a human / raise a typed error the caller handles</td></tr><tr class="g1"><td><strong>Abort</strong></td><td>fail fast (<abbr title="stopping calls to a dependency that is already failing, to prevent cascading failure">circuit breaker</abbr>, budget guard) and return a safe error</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f15LangChainFai-18"><div class="q-h"><span class="q-n">&bull;</span><h3>Key Definitions (read first)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f15LangChainFai-18"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Runnable</span><span class="kt">LCEL</span><span class="kt">Transient vs permanent</span><span class="kt">Classify before retrying</span><span class="kt">with_retry</span><span class="kt">with_fallbacks</span></div><div class="note">
 <div class="tbl-wrap"><table class="t2 t-def"><thead><tr><th>Term</th><th>Plain-language definition</th></tr></thead><tbody><tr class="g1"><td class="c-term"><strong>Runnable</strong></td><td>LangChain's unit of composition — anything with <code>.invoke()/.batch()/.stream()</code>. Chains are Runnables piped with <code>|</code>. Resilience decorators (<code>with_retry</code>, <code>with_fallbacks</code>) return a new Runnable.</td></tr><tr class="g0"><td class="c-term"><strong><abbr title="LangChain Expression Language">LCEL</abbr></strong></td><td>LangChain Expression Language — the <code>|</code> pipe syntax that composes Runnables. Failures propagate up the pipe unless a step catches/handles them.</td></tr><tr class="g1"><td class="c-term"><strong>Transient vs permanent</strong></td><td><em>Transient</em> (retry helps): 429, 500/502/503/504, timeout, connection reset. <em>Permanent</em> (retry wastes money): 400 invalid request, 401/403 auth, 422 validation, content-policy refusal. <strong>Classify before retrying.</strong></td></tr><tr class="g0"><td class="c-term"><strong><code>with_retry</code></strong></td><td>Wraps a Runnable to auto-retry on given exception types with exponential backoff + jitter.</td></tr><tr class="g1"><td class="c-term"><strong><code>with_fallbacks</code></strong></td><td>Wraps a Runnable to try alternates in order if the primary raises.</td></tr><tr class="g0"><td class="c-term"><strong>Structured output</strong></td><td>Constraining the model to a schema (<code>with_structured_output</code>) so you get a validated object or a clear error — not fragile free-text you must regex.</td></tr><tr class="g1"><td class="c-term"><strong>Fixing / retry parser</strong></td><td><code>OutputFixingParser</code> re-asks the <abbr title="large language model">LLM</abbr> to <em>repair</em> malformed output; <code>RetryOutputParser</code> re-runs with the original prompt for context.</td></tr><tr class="g0"><td class="c-term"><strong>Rate limiter</strong></td><td><code>InMemoryRateLimiter</code> throttles request rate <em>client-side</em> to stay under provider quotas (prevents the 429 rather than reacting to it).</td></tr><tr class="g1"><td class="c-term"><strong>LLM cache</strong></td><td>Caches identical prompts → responses, so repeats are free/instant (a resilience <em>and</em> cost lever).</td></tr><tr class="g0"><td class="c-term"><strong><abbr title="stopping calls to a dependency that is already failing, to prevent cascading failure">Circuit breaker</abbr></strong></td><td>After N consecutive failures of a dependency, stop calling it for a cooldown and fail fast — one dead provider doesn't stall every request.</td></tr></tbody></table></div>
 </div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f15LangChainFai-19"><div class="q-h"><span class="q-n">&bull;</span><h3>The Failure-Surface Map</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f15LangChainFai-19"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">Model call fails</span><span class="kt">Output unparseable / invalid</span><span class="kt">Tool call fails</span><span class="kt">A mid-chain step fails</span><span class="kt">Rate limited / throttled</span><span class="kt">Call hangs</span></div><div class="tbl-wrap"><table class="t4"><thead><tr><th>#</th><th>Failure surface</th><th>How you detect it</th><th>First-line recovery</th></tr></thead><tbody><tr class="g1"><td>1</td><td><strong>Model call fails</strong> (429/5xx/timeout)</td><td>Provider SDK raises</td><td><code>with_retry</code> (backoff+jitter) → <code>with_fallbacks</code></td></tr><tr class="g0"><td>2</td><td><strong>Output unparseable / invalid</strong></td><td>Parser raises; validation fails</td><td><code>with_structured_output</code> → <code>OutputFixingParser</code></td></tr><tr class="g1"><td>3</td><td><strong>Tool call fails</strong></td><td>Tool raises <code>ToolException</code></td><td><code>handle_tool_error</code>; validate args/output</td></tr><tr class="g0"><td>4</td><td><strong>A mid-chain step fails</strong></td><td>Exception mid-LCEL</td><td>Per-step <code>with_fallbacks</code>; <code>RunnableBranch</code> error route</td></tr><tr class="g1"><td>5</td><td><strong>Rate limited / throttled</strong></td><td>Repeated 429s</td><td><code>InMemoryRateLimiter</code> (proactive) + backoff</td></tr><tr class="g0"><td>6</td><td><strong>Call hangs</strong></td><td>No response, latency spike</td><td><code>request_timeout</code> + <code>with_config(run_timeout)</code></td></tr><tr class="g1"><td>7</td><td><strong>Streaming breaks mid-token</strong></td><td>Stream errors partway</td><td><code>on_error</code> callback; buffer + retry; graceful cutoff</td></tr><tr class="g0"><td>8</td><td><strong>Memory / context overflow</strong></td><td>Token-limit error</td><td>Trim / summary memory; token-budget the history</td></tr><tr class="g1"><td>9</td><td><strong>Model refuses / hallucinates</strong></td><td>Successful call, bad content</td><td>Detect refusal; validate; re-ask/fallback</td></tr><tr class="g0"><td>10</td><td><strong>Cost / latency blowup</strong></td><td>Token &amp; \$ spikes</td><td><abbr title="large language model">LLM</abbr> cache; cheaper-model fallback; budget cap</td></tr><tr class="g1"><td>11</td><td><strong>Provider fully down</strong></td><td>Consecutive failures</td><td><abbr title="stopping calls to a dependency that is already failing, to prevent cascading failure">Circuit breaker</abbr> → fail fast → fallback provider</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f15LangChainFai-20"><div class="q-h"><span class="q-n">&bull;</span><h3>The Golden Rule: decorate, don't hope</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f15LangChainFai-20"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">composable</span><span class="kt">Order matters</span><span class="kt">Inside a 1.0 agent</span><span class="kt">middleware</span></div><p>LangChain's superpower is that resilience is <strong>composable</strong> — you wrap a Runnable and get a hardened Runnable back, without rewriting logic. The canonical hardened model:</p>
 <pre class="code" data-lang="python"><code><span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI

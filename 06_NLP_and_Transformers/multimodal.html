@@ -806,6 +806,56 @@ svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
   .trk-go{display:none}
 }
 
+/* ---------- maths ----------
+   The source carries ~3,650 LaTeX expressions and this site loads no external script,
+   so mathhtml.py renders them to these spans and the layout happens here: fractions
+   stack, roots get an overline, and big operators carry their limits above and below
+   in display mode. */
+.mth{font-family:"Cambria Math","Latin Modern Math","STIX Two Math",Georgia,serif;
+  font-size:1.03em;line-height:1.35;white-space:nowrap}
+.mth i{font-style:italic;font-family:inherit}
+.mth sub,.mth sup{font-size:.72em;line-height:0}
+.mth-block{display:block;margin:16px 0;padding:12px 10px;text-align:center;
+  font-size:1.16em;overflow-x:auto;overflow-y:hidden;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:10px}
+.mth-op{padding:0 .26em}
+.mth-fn,.mth-rm,.mth-txt{font-style:normal}
+.mth-txt{padding:0 .12em}
+.mth-fn{padding-right:.12em}
+.mth-gr,.mth-cal{font-style:italic}
+.mth-d{padding:0 .04em}
+.mth-big{font-size:1.9em;vertical-align:-.32em}
+.mth-bigop{font-size:1.34em;vertical-align:-.16em;padding:0 .06em}
+/* fraction: two centred rows with a rule between them */
+.mth-frac{display:inline-flex;flex-direction:column;vertical-align:-.52em;
+  text-align:center;margin:0 .2em}
+.mth-num{padding:0 .34em .1em;border-bottom:1.2px solid currentColor}
+.mth-den{padding:.1em .34em 0}
+.mth-nobar .mth-num{border-bottom:none}
+/* root: the tick plus an overline across the radicand */
+.mth-sqrt{white-space:nowrap}
+.mth-rad{border-top:1.2px solid currentColor;padding:.1em .18em 0 .1em;margin-left:-.06em}
+.mth-root-i{font-size:.7em;vertical-align:.5em;margin-right:-.34em}
+/* limits above and below a big operator */
+.mth-lim{display:inline-flex;flex-direction:column;align-items:center;
+  vertical-align:-.42em;margin:0 .18em}
+.mth-lim .mth-top,.mth-lim .mth-bot{font-size:.66em;line-height:1.1}
+.mth-op-b{line-height:1}
+.mth-acc{position:relative;display:inline-block}
+.mth-acc-m{position:absolute;left:50%;top:-.52em;transform:translateX(-50%);font-size:.9em}
+.mth-box{border:1.4px solid var(--accent);border-radius:6px;padding:.14em .4em;
+  display:inline-block}
+/* matrices and cases */
+.mth-mat{display:inline-flex;align-items:center;vertical-align:middle}
+.mth-mat table{border-collapse:collapse;margin:0 .12em}
+.mth-mat td{padding:.12em .42em;text-align:center;border:0}
+.mth-cases td:first-child{text-align:left}
+.mth-cases td+td{padding-left:1.1em;font-size:.94em;color:var(--ink-2)}
+.mth-al{border-collapse:collapse;margin:0 auto}
+.mth-al td{padding:.14em .2em}
+.mth-raw{color:var(--crit);font-size:.9em}
+@media (max-width:700px){.mth-block{font-size:1.02em;padding:10px 8px}}
+
 /* ---------- sidebar nav with icons ---------- */
 .nav-grp{display:flex;align-items:center;gap:8px}
 .nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
@@ -1014,9 +1064,9 @@ Image → VAE Encoder → Latent (z)  →  U-Net (denoising)  →  VAE Decoder �
 2. <strong>U-Net:</strong> Iterative denoising network. Takes noisy latent + text <abbr title="a dense numeric vector representing text so that similar meanings sit close together">embedding</abbr> + timestep → predicts noise. Uses cross-attention to condition on text.
 3. <strong>Text Encoder (CLIP):</strong> Converts text prompt to embeddings that guide the U-Net via cross-attention.</p>
 <p><strong>Diffusion Process:</strong>
-- <strong>Forward (training):</strong> Gradually add Gaussian noise to latent: $z_t = \sqrt{\bar{\alpha}<em>t} z_0 + \sqrt{1 - \bar{\alpha}_t} \epsilon$
-- <strong>Reverse (inference):</strong> Start from pure noise $z_T$, iteratively denoise using U-Net predictions
-- <strong>Classifier-Free Guidance (CFG):</strong> $\hat{\epsilon} = \epsilon</em>{uncond} + w(\epsilon_{cond} - \epsilon_{uncond})$, where $w$ is guidance scale</p>
+- <strong>Forward (training):</strong> Gradually add Gaussian noise to latent: <span class="mth"><i>z</i><sub><i>t</i></sub> <span class="mth-op">=</span> <span class="mth-sqrt">√<span class="mth-rad"><span class="mth-acc"><span class="mth-gr">α</span><span class="mth-acc-m">̄</span></span><sub><i>t</i></sub></span></span> <i>z</i><sub>0</sub> <span class="mth-op">+</span> <span class="mth-sqrt">√<span class="mth-rad">1 <span class="mth-op">−</span> <span class="mth-acc"><span class="mth-gr">α</span><span class="mth-acc-m">̄</span></span><sub><i>t</i></sub></span></span> <span class="mth-gr">ε</span></span>
+- <strong>Reverse (inference):</strong> Start from pure noise <span class="mth"><i>z</i><sub><i>T</i></sub></span>, iteratively denoise using U-Net predictions
+- <strong>Classifier-Free Guidance (CFG):</strong> <span class="mth"><span class="mth-acc"><span class="mth-gr">ε</span><span class="mth-acc-m">̂</span></span> <span class="mth-op">=</span> <span class="mth-gr">ε</span><sub><i>u</i><i>n</i><i>c</i><i>o</i><i>n</i><i>d</i></sub> <span class="mth-op">+</span> <i>w</i>(<span class="mth-gr">ε</span><sub><i>c</i><i>o</i><i>n</i><i>d</i></sub> <span class="mth-op">−</span> <span class="mth-gr">ε</span><sub><i>u</i><i>n</i><i>c</i><i>o</i><i>n</i><i>d</i></sub>)</span>, where $w$ is guidance scale</p>
 <p><strong>Variants:</strong> SDXL (larger U-Net, two text encoders), SD 3 (DiT architecture with flow matching)</p></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03MultimodalAI-15"><div class="q-h"><span class="q-n">&bull;</span><h3>ControlNet for Guided Generation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03MultimodalAI-15"><span></span></label></div><div class="q-a"><div class="diagram"><pre>Input: Condition (edge map, depth map, pose) + Text prompt
 → ControlNet processes condition
 → Injected into Stable Diffusion U-Net via zero-convolution
@@ -1170,7 +1220,7 @@ collection.<span class="fn">add</span>(
 
 <span class="cmt"># Search with text query</span>
 query_embedding = model.<span class="fn">encode</span>([<span class="str">"a sunset over the ocean"</span>])
-results = collection.<span class="fn">query</span>(query_embeddings=query_embedding.<span class="fn">tolist</span>(), n_results=<span class="num">5</span>)</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f03MultimodalAI-p10"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chart"/></svg>11. Multimodal Evaluation Metrics</span><i></i></div><article class="q" id="f03MultimodalAI-33"><div class="q-h"><span class="q-n">&bull;</span><h3>Image Generation Metrics</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03MultimodalAI-33"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">FID</span><span class="kt">LPIPS</span></div><div class="tbl-wrap"><table class="t4"><thead><tr><th>Metric</th><th>What It Measures</th><th>Range</th><th>Formula/Approach</th></tr></thead><tbody><tr class="g1"><td><strong>FID</strong> (Fréchet Inception Distance)</td><td>Quality + diversity of generated images</td><td>0 = identical, lower = better</td><td>Distance between real and generated image distributions in Inception-v3 feature space</td></tr><tr class="g0"><td><strong>IS</strong> (Inception Score)</td><td>Quality + diversity</td><td>Higher = better</td><td>$IS = \exp(\mathbb{E}[D_{KL}(p(y|x) | p(y))])$</td></tr><tr class="g1"><td><strong>LPIPS</strong></td><td>Perceptual similarity</td><td>Lower = more similar</td><td>Learned Perceptual Image Patch Similarity</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03MultimodalAI-34"><div class="q-h"><span class="q-n">&bull;</span><h3>Vision-Language Metrics</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03MultimodalAI-34"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">CLIPScore</span><span class="kt">CIDEr</span><span class="kt">SPICE</span><span class="kt">BLEU/ROUGE/METEOR</span><span class="kt">VQA Accuracy</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Metric</th><th>Task</th><th>Description</th></tr></thead><tbody><tr class="g1"><td><strong>CLIPScore</strong></td><td>Text-image alignment</td><td>Cosine similarity between CLIP text and image embeddings</td></tr><tr class="g0"><td><strong>CIDEr</strong></td><td>Captioning</td><td>TF-IDF weighted n-gram matching with consensus</td></tr><tr class="g1"><td><strong>SPICE</strong></td><td>Captioning</td><td>Scene graph-based semantic evaluation</td></tr><tr class="g0"><td><strong>BLEU/ROUGE/METEOR</strong></td><td>Captioning/Generation</td><td>Standard <abbr title="natural language processing">NLP</abbr> metrics (see NLP Notes)</td></tr><tr class="g1"><td><strong>VQA Accuracy</strong></td><td>Visual QA</td><td>Soft accuracy: $\min\left(\frac{\text{humans who gave that answer}}{3}, 1\right)$</td></tr></tbody></table></div>
+results = collection.<span class="fn">query</span>(query_embeddings=query_embedding.<span class="fn">tolist</span>(), n_results=<span class="num">5</span>)</code></pre></div><button class="reveal">Reveal answer</button></article><div class="parthead" id="f03MultimodalAI-p10"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chart"/></svg>11. Multimodal Evaluation Metrics</span><i></i></div><article class="q" id="f03MultimodalAI-33"><div class="q-h"><span class="q-n">&bull;</span><h3>Image Generation Metrics</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03MultimodalAI-33"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">FID</span><span class="kt">LPIPS</span></div><div class="tbl-wrap"><table class="t4"><thead><tr><th>Metric</th><th>What It Measures</th><th>Range</th><th>Formula/Approach</th></tr></thead><tbody><tr class="g1"><td><strong>FID</strong> (Fréchet Inception Distance)</td><td>Quality + diversity of generated images</td><td>0 = identical, lower = better</td><td>Distance between real and generated image distributions in Inception-v3 feature space</td></tr><tr class="g0"><td><strong>IS</strong> (Inception Score)</td><td>Quality + diversity</td><td>Higher = better</td><td><span class="mth"><i>I</i><i>S</i> <span class="mth-op">=</span> <span class="mth-fn">exp</span>(𝔼[<i>D</i><sub><i>K</i><i>L</i></sub>(<i>p</i>(<i>y</i><span class="mth-rm">|</span><i>x</i>) <span class="mth-rm">|</span> <i>p</i>(<i>y</i>))])</span></td></tr><tr class="g1"><td><strong>LPIPS</strong></td><td>Perceptual similarity</td><td>Lower = more similar</td><td>Learned Perceptual Image Patch Similarity</td></tr></tbody></table></div></div><button class="reveal">Reveal answer</button></article><article class="q" id="f03MultimodalAI-34"><div class="q-h"><span class="q-n">&bull;</span><h3>Vision-Language Metrics</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03MultimodalAI-34"><span></span></label></div><div class="q-a"><div class="keyterms"><span class="kt">CLIPScore</span><span class="kt">CIDEr</span><span class="kt">SPICE</span><span class="kt">BLEU/ROUGE/METEOR</span><span class="kt">VQA Accuracy</span></div><div class="tbl-wrap"><table class="t3"><thead><tr><th>Metric</th><th>Task</th><th>Description</th></tr></thead><tbody><tr class="g1"><td><strong>CLIPScore</strong></td><td>Text-image alignment</td><td>Cosine similarity between CLIP text and image embeddings</td></tr><tr class="g0"><td><strong>CIDEr</strong></td><td>Captioning</td><td>TF-IDF weighted n-gram matching with consensus</td></tr><tr class="g1"><td><strong>SPICE</strong></td><td>Captioning</td><td>Scene graph-based semantic evaluation</td></tr><tr class="g0"><td><strong>BLEU/ROUGE/METEOR</strong></td><td>Captioning/Generation</td><td>Standard <abbr title="natural language processing">NLP</abbr> metrics (see NLP Notes)</td></tr><tr class="g1"><td><strong>VQA Accuracy</strong></td><td>Visual QA</td><td>Soft accuracy: <span class="mth"><span class="mth-fn">min</span><span class="mth-d">(</span><span class="mth-frac"><span class="mth-num"><span class="mth-txt">humans who gave that answer</span></span><span class="mth-den">3</span></span>, 1<span class="mth-d">)</span></span></td></tr></tbody></table></div>
 <pre class="code" data-lang="python"><code><span class="cmt"># FID calculation</span>
 <span class="kw">from</span> torchmetrics.image.fid <span class="kw">import</span> FrechetInceptionDistance
 fid = <span class="fn">FrechetInceptionDistance</span>(feature=<span class="num">2048</span>)
