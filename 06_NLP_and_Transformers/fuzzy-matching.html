@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Distance Metrics &mdash; Visual Guide</title>
+<title>Fuzzy Matching &amp; Record Linkage &mdash; Visual Guide</title>
 <style>
 :root{
   --bg:#f4f6f9; --bg2:#e9edf4; --card:#ffffff; --card2:#fbfcfe;
@@ -192,7 +192,7 @@ footer{color:var(--ink3);font-size:13px;text-align:center;padding:24px 0 0;borde
 <body>
 <header class="top">
   <button class="btn" id="burger" aria-label="Toggle navigation">☰</button>
-  <div class="brand">Distance <span>Metrics</span> &mdash; Visual Guide</div>
+  <div class="brand">Fuzzy <span>Matching</span> &mdash; Visual Guide</div>
   <div class="sp"></div>
   <button class="btn" id="theme">◐ Theme</button>
 </header>
@@ -202,1041 +202,956 @@ footer{color:var(--ink3);font-size:13px;text-align:center;padding:24px 0 0;borde
 <div class="wrap">
 <nav class="side" id="nav">
   <input id="q" type="search" placeholder="Filter sections… (press /)" autocomplete="off">
-  <div class="grp">Foundations</div>
-  <a href="#overview">0 &middot; The whole map</a>
-  <a href="#axioms">1 &middot; What makes a metric</a>
-  <a href="#playground">2 &middot; Playground: one pair, all metrics</a>
-  <a href="#balls">3 &middot; Unit balls (why p matters)</a>
-  <div class="grp">Numeric vectors</div>
-  <a href="#euclidean">4 &middot; Euclidean (L2)</a>
-  <a href="#sqeuclid">5 &middot; Squared Euclidean</a>
-  <a href="#manhattan">6 &middot; Manhattan (L1)</a>
-  <a href="#chebyshev">7 &middot; Chebyshev (L∞)</a>
-  <a href="#minkowski">8 &middot; Minkowski (Lp)</a>
-  <a href="#cosine">9 &middot; Cosine</a>
-  <a href="#tfidf">10 &middot; TF-IDF → cosine, worked</a>
-  <a href="#dot">11 &middot; Dot product / MIPS</a>
-  <a href="#correlation">12 &middot; Correlation distance</a>
-  <a href="#canberra">13 &middot; Canberra &amp; Bray–Curtis</a>
-  <a href="#mahalanobis">14 &middot; Mahalanobis</a>
-  <a href="#vbench">15 &middot; Vector bench (live)</a>
-  <div class="grp">Distributions</div>
-  <a href="#kl">16 &middot; KL &amp; JS divergence</a>
-  <a href="#wasserstein">17 &middot; Wasserstein (EMD)</a>
-  <div class="grp">Geo &amp; mixed data</div>
-  <a href="#haversine">18 &middot; Haversine</a>
-  <a href="#gower">19 &middot; Gower (mixed types)</a>
+  <div class="grp">Sets &amp; bits</div>
+  <a href="#hamming">0 &middot; Hamming</a>
+  <a href="#jaccard">1 &middot; Jaccard, Dice, Overlap</a>
+  <a href="#minhash">2 &middot; MinHash &amp; LSH at scale</a>
+  <div class="grp">Strings</div>
+  <a href="#plain">3 &middot; Plain-English tour</a>
+  <a href="#levenshtein">4 &middot; Levenshtein</a>
+  <a href="#damerau">5 &middot; Damerau / OSA</a>
+  <a href="#jaro">6 &middot; Jaro &amp; Jaro–Winkler</a>
+  <a href="#lcs">7 &middot; LCS, Indel, token ratios</a>
+  <a href="#phonetic">8 &middot; Phonetic (Soundex)</a>
+  <a href="#sbench">9 &middot; String bench (live)</a>
+  <div class="grp">Combining &amp; deciding</div>
+  <a href="#linkage">10 &middot; Combining field scores</a>
+  <a href="#thresholds">11 &middot; Choosing the threshold</a>
+  <a href="#entity">12 &middot; Entity resolution</a>
   <div class="grp">Traps</div>
-  <a href="#concentration">20 &middot; Distance concentration</a>
-  <a href="#scaling">21 &middot; Scaling flips your answer</a>
+  <a href="#pitfalls">13 &middot; Field pitfalls</a>
   <div class="grp">Reference</div>
-  <a href="#chooser">22 &middot; Which one? (decision tree)</a>
-  <a href="#master">23 &middot; Master comparison table</a>
-  <a href="#code">24 &middot; From-scratch Python</a>
-  <a href="#interview">25 &middot; Interview answers</a>
+  <a href="#master">14 &middot; Master comparison table</a>
+  <a href="#code">15 &middot; From-scratch Python</a>
+  <a href="#interview">16 &middot; Interview answers</a>
   <div class="grp">Companion page</div>
-  <a href="fuzzy-matching.html" class="sib">Fuzzy matching &amp; record linkage &rarr;</a>
+  <a href="distance-metrics.html" class="sib">&larr; Distance metrics (vectors)</a>
 </nav>
 
 <main>
-<section id="overview">
+<section id="hamming">
 <div class="card">
-<h2><span class="num">00</span> The whole map</h2>
-<p class="lede">A "distance" answers one question: <b>how far apart are these two things?</b> The catch is that
-"far" depends entirely on what the numbers <i>mean</i>. Pick from the wrong family and the maths still runs —
-it just answers a question you never asked.</p>
-
-<div class="viz" id="v-map">
-  <div class="vt">Five families, chosen by what your data <i>is</i></div>
+<h2><span class="num">00</span> Hamming distance <span class="alias">count the positions that disagree</span></h2>
+<p class="lede">Line the two sequences up and count mismatches. It only works on <b>equal-length</b> sequences,
+because position <i>i</i> must mean the same thing in both — which is precisely why it is unbeatable on bit
+fingerprints and useless on free text.</p>
+<div class="fml">d(x, y) = Σᵢ 1[xᵢ ≠ yᵢ]              <span class="cm">requires len(x) = len(y)</span>
+normalised = d / len                   <span class="cm">in [0,1], comparable across lengths</span></div>
+<div class="ctrls">
+  <span class="ctrl"><label for="hm-a">x</label><input id="hm-a" type="text" value="1011101"></span>
+  <span class="ctrl"><label for="hm-b">y</label><input id="hm-b" type="text" value="1001001"></span>
 </div>
+<div class="viz" id="v-hamming"><div class="vt">Position-by-position comparison</div></div>
+<div class="readout" id="hm-out"></div>
+<div class="work"><div class="t">Worked example</div>
+<pre><code>x = 1 0 1 1 1 0 1
+y = 1 0 0 1 0 0 1
+      ↑     ↑            positions 3 and 5 differ
+d = <b>2</b>      normalised = 2/7 = 0.286
+Bit trick: popcount(x XOR y) — a couple of CPU instructions for 64 bits at a time.</code></pre></div>
+<div class="pcw">
+<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
+<li><b>Extremely fast</b> — XOR + popcount, hardware-accelerated. Millions of comparisons per second per core.</li>
+<li>A true metric, so LSH and BK-tree style indexes work directly on it.</li>
+<li>Exactly right for fixed-width codes: SimHash/MinHash signatures, binary quantised embeddings, DNA reads,
+error-correcting codes, one-hot categorical rows.</li>
+</ul></div>
+<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
+<li><b>Equal lengths only.</b> One inserted character shifts everything and the distance goes to nearly the
+full length — it cannot see insertions or deletions at all.</li>
+<li>All positions weigh the same, and it ignores <i>how</i> different the values are (for numbers, "1 vs 9" ties
+with "1 vs 2").</li>
+<li>Coarse: on short codes there are very few possible values, so ties are everywhere.</li>
+</ul></div>
+<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
+<li>Comparing hashes/fingerprints for near-duplicate detection (SimHash on documents).</li>
+<li>Binary-quantised vector search — the reason billion-scale indexes can live in RAM.</li>
+<li>Fixed-format codes: postcodes, PRO numbers, barcodes of known width.</li>
+</ul></div>
+</div>
+</div>
+</section>
+<section id="jaccard">
+<div class="card">
+<h2><span class="num">01</span> Jaccard, Dice &amp; Overlap <span class="alias">set similarity on tokens or q-grams</span></h2>
+<p class="lede">Throw away order and counts, keep membership. Turn each string into a <b>set of q-grams</b> (or
+tokens) and ask how much the two sets share. This is what makes word-order differences and long strings
+tractable.</p>
+<div class="fml">Jaccard J(A,B) = |A ∩ B| / |A ∪ B|          <span class="cm">in [0,1]; 1 − J IS a metric</span>
+Dice     D(A,B) = 2|A ∩ B| / (|A| + |B|)      <span class="cm">= 2J/(1+J); weights the overlap double</span>
+Overlap  O(A,B) = |A ∩ B| / min(|A|, |B|)     <span class="cm">1.0 whenever one set is a subset</span>
+Tversky  T      = |A∩B| / (|A∩B| + α|A−B| + β|B−A|)   <span class="cm">asymmetric generalisation</span></div>
 
+<div class="ctrls">
+  <span class="ctrl"><label for="jc-a">A</label><input id="jc-a" type="text" value="night"></span>
+  <span class="ctrl"><label for="jc-b">B</label><input id="jc-b" type="text" value="nacht"></span>
+  <span class="ctrl"><label for="jc-q">mode</label>
+    <select id="jc-q" style="font:inherit;font-size:12.8px;padding:6px;border-radius:8px;border:1px solid var(--line2);background:var(--bg);color:var(--ink)">
+      <option value="2">bigrams (q=2)</option><option value="3">trigrams (q=3)</option>
+      <option value="w">whole words</option></select></span>
+</div>
+<div class="viz" id="v-venn"><div class="vt">The two sets, their intersection, and every ratio built from it</div></div>
+<div class="readout" id="jc-out"></div>
+
+<div class="work"><div class="t">Worked example — "night" vs "nacht", bigrams</div>
+<pre><code>A = {ni, ig, gh, ht}        |A| = 4
+B = {na, ac, ch, ht}        |B| = 4
+A ∩ B = {ht}               |A ∩ B| = 1
+A ∪ B = {ni,ig,gh,ht,na,ac,ch}   |A ∪ B| = 7
+
+Jaccard = 1/7            = <b>0.143</b>   → distance 0.857
+Dice    = 2·1/(4+4)      = <b>0.250</b>   check: 2J/(1+J) = 0.286/1.143 = 0.250 ✓
+Overlap = 1/min(4,4)     = <b>0.250</b></code></pre>
+<p style="margin:8px 0 0;font-size:13.6px">Word-order case: <code>{ardent, express, lines}</code> vs
+<code>{ardent, express}</code> → J = 2/3 = <b>0.667</b>, Dice = 4/5 = <b>0.800</b>,
+Overlap = 2/2 = <b>1.000</b>. Overlap says "perfect subset", which is either exactly what you want
+(abbreviations) or a disaster (every company matching "Inc").</p></div>
+
+<div class="pcw">
+<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
+<li><b>Order-independent</b> — "Ardent Freight Lines Inc" ≈ "Inc Ardent Freight Lines".</li>
+<li>Bounded [0,1] → thresholds transfer between datasets and are easy to explain.</li>
+<li>Jaccard distance is a true metric, and it is the metric <b>MinHash + LSH</b> approximates — so you can do
+similarity joins over billions of pairs without computing them all.</li>
+<li>q-grams tolerate typos gracefully: one changed character kills only q grams, not the whole match.</li>
+<li>Cheap to precompute and invert into a posting list, which makes it a great <b>blocking key</b>.</li>
+</ul></div>
+<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
+<li><b>Blind to order and position</b> — an anagram scores a perfect match on tokens.</li>
+<li>Sets drop duplicate counts: "aaa" and "a" have identical unigram sets.</li>
+<li><b>Size-biased:</b> a 3-token name compared with a 30-token address can never score high, since the union
+is dominated by the bigger set. Overlap or Tversky fixes this, at the cost of the metric property.</li>
+<li>Choosing q is a real decision: q=2 is noisy on short strings, q=4 is brittle on typos.</li>
+<li>Dice is not a metric even though it ranks almost identically to Jaccard.</li>
+</ul></div>
+<div class="box b-pit"><div class="bt">🐞 Pitfalls</div><ul>
+<li>Forgetting to normalise case/punctuation first — "Ardent," and "Ardent" share nothing at the token level.</li>
+<li>Frequent tokens ("Inc", "LLC", "Street") inflating overlap. Weight by IDF, or strip a stop-list.</li>
+<li>Short strings + q=3: "Li" has no trigrams at all → similarity 0 against everything. Pad the ends.</li>
+<li>Using Jaccard as the <i>only</i> scorer: it cannot distinguish a genuine match from a token soup that
+happens to share words.</li>
+</ul></div>
+<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
+<li>Record linkage on multi-word fields: company names, addresses, product titles.</li>
+<li>Near-duplicate document detection at scale (shingles + MinHash).</li>
+<li>Recommender co-occurrence: "which baskets share items".</li>
+<li>Blocking: cheap candidate generation before an expensive edit-distance rescore.</li>
+</ul></div>
+</div>
+</div>
+</section>
+<section id="minhash">
+<div class="card">
+<h2><span class="num">02</span> MinHash &amp; LSH <span class="alias">how Jaccard survives a billion pairs</span></h2>
+<p class="lede">Jaccard on every pair is O(n²) — 100 000 records is 5 billion comparisons. MinHash replaces each
+set with a short signature such that <b>the probability two signature slots agree equals their Jaccard
+similarity</b>. LSH then buckets those signatures so that only <i>plausible</i> pairs are ever compared.</p>
+<div class="fml">P[ minhash_i(A) = minhash_i(B) ] = J(A, B)            <span class="cm">the whole trick, in one line</span>
+Ĵ = (matching slots) / k                              <span class="cm">unbiased estimate; error ≈ 1/√k</span>
+
+banding: split k rows into b bands of r rows (k = b·r)
+P[pair becomes a candidate] = 1 − (1 − Jᵗ)ᵈ           <span class="cm">t = r, d = b</span>
+threshold ≈ (1/b)^(1/r)                               <span class="cm">where the S-curve turns on</span></div>
+
+<div class="ctrls">
+  <span class="ctrl"><label for="ls-b">bands b</label>
+    <input id="ls-b" type="range" min="2" max="50" step="1" value="20"><span class="v" id="ls-bv">20</span></span>
+  <span class="ctrl"><label for="ls-r">rows per band r</label>
+    <input id="ls-r" type="range" min="1" max="20" step="1" value="5"><span class="v" id="ls-rv">5</span></span>
+  <span class="ctrl" id="ls-presets"></span>
+</div>
+<div class="viz" id="v-lsh"><div class="vt">The LSH S-curve: probability a pair is even <i>looked at</i>, as a function of its true Jaccard</div></div>
+<div class="readout" id="ls-out"></div>
+<p class="cap">Everything left of the turn-on point is discarded without being scored — that is the speed-up.
+Everything you discard that <i>was</i> a match is recall you can never get back, which is why b and r are a
+recall/cost dial, not a detail.</p>
+
+<div class="work"><div class="t">Worked example — k = 100 hashes, b = 20 bands of r = 5</div>
+<pre><code>threshold ≈ (1/20)^(1/5) = 0.549
+
+true J = 0.80 → P(candidate) = 1 − (1 − 0.80⁵)²⁰ = <b>1.000</b>   (always looked at)
+true J = 0.60 → P(candidate) = 1 − (1 − 0.60⁵)²⁰ = <b>0.802</b>
+true J = 0.40 → P(candidate) = 1 − (1 − 0.40⁵)²⁰ = <b>0.186</b>   (mostly skipped)
+
+Fewer, wider bands (b = 10, r = 10) → threshold 0.794, and P(J = 0.6) collapses to 0.059:
+much cheaper, and it silently drops genuine 0.6-similarity duplicates.</code></pre></div>
+
+<div class="pcw">
+<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
+<li><b>Sub-quadratic</b>: candidate generation becomes a hash-bucket lookup instead of a pairwise scan.</li>
+<li>Signatures are tiny (k integers), so hundreds of millions of sets fit in memory.</li>
+<li>The recall/precision trade-off is <b>explicit and tunable</b> through b and r — you can compute the curve
+before you run anything.</li>
+<li>Backed by a real guarantee, because Jaccard distance is a metric.</li>
+<li>Streaming-friendly: signatures are built per record, no global pass needed.</li>
+</ul></div>
+<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
+<li><b>Approximate.</b> Some true duplicates never become candidates; that recall loss is invisible unless you
+measure blocking recall separately.</li>
+<li>Jaccard only — it does not carry over to cosine (that needs SimHash / random projections) or to edit
+distance.</li>
+<li>k, b and r all need tuning, and the S-curve is steep: small changes move the threshold a lot.</li>
+<li>Useless for very short strings, where q-gram sets are tiny and estimates are noisy.</li>
+<li>Candidates still need an exact rescore — LSH is stage one, never the final answer.</li>
+</ul></div>
+<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
+<li>Deduplicating millions of documents or records (shingles → MinHash → LSH → exact rescore).</li>
+<li>Blocking for record linkage where a simple key (Soundex, first-4-chars) loses too many pairs.</li>
+<li>Near-duplicate detection in a crawl or a training corpus.</li>
+</ul></div>
+</div>
+</div>
+</section>
+<section id="plain">
+<div class="card">
+<h2><span class="num">03</span> Fuzzy matching in plain English <span class="alias">one real-world example per technique — start here</span></h2>
+<p class="lede">Before the DP tables and the formulas: here is each technique with the everyday situation it was
+invented for. If you only remember one thing per method, remember the example.</p>
+
+<div class="viz" id="v-family"><div class="vt">The whole family, by what it compares</div></div>
+
+<h3>1 · Levenshtein — typo / spelling correction</h3>
+<p><b>Real-world:</b> a customer searches for a product and drops a letter.</p>
+<pre><code>User input:      "iphon 15"
+Database value:  "iphone 15"
+
+iphon  →  iphone
+     ↑
+     one insertion
+
+Levenshtein distance = 1
+normalised similarity = 1 − 1/6 = 0.833</code></pre>
+<p>Levenshtein counts the minimum number of <b>insertions, deletions and substitutions</b>.
+Careful with the classic "iphnoe" typo — that is two characters <i>swapped</i>, which plain Levenshtein charges
+2 edits for. That is what the next one fixes.</p>
+<p class="cap"><b>Use:</b> spell correction, OCR correction, product search, code/ID matching. → full detail in §20</p>
+
+<h3>2 · Damerau–Levenshtein — transposed characters</h3>
+<p><b>Real-world:</b> fingers hit two keys in the wrong order.</p>
+<pre><code>User:     "recieve"
+Correct:  "receive"
+
+rec<b>ie</b>ve
+   ↓↓
+rec<b>ei</b>ve      one adjacent swap
+
+Levenshtein          = 2   (two substitutions)
+Damerau–Levenshtein  = 1   (one transposition)</code></pre>
+<p>Damerau–Levenshtein allows four operations — insert, delete, substitute and <b>transpose adjacent</b> —
+so it charges human typing errors what they actually cost.</p>
+<p class="cap"><b>Use:</b> search boxes, spell checkers, CRM data entry, keyboard errors. → §21</p>
+
+<h3>3 · Jaro–Winkler — person and company names</h3>
+<p><b>Real-world:</b> the same customer in two systems, spelled slightly differently.</p>
+<pre><code>System A: "Venukiran Sankar"
+System B: "Venukiran Sanker"        Jaro 0.958  →  Jaro–Winkler <b>0.975</b>
+
+"MARTHA" vs "MARHTA"                Jaro 0.944  →  Jaro–Winkler <b>0.961</b>
+ <b>MAR</b>THA
+ <b>MAR</b>HTA
+ ↑↑↑ shared prefix → Winkler adds a bonus
+
+"John Michael Smith" vs "Jhon Michael Smith"   Jaro–Winkler <b>0.983</b></code></pre>
+<p>Jaro–Winkler is built for <b>short strings</b>. It counts characters that appear in both within a sliding
+window, penalises the ones that are out of order, and then adds a bonus for a shared <b>prefix</b> — because
+people get the beginning of a name right far more often than the end.</p>
+<p class="cap"><b>Use:</b> customer deduplication, employee matching, identity and entity resolution. → §22</p>
+
+<h3>4 · Jaccard — comparing sets of things</h3>
+<p><b>Real-world:</b> how similar are two customers' baskets?</p>
+<pre><code>Customer A: {Laptop, Mouse, Keyboard, Monitor}
+Customer B: {Laptop, Mouse, Headphones, Monitor}
+
+shared      = {Laptop, Mouse, Monitor}                       → 3
+all unique  = {Laptop, Mouse, Keyboard, Monitor, Headphones} → 5
+
+Jaccard = 3/5 = <b>0.60</b>       (Dice = 2·3/(4+4) = 0.75)</code></pre>
+<p>Order does not matter and counts do not matter — only <b>membership</b>. Split a string into q-grams or
+tokens and the same measure works on text, which is why it survives word-order differences that edit distance
+cannot.</p>
+<p class="cap"><b>Use:</b> recommendations, document similarity, duplicate detection, tag/category overlap. → §17</p>
+
+<h3>5 · Cosine similarity — same meaning, different words</h3>
+<p><b>Real-world:</b> two sentences that share almost no words but say the same thing.</p>
+<pre><code>Document A: "Machine learning models can detect fraud."
+Document B: "AI algorithms identify fraudulent transactions."
+
+embed each one
+A → [0.21, 0.75, 0.42, …]
+B → [0.19, 0.72, 0.45, …]
+
+cosine similarity ≈ <b>0.91</b>   → highly similar</code></pre>
+<p>Cosine ignores <b>length</b> and asks only whether the two vectors <b>point the same way</b>. On raw words
+these two sentences score near zero; on embeddings they score high, because the model puts "fraud" and
+"fraudulent transactions" in the same direction.</p>
+<p class="cap"><b>Use:</b> RAG, semantic search, document retrieval, near-duplicate detection. → §09</p>
+
+<h3>6 · TF-IDF + cosine — classic search and retrieval</h3>
+<p><b>Real-world:</b> a user searches your FAQ.</p>
+<pre><code>Query:  "How to reset my password?"
+
+Doc 1: "Steps to reset your account password"
+Doc 2: "How to change your email address"
+Doc 3: "How to update your profile"
+
+TF-IDF kills the words that are everywhere and keeps the ones that discriminate:
+   idf("to")   = 0.000    ← in every document, worthless
+   idf("your") = 0.000
+   idf("how")  = 0.405
+   idf("reset")    = 1.099    ← rare, so it carries the query
+   idf("password") = 1.099
+
+cosine(query, doc):
+   Doc 1  <b>0.684</b>   ← retrieved
+   Doc 2  0.053
+   Doc 3  0.064</code></pre>
+<p>Those numbers are computed with the same code as §10 — notice how "how to your" contributes nothing, and the
+match is decided entirely by <i>reset</i> and <i>password</i>.</p>
+<p class="cap"><b>Use:</b> keyword search, FAQ retrieval, text classification, the lexical half of hybrid RAG. → §10</p>
+
+<h3>7 · FuzzyWuzzy / RapidFuzz — practical fuzzy matching</h3>
+<p><b>Real-world:</b> match what the user typed against a product catalogue. Type in the box — every score below
+is computed live.</p>
+<div class="ctrls">
+  <span class="ctrl"><label for="pd-q">search</label><input id="pd-q" type="text" value="iphone 15 pro" style="width:230px"></span>
+  <span class="ctrl" id="pd-presets"></span>
+</div>
+<div class="tw" id="pd-table"></div>
+<div class="note n-bad"><p><b>The trap this demo exists for.</b> With the default query "iphone 15 pro",
+<b>three of the five scorers rank the wrong phone first.</b> <code>ratio</code> puts "Apple iPhone 14 Pro" (75.0)
+above "Apple iPhone 15 Pro Max" (72.2) — plain character overlap punishes the longer correct title and forgives
+the wrong digit — and <code>token_sort</code> (75.0) and Jaro–Winkler (74.0) make the same mistake. Only
+<code>partial_ratio</code> (100) and <code>token_set_ratio</code> (100) put the right product first. Same data,
+same library, different scorer, different answer — the scorer is a decision you have to test on your own
+catalogue, not a default you inherit.</p></div>
+<p class="cap"><b>Use:</b> product matching, company names, addresses, OCR output, entity resolution. → §23</p>
+
+<h3>8 · Entity resolution — the same customer in three systems</h3>
+<p><b>Real-world:</b> one person, three records, no shared key.</p>
+<pre><code>CRM      Customer 1001   "John Michael Smith"
+Billing                  "John M Smith"
+Support                  "Jhon Michael Smith"
+
+Are these three people? Almost certainly not — so combine several signals:
+
+   name similarity      0.94  ×  weight 0.35
+   email similarity     1.00  ×  weight 0.30
+   phone similarity     1.00  ×  weight 0.20
+   address similarity   0.91  ×  weight 0.15
+   ─────────────────────────────────────────
+   match score          <b>0.966</b>   →  SAME CUSTOMER
+
+then: cluster the matched pairs into ONE entity, and pick which value survives per field.</code></pre>
+<p>Entity resolution is not another distance — it is the <b>pipeline that consumes them all</b>: normalise →
+block → score each field with the right metric → combine into one number → threshold → cluster → golden record.
+The two places it goes wrong are the combination step (§26, §27) and the clustering step (§28), not the string
+metrics.</p>
+<p class="cap"><b>Use:</b> customer 360, master data management, dedup across CRM / billing / support. → §28</p>
+
+<h3>The easiest way to remember them</h3>
 <div class="tw"><table>
-<thead><tr><th>Your data looks like…</th><th>Family</th><th>Default pick</th><th>Because</th></tr></thead>
+<thead><tr><th>Technique</th><th>Real-world example</th><th>Best for</th></tr></thead>
 <tbody>
-<tr><td>Continuous features on comparable scales (height, weight, price)</td><td>Minkowski</td>
-    <td class="mono">Euclidean</td><td>Straight-line intuition, works with k-means/KNN out of the box</td></tr>
-<tr><td>Sparse, high-dimensional counts or embeddings (TF-IDF, sentence vectors)</td><td>Angular</td>
-    <td class="mono">Cosine</td><td>Length carries document size, not meaning — divide it out</td></tr>
-<tr><td>Correlated features (height &amp; weight, OCR confidence &amp; char count)</td><td>Statistical</td>
-    <td class="mono">Mahalanobis</td><td>Rescales by covariance, so "unusual combination" counts as far</td></tr>
-<tr><td>Sets: tokens, q-grams, tags, SKUs seen together</td><td>Set overlap</td>
-    <td class="mono">Jaccard</td><td>Only shared membership matters; order and counts do not</td></tr>
-<tr><td>Two strings that should be the same string</td><td>Edit / sequence</td>
-    <td class="mono">Levenshtein + Jaro–Winkler</td><td>Typos are edits; OCR noise is substitutions</td></tr>
-<tr><td>Two histograms or probability vectors</td><td>Divergence</td>
-    <td class="mono">JS or Wasserstein</td><td>Symmetric, finite, and Wasserstein still works on disjoint support</td></tr>
-<tr><td>Lat/long pairs</td><td>Geodesic</td><td class="mono">Haversine</td>
-    <td>A degree of longitude is not a fixed number of km</td></tr>
-<tr><td>Mixed numeric + categorical + boolean columns</td><td>Composite</td><td class="mono">Gower</td>
-    <td>Per-column distance, then a weighted average</td></tr>
+<tr><td class="mono">Levenshtein</td><td>iphone → iphon</td><td>Insert / delete / substitute</td></tr>
+<tr><td class="mono">Damerau–Levenshtein</td><td>recieve → receive</td><td>Character swaps</td></tr>
+<tr><td class="mono">Jaro–Winkler</td><td>John Smith → Jon Smith</td><td>Names and short strings</td></tr>
+<tr><td class="mono">Jaccard</td><td>Two customers' product sets</td><td>Set / token overlap</td></tr>
+<tr><td class="mono">Cosine similarity</td><td>Two documents that mean the same thing</td><td>Vector / semantic similarity</td></tr>
+<tr><td class="mono">TF-IDF + cosine</td><td>Search query → relevant document</td><td>Classic information retrieval</td></tr>
+<tr><td class="mono">RapidFuzz / FuzzyWuzzy</td><td>"iphone 15 pro" → product DB</td><td>Practical fuzzy matching</td></tr>
+<tr><td class="mono">Entity resolution</td><td>Same customer across CRM / billing</td><td>Combining multiple signals</td></tr>
 </tbody></table></div>
 
-<div class="note n-key"><p><b>Key idea.</b> Distance and similarity are two views of one number.
-<code>similarity = 1 − distance</code> holds only when the distance is bounded to [0, 1] — true for cosine,
-Jaccard and normalised edit ratios, false for raw Euclidean or Levenshtein counts. Most "why is my threshold
-weird?" bugs are somebody mixing the two.</p></div>
+<h3>The code, the way you'd actually write it</h3>
+<pre><code># ---- the old library: fuzzywuzzy (pure Python, slow, still everywhere) ----
+from fuzzywuzzy import fuzz
+
+fuzz.ratio("apple iphone", "apple iphone 15")                  # 88.9
+fuzz.partial_ratio("iphone 15", "apple iphone 15 pro")         # 100.0
+fuzz.token_sort_ratio("Python Data Science", "Science Python Data")   # 100.0
+fuzz.token_set_ratio("apple iphone 15", "apple iphone 15 pro")        # 100.0
+
+# ---- the one to actually use: rapidfuzz (same API, C++ backed) ----
+from rapidfuzz.distance import Levenshtein, DamerauLevenshtein, JaroWinkler, Indel
+
+Levenshtein.distance("iphone", "iphon")                  # 1
+Levenshtein.normalized_similarity("iphone", "iphon")     # 0.8333
+
+DamerauLevenshtein.distance("receive", "recieve")        # 1   (Levenshtein says 2)
+
+JaroWinkler.normalized_similarity("Martha", "Marhta")    # 0.9611
+
+# ---- ranking a whole catalogue, the fast path ----
+from rapidfuzz import process, fuzz
+
+products = ["Apple iPhone 15 Pro Max", "Samsung Galaxy S24 Ultra",
+            "Google Pixel 8 Pro", "OnePlus 12", "Apple iPhone 14 Pro"]
+
+process.extract("iphone 15 pro", products,
+                scorer=fuzz.token_set_ratio,   # pick the scorer deliberately
+                limit=3, score_cutoff=60)      # cutoff prunes early = much faster
+
+# process.cdist(queries, choices, workers=-1) for a full score matrix,
+# multithreaded in C++ and releasing the GIL.</code></pre>
+
+<div class="note n-key"><p><b>One sentence per family.</b> <b>Character-based</b> (Levenshtein, Damerau,
+Jaro–Winkler) asks "how many edits apart are these two strings?" — good for typos, bad for word order.
+<b>Token-based</b> (token_sort, token_set, Jaccard) asks "do they use the same words?" — good for reordered and
+abbreviated names, blind to spelling inside a word. <b>Vector-based</b> (TF-IDF, embeddings + cosine) asks "do
+they mean the same thing?" — the only one that survives synonyms. Real systems use <b>all three</b> and combine
+the scores.</p></div>
 </div>
 </section>
-<section id="axioms">
+<section id="levenshtein">
 <div class="card">
-<h2><span class="num">01</span> What makes a "metric" <span class="alias">and why you should care</span></h2>
-<p class="lede">Anything can be called a distance function. A <b>metric</b> is a distance that obeys four rules.
-The rules are not academic trivia: index structures, clustering guarantees and pruning tricks all quietly
-assume them.</p>
+<h2><span class="num">04</span> Levenshtein distance <span class="alias">edit distance · insert / delete / substitute</span></h2>
+<p class="lede">The minimum number of single-character edits that turn one string into the other. It is the
+workhorse of typo correction and OCR cleanup because its cost model matches how the errors are actually made.</p>
+<div class="fml">D[i][j] = min(  D[i−1][j] + 1,                    <span class="cm">delete  from x</span>
+                D[i][j−1] + 1,                    <span class="cm">insert  into x</span>
+                D[i−1][j−1] + (xᵢ ≠ yⱼ ? 1 : 0) ) <span class="cm">substitute / free match</span>
+similarity = 1 − D / max(len x, len y)             <span class="cm">the normalisation to prefer</span></div>
 
-<div class="fml">1. Non-negativity      d(x, y) ≥ 0
-2. Identity           d(x, y) = 0  ⟺  x = y
-3. Symmetry           d(x, y) = d(y, x)
-4. Triangle inequality d(x, z) ≤ d(x, y) + d(y, z)   <span class="cm">← the one that gets broken</span></div>
-
-<div class="viz" id="v-tri">
-  <div class="vt">The triangle inequality, and what breaking it costs you</div>
+<div class="ctrls">
+  <span class="ctrl"><label for="lv-a">x</label><input id="lv-a" type="text" value="kitten" maxlength="14"></span>
+  <span class="ctrl"><label for="lv-b">y</label><input id="lv-b" type="text" value="sitting" maxlength="14"></span>
+  <span class="ctrl" id="lv-presets"></span>
 </div>
+<div class="viz" id="v-lev"><div class="vt">The DP table, filled — and the cheapest path back through it</div></div>
+<div class="readout" id="lv-out"></div>
+<p class="cap">Every cell is "the cost of aligning the first <i>i</i> characters of x with the first <i>j</i> of
+y". The bottom-right corner is the answer; the highlighted path is one optimal edit script (there can be
+several).</p>
 
-<h3>Who obeys the rules</h3>
+<div class="work"><div class="t">Worked example — kitten → sitting</div>
+<pre><code>k i t t e n   →   s i t t i n g
+1. substitute k → s      (kitten → sitten)     cost 1
+2. substitute e → i      (sitten → sittin)     cost 1
+3. insert     g at end   (sittin → sitting)    cost 1
+                                        total  <b>3</b>
+
+normalised similarity = 1 − 3/max(6,7) = 1 − 3/7 = <b>0.571</b>
+(RapidFuzz's fuzz.ratio reports <b>61.5</b> here — a different normalisation, see §23)</code></pre></div>
+
+<div class="pcw">
+<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
+<li><b>Interpretable</b> — the answer is a number of edits, and you can print the edit script.</li>
+<li>A true metric (unit costs) → BK-trees and metric indexes work.</li>
+<li>Handles insertions, deletions and substitutions, so length differences are fine.</li>
+<li>Costs can be <b>customised</b>: make OCR confusions (0↔O, 1↔l, 5↔S, rn↔m) cheap and everything else
+expensive, and accuracy on scanned documents jumps.</li>
+<li>Early-exit and bit-parallel (Myers) implementations make it fast enough for production when combined with
+blocking.</li>
+</ul></div>
+<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
+<li><b>O(m·n) per pair</b> — brutal for an all-pairs join. You need blocking, a length filter, or a max-distance
+cut-off.</li>
+<li><b>Unbounded and length-biased:</b> distance 2 is trivial on a 40-character address and catastrophic on a
+3-letter code. Always normalise before thresholding.</li>
+<li>Blind to transpositions: "teh" → "the" costs 2, though it is one slip of the fingers (→ §21).</li>
+<li><b>Word order kills it:</b> swapping two words in a name costs almost the whole string (→ §17, §23).</li>
+<li>Treats every character as equally important — "Street" vs "Straet" and "Ardent" vs "Estas" look similar
+even though one is a stop-word and one is the entity.</li>
+</ul></div>
+<div class="box b-pit"><div class="bt">🐞 Pitfalls</div><ul>
+<li>Not case-folding / stripping punctuation first, so half your distance is formatting.</li>
+<li>Thresholding on the raw count across fields of different lengths.</li>
+<li>Unicode: counting UTF-16 code units instead of graphemes, so an emoji or an accented character counts twice.</li>
+<li>Running it on 100 k × 100 k records "to see" — that is 10¹⁰ DP tables.</li>
+</ul></div>
+<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
+<li>OCR post-correction, spell-check, fuzzy joins on codes and identifiers.</li>
+<li>Deduplicating near-identical short fields (names, city, PRO numbers).</li>
+<li>You need to <i>explain</i> a match to an auditor — "one substituted digit" is a defensible reason.</li>
+</ul></div>
+</div>
+</div>
+</section>
+<section id="damerau">
+<div class="card">
+<h2><span class="num">05</span> Damerau–Levenshtein <span class="alias">+ transposition · OSA vs unrestricted</span></h2>
+<p class="lede">Levenshtein plus a fourth operation: swapping two adjacent characters costs 1 instead of 2.
+Since transposition is the most common human typing error, this is usually the better default for
+keyboard-entered data.</p>
+<div class="fml">operations: insert · delete · substitute · <b>transpose adjacent</b>
+"teh" → "the"   Levenshtein = 2      Damerau–Levenshtein = <b>1</b></div>
+<div class="note n-warn"><p><b>Two different algorithms share the name.</b>
+<b>OSA</b> (optimal string alignment, what most libraries ship, including <code>rapidfuzz.distance.OSA</code>)
+forbids editing the same substring twice, so it is <i>not</i> a metric. The <b>unrestricted</b> version allows
+it and <i>is</i> a metric.<br>
+<code>CA → ABC</code>: unrestricted = 2 (transpose CA→AC, insert B). OSA = 3, because it refuses to touch the
+transposed pair again.</p></div>
+<div class="pcw">
+<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
+<li>Matches real typing errors — transpositions are ~10–20% of human typos.</li>
+<li>Same interpretability and roughly the same cost as Levenshtein.</li>
+<li>Better than Levenshtein on names entered by hand ("Micheal" / "Michael").</li>
+</ul></div>
+<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
+<li>OSA variant is not a metric → do not put it in a BK-tree.</li>
+<li>The unrestricted version needs an extra alphabet-indexed table: more memory, slower.</li>
+<li><b>No help for OCR</b>, where errors are substitutions and merges (rn→m), not transpositions.</li>
+<li>Still inherits every length-bias and word-order weakness of Levenshtein.</li>
+</ul></div>
+<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
+<li>Human-typed input: search boxes, CRM entry, manual data capture.</li>
+<li>Spell-correction candidate generation.</li>
+<li>Not for machine-generated or OCR'd text — plain Levenshtein with custom costs beats it there.</li>
+</ul></div>
+</div>
+</div>
+</section>
+<section id="jaro">
+<div class="card">
+<h2><span class="num">06</span> Jaro &amp; Jaro–Winkler <span class="alias">built for short names</span></h2>
+<p class="lede">Not an edit distance at all. Jaro counts characters that appear in <b>both</b> strings within a
+sliding window, penalises those that appear out of order, and returns a similarity in [0,1]. Winkler then adds a
+bonus for a shared <b>prefix</b>, because people get the start of a name right far more often than the end.</p>
+<div class="fml">window   = ⌊max(|s|,|t|)/2⌋ − 1
+Jaro     = (1/3)·( m/|s| + m/|t| + (m − t/2)/m )     <span class="cm">m = matches, t = transposed matches</span>
+Winkler  = Jaro + ℓ·p·(1 − Jaro)                     <span class="cm">ℓ = common prefix ≤ 4, p = 0.1</span></div>
+
+<div class="ctrls">
+  <span class="ctrl"><label for="jr-a">s</label><input id="jr-a" type="text" value="MARTHA" maxlength="16"></span>
+  <span class="ctrl"><label for="jr-b">t</label><input id="jr-b" type="text" value="MARHTA" maxlength="16"></span>
+  <span class="ctrl" id="jr-presets"></span>
+</div>
+<div class="viz" id="v-jaro"><div class="vt">Matched characters, the window that allowed each match, and the transposed pair</div></div>
+<div class="readout" id="jr-out"></div>
+
+<div class="work"><div class="t">Worked example — MARTHA vs MARHTA</div>
+<pre><code>window = ⌊6/2⌋ − 1 = 2
+all 6 characters match within the window          m = 6
+T/H are matched but in swapped order → 2 half-transpositions   t = 1
+
+Jaro    = (1/3)·(6/6 + 6/6 + (6−1)/6)
+        = (1/3)·(1 + 1 + 0.8333) = <b>0.9444</b>
+
+common prefix "MAR" → ℓ = 3
+Winkler = 0.9444 + 3·0.1·(1 − 0.9444) = 0.9444 + 0.0167 = <b>0.9611</b></code></pre>
+<p style="margin:8px 0 0;font-size:13.6px">More: <code>DWAYNE/DUANE</code> → Jaro 0.822, JW 0.840 ·
+<code>CRATE/TRACE</code> → Jaro 0.733, JW 0.733 (no shared prefix, no bonus) ·
+<code>DIXON/DICKSONX</code> → Jaro 0.767, JW 0.813.</p></div>
+
+<div class="pcw">
+<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
+<li><b>Best-in-class for short strings</b> — person names, city names, carrier codes.</li>
+<li>Already normalised to [0,1] and length-aware, so one threshold works across records.</li>
+<li>The prefix bonus encodes a genuine empirical fact about human error.</li>
+<li>O(|s|·|t|) worst case but effectively linear for short strings, and no DP table to allocate.</li>
+<li>The standard in record linkage (it is what the US Census's Fellegi–Sunter implementations use).</li>
+</ul></div>
+<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
+<li><b>Not a metric</b> — no triangle inequality, so metric indexes and clustering guarantees are out.</li>
+<li><b>Scores are compressed high:</b> unrelated short strings routinely score 0.6–0.7, so thresholds live in a
+narrow, fiddly band around 0.85–0.92.</li>
+<li>The prefix bonus <b>backfires</b> when the error is at the front — OCR dropping the first character, or
+"Ltd Ardent" vs "Ardent Ltd".</li>
+<li>Poor on long strings: the window grows, spurious matches accumulate, and addresses score deceptively well.</li>
+<li>No edit script — you cannot explain <i>what</i> differs, only how much.</li>
+<li>Word-order changes are not handled at all.</li>
+</ul></div>
+<div class="box b-pit"><div class="bt">🐞 Pitfalls</div><ul>
+<li>Reusing a threshold tuned on first names for company names or addresses.</li>
+<li>Assuming <code>fuzz.WRatio</code>-style blends are Jaro–Winkler — they are not; check which scorer your
+library defaults to.</li>
+<li>Feeding it long concatenated fields ("name + address + city") — the window explodes and everything matches.</li>
+<li>Case sensitivity: many implementations do <b>not</b> case-fold for you.</li>
+</ul></div>
+<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
+<li>Matching person or company names, 3–20 characters.</li>
+<li>As one feature among several in a scoring model (Jaro–Winkler + token Jaccard + phonetic is a strong trio).</li>
+<li>You need a bounded score for a rules engine rather than a metric for an index.</li>
+</ul></div>
+</div>
+</div>
+</section>
+<section id="lcs">
+<div class="card">
+<h2><span class="num">07</span> LCS, Indel &amp; token ratios <span class="alias">what fuzzywuzzy / RapidFuzz actually compute</span></h2>
+<p class="lede">The <code>fuzz.*</code> scorers everyone reaches for are <b>not</b> Levenshtein. They are built
+on the <b>Indel</b> distance (insertions and deletions only — no substitutions), which is the longest common
+subsequence in disguise, plus a family of token preprocessing steps.</p>
+<div class="fml">LCS(x,y)    = longest common <i>subsequence</i> length (not contiguous)
+Indel(x,y)  = |x| + |y| − 2·LCS(x,y)          <span class="cm">substitution costs 2 here, not 1</span>
+fuzz.ratio  = 100·(1 − Indel/(|x|+|y|))       <span class="cm">this is the number you see</span></div>
+<div class="work"><div class="t">Worked example — the two normalisations disagree</div>
+<pre><code>x = "kitten" (6)   y = "sitting" (7)
+LCS        = "ittn"           = 4
+Indel      = 6 + 7 − 2·4      = 5
+fuzz.ratio = 100·(1 − 5/13)   = <b>61.5</b>
+1 − Lev/max_len = 1 − 3/7     = <b>57.1</b>     ← different number, same pair</code></pre></div>
 <div class="tw"><table>
-<thead><tr><th>Function</th><th>Symmetric</th><th>Triangle</th><th>Metric?</th><th>Consequence in practice</th></tr></thead>
+<thead><tr><th>Scorer</th><th>What it does</th><th>Good for</th><th>Fails on</th></tr></thead>
 <tbody>
-<tr><td class="mono">Euclidean / Manhattan / Chebyshev</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">yes</td><td>Safe everywhere: ball trees, k-means, KD-trees</td></tr>
-<tr><td class="mono">Minkowski, p ≥ 1</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">yes</td><td>p &lt; 1 breaks the triangle rule — not a metric</td></tr>
-<tr><td class="mono">Squared Euclidean</td><td class="yes">✓</td><td class="no">✗</td><td class="no">no</td><td>Fine for k-means (it optimises exactly this), unsafe for ball-tree pruning</td></tr>
-<tr><td class="mono">Cosine distance (1 − cos)</td><td class="yes">✓</td><td class="no">✗</td><td class="no">no</td><td>Use <b>angular</b> distance (arccos/π) when you need a true metric</td></tr>
-<tr><td class="mono">Angular distance</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">yes</td><td>Metric version of cosine</td></tr>
-<tr><td class="mono">Dot product</td><td class="yes">✓</td><td class="no">✗</td><td class="no">no</td><td>Not even non-negative; needs MIPS-specific indexes</td></tr>
-<tr><td class="mono">Mahalanobis (Σ positive-definite)</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">yes</td><td>A metric in the whitened space</td></tr>
-<tr><td class="mono">Hamming</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">yes</td><td>Metric; also SIMD-cheap on bit strings</td></tr>
-<tr><td class="mono">Jaccard distance (1 − J)</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">yes</td><td>Metric — MinHash/LSH bounds rest on this</td></tr>
-<tr><td class="mono">Dice distance (1 − Dice)</td><td class="yes">✓</td><td class="no">✗</td><td class="no">no</td><td>Ranks like Jaccard, but no metric guarantees</td></tr>
-<tr><td class="mono">Levenshtein (unit costs)</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">yes</td><td>Metric; BK-trees exploit it. Non-unit costs can break symmetry</td></tr>
-<tr><td class="mono">Damerau–Levenshtein (unrestricted)</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">yes</td><td>The <b>OSA</b> variant most libraries ship is <i>not</i> a metric</td></tr>
-<tr><td class="mono">Jaro / Jaro–Winkler</td><td class="part">✓*</td><td class="no">✗</td><td class="no">no</td><td>Scores only — never feed to a metric index</td></tr>
-<tr><td class="mono">KL divergence</td><td class="no">✗</td><td class="no">✗</td><td class="no">no</td><td>Asymmetric and unbounded; not a distance at all</td></tr>
-<tr><td class="mono">√(JS divergence)</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">yes</td><td>The symmetric, bounded, metric fix for KL</td></tr>
-<tr><td class="mono">Wasserstein-1</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">yes</td><td>Metric on distributions, even disjoint ones</td></tr>
-<tr><td class="mono">Haversine</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">yes</td><td>Metric on the sphere (not in flat lat/long space)</td></tr>
-<tr><td class="mono">Gower</td><td class="yes">✓</td><td class="part">~</td><td class="part">usually not</td><td>Depends on the per-column pieces and weights</td></tr>
+<tr><td class="mono">ratio</td><td>Indel similarity on the whole strings</td><td>Typos, OCR noise</td><td>Word order, extra tokens</td></tr>
+<tr><td class="mono">partial_ratio</td><td>Best ratio of the shorter string against any window of the longer</td>
+    <td>"Ardent" inside a long OCR line</td><td>Short queries match almost anything</td></tr>
+<tr><td class="mono">token_sort_ratio</td><td>Sort tokens alphabetically, then ratio</td>
+    <td>Reordered names, "Surname, First"</td><td>Extra or missing tokens still hurt</td></tr>
+<tr><td class="mono">token_set_ratio</td><td>Compare intersection vs remainders as sets</td>
+    <td>Different lengths, subset names</td><td><b>Over-scores:</b> any shared token can hit 100</td></tr>
+<tr><td class="mono">WRatio</td><td>Weighted blend of the above with length heuristics</td>
+    <td>A quick default when you cannot tune</td><td>Unexplainable scores; hard to debug</td></tr>
 </tbody></table></div>
-<p class="cap">* Jaro–Winkler's prefix bonus is applied to both arguments identically, so it is symmetric — but
-symmetry alone does not buy you a metric.</p>
-
+<div class="work"><div class="t">Why the token variants exist</div>
+<pre><code>x = "Ardent Freight Lines Inc"    y = "Inc Ardent Freight Lines"
+ratio            ≈ 52   ← character positions all shifted
+token_sort_ratio = 100  ← same multiset of tokens, sorted
+token_set_ratio  = 100</code></pre></div>
 <div class="pcw">
-<div class="box b-use"><div class="bt">🎯 Why it matters concretely</div><ul>
-<li><b>ANN indexes</b> (FAISS, HNSW, Annoy) prune with the triangle inequality; feed them a non-metric and
-recall silently drops.</li>
-<li><b>Hierarchical clustering</b> with Ward linkage assumes squared Euclidean — swapping in cosine changes
-what the dendrogram means.</li>
-<li><b>Blocking / BK-trees</b> in record linkage need a metric to guarantee no missed candidate within a radius.</li>
-<li><b>Thresholds</b> transfer between datasets only for bounded metrics. "0.85" means nothing for raw Levenshtein.</li>
+<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
+<li>Bounded 0–100, and the token variants solve word-order problems edit distance cannot.</li>
+<li>RapidFuzz is C++-backed and genuinely fast (a large multiple of the old pure-Python fuzzywuzzy), with
+<code>process.cdist</code> for batched matrices and a <code>score_cutoff</code> that prunes early.</li>
+<li><code>partial_ratio</code> is the right tool for "find this field inside a noisy OCR line".</li>
+</ul></div>
+<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
+<li><b>Not the metric you think it is.</b> Indel ≠ Levenshtein, so 90 means different things in different
+scorers and none of them is a metric.</li>
+<li><code>token_set_ratio</code> is dangerously optimistic — "Ardent Inc" vs "Nova Inc" can score very high off
+a shared stop-token.</li>
+<li>Sorting tokens destroys real signal ("First National" vs "National First" are different companies).</li>
+<li>Scores are not probabilities. Do not average them across fields without calibration.</li>
+</ul></div>
+<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
+<li>Practical fuzzy matching where you will <b>tune thresholds on labelled pairs</b> per field.</li>
+<li>Multi-word entity fields — use <code>token_sort</code> for order, <code>partial</code> for containment.</li>
+<li>Always report which scorer produced the score. "Similarity 92" alone is not reproducible.</li>
 </ul></div>
 </div>
 </div>
 </section>
-<section id="playground">
+<section id="phonetic">
 <div class="card">
-<h2><span class="num">02</span> Playground: one pair of points, every geometric metric at once</h2>
-<p class="lede">Drag either point. Every metric below is recomputed from the same two coordinates — the fastest
-way to build intuition for how differently they rank the <i>same</i> movement. Watch what happens when you move
-a point diagonally versus along one axis.</p>
-<div class="ctrls">
-  <span class="ctrl"><label for="pg-p">Minkowski p</label><input id="pg-p" type="range" min="1" max="8" step="0.1" value="3"><span class="v" id="pg-pv">3.0</span></span>
-  <button class="btn" id="pg-reset">Reset points</button>
+<h2><span class="num">08</span> Phonetic distance <span class="alias">Soundex · Metaphone — matching by sound</span></h2>
+<p class="lede">Encode a word by how it sounds, then compare codes. It catches variants no character-level metric
+can — different spellings of the same spoken name — and it is cheap enough to use as a blocking key.</p>
+<div class="fml">Soundex: keep the first letter, map the rest to digits, drop vowels,
+         collapse repeats, pad/truncate to 4 characters.
+  b,f,p,v → 1    c,g,j,k,q,s,x,z → 2    d,t → 3
+  l       → 4    m,n             → 5    r   → 6</div>
+<div class="work"><div class="t">Worked examples</div>
+<pre><code>Robert  → R-b(1)-r(6)-t(3)  → <b>R163</b>
+Rupert  → R-p(1)-r(6)-t(3)  → <b>R163</b>   same code → phonetic match ✓
+Smith   → S-m(5)-th(3)      → <b>S530</b>
+Smyth   → S-m(5)-th(3)      → <b>S530</b>   ✓
+Jackson → J-ck(2)-s(2→drop)-n(5) → <b>J250</b>
+Jaxon   → J-x(2)-n(5)       → <b>J250</b>   ✓
+
+Kathy   → <b>K300</b>              Cathy → <b>C300</b>   ✗ different first letter → MISS</code></pre></div>
+<div class="pcw">
+<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
+<li>Catches spelling variants that edit distance rates as far apart ("Smith"/"Smyth" needs 2 edits on 5
+characters).</li>
+<li>O(n) to compute, and the code is a perfect <b>hash bucket</b> — the cheapest useful blocking key in record
+linkage.</li>
+<li>Robust to vowel noise, which is where dictation and manual entry go wrong most.</li>
+</ul></div>
+<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
+<li><b>Binary, not graded</b> — codes either match or they don't, so there is no ranking.</li>
+<li><b>English-centric.</b> On non-English names it is close to useless; Double Metaphone or Beider–Morse do
+much better.</li>
+<li><b>The first letter must match</b>, so Kathy/Cathy, Philip/Filip and Christina/Kristina all fail.</li>
+<li>Very coarse — 4 characters means huge collision buckets ("Robert" and "Rupert" is a feature; hundreds of
+unrelated surnames sharing R163 is not).</li>
+<li>Meaningless for OCR errors (visual confusions are not phonetic) and for numeric fields.</li>
+</ul></div>
+<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
+<li>Blocking on person/company names before an expensive pairwise scorer.</li>
+<li>Voice-to-text or hand-transcribed input.</li>
+<li>As a <b>feature</b> ("codes agree: yes/no") in a match-scoring model — never as the only test.</li>
+</ul></div>
 </div>
-<div class="viz" id="v-pg"><div class="vt">Drag the dots · <span style="color:var(--l2)">L2 line</span>,
-  <span style="color:var(--l1)">L1 staircase</span>, <span style="color:var(--linf)">L∞ box</span>,
-  <span style="color:var(--cos)">cosine angle</span></div></div>
-<div class="readout" id="pg-out"></div>
-<p class="cap">Try A = (1, 2), B = (4, 6): the 3-across-4-up move gives L1 = 7, L2 = 5, L∞ = 4 — the same
-displacement, three answers. L1 counts every step you take; L2 measures the shortcut; L∞ only cares about your
-single worst axis.</p>
-<div class="note n-key"><p><b>Read it as a rule.</b> For any two points,
-<code>L∞ ≤ L2 ≤ L1</code>, and raising <i>p</i> slides you from "sum of all deviations" toward
-"just the largest deviation".</p></div>
 </div>
 </section>
-<section id="balls">
+<section id="sbench">
 <div class="card">
-<h2><span class="num">03</span> Unit balls: the shape of "distance 1"</h2>
-<p class="lede">The cleanest picture of a metric is its <b>unit ball</b> — every point exactly distance 1 from
-the origin. Whatever shape you see is the shape of "close" for that metric, and it is also the shape your KNN
-neighbourhoods and your regularisation penalties take.</p>
+<h2><span class="num">09</span> String bench <span class="alias">every string metric on one pair, live</span></h2>
+<p class="lede">Pick a preset or type your own. Everything below is computed in this page from the definitions in
+§20–§24, so you can see the metrics <b>disagree by design</b> — and see which ones survive the failure mode you
+actually have.</p>
 <div class="ctrls">
-  <span class="ctrl"><label for="ub-p">p</label><input id="ub-p" type="range" min="0.4" max="10" step="0.05" value="2"><span class="v" id="ub-pv">2.00</span></span>
-  <span class="ctrl" id="ub-presets"></span>
+  <span class="ctrl"><label for="sb-a">x</label><input id="sb-a" type="text" value="ARDENT FREIGHT LINES" style="width:250px"></span>
+  <span class="ctrl"><label for="sb-b">y</label><input id="sb-b" type="text" value="ESIES EXPRESS LlNES" style="width:250px"></span>
 </div>
-<div class="viz" id="v-balls"><div class="vt">|x|<sup>p</sup> + |y|<sup>p</sup> = 1</div></div>
+<div class="pillrow" id="sb-presets"></div>
+<div class="tw" id="sb-table"></div>
+<div class="viz" id="v-sbench"><div class="vt">The same pair, scored by each metric (all rescaled to 0–1 similarity)</div></div>
+<div class="note n-key"><p><b>How to use this in a real pipeline.</b> No single scorer wins. Production record
+linkage runs a <b>cheap blocker</b> (Soundex code, shared bigram, first 4 characters) to cut the candidate set,
+then computes <b>several</b> of these scores as features, then lets a tuned rule set or a small classifier
+combine them — with a human-review band in the middle for scores near the threshold.</p></div>
+</div>
+</section>
+<section id="linkage">
+<div class="card">
+<h2><span class="num">10</span> Combining field scores <span class="alias">Fellegi–Sunter · how many metrics become one decision</span></h2>
+<p class="lede">No real match decision rests on one metric. Each field gets its own comparator — Jaro–Winkler on
+the name, Levenshtein on the code, Haversine on the coordinates — and each returns "agrees" or "disagrees".
+Fellegi–Sunter turns those verdicts into <b>log-likelihood weights</b> that add up to a single score.</p>
+<div class="fml">m(f) = P(field f agrees | the pair IS a match)        <span class="cm">high for a good comparator</span>
+u(f) = P(field f agrees | the pair is NOT a match)   <span class="cm">low for a discriminative field</span>
+
+agreement weight    = log₂( m / u )              <span class="cm">evidence FOR a match</span>
+disagreement weight = log₂( (1−m) / (1−u) )      <span class="cm">evidence AGAINST (negative)</span>
+total score         = Σ over fields              <span class="cm">then two thresholds: match / review / reject</span></div>
+
+<div class="ctrls" id="fs-toggles"></div>
+<div class="viz" id="v-fs"><div class="vt">Click a field to flip it between agree and disagree — the waterfall re-adds</div></div>
+<div class="readout" id="fs-out"></div>
+<p class="cap">Note how uneven the evidence is. A matching <b>name</b> is worth 9.9 bits because names rarely
+agree by chance (u = 0.001); a matching <b>city</b> is worth only 4.2 bits because plenty of unrelated records
+share a city. That asymmetry is the entire value of the method — and it is why "3 out of 4 fields matched" is a
+bad rule.</p>
+
+<div class="work"><div class="t">Worked example — four fields, three pairs</div>
+<pre><code>field    m      u        agree weight        disagree weight
+name     0.95   0.001    log₂(950)  = +9.892   log₂(0.05/0.999) = −4.320
+street   0.85   0.010    log₂(85)   = +6.409   log₂(0.15/0.99)  = −2.722
+city     0.95   0.050    log₂(19)   = +4.248   log₂(0.05/0.95)  = −4.248
+zip      0.90   0.020    log₂(45)   = +5.492   log₂(0.10/0.98)  = −3.293
+
+pair 1  all four agree                     total = <b>+26.04</b>  → auto-match
+pair 2  street disagrees, rest agree       total = <b>+16.91</b>  → auto-match
+pair 3  name and zip disagree              total = <b>+3.04</b>   → review / reject</code></pre></div>
+
+<div class="pcw">
+<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
+<li><b>Field-aware:</b> rare-value agreements count for more than common ones, automatically.</li>
+<li>Scores are additive and in bits, so a decision is fully explainable — you can show the audit trail.</li>
+<li>m and u can be <b>learned unsupervised</b> with EM (this is what Splink does), so you do not need labels to
+start.</li>
+<li>Naturally produces a three-way outcome: auto-match, human review, reject.</li>
+<li>Drops straight into the metrics on this page — each field's "agrees" is just a threshold on its own scorer.</li>
+</ul></div>
+<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
+<li>Assumes fields are <b>conditionally independent</b>. City and zip are obviously not, so their combined
+evidence is double-counted and scores are over-confident.</li>
+<li>Binary agree/disagree throws away the graded score (fix: level it — exact / close / different).</li>
+<li>u must be estimated from the data; a bad estimate silently mis-weights everything.</li>
+<li>Sensitive to missing values — "missing" is not the same as "disagrees".</li>
+<li>A gradient-boosted classifier over the same field scores usually beats it when you do have labels.</li>
+</ul></div>
+<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
+<li>Record linkage / deduplication across systems with several comparable fields.</li>
+<li>You need an <b>explainable</b> decision (regulated data, audit requirements).</li>
+<li>You have no labels — start with EM-estimated weights, then upgrade to a supervised model once review
+decisions accumulate as labels.</li>
+</ul></div>
+</div>
+</div>
+</section>
+<section id="thresholds">
+<div class="card">
+<h2><span class="num">11</span> Choosing the threshold <span class="alias">where the metric stops and the business starts</span></h2>
+<p class="lede">Every metric on this page ends at the same question: <b>above what score do you act?</b> The answer
+is not a property of the metric. It comes from the overlap of the two score distributions, and — critically —
+from how badly the classes are imbalanced.</p>
+<div class="ctrls">
+  <span class="ctrl"><label for="th-t">threshold</label>
+    <input id="th-t" type="range" min="0.4" max="0.99" step="0.01" value="0.85"><span class="v" id="th-tv">0.85</span></span>
+  <span class="ctrl"><label for="th-w">review band ±</label>
+    <input id="th-w" type="range" min="0" max="0.12" step="0.01" value="0.04"><span class="v" id="th-wv">0.04</span></span>
+  <span class="ctrl"><label for="th-n">non-matches per match</label>
+    <input id="th-n" type="range" min="1" max="3" step="0.1" value="2"><span class="v" id="th-nv">100:1</span></span>
+</div>
+<div class="viz" id="v-thr"><div class="vt">200 true matches against a much larger pile of non-matches — and where you cut</div></div>
+<div class="readout" id="th-out"></div>
+<p class="cap">Slide the threshold from 0.75 to 0.90 and watch precision climb while recall falls. Then raise the
+imbalance: with 100 non-matches per match, a threshold that captured 98% of matches also drags in hundreds of
+false ones. <b>This is why "our similarity is 0.85+" is not a quality claim.</b></p>
+
+<div class="fml">precision = TP / (TP + FP)      <span class="cm">of the pairs we merged, how many were right</span>
+recall    = TP / (TP + FN)      <span class="cm">of the true duplicates, how many did we catch</span>
+F1        = 2PR / (P + R)       <span class="cm">only meaningful if the two costs are comparable</span></div>
+
+<div class="pcw">
+<div class="box b-use"><div class="bt">🎯 How to actually pick one</div><ul>
+<li><b>Label a sample of pairs</b> — a few hundred is enough to see the overlap. Stratify by score so you get
+examples near the boundary.</li>
+<li>Plot both distributions. If they barely overlap, the metric is doing its job and the threshold is easy; if
+they overlap heavily, no threshold will save you — improve the features or the comparator.</li>
+<li>Choose from the <b>precision–recall curve at the business cost ratio</b>. A wrong merge of two customers is
+usually far more expensive than a missed duplicate.</li>
+<li>Keep a <b>review band</b> around the cut and route it to humans. Those decisions become your future labels.</li>
+<li>Re-validate on a rolling sample: thresholds drift when field lengths, OCR engines or embedding models change.</li>
+<li>Only ever threshold a <b>bounded, normalised</b> score — never raw Levenshtein or a dot product.</li>
+</ul></div>
+<div class="box b-con"><div class="bt">⚠️ Where teams go wrong</div><ul>
+<li>Picking 0.85 because it appeared in a blog post.</li>
+<li>Reporting accuracy on a set where 99.9% of pairs are non-matches — "99.8% accurate" is worse than useless.</li>
+<li>Tuning the threshold on the same pairs used to report the final metrics.</li>
+<li>One global threshold for every field and every record type.</li>
+<li>Measuring only the scorer, never the <b>blocker</b> — pairs that blocking dropped are invisible in your
+precision/recall.</li>
+</ul></div>
+</div>
+</div>
+</section>
+<section id="entity">
+<div class="card">
+<h2><span class="num">12</span> Entity resolution <span class="alias">pairs → clusters → golden record</span></h2>
+<p class="lede">Your matcher outputs <b>pairs</b>. The business needs <b>entities</b> — one row per real customer.
+Turning pairwise scores into clusters is where fuzzy matching most often goes wrong, because
+<b>similarity is not transitive</b>: A matches B, B matches C, and A and C are different people.</p>
+
+<div class="ctrls">
+  <span class="ctrl"><label for="er-t">threshold</label>
+    <input id="er-t" type="range" min="0.78" max="0.99" step="0.005" value="0.9"><span class="v" id="er-tv">0.900</span></span>
+  <span class="ctrl" id="er-presets"></span>
+</div>
+<div class="viz" id="v-er"><div class="vt">Six records, Jaro–Winkler above the threshold drawn as edges — then two ways to cut them into entities</div></div>
+<div class="readout" id="er-out"></div>
+<p class="cap">At <b>0.90</b> the transitive closure swallows all six into one "entity", even though
+<code>John Smithe</code> and <code>Joanne Smythe</code> score only <b>0.781</b> together — far below the
+threshold you set. Complete linkage refuses that merge and returns three sensible clusters. Slide up to 0.92 and
+the chain finally breaks on its own; that is luck, not a method.</p>
+
+<div class="fml">transitive closure   merge if ANY pair in the group is above the threshold   <span class="cm">single linkage — chains</span>
+complete linkage     merge only if EVERY pair is above the threshold          <span class="cm">cliques — conservative</span>
+average linkage      merge on the mean pairwise score                        <span class="cm">a middle ground</span>
+correlation clustering  maximise agreements − disagreements over all pairs    <span class="cm">principled, NP-hard, approximated</span></div>
+
+<h3>Choosing the clustering rule</h3>
 <div class="tw"><table>
-<thead><tr><th>p</th><th>Name</th><th>Unit ball</th><th>Personality</th></tr></thead>
+<thead><tr><th>Rule</th><th>Behaviour</th><th>✅ Use when</th><th>⚠️ Failure mode</th></tr></thead>
 <tbody>
-<tr><td class="mono">p &lt; 1</td><td>—</td><td>Star / concave</td><td>Not a metric: the dent means a detour can beat the direct path</td></tr>
-<tr><td class="mono">1</td><td>Manhattan</td><td>Diamond</td><td>Corners sit on the axes → sparse solutions (this is why Lasso zeroes coefficients)</td></tr>
-<tr><td class="mono">2</td><td>Euclidean</td><td>Circle</td><td>Rotation-invariant — the only Lp that is</td></tr>
-<tr><td class="mono">3–10</td><td>Minkowski</td><td>Rounded square</td><td>Increasingly dominated by the largest single coordinate</td></tr>
-<tr><td class="mono">∞</td><td>Chebyshev</td><td>Square</td><td>Only the worst axis counts; all others are free</td></tr>
+<tr><td class="mono">Connected components<br>(transitive closure)</td><td>One weak chain merges everything</td>
+    <td>Very high precision pairs; deduplicating exact-ish records</td>
+    <td><b>Giant blob:</b> one bad pair merges two real entities — and it is unbounded, so a whole file can collapse
+    into one cluster</td></tr>
+<tr><td class="mono">Complete linkage<br>(cliques)</td><td>Every member must match every member</td>
+    <td>The safe default when a wrong merge is expensive</td>
+    <td>Over-splits: one bad score inside a true entity breaks it into pieces</td></tr>
+<tr><td class="mono">Average linkage</td><td>Merges on mean similarity</td>
+    <td>Noisy scores where neither extreme works</td>
+    <td>No hard guarantee either way; harder to explain</td></tr>
+<tr><td class="mono">Correlation clustering</td><td>Optimises the whole graph at once</td>
+    <td>You have calibrated probabilities per pair</td>
+    <td>NP-hard, needs approximation; opaque to auditors</td></tr>
+<tr><td class="mono">Hierarchical + cut<br>(on the distance matrix)</td><td>Full dendrogram, cut where you like</td>
+    <td>Small blocks; you want to inspect the structure</td>
+    <td>O(n²) memory — only viable inside a block</td></tr>
 </tbody></table></div>
-<div class="note n-warn"><p><b>Rotation matters.</b> Only the circle (p = 2) looks the same after you rotate the
-axes. So if your feature axes are arbitrary — PCA components, random projections, embedding dimensions —
-L1 and L∞ answers depend on a coordinate system that carries no meaning.</p></div>
-</div>
-</section>
-<section id="euclidean">
-<div class="card">
-<h2><span class="num">04</span> Euclidean distance <span class="alias">L2 · ‖x−y‖₂ · "as the crow flies"</span></h2>
-<p class="lede">Pythagoras in <i>k</i> dimensions: square every coordinate gap, add them up, take the root. It is
-the distance your eye already believes in, which is exactly why it is the default — and why people forget it
-assumes all axes are in the same units.</p>
 
-<div class="fml">d(x, y) = √( Σᵢ (xᵢ − yᵢ)² )        <span class="cm">= ‖x − y‖₂</span></div>
+<div class="note n-warn"><p><b>Hard rules beat scores.</b> Add non-negotiable constraints <i>before</i> clustering:
+never merge two records with different government IDs; never merge if the same source system already treats them
+as distinct; never merge across a hazmat/non-hazmat flag. These cut exactly the chains that similarity cannot see,
+and they are trivial to explain in an audit.</p></div>
 
-<div class="viz" id="v-pyth"><div class="vt">Where the square root comes from</div></div>
+<h3>Survivorship — building the golden record</h3>
+<p>Once records are clustered, one value per field has to win. Pick the rule per field, not per record.</p>
+<div class="tw"><table>
+<thead><tr><th>Rule</th><th>Field it suits</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td class="mono">most recent</td><td>Address, phone, status</td><td>Take the value from the newest source timestamp</td></tr>
+<tr><td class="mono">most frequent (vote)</td><td>Name spelling, city</td><td>4 of 6 records say "Ardent Freight Lines" → that wins</td></tr>
+<tr><td class="mono">most trusted source</td><td>Legal name, tax ID</td><td>ERP beats the web form; keep an explicit source ranking</td></tr>
+<tr><td class="mono">longest / most complete</td><td>Address lines, descriptions</td><td>"1234 Main Street Apt 5" beats "1234 Main St"</td></tr>
+<tr><td class="mono">highest confidence</td><td>Anything OCR-derived</td><td>Keep the value whose extraction confidence was highest</td></tr>
+<tr><td class="mono">union / keep all</td><td>Phones, emails, aliases</td><td>Multi-valued by nature — do not collapse</td></tr>
+</tbody></table></div>
+<p class="cap">Always keep the <b>lineage</b>: which source record supplied each surviving value. Without it you
+cannot explain the golden record, and you cannot unmerge when a merge turns out to be wrong — and some will be.</p>
 
-<div class="work"><div class="t">Worked example — A = (1, 2), B = (4, 6)</div>
-<pre><code>Δ  = (4−1, 6−2)            = (3, 4)
-Σ  = 3² + 4²               = 9 + 16 = 25
-d  = √25                   = <b>5.000</b>      ← the classic 3-4-5 triangle
-d² = 25                                  (squared version, §05)</code></pre></div>
+<h3>Blocking strategies, since you cannot score every pair</h3>
+<div class="tw"><table>
+<thead><tr><th>Strategy</th><th>How it works</th><th>Recall</th><th>Cost</th><th>Watch out</th></tr></thead>
+<tbody>
+<tr><td class="mono">exact key</td><td>Group by zip, or first 4 characters</td><td class="no">low</td><td class="yes">tiny</td>
+    <td>One typo in the key loses the pair forever</td></tr>
+<tr><td class="mono">phonetic key</td><td>Group by Soundex / Double Metaphone (§24)</td><td class="part">medium</td><td class="yes">tiny</td>
+    <td>First letter must agree; English-centric</td></tr>
+<tr><td class="mono">q-gram inverted index</td><td>Candidates share ≥ k q-grams (§17)</td><td class="yes">high</td><td class="part">medium</td>
+    <td>Frequent grams create huge posting lists</td></tr>
+<tr><td class="mono">sorted neighbourhood</td><td>Sort by a key, slide a window of w records</td><td class="part">medium</td><td class="yes">low</td>
+    <td>Only catches records the sort key puts near each other; run it with several keys</td></tr>
+<tr><td class="mono">MinHash + LSH</td><td>Bucket signatures, tune b and r (§18)</td><td class="yes">tunable</td><td class="part">medium</td>
+    <td>Recall loss is invisible unless you measure it</td></tr>
+<tr><td class="mono">ANN on embeddings</td><td>Cosine top-k over name vectors (§09)</td><td class="yes">high</td><td class="no">GPU/index</td>
+    <td>Semantically close ≠ same entity ("Ardent" vs "Ardent Trucking Co" vs a competitor)</td></tr>
+</tbody></table></div>
+<div class="note n-key"><p><b>Measure blocking separately.</b> Blocking recall = of all true duplicate pairs, how
+many survived blocking. If that is 0.85, your matcher's ceiling is 0.85 no matter how good the scorer is — and no
+threshold tuning will ever reveal the problem, because those pairs are never scored.</p></div>
 
 <div class="pcw">
-<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
-<li><b>Rotation-invariant</b> — the only Lp that is. Rotate your axes (PCA, random projection) and distances
-do not change.</li>
-<li>True metric → safe with KD-trees, ball trees, HNSW, hierarchical clustering.</li>
-<li>Differentiable and smooth → gradient descent, k-means, RBF/Gaussian kernels all build on it.</li>
-<li>Units are interpretable: "1.4 units away" means something if your features have units.</li>
+<div class="box b-pro"><div class="bt">✅ What good ER gives you</div><ul>
+<li>A stable entity ID that survives re-runs, so downstream joins do not churn.</li>
+<li>Per-field lineage and a documented merge reason for every cluster.</li>
+<li>A review queue that shrinks over time as its decisions become training labels.</li>
 </ul></div>
-<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
-<li><b>Scale-dominated:</b> a salary column in rupees swamps an age column. Standardise or it silently becomes
-a one-feature distance.</li>
-<li><b>Outlier-amplifying:</b> squaring means one wild coordinate can decide the whole answer.</li>
-<li><b>Concentrates in high dimensions</b> — all pairs drift toward the same distance (§33).</li>
-<li>Assumes independent, equally-important axes — correlated features get double-counted (§14).</li>
+<div class="box b-con"><div class="bt">⚠️ Disadvantages / hard parts</div><ul>
+<li><b>Non-transitivity</b> is unavoidable — every clustering rule trades over-merging against over-splitting.</li>
+<li>Clusters are unstable: one new record can re-shape yesterday's entities, so IDs drift unless you pin them.</li>
+<li>Evaluation is genuinely hard — pairwise F1, cluster-level metrics and B-cubed all disagree.</li>
+<li>Incremental ER (a new record arriving) is a different algorithm from batch ER, and usually needs its own code path.</li>
 </ul></div>
 <div class="box b-pit"><div class="bt">🐞 Pitfalls</div><ul>
-<li>Fitting the scaler on train + test together, so distances leak.</li>
-<li>Using it on TF-IDF: long documents land far from everything simply because their vectors are longer.</li>
-<li>One-hot columns give every category pair the same √2 gap — a fake uniformity.</li>
-<li>Comparing distances across datasets after refitting a scaler — the scale changed, the numbers are not comparable.</li>
+<li>Running connected components on a 0.80 threshold and shipping the resulting mega-cluster.</li>
+<li>No unmerge path, so the first wrong merge is permanent.</li>
+<li>Re-generating entity IDs from scratch each run, breaking every downstream reference.</li>
+<li>Reporting pairwise precision/recall and calling it entity accuracy — they are not the same number.</li>
 </ul></div>
-<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
-<li>Features are continuous, standardised, and few-to-moderate in number (&lt; ~30 informative dims).</li>
-<li>You are running k-means, KNN, DBSCAN or Gaussian-kernel methods on tabular data.</li>
-<li>Embeddings are already L2-normalised — then it ranks identically to cosine (§11).</li>
-</ul></div>
-</div>
-</div>
-</section>
-<section id="sqeuclid">
-<div class="card">
-<h2><span class="num">05</span> Squared Euclidean <span class="alias">‖x−y‖₂² · SSE / inertia</span></h2>
-<p class="lede">Euclidean without the final square root. Because √ is monotonic, <b>every ranking is identical</b> —
-so if you only need nearest-neighbour order, the root is wasted work.</p>
-<div class="fml">d²(x, y) = Σᵢ (xᵢ − yᵢ)²      <span class="cm">argmin d² = argmin d — same neighbours, cheaper</span></div>
-<div class="work"><div class="t">Why it is not a metric — one line on a number line</div>
-<pre><code>x = 0, y = 3, z = 6
-d²(x,z) = 36        d²(x,y) + d²(y,z) = 9 + 9 = 18
-36 ≤ 18 ?  <b>NO</b>  → triangle inequality violated</code></pre></div>
-<div class="pcw">
-<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
-<li>Skips <i>n</i> square roots per query — a real win in tight KNN loops.</li>
-<li>It <b>is</b> the k-means objective (inertia) and Ward-linkage criterion, so the maths stays exact.</li>
-<li>Expands to ‖x‖² + ‖y‖² − 2x·y, which lets you compute a whole distance matrix as one matrix multiply.</li>
-</ul></div>
-<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
-<li>Not a metric → unsafe for triangle-inequality pruning in ball trees / BK-trees.</li>
-<li>Values are not in data units and are not comparable to thresholds set on plain Euclidean.</li>
-<li>Outlier sensitivity is doubled relative to L2.</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
-<li>Ranking or optimisation only — KNN scoring, k-means, RBF kernels (which use −γ‖x−y‖²).</li>
-<li>You need a vectorised pairwise-distance matrix: <code>‖x‖² + ‖y‖ᵀ² − 2XYᵀ</code>.</li>
-</ul></div>
-</div>
-<div class="note n-warn"><p><b>Watch the negatives.</b> The matrix-multiply trick can return tiny negative values
-from floating-point cancellation. <code>np.maximum(d2, 0)</code> before the sqrt, or you get NaNs that surface
-three steps later.</p></div>
-</div>
-</section>
-<section id="manhattan">
-<div class="card">
-<h2><span class="num">06</span> Manhattan distance <span class="alias">L1 · taxicab · city-block</span></h2>
-<p class="lede">You cannot cut through buildings — you walk the grid. Sum the absolute gaps, no squaring, so a
-single crazy coordinate contributes its own size and no more.</p>
-<div class="fml">d(x, y) = Σᵢ |xᵢ − yᵢ|        <span class="cm">= ‖x − y‖₁</span></div>
-
-<div class="ctrls">
-  <span class="ctrl"><label for="ct-out">size of the worst coordinate gap</label>
-    <input id="ct-out" type="range" min="1" max="14" step="0.5" value="3"><span class="v" id="ct-outv">3.0</span></span>
-</div>
-<div class="viz" id="v-contrib"><div class="vt">One outlier coordinate, three verdicts — drag the slider and watch L2 run away</div></div>
-<div class="readout" id="ct-out2"></div>
-<p class="cap">L1 grows linearly with the bad coordinate, L2 grows with its square, and L∞ eventually
-<i>becomes</i> it — the other coordinates stop mattering at all.</p>
-
-<div class="work"><div class="t">Worked example — A = (1, 2), B = (4, 6)</div>
-<pre><code>|3| + |4| = <b>7.000</b>       vs Euclidean 5.000, Chebyshev 4.000
-Always: L∞ ≤ L2 ≤ L1        (4 ≤ 5 ≤ 7 ✓)</code></pre></div>
-
-<div class="pcw">
-<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
-<li><b>Robust to outliers</b> — errors count once, not squared.</li>
-<li>Cheap: no multiplies, no roots. Great for big brute-force scans and integer features.</li>
-<li>Its diamond ball has corners on the axes → <b>sparsity</b>. This is precisely why Lasso (L1 penalty) zeroes
-coefficients while Ridge (L2) only shrinks them.</li>
-<li>Often <b>ranks better than L2 in high dimensions</b> — it concentrates more slowly (§33).</li>
-<li>Natural for grid-like reality: warehouse aisles, chip layouts, pixel offsets.</li>
-</ul></div>
-<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
-<li><b>Not rotation-invariant.</b> Rotate the axes and distances change, so it only makes sense when the axes
-themselves mean something.</li>
-<li>Non-differentiable at 0 → awkward in gradient-based objectives (sub-gradients needed).</li>
-<li>Still scale-sensitive; standardising is not optional.</li>
-<li>Many ties on discrete data — neighbour order becomes arbitrary.</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
-<li>Features are heterogeneous, heavy-tailed, or contain occasional garbage values.</li>
-<li>High-dimensional sparse counts where L2 has gone flat.</li>
-<li>Axes are physically meaningful (grid movement, per-field cost of a mismatch).</li>
-<li>You want a distance that behaves like a median rather than a mean.</li>
+<div class="box b-use"><div class="bt">🎯 The pipeline, in order</div><ul>
+<li><b>normalise</b> → case, punctuation, legal suffixes, address abbreviations</li>
+<li><b>block</b> → cheap candidates, measured on recall</li>
+<li><b>score</b> → several metrics per field (§25)</li>
+<li><b>combine</b> → weighted or learned (§26)</li>
+<li><b>threshold</b> → accept / review / reject (§27)</li>
+<li><b>cluster</b> → complete linkage + hard rules</li>
+<li><b>survive</b> → golden record with lineage</li>
 </ul></div>
 </div>
 </div>
 </section>
-<section id="chebyshev">
+<section id="pitfalls">
 <div class="card">
-<h2><span class="num">07</span> Chebyshev distance <span class="alias">L∞ · maximum · chessboard</span></h2>
-<p class="lede">Only the worst axis counts. A king on a chessboard reaches any adjacent square — diagonals
-included — in one move, because the diagonal costs <code>max(1, 1) = 1</code>.</p>
-<div class="fml">d(x, y) = maxᵢ |xᵢ − yᵢ|      <span class="cm">= limit of Lp as p → ∞</span></div>
-<div class="work"><div class="t">Worked example — A = (1, 2), B = (4, 6)</div>
-<pre><code>max(|3|, |4|) = <b>4.000</b>
-Add a third coordinate that matches exactly → still 4.000 (free dimensions)</code></pre></div>
-<div class="pcw">
-<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
-<li>Encodes "<b>any single violation is the whole problem</b>" — perfect for tolerance and SLA checks.</li>
-<li>Very cheap, and immune to the number of dimensions that happen to agree.</li>
-<li>Matches machines that move axes in parallel: gantry cranes, CNC heads, plotters.</li>
-</ul></div>
-<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
-<li><b>Throws away almost all the data</b> — one coordinate decides everything.</li>
-<li>Massive ties: every point on a square shell is equidistant.</li>
-<li>Not rotation-invariant; extremely sensitive to a single noisy feature.</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
-<li>Quality gates: "flag the record if <i>any</i> field deviates by more than X".</li>
-<li>Movement cost is parallel rather than sequential.</li>
-<li>As a cheap <b>lower bound</b> on L2 to prune candidates before exact scoring.</li>
-</ul></div>
-</div>
-</div>
-</section>
-<section id="minkowski">
-<div class="card">
-<h2><span class="num">08</span> Minkowski distance <span class="alias">Lp · the family that contains the others</span></h2>
-<p class="lede">One formula with a dial. <i>p</i> = 1 gives Manhattan, <i>p</i> = 2 gives Euclidean, <i>p</i> → ∞
-gives Chebyshev. In scikit-learn this is literally the <code>p</code> argument of
-<code>KNeighborsClassifier(metric="minkowski", p=…)</code>.</p>
-<div class="fml">d(x, y) = ( Σᵢ |xᵢ − yᵢ|ᵗ )^(1/p)      <span class="cm">t = p; p ≥ 1 for a metric</span></div>
-<div class="work"><div class="t">Worked example — Δ = (3, 4), sweeping p</div>
-<pre><code>p = 1    3 + 4                     = 7.000
-p = 2    (9 + 16)^(1/2)            = 5.000
-p = 3    (27 + 64)^(1/3) = 91^⅓    = 4.498
-p = 8    (6561 + 65536)^(1/8)      = 4.114
-p → ∞    max(3, 4)                 = 4.000
-p = 0.5  (√3 + √4)²                = 13.928   ← larger than L1: not a metric</code></pre></div>
-<div class="pcw">
-<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
-<li><b>Tunable</b>: treat p as a hyperparameter and let cross-validation pick your geometry.</li>
-<li>Interpolates smoothly between "count all deviations" and "only the worst one".</li>
-<li>Same code path for L1/L2/L∞ in every major library.</li>
-</ul></div>
-<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
-<li>Another hyperparameter to tune, usually for a small gain.</li>
-<li>Fractional p (&lt; 1) is <b>not a metric</b> — indexes and clustering guarantees break.</li>
-<li>Large p is numerically nasty: |Δ|ᵗ overflows fast if you don't factor out the max.</li>
-<li>Non-integer p is slow — no SIMD shortcut, just <code>pow</code> per coordinate.</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
-<li>KNN tuning where the shape of the neighbourhood is worth a grid-search dimension.</li>
-<li>You want to document that L1/L2/L∞ were all considered — this is the family they come from.</li>
-</ul></div>
-</div>
-</div>
-</section>
-<section id="cosine">
-<div class="card">
-<h2><span class="num">09</span> Cosine distance <span class="alias">1 − cos θ · angular similarity</span></h2>
-<p class="lede">Forget how long the vectors are; ask only whether they <b>point the same way</b>. That is exactly
-right for text and embeddings, where length tracks document size or verbosity rather than meaning.</p>
-<div class="fml">cos(x, y) = (x · y) / (‖x‖₂ ‖y‖₂)     <span class="cm">similarity, in [−1, 1]</span>
-d_cos     = 1 − cos(x, y)             <span class="cm">distance, in [0, 2] — NOT a metric</span>
-d_ang     = arccos(cos) / π           <span class="cm">angular distance, in [0, 1] — IS a metric</span></div>
-
-<div class="ctrls">
-  <span class="ctrl"><label for="cs-k">stretch B by ×</label>
-    <input id="cs-k" type="range" min="0.3" max="3" step="0.05" value="1"><span class="v" id="cs-kv">1.00</span></span>
-  <span class="ctrl"><label for="cs-a">rotate B by °</label>
-    <input id="cs-a" type="range" min="-70" max="70" step="1" value="0"><span class="v" id="cs-av">0°</span></span>
-</div>
-<div class="viz" id="v-cos"><div class="vt">Stretching B moves Euclidean a lot and cosine <i>not at all</i>; rotating does the opposite</div></div>
-<div class="readout" id="cs-out"></div>
-
-<div class="work"><div class="t">Worked example — A = (1, 2), B = (4, 6)</div>
-<pre><code>x·y   = 1·4 + 2·6         = 16
-‖A‖   = √(1+4)  = √5      = 2.2361
-‖B‖   = √(16+36) = √52    = 7.2111
-cos   = 16 / (2.2361·7.2111) = 16 / 16.1245 = <b>0.99228</b>
-d_cos = 1 − 0.99228       = <b>0.00772</b>
-θ     = arccos(0.99228)   = 7.125°   → d_ang = 7.125/180 = 0.0396</code></pre>
-<p style="margin:8px 0 0;font-size:13.6px">Now scale: <b>C = (3, 6) = 3·A</b>. Cosine distance A↔C = <b>0</b>
-(identical direction) while Euclidean A↔C = √20 = <b>4.472</b>. Same pair, opposite verdicts.</p></div>
-
-<div class="note n-key"><p><b>The identity worth memorising.</b> For <b>L2-normalised</b> vectors,
-<code>‖a − b‖₂² = 2 − 2·cos(a, b)</code>. So Euclidean and cosine produce the <i>same ranking</i> once you
-normalise — which is why FAISS lets you use an inner-product index for cosine search. Check it with the numbers
-above: √(2 − 2·0.99228) = 0.1243, which is exactly the Euclidean distance between the two normalised vectors
-(0.4472, 0.8944) and (0.5547, 0.8321).</p></div>
-
-<div class="pcw">
-<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
-<li><b>Magnitude-invariant</b> — a 40-word and a 4 000-word document about the same topic match.</li>
-<li>Bounded and comparable, so thresholds (0.80, 0.85) transfer across datasets and are easy to reason about.</li>
-<li>Behaves far better than L2 in very high dimensions and on sparse vectors.</li>
-<li>Sparse-friendly: only shared non-zero terms contribute to the dot product.</li>
-<li>It is what nearly every embedding model was trained with — matching the training objective matters.</li>
-</ul></div>
-<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
-<li><b>Blind to magnitude when magnitude matters</b> — (1,1) and (100,100) are identical; useless for
-"how much" questions.</li>
-<li><b>Not a metric</b> (triangle inequality fails) — use angular distance if an index needs one.</li>
-<li>Undefined for the zero vector (empty document, all-stopword text) → division by zero / NaN.</li>
-<li>Ignores an additive baseline shift: two vectors offset by a constant still look aligned. Use correlation
-distance (§12) if that offset is noise.</li>
-<li>On non-negative data (TF-IDF, counts) it can never exceed 1, so half the [0, 2] range is unused and
-similarities look deceptively high.</li>
-</ul></div>
-<div class="box b-pit"><div class="bt">🐞 Pitfalls</div><ul>
-<li>Normalising twice — harmless — versus forgetting once, which silently turns your "cosine" index into a
-dot-product index that prefers long vectors.</li>
-<li>Reporting cosine <i>similarity</i> where the code returns cosine <i>distance</i>. Half of all threshold bugs.</li>
-<li><code>sklearn.metrics.pairwise.cosine_similarity</code> on a 1 M × 1 M matrix — that's a materialised
-dense matrix and an OOM kill. Batch it or use an ANN index.</li>
-<li>Comparing cosine scores across different embedding models: 0.8 in one model is not 0.8 in another.</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
-<li>Text: TF-IDF, bag-of-words, sentence/document embeddings.</li>
-<li>RAG retrieval, semantic dedup, near-duplicate detection, entity resolution on name embeddings.</li>
-<li>Any high-dimensional sparse vector where length encodes size rather than content.</li>
-</ul></div>
-</div>
-</div>
-</section>
-<section id="tfidf">
-<div class="card">
-<h2><span class="num">10</span> TF-IDF → cosine, worked <span class="alias">where the vectors come from in the first place</span></h2>
-<p class="lede">Cosine needs vectors, and for text those vectors are usually <b>TF-IDF</b>. Term frequency says how
-often a term appears here; inverse document frequency down-weights terms that appear everywhere. Then you
-L2-normalise and take cosine — which is why "Inc" contributes almost nothing while "Ardent" carries the match.</p>
-<div class="fml">tf(t, d)  = count of t in d                    <span class="cm">or 1+log(count) — sublinear, tames repetition</span>
-idf(t)    = ln( N / df(t) )                     <span class="cm">textbook form; sklearn uses ln((1+N)/(1+df))+1</span>
-w(t, d)   = tf · idf                            <span class="cm">then L2-normalise each document vector</span>
-sim(q, d) = cos(w_q, w_d)                       <span class="cm">= dot product once both are normalised</span></div>
-
-<div class="ctrls">
-  <span class="ctrl"><label for="tf-d1">d1</label><input id="tf-d1" type="text" value="ardent express lines" style="width:200px"></span>
-  <span class="ctrl"><label for="tf-d2">d2</label><input id="tf-d2" type="text" value="ardent express inc" style="width:200px"></span>
-  <span class="ctrl"><label for="tf-d3">d3</label><input id="tf-d3" type="text" value="nova freight lines" style="width:200px"></span>
-  <span class="ctrl"><label for="tf-q">query</label><input id="tf-q" type="text" value="ardent lines" style="width:200px"></span>
-</div>
-<div class="viz" id="v-tfidf"><div class="vt">The TF-IDF matrix, then cosine of the query against each document</div></div>
-<div class="readout" id="tf-out"></div>
-
-<div class="work"><div class="t">Worked example — 3 documents, query "ardent lines"</div>
-<pre><code>N = 3 documents.   df: ardent 2, express 2, lines 2, inc 1, nova 1, freight 1
-
-idf(ardent)   = ln(3/2) = 0.4055        idf(inc)     = ln(3/1) = 1.0986
-idf(express) = ln(3/2) = 0.4055        idf(nova)    = ln(3/1) = 1.0986
-idf(lines)   = ln(3/2) = 0.4055        idf(freight) = ln(3/1) = 1.0986
-
-d1 "ardent express lines" = [0.406, 0.406, 0.406, 0, 0, 0]      ‖d1‖ = 0.7023
-d2 "ardent express inc"   = [0.406, 0.406, 0,     1.099, 0, 0]  ‖d2‖ = 1.2393
-d3 "nova freight lines"  = [0, 0, 0.406, 0, 1.099, 1.099]      ‖d3‖ = 1.6057
-q  "ardent lines"         = [0.406, 0, 0.406, 0, 0, 0]          ‖q‖  = 0.5734
-
-cos(q, d1) = (0.1644 + 0.1644)/(0.5734·0.7023) = 0.3289/0.4027 = <b>0.8165</b>
-cos(q, d2) = 0.1644/(0.5734·1.2393)            = <b>0.2314</b>
-cos(q, d3) = 0.1644/(0.5734·1.6057)            = <b>0.1786</b>
-ranking: d1 ≫ d2 &gt; d3 ✓
-
-Note cos(d2, d3) = <b>0.0</b> — no shared term at all, so the angle is 90°.</code></pre></div>
-
-<div class="note n-key"><p><b>For company names, use character n-grams, not words.</b>
-<code>TfidfVectorizer(analyzer="char_wb", ngram_range=(3,4))</code> survives both typos <i>and</i> abbreviations
-("Ardent Freight" ↔ "Ardent Exp"), which word tokens cannot. The matrix stays sparse, so you can push millions of
-rows through it and pull top-k neighbours with <code>NearestNeighbors</code> or <code>sparse_dot_topn</code>
-without ever materialising the n × n similarity matrix.</p></div>
-
-<div class="pcw">
-<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
-<li><b>Interpretable</b> — you can point at the exact terms that drove a match, which matters for audits.</li>
-<li>Sparse and cheap: no GPU, no model to serve, trivially incremental.</li>
-<li>IDF automatically demotes "Inc", "LLC", "Street" without a hand-written stop-list.</li>
-<li>Strong baseline for entity matching; often beats embeddings on short, noisy, domain-specific strings.</li>
-</ul></div>
-<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
-<li><b>No semantics</b> — "freight" and "cargo" share nothing. Synonyms need embeddings or a thesaurus.</li>
-<li>Vocabulary is fixed at fit time: unseen terms in a new document contribute <b>zero</b>.</li>
-<li>IDF depends on the corpus, so refitting shifts every score — thresholds do not transfer between fits.</li>
-<li>Word tokens are brittle to typos; character n-grams fix that but inflate the vocabulary.</li>
-<li>Raw tf over-weights repetition — use sublinear <code>1+log(tf)</code> for long documents.</li>
-</ul></div>
-<div class="box b-pit"><div class="bt">🐞 Pitfalls</div><ul>
-<li>Fitting the vectoriser on train + test together — leakage through the IDF values.</li>
-<li>Forgetting that <code>TfidfVectorizer</code> already L2-normalises, then normalising again in the metric.</li>
-<li>Comparing cosine values computed under two different vectorisers.</li>
-<li>Empty vectors after cleaning (all terms out-of-vocabulary) → zero norm → NaN cosine.</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
-<li>Fuzzy matching company names, addresses, product titles at scale.</li>
-<li>You need explainability more than semantics.</li>
-<li>As the lexical half of <b>hybrid retrieval</b> (BM25/TF-IDF + embeddings), which beats either alone.</li>
-</ul></div>
-</div>
-</div>
-</section>
-<section id="dot">
-<div class="card">
-<h2><span class="num">11</span> Inner product <span class="alias">dot product · MIPS · IndexFlatIP</span></h2>
-<p class="lede">Cosine's numerator on its own. It is <b>not a distance</b> — bigger means more similar, it can be
-negative, and it openly prefers long vectors. That bias is sometimes exactly what you want.</p>
-<div class="fml">score(x, y) = x · y = Σᵢ xᵢ yᵢ
-‖x − y‖² = ‖x‖² + ‖y‖² − 2(x·y)      <span class="cm">how L2, cosine and IP all connect</span></div>
-<div class="work"><div class="t">Ranking equivalence — the rule that saves index headaches</div>
-<pre><code>If every vector is L2-normalised (‖x‖ = 1):
-  x·y = cos(x,y)                     → IP ranking  == cosine ranking
-  ‖x−y‖² = 2 − 2(x·y)                → L2 ranking  == cosine ranking (reversed)
-If they are NOT normalised:
-  IP favours long vectors            → popular items dominate recommendations</code></pre></div>
-<div class="pcw">
-<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
-<li>Fastest possible scoring — one fused multiply-add per dimension, no norms, no roots.</li>
-<li>Magnitude is a <b>feature</b> in recommenders: vector length can encode popularity or confidence.</li>
-<li>It is the native score of matrix-factorisation and two-tower retrieval models.</li>
-</ul></div>
-<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
-<li>Not a metric, not bounded, not non-negative → thresholds are dataset-specific and meaningless elsewhere.</li>
-<li><b>MIPS is genuinely harder than nearest-neighbour search:</b> a long vector can be the top hit for every
-query, so classic space-partitioning indexes degrade.</li>
-<li>Silently different from cosine the moment normalisation is skipped — a very common production bug.</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
-<li>Vectors are already normalised and you want cosine at maximum speed (FAISS <code>IndexFlatIP</code>).</li>
-<li>Recommenders where popularity should legitimately leak into the score.</li>
-</ul></div>
-</div>
-</div>
-</section>
-<section id="correlation">
-<div class="card">
-<h2><span class="num">12</span> Correlation distance <span class="alias">1 − Pearson r · "cosine after centring"</span></h2>
-<p class="lede">Mean-centre each vector, then take cosine. What survives is <b>shape</b>: two series that rise and
-fall together score 0 regardless of their level or amplitude.</p>
-<div class="fml">r(x, y) = Σ(xᵢ − x̄)(yᵢ − ȳ) / √(Σ(xᵢ − x̄)² · Σ(yᵢ − ȳ)²)
-d_corr  = 1 − r          <span class="cm">in [0, 2];  0 = same shape, 1 = unrelated, 2 = mirror image</span></div>
-<div class="work"><div class="t">Worked example — three series against x = (1, 2, 3)</div>
-<pre><code>y = (2, 4, 6)   perfect scaling      r = +1.0   d = <b>0.0</b>   (Euclidean would say 3.74)
-y = (11,12,13)  perfect shift        r = +1.0   d = <b>0.0</b>   (Euclidean would say 17.3)
-y = (3, 2, 1)   exact mirror         r = −1.0   d = <b>2.0</b></code></pre></div>
-<div class="pcw">
-<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
-<li>Invariant to both <b>scale and offset</b> — the right call for "same pattern, different units".</li>
-<li>Standard for time-series shape clustering, gene expression, sensor drift comparison.</li>
-<li>Cancels per-user or per-sensor bias (a rater who marks everything 2 points high).</li>
-</ul></div>
-<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
-<li>Discards level entirely — a fever of 39 °C and 37 °C "match" if they move together.</li>
-<li>Undefined for a constant vector (zero variance → divide by zero).</li>
-<li>Meaningless for short vectors: with 2 dimensions r is always ±1.</li>
-<li>Pearson only sees <b>linear</b> co-movement, and single outliers can dominate it. Spearman if you need rank robustness.</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
-<li>Clustering time series by shape rather than magnitude.</li>
-<li>Comparing profiles measured on different instruments or scales.</li>
-<li>Collaborative filtering with per-user rating bias.</li>
-</ul></div>
-</div>
-</div>
-</section>
-<section id="canberra">
-<div class="card">
-<h2><span class="num">13</span> Canberra &amp; Bray–Curtis <span class="alias">relative differences on counts</span></h2>
-<p class="lede">Both answer the same complaint: with counts, a gap of 5 means something very different at 10 than
-at 10 000. They divide each gap by the local size instead of treating all gaps equally.</p>
-<div class="fml">Canberra    d = Σᵢ |xᵢ − yᵢ| / (|xᵢ| + |yᵢ|)        <span class="cm">per-coordinate relative gap; unbounded above by k</span>
-Bray–Curtis d = Σᵢ |xᵢ − yᵢ| / Σᵢ (xᵢ + yᵢ)          <span class="cm">one global ratio; in [0,1] for non-negative data</span></div>
-<div class="work"><div class="t">Worked example — x = (10, 20), y = (12, 25)</div>
-<pre><code>Canberra    = 2/(10+12) + 5/(20+25) = 0.0909 + 0.1111 = <b>0.2020</b>
-Bray–Curtis = (2 + 5) / (10+12+20+25) = 7 / 67        = <b>0.1045</b>
-Euclidean   = √(4 + 25) = 5.385   ← says "far", ignoring that both counts are large</code></pre></div>
-<div class="pcw">
-<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
-<li>Scale-relative by construction — no standardisation step needed.</li>
-<li>Bray–Curtis is bounded in [0, 1] for non-negative data → thresholds transfer.</li>
-<li>Canberra is very sensitive near zero, which is a feature when "present vs absent" is the signal
-(ecology abundance, rare log events).</li>
-</ul></div>
-<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
-<li>Canberra <b>explodes near zero</b>: (0, 1) contributes a full 1.0, so sparse vectors get dominated by noise.</li>
-<li>Both are undefined/0-by-convention when xᵢ = yᵢ = 0 — libraries differ, check the convention.</li>
-<li>Neither is meaningful for data with negative values or mixed signs.</li>
-<li>Bray–Curtis is not a metric (fails the triangle inequality); its square root behaves better.</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
-<li>Species abundance, basket counts, log-event frequencies, read counts.</li>
-<li>You want relative rather than absolute differences without taking logs.</li>
-</ul></div>
-</div>
-</div>
-</section>
-<section id="mahalanobis">
-<div class="card">
-<h2><span class="num">14</span> Mahalanobis distance <span class="alias">covariance-aware · "how many σ away, accounting for correlation"</span></h2>
-<p class="lede">Euclidean distance measured in a space that has been <b>whitened</b> by the data's own covariance.
-Directions the data varies in a lot get discounted; directions it never varies in become expensive. Move along
-the cloud and you are close; step across it the same physical amount and you are far.</p>
-<div class="fml">d(x, y) = √( (x − y)ᵗ Σ⁻¹ (x − y) )      <span class="cm">Σ = covariance matrix; Σ = I recovers Euclidean</span>
-d²(x, μ) ~ χ²(k)                         <span class="cm">→ an outlier threshold with an actual p-value</span></div>
-
-<div class="ctrls">
-  <span class="ctrl"><label for="mh-r">correlation ρ</label>
-    <input id="mh-r" type="range" min="-0.95" max="0.95" step="0.05" value="0.8"><span class="v" id="mh-rv">0.80</span></span>
-</div>
-<div class="viz" id="v-maha"><div class="vt">Both probes sit the same Euclidean distance from the centre — Mahalanobis disagrees</div></div>
-<div class="readout" id="mh-out"></div>
-<p class="cap">P follows the correlation, Q cuts across it. Slide ρ to 0 and the ellipse becomes a circle: both
-probes converge to the same Mahalanobis distance, and it equals the Euclidean one.</p>
-
-<div class="work"><div class="t">Worked example — Σ = [[4, 3], [3, 4]], centre at origin</div>
-<pre><code>det Σ = 16 − 9 = 7
-Σ⁻¹   = (1/7)·[[4, −3], [−3, 4]]
-
-Point P = (2, 2)   — along the correlation
-  d² = (1/7)·[2,2]·[[4,−3],[−3,4]]·[2,2]ᵗ = (1/7)(4 + 4) = 8/7 = 1.143
-  d  = <b>1.069</b>
-
-Point Q = (2, −2)  — against the correlation
-  d² = (1/7)(28 + 28) = 8
-  d  = <b>2.828</b>
-
-Euclidean distance of BOTH points = √8 = 2.828
-→ Mahalanobis calls Q <b>2.6× further</b> than P. Euclidean calls them identical.</code></pre></div>
-
-<div class="pcw">
-<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
-<li><b>Scale-free</b> — units cancel, so no separate standardisation step.</li>
-<li><b>Correlation-aware</b>: catches "impossible combinations" (height 150 cm + weight 120 kg) that Euclidean
-waves through.</li>
-<li>d² follows a χ²(k) distribution → a principled outlier cut-off. For k = 2, d² &gt; 5.99 is the 95th
-percentile, d² &gt; 9.21 the 99th.</li>
-<li>A true metric, and the foundation of LDA, Hotelling's T², and metric-learning methods.</li>
-</ul></div>
-<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
-<li>You must <b>estimate Σ</b> — it needs roughly n &gt; 5k samples to be stable, and inverting it is O(k³).</li>
-<li><b>Singular Σ</b> whenever features are collinear or k &gt; n → no inverse. Needs shrinkage
-(Ledoit–Wolf), pseudo-inverse, or PCA first.</li>
-<li><b>Masking:</b> outliers inflate Σ, which then makes those outliers look normal. Use a robust estimator
-(MCD) if outlier detection is the goal.</li>
-<li>Assumes one elliptical, unimodal cloud. On multi-cluster data a global Σ is simply the wrong shape.</li>
-<li>Harder to explain to stakeholders than "3.2 units apart", and unsupported by most ANN indexes
-(you must whiten the vectors and use L2 instead).</li>
-</ul></div>
-<div class="box b-pit"><div class="bt">🐞 Pitfalls</div><ul>
-<li>Estimating Σ on the full dataset including the test set → leakage.</li>
-<li>Using the <i>sample</i> covariance on 20 features and 60 rows — the inverse is numerical noise.</li>
-<li>Forgetting that Σ from training data may not describe production drift; the χ² threshold then misfires.</li>
-<li>Equivalent shortcut people miss: whiten once with <code>L⁻¹</code> from a Cholesky factor, then use plain
-Euclidean everywhere (and get ANN-index support for free).</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
-<li>Multivariate outlier / anomaly detection on tabular features (fraud scoring, sensor QA).</li>
-<li>Features are correlated and on wildly different scales.</li>
-<li>You need a probability-calibrated "how weird is this record" number, not just a rank.</li>
-</ul></div>
-</div>
-</div>
-</section>
-<section id="vbench">
-<div class="card">
-<h2><span class="num">15</span> Vector bench <span class="alias">same query, three candidates, ten metrics</span></h2>
-<p class="lede">This is the argument for caring about any of this. One query, three candidates, and the
-"nearest" one <b>changes depending on the metric</b>. Edit the vectors — comma-separated, any length, as long
-as all four match.</p>
-<div class="ctrls">
-  <span class="ctrl"><label for="vb-q">query</label><input id="vb-q" type="text" value="3, 1, 0, 2"></span>
-  <span class="ctrl"><label for="vb-a">cand A</label><input id="vb-a" type="text" value="6, 2, 0, 4"></span>
-  <span class="ctrl"><label for="vb-b">cand B</label><input id="vb-b" type="text" value="3, 1, 0, 4"></span>
-  <span class="ctrl"><label for="vb-c">cand C</label><input id="vb-c" type="text" value="2, 2, 1, 2"></span>
-</div>
-<div id="vb-msg"></div>
-<div class="tw" id="vb-table"></div>
-<p class="cap">Winner per row is highlighted. With the defaults, <b>A is exactly 2× the query</b> — so every
-angle-based metric declares a perfect match while every Lp metric calls it the <i>worst</i> of the three.
-Nothing is broken; they are answering different questions.</p>
-<div class="note n-bad"><p><b>The lesson.</b> "Nearest neighbour" is not a property of your data. It is a
-property of your data <i>plus</i> your metric <i>plus</i> your preprocessing. Change any of the three and your
-retrieval results change — which is why a metric swap always needs a re-evaluation, never just a code review.</p></div>
-</div>
-</section>
-<section id="kl">
-<div class="card">
-<h2><span class="num">16</span> KL &amp; Jensen–Shannon divergence <span class="alias">comparing two distributions</span></h2>
-<p class="lede">When your "points" are histograms — a feature's distribution last month versus today — you need a
-different tool. KL divergence measures the <b>extra surprise</b> of using Q when reality is P. It is not a
-distance: it is asymmetric, unbounded, and infinite the moment Q assigns zero probability to something P allows.
-JS divergence is the fix.</p>
-<div class="fml">KL(P‖Q) = Σᵢ P(i)·log( P(i)/Q(i) )        <span class="cm">≥ 0, asymmetric, ∞ if Q(i)=0 &amp; P(i)&gt;0</span>
-M       = ½(P + Q)
-JSD     = ½KL(P‖M) + ½KL(Q‖M)             <span class="cm">symmetric, ≤ ln 2 = 0.693 nats</span>
-√JSD    = a true metric                    <span class="cm">the version to threshold on</span></div>
-
-<div class="ctrls">
-  <span class="ctrl"><label for="ds-shift">shift Q right by bins</label>
-    <input id="ds-shift" type="range" min="0" max="8" step="1" value="2"><span class="v" id="ds-shiftv">2</span></span>
-  <span class="ctrl"><label for="ds-eps">smoothing ε</label>
-    <input id="ds-eps" type="range" min="0" max="0.02" step="0.001" value="0"><span class="v" id="ds-epsv">0.000</span></span>
-</div>
-<div class="viz" id="v-dist"><div class="vt">Top: the two histograms. Bottom: their CDFs — the shaded gap <i>is</i> Wasserstein-1</div></div>
-<div class="readout" id="ds-out"></div>
-<p class="cap">Push the shift until the two histograms no longer overlap: <b>KL and JS stop being informative</b>
-(KL goes infinite without smoothing, JS pins at its ln 2 ceiling) while Wasserstein keeps growing linearly.
-That is the whole argument for using it on drift dashboards.</p>
-
-<div class="work"><div class="t">Worked example — P = (0.5, 0.5), Q = (0.9, 0.1)</div>
-<pre><code>KL(P‖Q) = 0.5·ln(0.5/0.9) + 0.5·ln(0.5/0.1)
-        = 0.5·(−0.5878) + 0.5·(1.6094) = <b>0.5108 nats</b>  (= 0.737 bits)
-KL(Q‖P) = 0.9·ln(0.9/0.5) + 0.1·ln(0.1/0.5)
-        = 0.9·(0.5878)  + 0.1·(−1.6094) = <b>0.3681 nats</b>   ← different! not symmetric
-
-M   = (0.7, 0.3)
-JSD = ½·0.0872 + ½·0.1163 = <b>0.1018 nats</b>      √JSD = <b>0.319</b>  (a metric)</code></pre></div>
-
-<div class="pcw">
-<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
-<li>KL is the <b>information-theoretic</b> answer: it is exactly the extra bits you pay for a wrong model, which
-is why it shows up in VAEs, distillation and variational inference.</li>
-<li>Sensitive to changes in the <b>tails</b>, where drift often starts.</li>
-<li>JS is symmetric and bounded, so it doubles as a comparable score, and √JSD is a genuine metric.</li>
-<li>Cheap on categorical features — one pass over the counts.</li>
-</ul></div>
-<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
-<li><b>KL is not a distance:</b> asymmetric, no triangle inequality, and unbounded — "KL = 4.2" means nothing
-without context.</li>
-<li><b>Zero bins blow it up.</b> One unseen category and KL is infinite; you must smooth, and the smoothing
-constant then changes your numbers.</li>
-<li><b>Bin-dependent.</b> Rebin the same data and the divergence changes. Comparing values across different
-binnings is meaningless.</li>
-<li><b>Geometry-blind:</b> moving mass from bin 1 to bin 2 scores the same as moving it to bin 50. Not what you
-want for ordered/numeric features.</li>
-<li>JS saturates at ln 2 for disjoint distributions, so it cannot tell "just separated" from "wildly apart".</li>
-<li>nats vs bits confusion (natural log vs log₂) silently changes every threshold by 1.44×.</li>
-</ul></div>
-<div class="box b-pit"><div class="bt">🐞 Pitfalls</div><ul>
-<li>Computing KL on raw counts instead of normalised probabilities.</li>
-<li>Different bin edges for P and Q — always fix the edges on the reference window.</li>
-<li>Tiny reference samples: with 200 rows and 20 bins, the divergence is mostly sampling noise. Bootstrap a
-threshold instead of guessing 0.1.</li>
-<li>Using KL(new‖ref) in one dashboard and KL(ref‖new) in another and comparing the numbers.</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
-<li>Data / prediction drift monitoring on categorical or binned features (PSI is a symmetrised cousin of this).</li>
-<li>Comparing a model's output distribution to a reference (calibration, distillation loss).</li>
-<li>Use <b>JS or √JSD</b> for anything you threshold or alert on; keep raw KL for losses and diagnostics.</li>
-</ul></div>
-</div>
-</div>
-</section>
-<section id="wasserstein">
-<div class="card">
-<h2><span class="num">17</span> Wasserstein distance <span class="alias">earth mover's · optimal transport</span></h2>
-<p class="lede">Think of both distributions as piles of dirt. Wasserstein is the <b>minimum work</b> — mass ×
-distance moved — to reshape one pile into the other. Because it uses the geometry of the bin axis, it knows that
-moving mass one bin over is cheap and moving it ten bins is not.</p>
-<div class="fml">W₁(P, Q) = ∫ |F_P(x) − F_Q(x)| dx        <span class="cm">1-D: the area between the two CDFs</span>
-         = (1/n) Σ |sorted(P)ᵢ − sorted(Q)ᵢ|  <span class="cm">for two equal-size samples</span></div>
-<div class="viz" id="v-emd"><div class="vt">Disjoint support: the case that breaks KL and JS but not Wasserstein</div></div>
-<div class="work"><div class="t">Worked example — why "disjoint" matters</div>
-<pre><code>P = all mass at 0        Q = all mass at 3
-KL(P‖Q) = ∞         JS = ln 2 = 0.693 (its ceiling)      W₁ = <b>3.0</b>
-
-Move Q to 6:
-KL = ∞ (unchanged)  JS = 0.693 (unchanged)               W₁ = <b>6.0</b>  ← still ranking correctly
-
-Samples: P = {1, 2}, Q = {4, 5}
-W₁ = (|1−4| + |2−5|)/2 = <b>3.0</b></code></pre></div>
-<div class="pcw">
-<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
-<li><b>Geometry-aware</b> — the only option here that knows bin 2 is nearer to bin 3 than to bin 30.</li>
-<li>Finite and meaningful on <b>disjoint support</b>, where KL is infinite and JS is saturated.</li>
-<li>A true metric, and it degrades smoothly — perfect for tracking drift over time as a trend line.</li>
-<li>In the units of the feature itself: "the distribution moved by 4.2 seconds" is a sentence a business owner
-understands.</li>
-<li>1-D case is just a sort: O(n log n), <code>scipy.stats.wasserstein_distance</code>.</li>
-</ul></div>
-<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
-<li><b>Needs a meaningful ground distance</b> on the bin axis. For unordered categories (carrier code, city)
-there is no natural "distance between bins" and the metric is arbitrary.</li>
-<li><b>Expensive beyond 1-D</b>: full optimal transport is O(n³ log n); you fall back to Sinkhorn
-approximations or sliced Wasserstein.</li>
-<li>Scale-dependent — comparing W₁ across features requires normalising by spread first.</li>
-<li>Less sensitive than KL to a change purely in <i>shape</i> that keeps the mass in place.</li>
-<li>Unbounded above, so thresholds are per-feature.</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
-<li>Drift detection on numeric features — the current best default.</li>
-<li>Comparing generative model output to real data (WGAN's whole premise).</li>
-<li>Any time your bins are ordered and the <i>amount</i> of movement matters, not just that something moved.</li>
-</ul></div>
-</div>
-</div>
-</section>
-<section id="haversine">
-<div class="card">
-<h2><span class="num">18</span> Haversine distance <span class="alias">great-circle distance on a sphere</span></h2>
-<p class="lede">Latitude and longitude are angles, not metres. A degree of latitude is always ~111 km, but a
-degree of longitude shrinks to nothing at the poles — so Euclidean distance on raw lat/long is simply wrong, and
-wrong by more the further you are from the equator.</p>
-<div class="fml">a = sin²(Δφ/2) + cos φ₁ · cos φ₂ · sin²(Δλ/2)
-d = 2R · arcsin(√a)          <span class="cm">R ≈ 6371 km; φ = latitude, λ = longitude, in RADIANS</span></div>
-<div class="viz" id="v-haversine"><div class="vt">Why one degree of longitude is not one fixed distance</div></div>
-<div class="work"><div class="t">Worked example — Richmond VA → Atlanta GA</div>
-<pre><code>Richmond  φ₁ = 37.5407°  λ₁ = −77.4360°
-Atlanta   φ₂ = 33.7490°  λ₂ = −84.3880°
-
-Δφ = −3.7917° = −0.06618 rad     Δλ = −6.9520° = −0.12134 rad
-a  = sin²(−0.03309) + cos(0.6552)·cos(0.5890)·sin²(−0.06067)
-d  = 2·6371·arcsin(√a) = <b>756.2 km</b>  (469.9 miles)
-
-Richmond → Norfolk VA (36.8508, −76.2859) = <b>127.5 km</b>
-
-At latitude 37.5°, 1° of longitude = 111.32·cos(37.5°) = <b>88.3 km</b>, not 111.3 km.
-Treating lat/long as a flat plane inflates east–west gaps by <b>26%</b> there.</code></pre></div>
-<div class="pcw">
-<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
-<li>Correct on a sphere, cheap (a handful of trig calls), and a true metric.</li>
-<li><b>Numerically stable for small distances</b> — that is the reason for the haversine form rather than the
-spherical law of cosines, which loses precision on nearby points.</li>
-<li>Supported natively where it matters: <code>BallTree(metric="haversine")</code>, PostGIS, most geo stacks.</li>
-</ul></div>
-<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
-<li><b>Assumes a perfect sphere.</b> Earth is an ellipsoid: expect up to ~0.5% error (≈ 5 km in 1 000 km). Use
-Vincenty / GeographicLib when survey accuracy matters.</li>
-<li>It is straight-line distance, <b>not travel distance</b>. For freight ETA, road distance can be 20–40%
-longer — and that gap is not constant.</li>
-<li>Slightly ill-conditioned for nearly antipodal points.</li>
-<li>Cannot be fed to a plain Euclidean index without projecting first.</li>
-</ul></div>
-<div class="box b-pit"><div class="bt">🐞 Pitfalls</div><ul>
-<li><b>Degrees instead of radians</b> — the single most common geo bug; results look plausible but are wrong.</li>
-<li><b>(lat, long) vs (long, lat)</b> order: GeoJSON uses (long, lat), most libraries take (lat, long).</li>
-<li>Averaging coordinates to get a "centre" — the mean of two longitudes across the antimeridian is nonsense.</li>
-<li>Using kilometres in one place and miles in another inside the same scoring rule.</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
-<li>Any lat/long proximity: nearest terminal, service-area checks, geo blocking for address matching.</li>
-<li>Validating an extracted address against an expected city — a 600 km gap is a strong "wrong record" signal.</li>
-<li>For projected local work (a single metro area), a UTM projection + Euclidean is faster and accurate enough.</li>
-</ul></div>
-</div>
-</div>
-</section>
-<section id="gower">
-<div class="card">
-<h2><span class="num">19</span> Gower distance <span class="alias">mixed numeric + categorical + boolean</span></h2>
-<p class="lede">Real records are not vectors of floats. They have a weight, a carrier code, a hazmat flag and a
-date. Gower's answer: compute a distance <b>per column</b> in whatever way suits that column's type, scale each
-to [0, 1], then take a weighted average.</p>
-<div class="fml">numeric      dᵢ = |xᵢ − yᵢ| / rangeᵢ
-categorical  dᵢ = 0 if equal else 1
-boolean      dᵢ = 0 if equal else 1        <span class="cm">(or Jaccard-style: ignore 0/0 pairs)</span>
-Gower        d  = Σᵢ wᵢ·dᵢ / Σᵢ wᵢ         <span class="cm">bounded in [0, 1]</span></div>
-<div class="work"><div class="t">Worked example — two freight records</div>
-<pre><code>column      range        A        B        dᵢ
-weight      0–5000       1200     1350     150/5000  = 0.030
-carrier     categorical  ARDENT    ARDENT    equal     = 0.000
-pallets     0–20         4        6        2/20      = 0.100
-hazmat      boolean      true     false    differ    = 1.000
-
-equal weights:  d = (0.030 + 0 + 0.100 + 1.000)/4 = <b>0.2825</b>
-
-business weights (hazmat is a hard signal, weight 3):
-                d = (0.030 + 0 + 0.100 + 3·1.000)/(1+1+1+3) = 3.130/6 = <b>0.5217</b></code></pre></div>
-<div class="pcw">
-<div class="box b-pro"><div class="bt">✅ Advantages</div><ul>
-<li><b>Handles mixed types</b> without inventing a fake numeric encoding for categories.</li>
-<li>Bounded [0, 1] and interpretable — you can show a stakeholder the per-column contributions.</li>
-<li><b>Per-column weights</b> are a clean place to inject domain knowledge ("a carrier mismatch matters more
-than a 2% weight difference").</li>
-<li>Handles missing values naturally: skip that column and renormalise the weights.</li>
-</ul></div>
-<div class="box b-con"><div class="bt">⚠️ Disadvantages</div><ul>
-<li><b>Range comes from the data</b>, so one outlier squashes every other numeric difference — and a new record
-outside the training range produces dᵢ &gt; 1.</li>
-<li>Categorical columns are all-or-nothing: "ARDENT" vs "ARDENT FREIGHT" is as far as "ARDENT" vs "FEDEX"
-(fix: nest a string metric inside that column).</li>
-<li>Generally <b>not a metric</b>, and no ANN index supports it → O(n²) pairwise, which caps you at tens of
-thousands of records.</li>
-<li>Equal weights are an arbitrary default that quietly encodes a modelling choice.</li>
-<li>High-cardinality categoricals dominate: with many categories, almost every pair differs → dᵢ = 1 constantly.</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 Reach for it when</div><ul>
-<li>Clustering or deduplicating <b>tabular business records</b> with mixed column types.</li>
-<li>Entity resolution scoring where each field needs its own comparison rule — this is the standard shape of a
-record-linkage score.</li>
-<li>Small-to-medium datasets, or after blocking has cut the candidate pairs down.</li>
-</ul></div>
-</div>
-<div class="note n-key"><p><b>This is what production record linkage looks like.</b> Gower is the pattern:
-per-field comparator (Jaro–Winkler on names, Levenshtein on codes, Haversine on coordinates, exact on flags),
-each producing [0,1], then a weighted combination — with the weights either hand-tuned or learned
-(Fellegi–Sunter, or a gradient-boosted classifier over the field scores).</p></div>
-</div>
-</section>
-<section id="concentration">
-<div class="card">
-<h2><span class="num">20</span> Distance concentration <span class="alias">the curse of dimensionality, measured</span></h2>
-<p class="lede">In high dimensions, every point is roughly the same distance from every other point. "Nearest
-neighbour" stops being meaningful — not because the code is wrong, but because the <b>contrast</b> between
-nearest and furthest collapses. Below, this is computed live on random uniform points.</p>
-<div class="ctrls">
-  <span class="ctrl"><label for="cc-n">points</label>
-    <input id="cc-n" type="range" min="30" max="200" step="10" value="80"><span class="v" id="cc-nv">80</span></span>
-</div>
-<div class="viz" id="v-conc"><div class="vt">Relative contrast (d_max − d_min) / d_mean against dimensionality — higher is healthier</div></div>
-<div class="readout" id="cc-out"></div>
-<p class="cap">The Lp metrics decay in the order the theory predicts: <b>L1 holds up better than L2, which holds
-up better than L∞</b>. Cosine decays too but keeps the most contrast here, partly because it is bounded and
-ignores the shared growth in magnitude that swamps the Lp metrics. One caveat: uniform random points are the
-worst case. Real embeddings hold up better because they live on a much lower-dimensional manifold than their
-ambient dimension suggests — which is exactly why you should measure this on <i>your</i> vectors.</p>
-<div class="pcw">
-<div class="box b-con"><div class="bt">⚠️ What goes wrong</div><ul>
-<li>Ratios of nearest to furthest → 1, so <b>thresholds stop separating</b> matches from non-matches.</li>
-<li><b>Hubness:</b> a few points become the nearest neighbour of almost everything, poisoning KNN and retrieval.</li>
-<li>Index structures degrade to brute-force scans, because there is nothing left to prune.</li>
-<li>Adding "more features" past a point actively destroys accuracy — noise dimensions dilute the signal.</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 What to do about it</div><ul>
-<li><b>Reduce dimensions:</b> PCA / SVD / UMAP, or Matryoshka-truncated embeddings (many models are trained so
-the first 256 dims are usable on their own).</li>
-<li>Prefer <b>cosine</b> on embeddings, and <b>L1</b> over L2 on wide sparse tabular data.</li>
-<li>Select features rather than dumping them all in — what matters is <b>intrinsic</b> dimension, not the column
-count.</li>
-<li>Learn the metric: LDA, metric learning, or a fine-tuned embedding beats arguing about Lp.</li>
-<li>Check the contrast empirically on your own data before trusting any distance threshold.</li>
-</ul></div>
-</div>
-</div>
-</section>
-<section id="scaling">
-<div class="card">
-<h2><span class="num">21</span> Scaling silently decides the answer <span class="alias">the bug that looks like a modelling problem</span></h2>
-<p class="lede">Same data, same metric, same code — and a different nearest neighbour, purely because one column
-is measured in a bigger unit. Drag the slider: nothing about the records changes, only the units of income.</p>
-<div class="ctrls">
-  <span class="ctrl"><label for="sc-k">income divided by</label>
-    <input id="sc-k" type="range" min="0" max="4.7" step="0.05" value="0"><span class="v" id="sc-kv">1</span></span>
-  <button class="btn" id="sc-std">Jump to standardised (÷ 40 000)</button>
-</div>
-<div class="viz" id="v-scale"><div class="vt">Query ◆ against two candidates — the winner flips as the unit changes</div></div>
-<div class="readout" id="sc-out"></div>
-<div class="work"><div class="t">The numbers behind the flip</div>
-<pre><code>query  age 40, income 60 000
-cand A age 41, income 90 000     age gap  1, income gap 30 000
-cand B age 55, income 61 000     age gap 15, income gap  1 000
-
-raw units:        d(A) = √(1² + 30000²) = 30 000.0     d(B) = √(15² + 1000²) = 1 000.1  → <b>B wins</b>
-income ÷ 40 000:  d(A) = √(1² + 0.75²)  = 1.25         d(B) = √(15² + 0.025²) = 15.0    → <b>A wins</b>
-
-Nothing about the people changed. Only the unit did.</code></pre></div>
-<div class="pcw">
-<div class="box b-pit"><div class="bt">🐞 How this bites in production</div><ul>
-<li>A column's unit changes upstream (cents → dollars, grams → kg) and retrieval quality drops with no code
-change and no error.</li>
-<li><code>StandardScaler</code> fitted inside a notebook but not saved into the serving pipeline.</li>
-<li>Scaler refitted on each batch, so distances are not comparable between batches — and neither are the
-thresholds.</li>
-<li>One-hot columns left unscaled next to standardised numerics, so category flips count as ~1.4 σ.</li>
-</ul></div>
-<div class="box b-use"><div class="bt">🎯 The fixes</div><ul>
-<li><b>Standardise</b> (z-score) for roughly Gaussian features, <b>min–max</b> for bounded ones,
-<b>robust/quantile</b> scaling when outliers are present.</li>
-<li>Fit the scaler on train only, persist it with the model, apply identically at serving time.</li>
-<li>Or sidestep it: <b>Mahalanobis</b> (§14) is scale-free by construction, and <b>Gower</b> (§32) normalises
-per column.</li>
-<li>Log-transform heavy-tailed money/count columns before scaling.</li>
-</ul></div>
-</div>
-</div>
-</section>
-<section id="chooser">
-<div class="card">
-<h2><span class="num">22</span> Which one should I use?</h2>
-<p class="lede">Start from what a "point" is in your data, answer one question, take the pick. Then verify on
-labelled pairs — every row here is a default, not a law.</p>
-<div class="viz" id="v-chooser"><div class="vt">data type → the one question that matters → the default pick</div></div>
-<div class="note n-key"><p><b>The two-stage pattern that actually ships.</b> Cheap metric to generate candidates
-(Jaccard on q-grams, Soundex bucket, ANN on cosine), expensive metric to rank them (Levenshtein with custom
-costs, Jaro–Winkler, a cross-encoder). Optimise <b>recall</b> in stage one and <b>precision</b> in stage two, and
-measure them separately — a missed pair in stage one can never be recovered in stage two.</p></div>
+<h2><span class="num">13</span> Field pitfalls <span class="alias">symptom → cause → fix</span></h2>
+<div class="tw"><table>
+<thead><tr><th>Symptom you'll see</th><th>Actual cause</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td>Every similarity is 0.97+, nothing separates</td><td>Cosine on non-negative TF-IDF, or Jaro on short
+strings — both compress into a narrow band</td><td>Look at the score <i>distribution</i>, set thresholds by
+percentile on labelled pairs, not by intuition</td></tr>
+<tr><td>Retrieval got worse after "just adding features"</td><td>Distance concentration (§33)</td>
+<td>Reduce dimensions; measure relative contrast before/after</td></tr>
+<tr><td>One feature dominates every neighbour list</td><td>Unscaled large-range column (§34)</td>
+<td>Standardise, or use Mahalanobis / Gower</td></tr>
+<tr><td>Recall dropped after switching the index metric</td><td>A non-metric (cosine distance, squared L2, OSA)
+fed to a structure that prunes with the triangle inequality</td><td>Use the metric variant: angular distance,
+plain L2, unrestricted Damerau</td></tr>
+<tr><td>Cosine and dot product disagree</td><td>Vectors not L2-normalised — you are running MIPS, not cosine</td>
+<td>Normalise at write time <i>and</i> query time; assert <code>‖v‖ ≈ 1</code> in the ingest test</td></tr>
+<tr><td>Drift alerts fire constantly / never</td><td>KL on unsmoothed histograms with changing bin edges</td>
+<td>Fix bin edges on the reference window, smooth, prefer Wasserstein or √JSD, bootstrap the threshold</td></tr>
+<tr><td>Fuzzy match rate collapsed after a vendor change</td><td>New OCR engine, different error profile:
+substitutions became merges/splits</td><td>Re-tune per-field thresholds; add q-gram Jaccard alongside edit
+distance; weight known confusions</td></tr>
+<tr><td>"Inc" and "LLC" matching everything</td><td>Stop-tokens dominating token-set overlap</td>
+<td>Strip a legal-suffix list, or weight tokens by IDF</td></tr>
+<tr><td>Duplicate pairs found in test but missed in prod</td><td>Blocking key too strict, so the pair was never
+scored</td><td>Measure blocking recall separately from scorer precision — they are different failures</td></tr>
+<tr><td>Distances are NaN for some rows</td><td>Zero vector (empty text after cleaning) in cosine, or negative
+values from the ‖x‖²+‖y‖²−2xy trick</td><td>Guard zero norms, clamp the squared form at 0 before the sqrt</td></tr>
+<tr><td>Geo matching works in one region, fails in another</td><td>Euclidean on lat/long — the error grows with
+latitude (§31)</td><td>Haversine, or project to a local CRS</td></tr>
+<tr><td>Threshold tuned last quarter no longer works</td><td>Unbounded metric (raw Levenshtein, dot product) plus
+changing field lengths or vector norms</td><td>Normalise to [0,1] first; re-validate thresholds on a rolling
+labelled sample</td></tr>
+</tbody></table></div>
 </div>
 </section>
 <section id="master">
 <div class="card">
-<h2><span class="num">23</span> Master comparison table</h2>
+<h2><span class="num">14</span> Master comparison table</h2>
 <p class="lede">Everything on one screen: the formula, the range, whether it is a true metric, and the single
 biggest reason to use it or avoid it.</p>
 <div class="tw"><table>
 <thead><tr><th>Metric</th><th>Formula</th><th>Range</th><th>Metric?</th>
 <th style="color:var(--good)">✅ Main advantage</th><th style="color:var(--bad)">⚠️ Main disadvantage</th></tr></thead>
 <tbody>
-<tr><td><b>Euclidean</b><br><span style="color:var(--ink3);font-size:12px">L2</span></td>
-  <td class="mono">√Σ(xᵢ−yᵢ)²</td><td class="mono">[0, ∞)</td><td class="yes">✓</td>
-  <td>Intuitive, rotation-invariant, works with every index and clustering algorithm</td>
-  <td>Scale-sensitive and concentrates badly in high dimensions</td></tr>
-<tr><td><b>Squared Euclidean</b></td><td class="mono">Σ(xᵢ−yᵢ)²</td><td class="mono">[0, ∞)</td><td class="no">✗</td>
-  <td>Same ranking as L2 without the square root; it <i>is</i> the k-means objective</td>
-  <td>Breaks the triangle inequality; values are not in data units</td></tr>
-<tr><td><b>Manhattan</b><br><span style="color:var(--ink3);font-size:12px">L1</span></td>
-  <td class="mono">Σ|xᵢ−yᵢ|</td><td class="mono">[0, ∞)</td><td class="yes">✓</td>
-  <td>Robust to outliers, cheap, degrades more slowly in high dimensions</td>
-  <td>Not rotation-invariant; only meaningful if the axes are</td></tr>
-<tr><td><b>Chebyshev</b><br><span style="color:var(--ink3);font-size:12px">L∞</span></td>
-  <td class="mono">max|xᵢ−yᵢ|</td><td class="mono">[0, ∞)</td><td class="yes">✓</td>
-  <td>Encodes "any single violation is the problem" — ideal for tolerance checks</td>
-  <td>Ignores every coordinate but one; ties everywhere</td></tr>
-<tr><td><b>Minkowski</b><br><span style="color:var(--ink3);font-size:12px">Lp</span></td>
-  <td class="mono">(Σ|xᵢ−yᵢ|ᵗ)^(1/p)</td><td class="mono">[0, ∞)</td><td class="part">p ≥ 1</td>
-  <td>One tunable dial covering L1 → L∞</td>
-  <td>Extra hyperparameter; p &lt; 1 is not a metric; slow for non-integer p</td></tr>
-<tr><td><b>Cosine distance</b></td><td class="mono">1 − x·y/(‖x‖‖y‖)</td><td class="mono">[0, 2]</td><td class="no">✗</td>
-  <td>Magnitude-invariant and bounded — the default for text and embeddings</td>
-  <td>Blind to magnitude; undefined for zero vectors; not a metric</td></tr>
-<tr><td><b>Angular distance</b></td><td class="mono">arccos(cos)/π</td><td class="mono">[0, 1]</td><td class="yes">✓</td>
-  <td>The metric version of cosine — safe for metric indexes</td>
-  <td>Slower (an arccos per pair), otherwise ranks identically to cosine</td></tr>
-<tr><td><b>Dot product</b></td><td class="mono">Σxᵢyᵢ</td><td class="mono">(−∞, ∞)</td><td class="no">✗</td>
-  <td>Fastest scoring; magnitude can legitimately encode popularity</td>
-  <td>Not a distance at all; MIPS indexes are harder and thresholds don't transfer</td></tr>
-<tr><td><b>Correlation</b></td><td class="mono">1 − r(x, y)</td><td class="mono">[0, 2]</td><td class="no">✗</td>
-  <td>Invariant to both scale and offset — compares <i>shape</i></td>
-  <td>Discards level entirely; undefined for constant vectors</td></tr>
-<tr><td><b>Canberra</b></td><td class="mono">Σ|xᵢ−yᵢ|/(|xᵢ|+|yᵢ|)</td><td class="mono">[0, k]</td><td class="yes">✓</td>
-  <td>Relative differences without standardising</td>
-  <td>Explodes near zero; useless with negatives</td></tr>
-<tr><td><b>Bray–Curtis</b></td><td class="mono">Σ|xᵢ−yᵢ|/Σ(xᵢ+yᵢ)</td><td class="mono">[0, 1]</td><td class="no">✗</td>
-  <td>Bounded and natural for abundance/count data</td>
-  <td>Non-negative data only; not a metric</td></tr>
-<tr><td><b>Mahalanobis</b></td><td class="mono">√((x−y)ᵗΣ⁻¹(x−y))</td><td class="mono">[0, ∞)</td><td class="yes">✓</td>
-  <td>Scale-free and correlation-aware; d² ~ χ² gives a real outlier threshold</td>
-  <td>Needs a stable, invertible Σ (n ≫ k) and no ANN index supports it</td></tr>
 
 
 
@@ -1245,255 +1160,270 @@ biggest reason to use it or avoid it.</p>
 
 
 
-<tr><td><b>KL divergence</b></td><td class="mono">ΣP·log(P/Q)</td><td class="mono">[0, ∞]</td><td class="no">✗</td>
-  <td>The information-theoretic answer; sensitive to tail changes</td>
-  <td>Asymmetric, unbounded, infinite on zero bins, geometry-blind</td></tr>
-<tr><td><b>JS divergence</b></td><td class="mono">½KL(P‖M)+½KL(Q‖M)</td><td class="mono">[0, ln 2]</td><td class="part">√JS ✓</td>
-  <td>Symmetric and bounded; √JS is a true metric</td>
-  <td>Saturates at ln 2 once the supports separate</td></tr>
-<tr><td><b>Wasserstein</b></td><td class="mono">∫|F_P − F_Q|</td><td class="mono">[0, ∞)</td><td class="yes">✓</td>
-  <td>Geometry-aware, finite on disjoint support, in the feature's own units</td>
-  <td>Needs an ordered bin axis; expensive beyond 1-D</td></tr>
-<tr><td><b>Haversine</b></td><td class="mono">2R·arcsin√a</td><td class="mono">[0, πR]</td><td class="yes">✓</td>
-  <td>Correct great-circle distance, cheap and stable for near points</td>
-  <td>Sphere approximation (~0.5%); straight-line, not road distance</td></tr>
-<tr><td><b>Gower</b></td><td class="mono">Σwᵢdᵢ/Σwᵢ</td><td class="mono">[0, 1]</td><td class="part">usually ✗</td>
-  <td>Handles mixed column types with per-column business weights</td>
-  <td>Ranges come from the data; O(n²), no index support</td></tr>
+
+
+
+
+<tr><td><b>Hamming</b></td><td class="mono">Σ1[xᵢ≠yᵢ]</td><td class="mono">[0, n]</td><td class="yes">✓</td>
+  <td>XOR + popcount fast; perfect for fingerprints and binary codes</td>
+  <td>Equal lengths only; cannot see insertions or deletions</td></tr>
+<tr><td><b>Jaccard</b></td><td class="mono">1 − |A∩B|/|A∪B|</td><td class="mono">[0, 1]</td><td class="yes">✓</td>
+  <td>Order-independent, bounded, and MinHash/LSH-able at billion scale</td>
+  <td>Ignores order and counts; biased against size mismatch</td></tr>
+<tr><td><b>Dice</b></td><td class="mono">1 − 2|A∩B|/(|A|+|B|)</td><td class="mono">[0, 1]</td><td class="no">✗</td>
+  <td>Weights the overlap more heavily than Jaccard</td>
+  <td>Not a metric, despite ranking almost identically</td></tr>
+<tr><td><b>Levenshtein</b></td><td class="mono">min edit ops</td><td class="mono">[0, max len]</td><td class="yes">✓</td>
+  <td>Interpretable edit script; costs can encode OCR confusions</td>
+  <td>O(m·n) per pair, unbounded, and word-order changes destroy it</td></tr>
+<tr><td><b>Damerau (OSA)</b></td><td class="mono">+ adjacent swap</td><td class="mono">[0, max len]</td><td class="no">✗</td>
+  <td>Transpositions cost 1 — matches real typing errors</td>
+  <td>The shipped OSA variant is not a metric; no help for OCR noise</td></tr>
+<tr><td><b>Jaro–Winkler</b></td><td class="mono">Jaro + ℓ·p·(1−Jaro)</td><td class="mono">[0, 1]</td><td class="no">✗</td>
+  <td>The best default for short names; already normalised</td>
+  <td>Not a metric; scores compress high; prefix bonus backfires on leading errors</td></tr>
+<tr><td><b>Indel / fuzz.ratio</b></td><td class="mono">1 − indel/(|x|+|y|)</td><td class="mono">[0, 100]</td><td class="part">~</td>
+  <td>Fast, bounded, and the basis of the token_* scorers that fix word order</td>
+  <td>Not Levenshtein — the numbers differ; token_set over-scores badly</td></tr>
+<tr><td><b>Soundex</b></td><td class="mono">code equality</td><td class="mono">{0, 1}</td><td class="no">✗</td>
+  <td>Catches phonetic variants; a perfect cheap blocking key</td>
+  <td>Binary, English-centric, and the first letter must match</td></tr>
+
+
+
+
+
 </tbody></table></div>
 </div>
 </section>
 <section id="code">
 <div class="card">
-<h2><span class="num">24</span> From-scratch Python</h2>
+<h2><span class="num">15</span> From-scratch Python</h2>
 <p class="lede">Every metric on this page, implemented from its definition — no library calls, so the formula and
 the code line up one-to-one. Library equivalents are listed at the end.</p>
 
-<h3>Numeric vectors</h3>
-<pre><code>import math
+<h3>Sets, bits and q-grams</h3>
+<pre><code>def hamming(x, y):
+    if len(x) != len(y):
+        raise ValueError("Hamming needs equal lengths")
+    return sum(a != b for a, b in zip(x, y))
 
-def minkowski(x, y, p=2):
-    return sum(abs(a - b) ** p for a, b in zip(x, y)) ** (1 / p)
+def hamming_bits(a: int, b: int) -> int:
+    return (a ^ b).bit_count()                  # Python 3.10+; the fast path
 
-def euclidean(x, y): return minkowski(x, y, 2)          # L2
-def manhattan(x, y): return minkowski(x, y, 1)          # L1
-def chebyshev(x, y): return max(abs(a - b) for a, b in zip(x, y))
-def sq_euclidean(x, y): return sum((a - b) ** 2 for a, b in zip(x, y))
+def qgrams(s, q=2, pad=True):
+    s = s.lower().strip()
+    if pad:                                     # so short strings still have grams
+        s = "#" * (q - 1) + s + "#" * (q - 1)
+    return {s[i:i + q] for i in range(len(s) - q + 1)}
 
-def dot(x, y):  return sum(a * b for a, b in zip(x, y))
-def norm(x):    return math.sqrt(dot(x, x))
+def jaccard(A, B):
+    if not A and not B: return 1.0
+    return len(A & B) / len(A | B)
 
-def cosine_distance(x, y):
-    n = norm(x) * norm(y)
-    if n == 0:
-        raise ValueError("cosine is undefined for a zero vector")
-    return 1 - dot(x, y) / n
+def dice(A, B):
+    if not A and not B: return 1.0
+    return 2 * len(A & B) / (len(A) + len(B))
 
-def angular_distance(x, y):                             # the metric version
-    c = max(-1.0, min(1.0, 1 - cosine_distance(x, y)))
-    return math.acos(c) / math.pi
+def overlap(A, B):
+    m = min(len(A), len(B))
+    return len(A & B) / m if m else 0.0
 
-def correlation_distance(x, y):
-    mx, my = sum(x) / len(x), sum(y) / len(y)
-    cx, cy = [a - mx for a in x], [b - my for b in y]
-    den = norm(cx) * norm(cy)
-    if den == 0:
-        raise ValueError("undefined for a constant vector")
-    return 1 - dot(cx, cy) / den
+def tversky(A, B, alpha=0.5, beta=0.5):         # asymmetric generalisation
+    i = len(A & B)
+    return i / (i + alpha * len(A - B) + beta * len(B - A))</code></pre>
 
-def canberra(x, y):
-    return sum(abs(a - b) / (abs(a) + abs(b)) for a, b in zip(x, y)
-               if abs(a) + abs(b) > 0)
+<h3>String edit distances</h3>
+<pre><code>def levenshtein(a, b):
+    """O(m*n) time, O(min(m,n)) space."""
+    if len(a) &lt; len(b):
+        a, b = b, a
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            cur.append(min(prev[j] + 1,                    # delete
+                           cur[j - 1] + 1,                 # insert
+                           prev[j - 1] + (ca != cb)))      # substitute
+        prev = cur
+    return prev[-1]
 
-def bray_curtis(x, y):
-    den = sum(abs(a + b) for a, b in zip(x, y))
-    return sum(abs(a - b) for a, b in zip(x, y)) / den if den else 0.0</code></pre>
+def levenshtein_similarity(a, b):
+    m = max(len(a), len(b))
+    return 1.0 if m == 0 else 1 - levenshtein(a, b) / m
 
-<h3>Mahalanobis — and the whitening shortcut</h3>
-<pre><code>import numpy as np
+def levenshtein_weighted(a, b, sub_cost=None, default=1.0):
+    """Cheap substitutions for known OCR confusions."""
+    sub_cost = sub_cost or {}
+    def cost(x, y):
+        if x == y: return 0.0
+        return sub_cost.get(frozenset((x, y)), default)
+    prev = [j * 1.0 for j in range(len(b) + 1)]
+    for i, ca in enumerate(a, 1):
+        cur = [i * 1.0]
+        for j, cb in enumerate(b, 1):
+            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost(ca, cb)))
+        prev = cur
+    return prev[-1]
 
-def mahalanobis(x, y, cov):
-    d = np.asarray(x, float) - np.asarray(y, float)
-    return float(np.sqrt(d @ np.linalg.inv(cov) @ d))
+OCR_CONFUSIONS = {frozenset(("0", "O")): 0.1, frozenset(("1", "l")): 0.1,
+                  frozenset(("1", "I")): 0.1, frozenset(("5", "S")): 0.1,
+                  frozenset(("8", "B")): 0.2, frozenset(("2", "Z")): 0.2}
 
-# Same answer, but computed once and reusable — and it gives you back
-# every Euclidean-only tool (KD-trees, FAISS, k-means) for free.
-def whitener(X):
-    """Return f(V) -> whitened V, so euclidean(f(a), f(b)) == mahalanobis(a, b)."""
-    cov = np.cov(X, rowvar=False)
-    L = np.linalg.cholesky(cov)                 # cov = L @ L.T
-    Linv = np.linalg.inv(L)
-    return lambda V: np.asarray(V, float) @ Linv.T
+def osa(a, b):
+    """Damerau-Levenshtein, restricted (optimal string alignment)."""
+    m, n = len(a), len(b)
+    D = [[0] * (n + 1) for _ in range(m + 1)]
+    for i in range(m + 1): D[i][0] = i
+    for j in range(n + 1): D[0][j] = j
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            c = a[i - 1] != b[j - 1]
+            D[i][j] = min(D[i - 1][j] + 1, D[i][j - 1] + 1, D[i - 1][j - 1] + c)
+            if i > 1 and j > 1 and a[i - 1] == b[j - 2] and a[i - 2] == b[j - 1]:
+                D[i][j] = min(D[i][j], D[i - 2][j - 2] + 1)   # transposition
+    return D[m][n]
 
-# Worked check against the page:  Sigma = [[4,3],[3,4]]
-S = np.array([[4., 3.], [3., 4.]])
-print(mahalanobis([2, 2], [0, 0], S))   # 1.0690  (along the correlation)
-print(mahalanobis([2, -2], [0, 0], S))  # 2.8284  (across it)
+def lcs_length(a, b):
+    prev = [0] * (len(b) + 1)
+    for ca in a:
+        cur = [0]
+        for j, cb in enumerate(b, 1):
+            cur.append(prev[j - 1] + 1 if ca == cb else max(prev[j], cur[j - 1]))
+        prev = cur
+    return prev[-1]
 
-# d^2 follows chi-square(k) -> a calibrated outlier rule
-from scipy.stats import chi2
-def is_outlier(x, mu, cov, alpha=0.01):
-    d2 = mahalanobis(x, mu, cov) ** 2
-    return d2 > chi2.ppf(1 - alpha, df=len(x))</code></pre>
+def indel_ratio(a, b):
+    """What fuzz.ratio actually returns (0-100)."""
+    if not a and not b: return 100.0
+    indel = len(a) + len(b) - 2 * lcs_length(a, b)
+    return 100 * (1 - indel / (len(a) + len(b)))
 
-<h3>Distributions and geography</h3>
-<pre><code>import math
+def token_sort_ratio(a, b):
+    key = lambda s: " ".join(sorted(s.lower().split()))
+    return indel_ratio(key(a), key(b))
 
-def kl_divergence(p, q, eps=1e-12):
-    """Not symmetric, not bounded. eps smoothing avoids the infinity."""
-    p = [x + eps for x in p]; q = [x + eps for x in q]
-    sp, sq = sum(p), sum(q)
-    p = [x / sp for x in p];  q = [x / sq for x in q]
-    return sum(pi * math.log(pi / qi) for pi, qi in zip(p, q) if pi > 0)
+def token_set_ratio(a, b):
+    t1, t2 = set(a.lower().split()), set(b.lower().split())
+    inter = " ".join(sorted(t1 & t2))
+    s1 = (inter + " " + " ".join(sorted(t1 - t2))).strip()
+    s2 = (inter + " " + " ".join(sorted(t2 - t1))).strip()
+    if not inter:
+        return indel_ratio(s1, s2)
+    return max(indel_ratio(inter, s1), indel_ratio(inter, s2), indel_ratio(s1, s2))</code></pre>
 
-def js_divergence(p, q):
-    m = [(a + b) / 2 for a, b in zip(p, q)]
-    return 0.5 * kl_divergence(p, m) + 0.5 * kl_divergence(q, m)
-
-def js_distance(p, q):                     # this one IS a metric
-    return math.sqrt(js_divergence(p, q))
-
-def wasserstein_1d(p, q, bin_width=1.0):
-    """1-D W1 on two histograms = area between the CDFs."""
-    cp = cq = total = 0.0
-    for pi, qi in zip(p, q):
-        cp += pi; cq += qi
-        total += abs(cp - cq) * bin_width
-    return total
-
-def haversine(lat1, lon1, lat2, lon2, R=6371.0):
-    p1, p2 = math.radians(lat1), math.radians(lat2)
-    dp, dl = p2 - p1, math.radians(lon2 - lon1)
-    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
-    return 2 * R * math.asin(math.sqrt(a))
-
-# haversine(37.5407, -77.4360, 33.7490, -84.3880) -> 756.2 km</code></pre>
-
-<h3>Gower — the record-linkage shape</h3>
-<pre><code>def gower(a, b, spec):
-    """spec: {column: ("num", range) | ("cat",) | ("bool",), ...} with weights."""
-    num = den = 0.0
-    for col, meta in spec.items():
-        w = meta.get("w", 1.0)
-        x, y = a.get(col), b.get(col)
-        if x is None or y is None:          # missing -> drop the column
+<h3>Jaro, Jaro–Winkler, Soundex</h3>
+<pre><code>def jaro(s, t):
+    if not s or not t:
+        return 0.0
+    win = max(0, max(len(s), len(t)) // 2 - 1)
+    s_m, t_m = [False] * len(s), [False] * len(t)
+    matches = 0
+    for i, cs in enumerate(s):                       # 1. matches inside the window
+        for j in range(max(0, i - win), min(len(t), i + win + 1)):
+            if not t_m[j] and cs == t[j]:
+                s_m[i] = t_m[j] = True
+                matches += 1
+                break
+    if matches == 0:
+        return 0.0
+    k = half = 0                                     # 2. count transpositions
+    for i, cs in enumerate(s):
+        if not s_m[i]:
             continue
-        kind = meta["kind"]
-        if kind == "num":
-            d = abs(x - y) / meta["range"] if meta["range"] else 0.0
-            d = min(1.0, d)                 # clamp: new data can exceed the range
-        elif kind == "str":                 # nest a string metric inside a column
-            d = 1 - jaro_winkler(str(x), str(y))
-        else:                               # cat / bool
-            d = 0.0 if x == y else 1.0
-        num += w * d
-        den += w
-    return num / den if den else 0.0
+        while not t_m[k]:
+            k += 1
+        if cs != t[k]:
+            half += 1
+        k += 1
+    trans = half / 2
+    return (matches / len(s) + matches / len(t) + (matches - trans) / matches) / 3
 
-SPEC = {"weight":  {"kind": "num", "range": 5000, "w": 1},
-        "carrier": {"kind": "str",                "w": 2},
-        "pallets": {"kind": "num", "range": 20,   "w": 1},
-        "hazmat":  {"kind": "bool",               "w": 3}}</code></pre>
+def jaro_winkler(s, t, p=0.1, max_prefix=4):
+    j = jaro(s, t)
+    l = 0
+    for a, b in zip(s[:max_prefix], t[:max_prefix]):
+        if a != b:
+            break
+        l += 1
+    return j + l * p * (1 - j)
 
-<h3>Library equivalents</h3>
-<div class="tw"><table>
-<thead><tr><th>Want</th><th>Call</th><th>Gotcha</th></tr></thead>
-<tbody>
-<tr><td>Lp family, Canberra, Bray–Curtis, Mahalanobis, correlation</td>
-    <td class="mono">scipy.spatial.distance.{euclidean, cityblock, chebyshev, minkowski, canberra, braycurtis, mahalanobis, correlation}</td>
-    <td><code>mahalanobis</code> takes <b>Σ⁻¹</b>, not Σ</td></tr>
-<tr><td>Pairwise matrices</td><td class="mono">sklearn.metrics.pairwise_distances(X, Y, metric=…, n_jobs=−1)</td>
-    <td>Materialises n×m — batch it</td></tr>
-<tr><td>Cosine at scale</td><td class="mono">faiss.IndexFlatIP + faiss.normalize_L2</td>
-    <td>Normalise queries too, or it is dot product</td></tr>
-<tr><td>Edit distances / fuzzy scorers</td>
-    <td class="mono">rapidfuzz.distance.{Levenshtein, DamerauLevenshtein, OSA, JaroWinkler, Indel}; rapidfuzz.fuzz.*</td>
-    <td><code>fuzz.ratio</code> is Indel, not Levenshtein; use <code>process.cdist</code> + <code>score_cutoff</code></td></tr>
-<tr><td>Distribution distance</td>
-    <td class="mono">scipy.stats.wasserstein_distance; scipy.spatial.distance.jensenshannon</td>
-    <td><code>jensenshannon</code> returns <b>√JSD</b>, and <code>base</code> defaults to natural log</td></tr>
-<tr><td>Geo</td><td class="mono">sklearn.neighbors.BallTree(X, metric="haversine")</td>
-    <td>Input in <b>radians</b>; multiply the output by 6371 for km</td></tr>
-<tr><td>Mixed types</td><td class="mono">gower.gower_matrix(df)</td>
-    <td>O(n²) memory — block first</td></tr>
-<tr><td>Phonetics</td><td class="mono">jellyfish.{soundex, metaphone, nysiis, match_rating_codex}</td>
-    <td>Double Metaphone for non-English names</td></tr>
-</tbody></table></div>
+# jaro("MARTHA", "MARHTA")        -> 0.9444
+# jaro_winkler("MARTHA","MARHTA") -> 0.9611
+
+_SOUNDEX = {**dict.fromkeys("BFPV", "1"), **dict.fromkeys("CGJKQSXZ", "2"),
+            **dict.fromkeys("DT", "3"), "L": "4",
+            **dict.fromkeys("MN", "5"), "R": "6"}
+
+def soundex(name):
+    up = "".join(c for c in name.upper() if c.isalpha())
+    if not up:
+        return ""
+    out, prev = up[0], _SOUNDEX.get(up[0], "")
+    for c in up[1:]:
+        code = _SOUNDEX.get(c, "")
+        if code and code != prev:
+            out += code
+            if len(out) == 4:
+                break
+        if c not in "HW":            # H and W are transparent; vowels reset
+            prev = code
+    return (out + "000")[:4]
+
+# soundex("Robert") == soundex("Rupert") == "R163"</code></pre>
+
 </div>
 </section>
 <section id="interview">
 <div class="card">
-<h2><span class="num">25</span> Interview answers</h2>
+<h2><span class="num">16</span> Interview answers</h2>
 <p class="lede">The questions that actually get asked, with answers short enough to say out loud.</p>
 
-<details class="qa"><summary>When would you use cosine over Euclidean?</summary><div class="body">
-<p>When magnitude carries no meaning — text and embeddings. A 40-word and a 4 000-word document on the same topic
-have very different vector lengths but nearly the same direction, so Euclidean calls them far apart and cosine
-calls them close. Two extra points worth making: on <b>L2-normalised</b> vectors the two produce the
-<i>same ranking</i> (‖a−b‖² = 2 − 2cos), so the choice is really about whether you normalise; and cosine holds up
-better in high dimensions, where Euclidean concentrates. The flip side: if magnitude <i>is</i> the signal —
-spend, quantity, dosage — cosine throws away your answer.</p></div></details>
-
-<details class="qa"><summary>Is cosine distance a metric?</summary><div class="body">
-<p>No. It is symmetric and non-negative, but it violates the triangle inequality. If you need a metric — for a
-ball tree, a BK-tree, or clustering guarantees — use <b>angular distance</b>, arccos(cos)/π, which is a metric and
-ranks identically. This matters in practice because ANN indexes prune with the triangle inequality, so feeding
-them a non-metric can silently cost recall.</p></div></details>
-
-<details class="qa"><summary>Why Mahalanobis instead of standardising and using Euclidean?</summary><div class="body">
-<p>Standardising fixes <b>scale</b>; Mahalanobis also fixes <b>correlation</b>. If height and weight are strongly
-correlated, standardised Euclidean double-counts the shared information, and a point that is unusual because of
-the <i>combination</i> (tall and very light) looks ordinary. Mahalanobis measures distance in whitened space, so
-that combination lands far away. Bonus: d² follows χ²(k), which gives you a calibrated outlier threshold rather
-than a hand-picked cut-off. Costs: you need enough data to estimate Σ stably, Σ must be invertible, and outliers
-inflate Σ and mask themselves — use a robust estimator like MCD if outlier detection is the goal.</p></div></details>
 
 
 
 
 
-<details class="qa"><summary>What is the curse of dimensionality in distance terms?</summary><div class="body">
-<p>As dimensions grow, the ratio between the furthest and nearest neighbour tends to 1 — distances
-<b>concentrate</b>, so "nearest" carries almost no information, and you also get <b>hubness</b>, where a few
-points are the nearest neighbour of nearly everything. Indexes lose their pruning power and degrade to brute
-force. Fixes: reduce dimensions (PCA, UMAP, truncated embeddings), prefer cosine on embeddings and L1 over L2 on
-wide sparse data, select features instead of dumping them in, or learn a metric. What matters is the
-<b>intrinsic</b> dimension, not the column count — which is why 768-dim sentence embeddings still work: they live
-on a much lower-dimensional manifold.</p></div></details>
 
-<details class="qa"><summary>Which metric for drift detection, and why not KL?</summary><div class="body">
-<p>KL is asymmetric, unbounded, and infinite the moment a category appears that was absent in the reference —
-so alert thresholds are unstable and it needs smoothing that then changes the numbers. For <b>numeric</b>
-features I use <b>Wasserstein-1</b>: it is geometry-aware, finite even when the distributions no longer overlap,
-and reported in the feature's own units, so a business owner can read it. For <b>categorical</b> features,
-√JSD (symmetric, bounded, a metric) or PSI. Whichever you pick: fix the bin edges on the reference window, and
-bootstrap the alert threshold from the reference sample instead of guessing 0.1.</p></div></details>
+<details class="qa"><summary>Levenshtein vs Jaro–Winkler for name matching — which and why?</summary><div class="body">
+<p>Jaro–Winkler for <b>short</b> strings such as person and company names: it is already normalised to [0,1], it
+is length-aware, and the prefix bonus encodes the empirical fact that people get the start of a name right.
+Levenshtein when you need an <b>interpretable</b> answer ("one substituted digit") or custom costs — OCR
+confusions like 0↔O and 5↔S can be made cheap, which is a big accuracy win on scanned documents. In production I
+would compute both plus a token-level Jaccard, and let a tuned rule set or small classifier combine them; no
+single scorer survives all the failure modes.</p></div></details>
 
-
-
-<details class="qa"><summary>Why does k-means use squared Euclidean rather than Euclidean?</summary><div class="body">
-<p>Because that is literally its objective: k-means minimises within-cluster sum of squares, and the mean is the
-point that minimises squared distance to a set. Use plain Euclidean and the optimal centre becomes the geometric
-median, which is what k-medians does. Squared Euclidean also skips <i>n</i> square roots per iteration and
-expands to ‖x‖²+‖y‖²−2x·y for a fast matrix-multiply implementation. The trade-off is that it is not a metric and
-it doubles the weight of outliers — which is why k-means is outlier-sensitive.</p></div></details>
-
-<details class="qa"><summary>Euclidean on latitude/longitude — what breaks?</summary><div class="body">
-<p>A degree of latitude is ~111 km everywhere, but a degree of longitude is 111 km × cos(latitude): about 88 km at
-37.5° N and zero at the poles. Treating lat/long as a flat plane therefore inflates east–west distances — 16.6%
-too high on Richmond→Atlanta. Use Haversine (a metric on the sphere, and numerically stable for near points), or
-project to a local CRS if you want plain Euclidean inside one metro area. Watch two classic bugs: passing degrees
-where radians are expected, and (long, lat) versus (lat, long) ordering.</p></div></details>
-
-<details class="qa"><summary>Same query, different nearest neighbour — how do you debug it?</summary><div class="body">
-<p>Check the three things that define "nearest", in order. <b>Preprocessing:</b> was the scaler fitted at
-training time and applied identically at serving? Did a unit change upstream? Are the vectors actually
-L2-normalised (assert it) — because unnormalised "cosine" is dot product and prefers long vectors.
-<b>Metric:</b> is the index's metric the one the model was trained with, and is it a true metric if the index
-prunes? <b>Dimensionality:</b> measure the relative contrast; if it is near zero, the ranking is noise and no
-metric will save it.</p></div></details>
+<details class="qa"><summary>How do you fuzzy-match millions of records without an O(n²) blow-up?</summary><div class="body">
+<p>Two stages. <b>Blocking</b> first: generate candidates with something cheap and index-friendly — shared
+q-grams (invertible index), a Soundex or first-4-characters key, a length filter, or an ANN lookup on name
+embeddings. Then <b>score</b> only the surviving pairs with the expensive metric. Measure the two stages
+separately: blocking is judged on <b>recall</b> (a pair it drops can never be recovered), scoring on
+<b>precision</b>. Practical additions: <code>rapidfuzz.process.cdist</code> with a <code>score_cutoff</code>,
+sorted-neighbourhood or canopy blocking, and a human-review band for scores either side of the threshold.</p></div></details>
 
 
+
+
+
+<details class="qa"><summary>Jaccard or cosine for comparing documents?</summary><div class="body">
+<p>Jaccard on shingles/q-grams for <b>near-duplicate detection</b> — it is a metric, it is bounded, and MinHash +
+LSH make it work at billion-pair scale without computing all pairs. Cosine on TF-IDF or embeddings for
+<b>semantic similarity</b> — it accounts for term weights and, with embeddings, for meaning rather than surface
+form. In one line: Jaccard asks "are these the same text?", cosine asks "are these about the same thing?"</p></div></details>
+
+
+
+
+
+
+
+<details class="qa"><summary>How would you pick a similarity threshold?</summary><div class="body">
+<p>Never by intuition. Label a sample of pairs, plot the score distributions for matches and non-matches, and
+pick the operating point from the precision–recall curve at the cost ratio the business cares about — a false
+merge of two customers usually costs more than a missed duplicate. Then keep a <b>review band</b> around the
+threshold for human adjudication, and re-validate on a rolling labelled sample, since thresholds drift when field
+lengths, OCR engines or embedding models change. And only threshold on a <b>bounded, normalised</b> score:
+"0.85" is meaningless for raw Levenshtein or a dot product.</p></div></details>
 </div>
 </section>
 
