@@ -1,0 +1,2575 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speech — Agentic AI &amp; RAG</title>
+<meta name="description" content="Audio front end, mel spectrograms, CTC, Whisper, wav2vec, text to speech">
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+:root{
+  color-scheme:dark;
+  --bg:#0d1117; --surface:#151b23; --surface-2:#1c232d; --surface-3:#232b36;
+  --border:#2a313c; --border-soft:#21262d;
+  --ink:#e6edf3; --ink-2:#9da7b3; --ink-mut:#6e7681;
+  --accent:#3987e5; --accent-soft:rgba(57,135,229,.14); --accent-bd:rgba(57,135,229,.42);
+  --t-rag:#3987e5; --t-agentic:#d95926; --t-recall:#199e70;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+  --warn-soft:rgba(250,178,25,.12); --good-soft:rgba(12,163,12,.12); --crit-soft:rgba(208,59,59,.12);
+  --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;
+  --r1:#86b6ef;--r2:#5598e7;--r3:#2a78d6;--r4:#1c5cab;
+  --o1:#f0a882;--o2:#e88a5c;--o3:#d95926;--o4:#b8471d;--o5:#8f3716;
+  --code-bg:#0b0f15;
+  --fig-surface:#1c232d; --fig-surface-2:#171d26; --fig-surface-3:#232b36;
+  --fig-border:#39424f; --fig-ink:#e6edf3; --fig-ink-2:#b6c0cc; --fig-mut:#8d97a4;
+  --fig-accent:#3987e5; --fig-rag:#3987e5; --fig-agentic:#e2703a; --fig-recall:#22a97a;
+  --fig-good:#2eb82e; --fig-warn:#f0b429; --fig-crit:#e05252;
+  --mono:Consolas,"Cascadia Mono","SF Mono",Menlo,"DejaVu Sans Mono","Liberation Mono","Courier New",monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --radius:14px; --radius-sm:9px; --shadow:0 8px 30px rgba(0,0,0,.38); --sbw:302px;
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f6f8fa; --surface:#fff; --surface-2:#fbfcfd; --surface-3:#eff2f6;
+  --border:#d8dee4; --border-soft:#e6eaef;
+  --ink:#1f2328; --ink-2:#57606a; --ink-mut:#8b949e;
+  --accent:#2a78d6; --accent-soft:rgba(42,120,214,.10); --accent-bd:rgba(42,120,214,.34);
+  --t-rag:#2a78d6; --t-agentic:#eb6834; --t-recall:#1baf7a;
+  --warn-soft:rgba(250,178,25,.16); --good-soft:rgba(12,163,12,.10); --crit-soft:rgba(208,59,59,.09);
+  --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;
+  --r1:#86b6ef;--r2:#3987e5;--r3:#256abf;--r4:#184f95;
+  --o1:#f7c4a8;--o2:#f0996b;--o3:#eb6834;--o4:#c14a1f;--o5:#8f3716;
+  --code-bg:#f0f3f6; --shadow:0 6px 24px rgba(140,149,159,.20);
+  --fig-surface:#fff; --fig-surface-2:#f7f9fb; --fig-surface-3:#eef2f6;
+  --fig-border:#c9d1da; --fig-ink:#1f2328; --fig-ink-2:#414a54; --fig-mut:#6b747e;
+  --fig-accent:#2a78d6; --fig-rag:#2a78d6; --fig-agentic:#d1541f; --fig-recall:#12855c;
+  --fig-good:#1a7f1a; --fig-warn:#a97400; --fig-crit:#c62d2d;
+}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+
+/* ---------- top bar (one row) ----------
+   There used to be a second bar above this one repeating every topic as a pill. Topics
+   are chosen on the home page, so that row is gone and "All topics" is the way back.
+   What remains is a single row read left to right: where you can go back to, which topic
+   you are in, which page of it, and the page tools. Each tab carries its subject's icon
+   so the row is scannable by shape; the current page is marked with an underline rather
+   than a filled pill, which would compete with the accent used inside the page. */
+.sitebar{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 93%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.sitebar-in{max-width:1560px;margin:0 auto;display:flex;align-items:center;gap:2px;padding:6px 18px}
+.allbtn{display:inline-flex;align-items:center;gap:7px;flex:none;font-size:12.4px;font-weight:600;
+  color:var(--ink-mut);text-decoration:none;padding:7px 12px;border-radius:9px;
+  border:1px solid var(--border);white-space:nowrap}
+.allbtn:hover{color:var(--ink);border-color:var(--accent-bd);background:var(--surface-2)}
+.allbtn .ic{width:15px;height:15px;flex:none}
+.hdr-div{flex:none;width:1px;height:24px;background:var(--border);margin:0 12px}
+.logo{flex:none;font-weight:800;font-size:15px;letter-spacing:-.35px;margin-right:14px;
+  text-decoration:none;color:var(--ink);white-space:nowrap}
+.logo b{color:var(--accent)}
+.tabs{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:1px;
+  overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.tabs::-webkit-scrollbar{display:none}
+.sitebar a.tab{position:relative;display:inline-flex;align-items:center;gap:7px;flex:none;
+  font-size:12.9px;font-weight:500;padding:8px 12px 10px;border-radius:8px;
+  color:var(--ink-mut);text-decoration:none;white-space:nowrap}
+.sitebar a.tab .ic{width:15px;height:15px;flex:none;opacity:.62}
+.sitebar a.tab:hover{color:var(--ink);background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.sitebar a.tab:hover .ic{opacity:.9}
+.sitebar a.tab.on{color:var(--ink);font-weight:700}
+.sitebar a.tab.on .ic{opacity:1;color:var(--accent)}
+.sitebar a.tab.on::after{content:"";position:absolute;left:12px;right:12px;bottom:3px;height:2px;
+  border-radius:2px;background:var(--accent)}
+.pgstat{flex:none;font-size:12px;font-weight:700;color:var(--ink-mut);
+  font-variant-numeric:tabular-nums;white-space:nowrap;padding:0 12px 0 2px}
+.btn{background:transparent;border:1px solid var(--border);color:var(--ink-2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12.3px;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex:none}
+.btn .ic{width:14px;height:14px;flex:none;opacity:.75}
+.btn.on .ic{opacity:1}
+.btn:hover{border-color:var(--accent);color:var(--ink)}
+.btn.on{background:var(--accent-soft);border-color:var(--accent-bd);color:var(--accent);font-weight:700}
+
+.app{display:grid;grid-template-columns:var(--sbw) 1fr;max-width:1560px;margin:0 auto;min-height:100vh}
+aside{position:sticky;top:47px;height:calc(100vh - 47px);overflow-y:auto;overscroll-behavior:contain;border-right:1px solid var(--border);padding:12px 0 40px;background:var(--bg)}
+aside::-webkit-scrollbar{width:8px}aside::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.sb-search{padding:0 14px 8px}
+.sb-search input{width:100%;padding:8px 11px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:13px;font-family:inherit;outline:none}
+.sb-search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+nav{padding:0 8px;font-size:13px}
+.nav-grp{margin:12px 0 3px;padding:0 10px;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-mut);font-weight:800}
+nav a{display:flex;gap:7px;align-items:flex-start;padding:5px 10px;margin:1px 2px;border-radius:7px;color:var(--ink-2);text-decoration:none;border-left:2px solid transparent;line-height:1.4;font-size:12.5px}
+nav a:hover{background:var(--surface-2);color:var(--ink)}
+nav a.active{background:var(--accent-soft);color:var(--accent);border-left-color:var(--accent);font-weight:650}
+nav a.done .qn{background:var(--good);border-color:var(--good);color:#fff}
+.qn{flex:none;min-width:21px;text-align:center;font-family:var(--mono);font-size:9.5px;padding:1px 4px;border-radius:5px;border:1px solid var(--border);color:var(--ink-mut);height:17px;line-height:15px}
+
+main{min-width:0;padding:0 40px 140px}
+.wrap{max-width:1000px;margin:0 auto}
+
+/* ---------- hero ---------- */
+.hero{padding:36px 0 4px}
+.eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tc,var(--accent));font-weight:800}
+.hero h1{font-size:40px;line-height:1.08;margin:9px 0 12px;letter-spacing:-1px}
+.hero .lede{color:var(--ink-2);font-size:17px;margin:0 0 20px;max-width:70ch}
+.hero .lede b{color:var(--ink)}
+.oneliner{border-left:4px solid var(--tc,var(--accent));background:var(--surface);border-radius:0 var(--radius) var(--radius) 0;padding:14px 18px;margin:18px 0;font-size:16px}
+.oneliner b{color:var(--tc,var(--accent))}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:22px 0}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat-v{font-size:27px;font-weight:750;letter-spacing:-.6px;line-height:1.05;color:var(--tc,var(--accent))}
+.stat-l{font-size:11px;color:var(--ink-mut);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;line-height:1.35}
+
+/* ---------- figures ---------- */
+figure.viz{margin:26px 0;background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--border);border-radius:var(--radius);padding:17px 19px 10px;overflow:hidden;box-shadow:var(--shadow)}
+figure.viz figcaption b::before{content:"";display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--tc,var(--accent));margin-right:9px;vertical-align:middle}
+figure.viz figcaption{margin-bottom:12px}
+figure.viz figcaption b{display:block;font-size:15px;letter-spacing:-.2px}
+figure.viz figcaption span{display:block;font-size:12px;color:var(--ink-mut);margin-top:2px}
+figure.viz figcaption .terms{display:block;font-size:11px;color:var(--ink-mut);margin-top:5px;
+  padding-top:5px;border-top:1px dashed var(--border-soft);line-height:1.65}
+figure.viz figcaption .terms b{display:inline;font-size:11px;letter-spacing:0;color:var(--ink-2);
+  font-weight:700;font-family:var(--mono)}
+figure.viz figcaption .terms b::before{content:none;display:none;margin:0}
+abbr[title]{text-decoration:underline dotted var(--ink-mut);text-underline-offset:3px;cursor:help;border:0;text-decoration-thickness:1px}
+abbr[title]:hover{text-decoration-color:var(--accent)}
+.viz-scroll{overflow-x:auto;padding-bottom:6px}
+.viz-scroll svg{display:block;width:100%;min-width:660px;height:auto}
+
+/* ---------- standard topic panels ---------- */
+.panels{display:grid;gap:13px;margin:18px 0}
+.panel{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--pc,var(--accent));border-radius:var(--radius);padding:15px 18px}
+.panel > h3{margin:0 0 4px;font-size:15.5px;display:flex;align-items:center;gap:9px}
+.panel > h3 .ic{width:23px;height:23px;border-radius:7px;background:var(--pc,var(--accent));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:none}
+.panel > h3 small{margin-left:auto;font-size:10.5px;color:var(--ink-mut);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.p-scale{--pc:var(--t-rag)} .p-prod{--pc:var(--t-recall)} .p-opt{--pc:var(--t-agentic)}
+.p-lat{--pc:var(--warn)} .p-met{--pc:var(--accent)}
+
+/* ---------- per-answer visual furniture ---------- */
+.keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
+.kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
+.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+/* Box-drawing glyphs must come from the same font as the letters or the borders go
+   ragged: the default stack resolved them from a fallback whose advance width did
+   not match, so a run of horizontal rule ended short of the verticals around it.
+   These faces all carry U+2500..257F at the monospace advance. */
+.diagram pre{margin:0;padding-top:12px;background:none;border:none;
+  font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
+    "Courier New",monospace;
+  font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
+  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
+.flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
+.flow .fl{font-size:10px;font-weight:800;letter-spacing:.09em;color:var(--ink-mut);margin-right:10px;text-transform:uppercase}
+.q-a ol{counter-reset:st;list-style:none;padding-left:0;margin:11px 0}
+.q-a ol > li{counter-increment:st;position:relative;padding-left:36px;margin:8px 0}
+.q-a ol > li::before{content:counter(st);position:absolute;left:0;top:1px;width:24px;height:24px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+/* ---------- content ---------- */
+.sec{margin-top:44px;scroll-margin-top:60px}
+.sec > h2{font-size:25px;margin:0 0 4px;letter-spacing:-.5px;padding-bottom:9px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:11px}
+.sec > h2 .hn{font-size:11.5px;font-family:var(--mono);font-weight:800;background:var(--tc,var(--accent));color:#fff;border-radius:7px;padding:3px 8px}
+.parthead{display:flex;align-items:center;gap:12px;margin:52px 0 16px}
+.parthead span{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mut);white-space:nowrap}
+.parthead i{flex:1;height:1px;background:var(--border)}
+.q{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 18px;margin:16px 0;scroll-margin-top:60px}
+.q:target{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.q.done{border-left:3px solid var(--good)}
+.q-h{display:flex;align-items:flex-start;gap:11px}
+.q-n{flex:none;font-family:var(--mono);font-size:11px;font-weight:800;min-width:26px;height:23px;line-height:21px;text-align:center;border-radius:7px;border:1px solid var(--border);color:var(--ink-mut);background:var(--bg)}
+.q.done .q-n{background:var(--good);border-color:var(--good);color:#fff}
+.q-h h3{margin:0;font-size:17px;line-height:1.35;letter-spacing:-.2px;flex:1}
+.q-done{flex:none;cursor:pointer}
+.q-done input{position:absolute;opacity:0;pointer-events:none}
+.q-done span{display:block;width:22px;height:22px;border-radius:7px;border:1px solid var(--border);background:var(--bg);position:relative}
+.q-done span::after{content:"";position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid transparent;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.q-done input:checked+span{background:var(--good);border-color:var(--good)}
+.q-done input:checked+span::after{border-color:#fff}
+.q-a{margin-top:11px}
+.reveal{display:none;margin-top:10px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);padding:7px 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:12.4px;font-weight:700}
+body.drill .q-a{display:none} body.drill .reveal{display:inline-block}
+/* reference cards have no answer to hide - never drill them */
+body.drill .q.q-ref .q-a{display:block}
+body.drill .q.open .q-a{display:block} body.drill .q.open .reveal{display:none}
+
+p{margin:9px 0}
+h3{font-size:17px;margin:20px 0 7px}h4{font-size:14px;margin:15px 0 5px;color:var(--ink-2)}
+ul{margin:9px 0;padding-left:22px}li{margin:4px 0}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+hr{border:none;border-top:1px solid var(--border);margin:20px 0}
+code{font-family:var(--mono);font-size:.855em;background:var(--code-bg);padding:.12em .42em;border-radius:5px;border:1px solid var(--border-soft);color:#ffa657;word-break:break-word}
+html[data-theme="light"] code{color:#953800}
+pre.code{background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 15px;overflow-x:auto;margin:11px 0;line-height:1.55;position:relative}
+pre.code code{background:none;border:none;padding:0;color:var(--ink);font-size:12.4px;white-space:pre}
+pre.code[data-lang]::before{content:attr(data-lang);position:absolute;top:0;right:0;font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-mut);background:var(--surface-3);border-left:1px solid var(--border);border-bottom:1px solid var(--border);border-radius:0 var(--radius-sm) 0 7px;padding:2px 8px}
+.cmt{color:var(--ink-mut);font-style:italic}.kw{color:#ff7b72}.str{color:#a5d6ff}.fn{color:#d2a8ff}.num{color:#79c0ff}
+html[data-theme="light"] .kw{color:#cf222e}html[data-theme="light"] .str{color:#0a3069}
+html[data-theme="light"] .fn{color:#8250df}html[data-theme="light"] .num{color:#0550ae}
+.say{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 16px;margin:12px 0}
+.say-h{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.say-h::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.say p{margin:0;font-size:15.2px;line-height:1.68}.say em{font-style:normal;color:var(--ink)}
+.note{border-left:3px solid var(--border);background:var(--surface-2);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 15px;margin:12px 0;font-size:13.8px;color:var(--ink-2)}
+.note p:first-child{margin-top:0}.note p:last-child{margin-bottom:0}.note strong{color:var(--ink)}
+.tbl-wrap{overflow-x:auto;margin:15px 0;border:1px solid var(--border);border-radius:12px;
+  background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.10)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.2px;background:transparent}
+th,td{padding:10px 13px;text-align:left;border-bottom:1px solid var(--border-soft);vertical-align:top;line-height:1.55}
+th{position:sticky;top:0;z-index:2;background:var(--surface-3);font-weight:800;font-size:10.5px;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2);white-space:nowrap;
+  border-bottom:1px solid var(--border);backdrop-filter:blur(6px)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover>td{background:var(--surface-2)}
+tbody tr.g1>td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+tbody tr.g1:hover>td{background:var(--surface-2)}
+
+/* merged category column: the label is stated once, as a vertical band */
+td.c-grp{background:var(--surface-3);border-right:1px solid var(--border);vertical-align:top;
+  width:1%;white-space:nowrap;padding:11px 13px}
+tbody tr:hover>td.c-grp{background:var(--surface-3)}
+td.c-grp .grp-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--tc,var(--accent));background:var(--accent-soft);
+  border:1px solid var(--accent-bd);border-radius:999px;padding:3px 11px;position:sticky;top:44px}
+table.t-grouped td:not(.c-grp):first-of-type{font-weight:600;color:var(--ink)}
+
+/* two-column glossary: term rail on the left */
+table.t-def td.c-term{width:210px;font-weight:700;color:var(--ink);background:var(--surface-2);
+  border-right:2px solid var(--accent-bd)}
+table.t-def td.c-term code{background:none;border:none;padding:0;color:inherit}
+
+/* magnitudes should read as data, not prose */
+.mag{font-family:var(--mono);font-size:.9em;font-weight:700;color:var(--warn);
+  background:var(--warn-soft);border-radius:5px;padding:.05em .38em;white-space:nowrap}
+
+/* term / description list rows */
+li.dl{list-style:none;margin:7px 0;padding:7px 12px;border-radius:9px;background:var(--surface-2);
+  border-left:3px solid var(--border)}
+li.dl:hover{border-left-color:var(--accent)}
+li.dl .dt{display:inline-block;font-weight:800;color:var(--ink);margin-right:8px}
+li.dl .dt::after{content:"—";color:var(--ink-mut);font-weight:400;margin-left:8px}
+li.dl .dd{color:var(--ink-2)}
+ul:has(> li.dl){padding-left:0}
+
+/* typed callouts */
+.note.n-crit{border-left-color:var(--crit);background:var(--crit-soft)}
+.note.n-warn{border-left-color:var(--warn);background:var(--warn-soft)}
+.note.n-good{border-left-color:var(--good);background:var(--good-soft)}
+.note.n-key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.n-crit strong:first-child{color:var(--crit)}
+.note.n-warn strong:first-child{color:var(--warn)}
+.note.n-good strong:first-child{color:var(--good)}
+.note.n-key strong:first-child{color:var(--accent)}
+
+/* headings inside an answer body */
+.q-a h3,.q-a h4{display:flex;align-items:center;gap:9px;letter-spacing:-.2px}
+.q-a h3::before{content:"";width:3px;height:15px;border-radius:2px;background:var(--tc,var(--accent));flex:none}
+.q-a h4{color:var(--ink-2);font-size:13.5px;text-transform:none}
+.q-a h4::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--ink-mut);flex:none}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:13px;margin:20px 0}
+.tcard{display:block;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--tc,var(--accent));border-radius:var(--radius);padding:15px 16px;text-decoration:none;color:inherit}
+.tcard:hover{border-color:var(--accent);box-shadow:var(--shadow);text-decoration:none}
+.tcard h4{margin:0 0 5px;font-size:15px;color:var(--ink)}
+.tcard p{margin:0;font-size:12.2px;color:var(--ink-mut);line-height:1.5}
+.tcard .meta{margin-top:9px;font-size:10.5px;color:var(--tc,var(--accent));font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.no-result{display:none;text-align:center;color:var(--ink-mut);padding:60px 20px}.no-result.show{display:block}
+kbd{font-family:var(--mono);font-size:10px;background:var(--surface-3);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 5px;color:var(--ink-2)}
+.totop{position:fixed;right:20px;bottom:20px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:18px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s;z-index:55}
+.totop.show{opacity:1;pointer-events:auto}
+.menu-toggle{display:none}
+@media(max-width:1060px){
+  .app{grid-template-columns:1fr}
+  aside{position:fixed;left:calc(-1 * var(--sbw));top:0;height:100vh;width:var(--sbw);z-index:100;transition:left .25s;box-shadow:var(--shadow);background:var(--surface)}
+  aside.open{left:0}
+  .menu-toggle{display:inline-flex}
+  main{padding:0 15px 110px}
+  .hero h1{font-size:29px}
+}
+/* ---------- phones ----------
+   The rebuilt header is one no-wrap flex row, and its fixed items - All topics, the
+   logo, two dividers, the counter and two labelled buttons - add up to roughly 460px.
+   On a 360px screen that pushed the whole page sideways, which is why everything looked
+   shifted rather than merely cramped. Below 700px the row keeps only what identifies
+   the page and the controls, as icons. */
+@media(max-width:700px){
+  .sitebar-in{padding:5px 10px;gap:1px}
+  .allbtn span,.btn span{display:none}
+  .allbtn{padding:7px 9px}
+  .btn{padding:6px 9px}
+  .btn .ic,.allbtn .ic{width:16px;height:16px;opacity:.9}
+  .hdr-div{display:none}
+  .pgstat{display:none}
+  .logo{font-size:13.5px;margin:0 8px 0 4px}
+  .sitebar a.tab{font-size:12.4px;padding:7px 9px 9px}
+  .sitebar a.tab.on::after{left:9px;right:9px}
+
+  main{padding:0 12px 90px}
+  .hero h1{font-size:23px;line-height:1.22}
+  .lede{font-size:14px}
+  .q-h{font-size:14.5px}
+
+  /* a 920-wide diagram shrunk to fit a phone is unreadable, so it scrolls at a legible
+     size instead - but only the figure scrolls, never the page */
+  .viz-scroll{-webkit-overflow-scrolling:touch}
+  .viz-scroll svg{min-width:560px}
+  figure.viz{padding:13px 12px 8px;margin:18px 0}
+  figure.viz figcaption b{font-size:14px}
+
+  /* long inline formulas were set nowrap, so they ran off the edge */
+  .mth{white-space:normal}
+  .mth-block{white-space:nowrap;text-align:left}
+
+  .diagram{padding:12px 10px 10px}
+  .diagram pre{font-size:11px}
+  .tbl-wrap{margin:12px 0}
+  pre.code{font-size:11.5px}
+  .keyterms .kt{font-size:10.5px}
+}
+/* very small phones: the tab row is the only thing that must survive */
+@media(max-width:380px){
+  .logo{display:none}
+  .sitebar-in{padding:5px 8px}
+}
+
+@media print{.sitebar,aside,.totop,.reveal,.q-done{display:none}.app{grid-template-columns:1fr}body.drill .q-a{display:block}}
+
+/* =====================================================================
+   DESIGN LAYER  --  loaded last, so these rules win.
+   Depth, type scale, motion, and the components the base sheet lacks.
+   ===================================================================== */
+
+:root{
+  --e1:0 1px 2px rgba(0,0,0,.18);
+  --e2:0 4px 14px rgba(0,0,0,.24);
+  --e3:0 14px 40px rgba(0,0,0,.34);
+  --ring:0 0 0 3px var(--accent-soft);
+  --tight:-.022em;
+  --glass:color-mix(in srgb,var(--bg) 78%,transparent);
+}
+html[data-theme="light"]{
+  --e1:0 1px 2px rgba(16,24,40,.06);
+  --e2:0 6px 18px rgba(16,24,40,.09);
+  --e3:0 18px 44px rgba(16,24,40,.13);
+}
+html[data-theme="dark"],:root{ --bg:#0a0e14; --surface:#12181f; --surface-2:#171e26; --surface-3:#1e2630;
+  --border:#262f3a; --border-soft:#1c242e; }
+
+body{font-size:15.6px;line-height:1.68;letter-spacing:.002em;
+  text-rendering:optimizeLegibility;font-variant-ligatures:common-ligatures}
+::selection{background:var(--accent);color:#fff}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+@media(prefers-reduced-motion:no-preference){
+  a,button,.tcard,.q,.stat,.hub-card,.learn-item,nav a,.tab,.sw{transition:
+    background-color .16s ease,border-color .16s ease,color .16s ease,
+    transform .16s cubic-bezier(.2,.7,.3,1),box-shadow .16s ease}
+}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:99px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--border)}
+
+/* ---------- reading progress ---------- */
+#rprog{position:fixed;top:0;left:0;height:2.5px;width:0;z-index:200;
+  background:linear-gradient(90deg,var(--t-rag),var(--t-agentic),var(--t-recall));
+  box-shadow:0 0 12px var(--accent);transition:width .08s linear}
+
+/* ---------- chrome ---------- */
+.sitebar{background:var(--glass);backdrop-filter:blur(14px) saturate(1.5);
+  -webkit-backdrop-filter:blur(14px) saturate(1.5);box-shadow:var(--e1)}
+.logo{font-size:15.5px;letter-spacing:var(--tight)}
+.btn{font-weight:600}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--e2)}
+.btn:active{transform:translateY(0)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,var(--bg),color-mix(in srgb,var(--surface) 55%,var(--bg)));
+  border-right:1px solid var(--border-soft)}
+.sb-search input{box-shadow:var(--e1)}
+nav a{border-radius:9px;border-left:0;position:relative;padding-left:12px}
+nav a.active{background:linear-gradient(90deg,var(--accent-soft),transparent);
+  box-shadow:inset 0 0 0 1px var(--accent-bd)}
+nav a.active::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--accent)}
+.nav-grp{margin-top:16px;color:var(--ink-mut);opacity:.85}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:52px 0 8px}
+.hero::before{content:"";position:absolute;left:-56px;right:-56px;top:-140px;height:420px;z-index:-1;
+  pointer-events:none;opacity:.5;
+  background:
+    radial-gradient(58% 62% at 14% 24%,color-mix(in srgb,var(--tc,var(--accent)) 34%,transparent),transparent 70%),
+    radial-gradient(46% 54% at 82% 8%,color-mix(in srgb,var(--t-agentic) 22%,transparent),transparent 72%);
+  filter:blur(26px)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;padding:5px 12px;
+  border-radius:999px;background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 34%,transparent)}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--tc,var(--accent));
+  box-shadow:0 0 9px var(--tc,var(--accent))}
+.hero h1{font-size:clamp(32px,4.4vw,46px);line-height:1.04;letter-spacing:-.032em;
+  margin:16px 0 14px;font-weight:800;
+  background:linear-gradient(175deg,var(--ink) 30%,color-mix(in srgb,var(--ink) 62%,var(--tc,var(--accent))));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lede{font-size:17.5px;line-height:1.62;max-width:86ch}
+.oneliner{background:linear-gradient(100deg,
+    color-mix(in srgb,var(--tc,var(--accent)) 11%,var(--surface)),var(--surface) 62%);
+  border:1px solid var(--border);border-left:4px solid var(--tc,var(--accent));
+  border-radius:var(--radius);box-shadow:var(--e1);line-height:1.6}
+
+/* ---------- stat tiles ---------- */
+.stat{position:relative;overflow:hidden;box-shadow:var(--e1);
+  background:linear-gradient(180deg,var(--surface),var(--surface-2))}
+.stat::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),transparent 78%)}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--e2);border-color:var(--tc,var(--accent))}
+.stat-v{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+
+/* ---------- what you'll learn ---------- */
+.learn{margin:26px 0 10px;padding:20px 22px 18px;border-radius:16px;position:relative;
+  background:linear-gradient(150deg,
+    color-mix(in srgb,var(--tc,var(--accent)) 9%,var(--surface)),var(--surface) 58%);
+  border:1px solid var(--border);box-shadow:var(--e1)}
+.learn-h{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:800;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--tc,var(--accent))}
+.learn-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;background:var(--tc,var(--accent));color:#fff;font-size:11px}
+.learn-lede{margin:10px 0 4px;font-size:15px;color:var(--ink-2);max-width:92ch}
+.learn-grid{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px;
+  grid-template-columns:repeat(auto-fill,minmax(268px,1fr))}
+.learn-item{background:var(--bg);border:1px solid var(--border-soft);border-radius:11px;
+  padding:11px 13px;margin:0}
+.learn-item:hover{border-color:var(--tc,var(--accent));transform:translateY(-1px);box-shadow:var(--e1)}
+.learn-top{display:flex;align-items:baseline;gap:9px}
+.learn-top b{font-size:13.4px;color:var(--ink);letter-spacing:var(--tight)}
+.learn-n{margin-left:auto;font-size:10px;font-family:var(--mono);color:var(--ink-mut);white-space:nowrap}
+.learn-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.learn-tags span{font-size:10px;padding:2px 8px;border-radius:999px;background:var(--surface-3);
+  border:1px solid var(--border-soft);color:var(--ink-mut)}
+
+/* ---------- section + file headers ---------- */
+.sec > h2{letter-spacing:-.028em;border-bottom:1px solid var(--border)}
+.sec > h2 .hn{box-shadow:0 2px 10px color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent)}
+.filehead h2{letter-spacing:-.028em}
+.parthead span{color:var(--tc,var(--accent));opacity:.9}
+.parthead i{background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- question cards ---------- */
+.q{box-shadow:var(--e1);border-radius:14px}
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,var(--border));box-shadow:var(--e2)}
+.q-h h3{letter-spacing:-.02em}
+.q-n{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));font-weight:800}
+.q.done{box-shadow:inset 3px 0 0 var(--good),var(--e1);border-left-color:transparent}
+.q-a{max-width:none}
+.q-a > p:first-child{color:var(--ink)}
+/* block content fills the card; only loose prose keeps a comfortable measure */
+.q-a > p{max-width:96ch}
+.q-a > ul:not(.steplist),.q-a > ol:not(.steplist){max-width:96ch}
+
+/* ---------- cards ---------- */
+.tcard{box-shadow:var(--e1);background:linear-gradient(170deg,var(--surface),var(--surface-2))}
+.tcard:hover{transform:translateY(-3px);box-shadow:var(--e3)}
+.tcard h4{letter-spacing:var(--tight)}
+
+/* ---------- code ---------- */
+pre.code{box-shadow:inset 0 0 0 1px var(--border-soft),var(--e1);border-radius:12px;padding:15px 16px}
+pre.code:hover .copy{opacity:1}
+.copy{position:absolute;top:7px;right:8px;opacity:0;font-family:var(--sans);font-size:10.5px;
+  font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:7px;
+  border:1px solid var(--border);background:var(--surface-3);color:var(--ink-2);cursor:pointer;z-index:3}
+.copy:hover{border-color:var(--accent);color:var(--accent)}
+.copy.ok{border-color:var(--good);color:var(--good)}
+pre.code[data-lang]::before{top:0;right:auto;left:0;border-radius:12px 0 8px 0;border-left:0;
+  border-right:1px solid var(--border)}
+
+/* ---------- figures ---------- */
+figure.viz{border-radius:16px;box-shadow:var(--e2);padding:19px 21px 12px}
+figure.viz figcaption b{font-size:15.5px;letter-spacing:-.024em}
+figure.viz:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,var(--border))}
+
+/* ---------- tables ---------- */
+.tbl-wrap{box-shadow:var(--e1)}
+td.c-grp .grp-tag{box-shadow:var(--e1)}
+.mag{letter-spacing:-.01em}
+
+/* ---------- callouts + say ---------- */
+.say{border-radius:12px;border-left-width:4px;box-shadow:var(--e1);
+  background:linear-gradient(100deg,var(--accent-soft),transparent 70%)}
+.note{border-radius:12px;border-left-width:4px}
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key{box-shadow:var(--e1)}
+
+/* ---------- panels ---------- */
+.panel{box-shadow:var(--e1);border-radius:14px;
+  background:linear-gradient(170deg,color-mix(in srgb,var(--pc,var(--accent)) 7%,var(--surface)),var(--surface) 55%)}
+.panel:hover{box-shadow:var(--e2)}
+.panel > h3 .ic{box-shadow:0 2px 9px color-mix(in srgb,var(--pc,var(--accent)) 50%,transparent)}
+
+/* ---------- keyterms + flow ---------- */
+.kt{background:linear-gradient(180deg,var(--surface-3),var(--surface-2));font-weight:650}
+.kt:hover{border-color:var(--accent);color:var(--accent)}
+.flow{border-radius:12px;box-shadow:var(--e1)}
+.flow .st{box-shadow:var(--e1)}
+.diagram{border-radius:12px}
+
+/* ---------- step lists (a fence that was really a list) ---------- */
+ol.steplist{counter-reset:sl;list-style:none;padding-left:0;margin:14px 0}
+ol.steplist > li{counter-increment:sl;position:relative;padding:9px 14px 9px 44px;margin:7px 0;
+  background:var(--surface-2);border:1px solid var(--border-soft);border-radius:11px;
+  line-height:1.6;font-size:14.4px}
+ol.steplist > li::before{content:counter(sl);position:absolute;left:11px;top:9px;width:24px;height:24px;
+  border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent-bd);color:var(--accent);
+  font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono)}
+ol.steplist > li:hover{border-color:var(--accent-bd)}
+ul.steplist{list-style:none;padding-left:0;margin:14px 0}
+ul.steplist > li{position:relative;padding:8px 14px 8px 30px;margin:6px 0;background:var(--surface-2);
+  border:1px solid var(--border-soft);border-radius:11px;line-height:1.6;font-size:14.4px}
+ul.steplist > li::before{content:"";position:absolute;left:13px;top:17px;width:6px;height:6px;
+  border-radius:50%;background:var(--tc,var(--accent))}
+
+/* a source heading with no body under it: don't render an empty card */
+.q-a:empty{display:none}
+.q-a:empty + .reveal{display:none}
+.q:has(> .q-a:empty){padding:11px 18px;background:var(--surface-2);opacity:.85}
+.q:has(> .q-a:empty) .q-h h3{font-size:14.5px;color:var(--ink-2)}
+
+.q-h h3 code{font-size:.88em;background:var(--code-bg);border:1px solid var(--border-soft);padding:.06em .34em}
+nav a code{font-size:.9em;background:none;border:0;padding:0;color:inherit}
+.parthead code{font-size:.92em;background:none;border:0;padding:0;color:inherit}
+
+/* ---------- hub ---------- */
+.hub-card{box-shadow:var(--e1);background:linear-gradient(170deg,var(--surface),var(--surface-2))}
+.hub-card:hover{transform:translateY(-4px);box-shadow:var(--e3)}
+.hub h1{letter-spacing:-.034em;font-weight:800}
+
+@media(max-width:1060px){
+  .hero{padding:34px 0 4px}
+  .hero::before{display:none}
+  .learn-grid{grid-template-columns:1fr}
+}
+@media print{
+  .sitebar,aside,.totop,.reveal,.copy,#rprog{display:none!important}
+  .app{grid-template-columns:1fr}
+  .q,.tbl-wrap,figure.viz{break-inside:avoid;box-shadow:none}
+}
+
+/* ---------- long-page ergonomics ---------- */
+/* the group header stays put while you scroll a 200-question list */
+.parthead{position:sticky;top:44px;z-index:12;background:var(--glass);
+  backdrop-filter:blur(10px) saturate(1.4);-webkit-backdrop-filter:blur(10px) saturate(1.4);
+  padding:8px 10px;margin:26px -10px 10px;border-radius:10px}
+.filehead{position:relative;z-index:1}
+
+/* question cards: tint the badge, and offer a deep link on hover */
+.q-n{color:var(--tc,var(--accent));border-color:color-mix(in srgb,var(--tc,var(--accent)) 40%,var(--border))}
+.q-h{position:relative}
+.q-anchor{opacity:0;margin-left:8px;font-size:12px;color:var(--ink-mut);text-decoration:none;
+  cursor:pointer;font-family:var(--mono);flex:none;align-self:center}
+.q:hover .q-anchor{opacity:.7}
+.q-anchor:hover{opacity:1!important;color:var(--accent);text-decoration:none}
+.q-anchor.ok{color:var(--good);opacity:1!important}
+
+/* card affordances */
+.tcard,.hub-card{position:relative}
+.tcard::after,.hub-card::after{content:"92";position:absolute;right:16px;bottom:12px;
+  font-size:15px;color:var(--tc,var(--accent));opacity:0;transform:translateX(-4px)}
+.tcard:hover::after,.hub-card:hover::after{opacity:.9;transform:translateX(0);
+  transition:opacity .16s ease,transform .16s ease}
+
+/* search: dim the page while filtering so hits stand out */
+body.searching .q{opacity:1}
+body.searching .parthead{opacity:.5}
+
+@media(max-width:1060px){ .parthead{top:0} }
+
+/* =====================================================================
+   AURORA GLASS
+   The final layer. Everything below re-tints the sheet above it: a deep
+   near-black canvas lit by a fixed gradient mesh, with the chrome and the
+   cards reading as frosted panels floating on top of it.
+   ===================================================================== */
+
+:root{
+  --bg:#070a12; --bg-2:#0a0e18;
+  --surface:#0f131e; --surface-2:#141a27; --surface-3:#1c2333;
+  --border:#232c40; --border-soft:#19202f;
+  --ink:#eaf0fb; --ink-2:#9fabc4; --ink-mut:#6b7690;
+
+  --accent:#7c9dff; --accent-2:#b18cff;
+  --accent-soft:rgba(124,157,255,.15); --accent-bd:rgba(124,157,255,.40);
+  --t-rag:#7c9dff; --t-agentic:#ff9563; --t-recall:#3ed9a4;
+  --t-violet:#b18cff; --t-amber:#f0c274;
+  --good:#3ed9a4; --warn:#f5c451; --crit:#ff6b81;
+  --good-soft:rgba(62,217,164,.12); --warn-soft:rgba(245,196,81,.12);
+  --crit-soft:rgba(255,107,129,.12);
+  --code-bg:#080b13;
+
+  --glass:rgba(255,255,255,.045);
+  --glass-bd:rgba(255,255,255,.075);
+  --e1:0 1px 2px rgba(0,0,0,.40);
+  --e2:0 8px 26px rgba(3,6,15,.55);
+  --e3:0 22px 60px rgba(3,6,15,.68);
+  --radius:16px; --radius-sm:11px;
+}
+html[data-theme="light"]{
+  --bg:#f6f8fe; --bg-2:#eef2fb;
+  --surface:#fff; --surface-2:#fafbff; --surface-3:#eef2fb;
+  --border:#dce3f2; --border-soft:#e9edf8;
+  --ink:#111828; --ink-2:#4c586f; --ink-mut:#7c8699;
+
+  --accent:#4f6fe6; --accent-2:#8b5cf6;
+  --accent-soft:rgba(79,111,230,.10); --accent-bd:rgba(79,111,230,.34);
+  --t-rag:#4f6fe6; --t-agentic:#e0663a; --t-recall:#0f9e74;
+  --t-violet:#8b5cf6; --t-amber:#a9760a;
+  --good:#0f9e74; --warn:#b07d00; --crit:#dc3d55;
+  --good-soft:rgba(15,158,116,.10); --warn-soft:rgba(176,125,0,.11);
+  --crit-soft:rgba(220,61,85,.09);
+  --code-bg:#f2f5fc;
+
+  --glass:rgba(255,255,255,.62);
+  --glass-bd:rgba(17,24,40,.07);
+  --e1:0 1px 2px rgba(16,24,40,.05);
+  --e2:0 8px 24px rgba(16,24,40,.08);
+  --e3:0 22px 56px rgba(16,24,40,.12);
+}
+
+/* ---------- the canvas ---------- */
+/* the page background lives on <html> so the fixed aurora layer can sit
+   between it and the content without the body's own fill covering it */
+html{background:var(--bg)}
+body{background:transparent}
+
+/* Ambient tint on every page: strongest at the top edge, gone by mid-scroll, so
+   long reading pages settle onto clean dark instead of a permanent wash. */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 22% -6%, color-mix(in srgb,var(--accent) 46%,transparent), transparent 66%),
+    radial-gradient(38% 32% at 82% -8%, color-mix(in srgb,var(--accent-2) 40%,transparent), transparent 64%);
+  filter:blur(30px) saturate(1.3);opacity:.5;
+  -webkit-mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%);
+          mask-image:linear-gradient(180deg,#000 0,#000 34%,transparent 82%)}
+html[data-theme="light"] body::before{opacity:.5;filter:blur(36px) saturate(1)}
+
+/* film grain: keeps the large flat gradients from banding on cheap panels */
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.032;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* multiply over a light canvas darkens fast - the grain has to be far weaker here
+   or the whole page reads grey instead of white */
+html[data-theme="light"] body::after{opacity:.08;mix-blend-mode:multiply}
+
+@keyframes aurora-drift{
+  from{transform:translate3d(0,0,0) scale(1)}
+  to{transform:translate3d(3%,-2.5%,0) scale(1.12)}
+}
+
+/* ---------- chrome ---------- */
+.sitebar{background:color-mix(in srgb,var(--bg) 62%,transparent);
+  backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);
+  border-bottom:1px solid var(--glass-bd);box-shadow:0 1px 0 rgba(255,255,255,.03),var(--e1)}
+.logo b{background:linear-gradient(115deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{background:transparent;border:1px solid var(--glass-bd);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);border-radius:9px}
+.btn:hover{border-color:var(--accent-bd);color:var(--ink);
+  box-shadow:0 4px 16px color-mix(in srgb,var(--accent) 22%,transparent)}
+.btn.on{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 22%,transparent),
+  color-mix(in srgb,var(--accent-2) 18%,transparent));border-color:var(--accent-bd);color:var(--accent)}
+
+/* ---------- sidebar ---------- */
+aside{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 55%,transparent),transparent 60%);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-right:1px solid var(--glass-bd)}
+.sb-search input{background:var(--glass);border:1px solid var(--glass-bd);border-radius:11px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sb-search input:focus{border-color:var(--accent-bd);
+  box-shadow:0 0 0 3px var(--accent-soft),0 4px 18px color-mix(in srgb,var(--accent) 20%,transparent)}
+nav a:hover{background:var(--glass);color:var(--ink)}
+nav a.active{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 20%,transparent),transparent 78%);
+  box-shadow:inset 0 0 0 1px var(--accent-bd);color:var(--accent)}
+nav a.active::before{background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 10px var(--accent)}
+.nav-grp{color:var(--ink-mut)}
+
+/* ---------- hero ---------- */
+.hero::before{opacity:.72;filter:blur(38px)}
+.eyebrow{background:var(--glass);border:1px solid var(--glass-bd);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:var(--ink-2);font-weight:700}
+.hero h1{background:linear-gradient(112deg,var(--ink) 4%,
+    color-mix(in srgb,var(--accent) 88%,var(--ink)) 46%,
+    color-mix(in srgb,var(--accent-2) 92%,var(--ink)) 74%,
+    color-mix(in srgb,var(--t-recall) 70%,var(--ink)) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- surfaces: glass everywhere the old sheet used flat fills ---------- */
+.stat,.q,.tcard,.hub-card,.panel,.learn,figure.viz,.tbl-wrap,.flow,.learn-item{
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 72%,transparent));
+  border-color:var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+
+.stat{border-radius:14px}
+.stat::before{height:1.5px;
+  background:linear-gradient(90deg,var(--tc,var(--accent)),color-mix(in srgb,var(--tc,var(--accent)) 20%,transparent) 70%,transparent)}
+.stat:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 18%,transparent)}
+.stat-v{background:linear-gradient(150deg,var(--ink),var(--tc,var(--accent)));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+.q:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 42%,transparent);box-shadow:var(--e2)}
+.q:target{box-shadow:0 0 0 3px var(--accent-soft),var(--e2)}
+.tcard:hover,.hub-card:hover{border-color:color-mix(in srgb,var(--tc,var(--accent)) 55%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc,var(--accent)) 22%,transparent)}
+
+/* the hover affordance was emitting a literal "92" - it wants to be an arrow */
+.tcard::after,.hub-card::after{content:"\2192"}
+
+figure.viz{border-radius:18px}
+pre.code{background:color-mix(in srgb,var(--code-bg) 88%,transparent);
+  border:1px solid var(--glass-bd);border-radius:13px;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.say{background:linear-gradient(100deg,color-mix(in srgb,var(--accent) 14%,transparent),transparent 72%);
+  border-left-color:var(--accent)}
+.kt{background:var(--glass);border-color:var(--glass-bd)}
+.kt:hover{border-color:var(--accent-bd);color:var(--accent)}
+.parthead{background:color-mix(in srgb,var(--bg) 66%,transparent);
+  backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5)}
+th{background:color-mix(in srgb,var(--surface-3) 82%,transparent)}
+
+/* ---------- right-hand "on this page" rail ---------- */
+:root{ --tocw:262px }
+.app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr) var(--tocw)}
+.toc{position:sticky;top:47px;align-self:start;height:calc(100vh - 47px);overflow-y:auto;
+  overscroll-behavior:contain;padding:22px 20px 60px;font-size:12.6px;
+  border-left:1px solid var(--glass-bd)}
+.toc::-webkit-scrollbar{width:7px}
+.toc::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+.toc-h{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-mut);margin-bottom:12px}
+.toc-h svg.ic{font-size:13px;color:var(--tc,var(--accent))}
+/* one group per file section; the script shows the one you are reading */
+body.js .toc-g{display:none}
+body.js .toc-g.on{display:block}
+.toc-g > b{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tc,var(--accent));margin:0 0 9px;padding-left:11px}
+.toc-g a{display:block;padding:5px 10px 5px 12px;margin:1px 0;border-radius:7px;color:var(--ink-2);
+  text-decoration:none;line-height:1.42;border-left:2px solid transparent}
+.toc-g a:hover{background:var(--glass);color:var(--ink);text-decoration:none}
+.toc-g a.on{color:var(--accent);border-left-color:var(--accent);font-weight:650;
+  background:linear-gradient(90deg,var(--accent-soft),transparent 80%)}
+.toc-empty{color:var(--ink-mut);font-size:12px;padding-left:12px}
+@media(max-width:1400px){
+  .app.has-toc{grid-template-columns:var(--sbw) minmax(0,1fr)}
+  .toc{display:none}
+}
+/* Below 1060 the sidebar leaves the flow, so main becomes the only child of the grid
+   and dropped into the first column - a 302px slot meant for the sidebar, which is why
+   a page with a table of contents rendered its content in a narrow strip. The rule above
+   outranks the phone rule on .app alone, so the collapse has to be restated here. */
+@media(max-width:1060px){
+  .app.has-toc,.app{grid-template-columns:minmax(0,1fr)}
+}
+/* the dimmed page behind the open drawer - it is also the tap target that closes it */
+@media(max-width:1060px){
+  body.nav-open::before{content:"";position:fixed;inset:0;z-index:99;
+    background:rgba(0,0,0,.5);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+  body.nav-open{overflow:hidden}
+}
+
+/* ---------- breadcrumb ---------- */
+.crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.2px;color:var(--ink-mut);
+  padding-top:26px}
+.crumb a{color:var(--ink-mut);text-decoration:none}
+.crumb a:hover{color:var(--accent);text-decoration:none}
+.crumb svg.ic{font-size:12px;opacity:.5}
+.crumb b{color:var(--ink-2);font-weight:650}
+.crumb + .hero{padding-top:18px}
+.pnav-t{min-width:0}
+
+/* ---------- previous / next ---------- */
+.pnav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:64px 0 0}
+.pnav a{display:flex;align-items:center;gap:13px;padding:16px 18px;border-radius:14px;
+  text-decoration:none;color:inherit;border:1px solid var(--glass-bd);
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 86%,transparent),
+    color-mix(in srgb,var(--surface-2) 66%,transparent))}
+.pnav a:hover{text-decoration:none;border-color:var(--accent-bd);box-shadow:var(--e2)}
+.pnav a.next{grid-column:2;justify-content:flex-end;text-align:right}
+.pnav a.prev{grid-column:1}
+.pnav span{display:block;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-mut)}
+.pnav b{display:block;margin-top:4px;font-size:14.5px;letter-spacing:-.02em;color:var(--ink)}
+.pnav svg.ic{font-size:18px;color:var(--accent);flex:none}
+@media(max-width:760px){
+  .pnav{grid-template-columns:1fr}
+  .pnav a.next,.pnav a.prev{grid-column:1}
+}
+
+/* ---------- section headers (shared by the hub and every topic index) ---------- */
+.h-sec-h{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.h-sec-h h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-mut);white-space:nowrap;display:flex;align-items:center;gap:9px;border:0;padding:0}
+.h-sec-h h2 svg.ic{font-size:15px;color:var(--accent);opacity:.9}
+.h-sec-h i{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ---------- icons ---------- */
+.sprite{display:none}
+svg.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.13em}
+/* the boxed icon tile used by track rows, callouts and nav groups */
+.ic-box{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:44px;height:44px;border-radius:13px;font-size:20px;color:var(--tc,var(--accent));
+  background:linear-gradient(150deg,color-mix(in srgb,var(--tc,var(--accent)) 26%,transparent),
+    color-mix(in srgb,var(--tc,var(--accent)) 8%,transparent));
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.ic-sm{width:30px;height:30px;border-radius:9px;font-size:15px}
+
+/* ---------- topic index: big section heading ---------- */
+.bighead{display:flex;align-items:center;gap:11px;margin:44px 0 16px;font-size:22px;font-weight:750;
+  letter-spacing:-.028em;color:var(--ink)}
+.bighead svg.ic{font-size:21px;color:var(--accent)}
+
+/* ---------- what you'll learn ---------- */
+.learn2{margin:52px 0 0;padding:24px 25px 22px;border-radius:17px;border:1px solid var(--glass-bd);
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 86%,transparent),
+    color-mix(in srgb,var(--surface-2) 64%,transparent));
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.learn2-h{display:flex;align-items:center;gap:11px;font-size:19px;font-weight:750;
+  letter-spacing:-.026em;color:var(--ink);margin-bottom:18px}
+.learn2-h svg.ic{font-size:20px;color:var(--accent)}
+.learn2-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:20px}
+.learn2-i{display:flex;gap:11px;align-items:flex-start}
+.learn2-i svg.ic{font-size:17px;color:var(--tc,var(--accent));margin-top:2px}
+.learn2-i b{display:block;font-size:13.6px;letter-spacing:-.018em;color:var(--ink)}
+.learn2-i p{margin:4px 0 0;font-size:12.4px;line-height:1.5;color:var(--ink-mut)}
+
+/* ---------- topic index: learning-track rows ---------- */
+.trk{display:flex;flex-direction:column;gap:11px;margin:40px 0 0}
+.trk-row{position:relative;display:flex;align-items:center;gap:17px;padding:17px 19px;
+  border-radius:15px;text-decoration:none;color:inherit;overflow:hidden;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--surface) 90%,transparent),
+    color-mix(in srgb,var(--surface-2) 68%,transparent));
+  border:1px solid var(--glass-bd);
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.trk-row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tc)}
+.trk-row:hover{text-decoration:none;transform:translateX(3px);
+  border-color:color-mix(in srgb,var(--tc) 46%,transparent);
+  box-shadow:var(--e2),0 0 0 1px color-mix(in srgb,var(--tc) 18%,transparent)}
+.trk-b{min-width:0;flex:1}
+.trk-b b{display:block;font-size:16.5px;letter-spacing:-.022em;color:var(--ink);font-weight:750}
+.trk-b b i{font-style:normal;color:var(--ink-mut);font-weight:600;margin-right:3px}
+.trk-b p{margin:4px 0 0;font-size:13.2px;line-height:1.5;color:var(--ink-2)}
+.trk-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.trk-chips span{font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.trk-row:hover .trk-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+.trk-meta{display:flex;align-items:center;gap:8px;flex:none;font-size:11.5px;
+  font-family:var(--mono);color:var(--tc);white-space:nowrap}
+.trk-meta i{font-style:normal;opacity:.45}
+.trk-go{flex:none;font-size:19px;color:var(--ink-mut);display:inline-flex}
+.trk-row:hover .trk-go{color:var(--tc);transform:translateX(2px)}
+@media(prefers-reduced-motion:no-preference){
+  .trk-row,.trk-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,color .18s ease}
+}
+@media(max-width:820px){
+  .trk-row{flex-wrap:wrap;gap:13px}
+  .trk-meta{order:3;width:100%}
+  .trk-go{display:none}
+}
+
+/* ---------- maths ----------
+   The source carries ~3,650 LaTeX expressions and this site loads no external script,
+   so mathhtml.py renders them to these spans and the layout happens here: fractions
+   stack, roots get an overline, and big operators carry their limits above and below
+   in display mode. */
+.mth{font-family:"Cambria Math","Latin Modern Math","STIX Two Math",Georgia,serif;
+  font-size:1.03em;line-height:1.35;white-space:nowrap}
+.mth i{font-style:italic;font-family:inherit}
+.mth sub,.mth sup{font-size:.72em;line-height:0}
+.mth-block{display:block;margin:16px 0;padding:12px 10px;text-align:center;
+  font-size:1.16em;overflow-x:auto;overflow-y:hidden;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:10px}
+.mth-op{padding:0 .26em}
+.mth-fn,.mth-rm,.mth-txt{font-style:normal}
+.mth-txt{padding:0 .12em}
+.mth-fn{padding-right:.12em}
+.mth-gr,.mth-cal{font-style:italic}
+.mth-d{padding:0 .04em}
+.mth-big{font-size:1.9em;vertical-align:-.32em}
+.mth-bigop{font-size:1.34em;vertical-align:-.16em;padding:0 .06em}
+/* fraction: two centred rows with a rule between them */
+.mth-frac{display:inline-flex;flex-direction:column;vertical-align:-.52em;
+  text-align:center;margin:0 .2em}
+.mth-num{padding:0 .34em .1em;border-bottom:1.2px solid currentColor}
+.mth-den{padding:.1em .34em 0}
+.mth-nobar .mth-num{border-bottom:none}
+/* root: the tick plus an overline across the radicand */
+.mth-sqrt{white-space:nowrap}
+.mth-rad{border-top:1.2px solid currentColor;padding:.1em .18em 0 .1em;margin-left:-.06em}
+.mth-root-i{font-size:.7em;vertical-align:.5em;margin-right:-.34em}
+/* limits above and below a big operator */
+.mth-lim{display:inline-flex;flex-direction:column;align-items:center;
+  vertical-align:-.42em;margin:0 .18em}
+.mth-lim .mth-top,.mth-lim .mth-bot{font-size:.66em;line-height:1.1}
+.mth-op-b{line-height:1}
+.mth-acc{position:relative;display:inline-block}
+.mth-acc-m{position:absolute;left:50%;top:-.52em;transform:translateX(-50%);font-size:.9em}
+.mth-box{border:1.4px solid var(--accent);border-radius:6px;padding:.14em .4em;
+  display:inline-block}
+/* matrices and cases */
+.mth-mat{display:inline-flex;align-items:center;vertical-align:middle}
+.mth-mat table{border-collapse:collapse;margin:0 .12em}
+.mth-mat td{padding:.12em .42em;text-align:center;border:0}
+.mth-cases td:first-child{text-align:left}
+.mth-cases td+td{padding-left:1.1em;font-size:.94em;color:var(--ink-2)}
+.mth-al{border-collapse:collapse;margin:0 auto}
+.mth-al td{padding:.14em .2em}
+.mth-raw{color:var(--crit);font-size:.9em}
+@media (max-width:700px){.mth-block{font-size:1.02em;padding:10px 8px}}
+
+/* ---------- sidebar nav with icons ---------- */
+.nav-grp{display:flex;align-items:center;gap:8px}
+.nav-grp svg.ic{font-size:13px;color:var(--tc,var(--accent));opacity:.85}
+nav a svg.ic{font-size:14px;opacity:.6}
+nav a.active svg.ic{opacity:1}
+/* file = main heading, named part = its only sub-entry. The sub-entries stay folded
+   until their file is opened: listing every heading at once turned the sidebar into a
+   wall you had to scroll past rather than a map you could read. */
+nav a.nav-file{margin-top:13px;font-size:13px;font-weight:750;color:var(--ink);
+  display:flex;align-items:center;gap:8px}
+nav a.nav-file svg.ic{color:var(--tc,var(--accent));opacity:.95;flex:none}
+nav a.nav-file > span{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+nav a.nav-file svg.nav-caret{margin-left:auto;width:13px;height:13px;font-size:13px;
+  color:var(--ink-mut);opacity:.5;transition:transform .18s ease,opacity .18s ease}
+.nav-group.open > a.nav-file svg.nav-caret{transform:rotate(90deg);opacity:.9}
+.nav-kids{display:none}
+.nav-group.open > .nav-kids{display:block}
+nav a.nav-sub{padding-left:30px;font-size:12.2px;position:relative}
+nav a.nav-sub::after{content:"";position:absolute;left:16px;top:50%;width:5px;height:5px;
+  margin-top:-2.5px;border-radius:50%;background:var(--ink-mut);opacity:.5}
+nav a.nav-sub.active::after{background:var(--accent);opacity:1}
+
+/* ---------- callouts with icons ---------- */
+.note.n-crit,.note.n-warn,.note.n-good,.note.n-key,.say{position:relative}
+.note-ic{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;font-size:13px;margin-right:8px;vertical-align:-.35em;flex:none}
+.say-h svg.ic{font-size:13px}
+
+/* ---------- topic index: the landing page of each site ---------- */
+/* the reading measure is right for prose but starves a card grid, so an index
+   page widens its column and fits three across */
+.wrap:has(.idx-grid){max-width:1300px}
+.idx-hero{padding:58px 0 4px}
+.idx-hero h1{font-size:clamp(36px,4.8vw,56px);margin:18px 0 16px}
+.idx-hero .lede{font-size:17.5px;max-width:76ch;margin:0}
+
+.idx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;
+  margin:44px 0 0}
+.idx-card{position:relative;display:block;padding:22px 23px 20px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(168deg,color-mix(in srgb,var(--surface) 88%,transparent),
+    color-mix(in srgb,var(--surface-2) 70%,transparent));
+  border:1px solid var(--glass-bd);text-decoration:none;color:inherit;
+  backdrop-filter:blur(12px) saturate(1.15);-webkit-backdrop-filter:blur(12px) saturate(1.15)}
+.idx-card::before{content:"";position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--tc),transparent 80%)}
+.idx-card:hover{transform:translateY(-3px);text-decoration:none;
+  border-color:color-mix(in srgb,var(--tc) 48%,transparent);
+  box-shadow:var(--e3),0 0 0 1px color-mix(in srgb,var(--tc) 20%,transparent)}
+.idx-card-h{display:flex;align-items:center;gap:11px}
+.idx-card-h h3{margin:0;font-size:18.5px;letter-spacing:-.026em;color:var(--ink);font-weight:750}
+.idx-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--tc);
+  box-shadow:0 0 10px var(--tc)}
+.idx-go{margin-left:auto;font-size:16px;color:var(--tc);opacity:0;transform:translateX(-5px);flex:none}
+.idx-card:hover .idx-go{opacity:1;transform:translateX(0)}
+.idx-card p{margin:11px 0 0;font-size:13.4px;line-height:1.6;color:var(--ink-2)}
+.idx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}
+.idx-chips span{font-size:10.5px;font-weight:600;padding:4px 10px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--glass-bd);color:var(--ink-mut)}
+.idx-card:hover .idx-chips span{border-color:color-mix(in srgb,var(--tc) 24%,transparent)}
+@media(prefers-reduced-motion:no-preference){
+  .idx-card,.idx-go{transition:transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s ease,
+    border-color .18s ease,opacity .18s ease}
+}
+
+/* ---------- file section headers ---------- */
+/* .fh-top's spans had no rules at all, so the name and the count ran together as
+   one unstyled line. It reads as an eyebrow row above the file title. */
+.filehead{margin:88px 0 18px}
+/* A topic heading straight after a file heading would otherwise stack two gaps. */
+.filehead + .parthead{margin-top:26px}
+.filesec + .filesec{border-top:1px solid var(--border);padding-top:8px}
+.fh-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px}
+.fh-num{font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--tc,var(--accent));padding:4px 12px;border-radius:999px;
+  background:color-mix(in srgb,var(--tc,var(--accent)) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--tc,var(--accent)) 32%,transparent)}
+.fh-count{font-family:var(--mono);font-size:10.5px;color:var(--ink-mut);padding:4px 11px;
+  border-radius:999px;background:var(--glass);border:1px solid var(--glass-bd)}
+.filehead h2{font-size:28px;letter-spacing:-.032em;margin:0}
+
+/* ---------- detail ---------- */
+::selection{background:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--ink)}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-bd);background-clip:padding-box}
+#rprog{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--t-recall));
+  box-shadow:0 0 14px color-mix(in srgb,var(--accent) 70%,transparent)}
+.totop{background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 8px 26px color-mix(in srgb,var(--accent) 45%,transparent)}
+.totop:hover{transform:translateY(-2px)}
+
+</style>
+</head>
+<body>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="i-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol><symbol id="i-arrowl" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol><symbol id="i-branch" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol><symbol id="i-bulb" viewBox="0 0 24 24"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2z"/></symbol><symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol><symbol id="i-code" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></symbol><symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol><symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 2v6.5L4.2 17A2 2 0 0 0 6 20h12a2 2 0 0 0 1.8-3L15 8.5V2"/><line x1="8" y1="2" x2="16" y2="2"/><line x1="7" y1="14" x2="17" y2="14"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol><symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol><symbol id="i-network" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></symbol><symbol id="i-package" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol><symbol id="i-sigma" viewBox="0 0 24 24"><path d="M18 4H6l6 8-6 8h12"/></symbol><symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol><symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol><symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol></svg>
+<div class="sitebar">
+  <div class="sitebar-in">
+      <button class="btn menu-toggle" id="menuBtn">&#9776;</button>
+      <a class="allbtn" href="../index.html" title="Back to all topics"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-grid"/></svg><span>All topics</span></a>
+      <span class="hdr-div"></span>
+      <a class="logo" href="index.html">Deep <b>Learning</b></a>
+      <nav class="tabs"><a class="tab" href="index.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg><span>Home</span></a><a class="tab" href="fundamentals.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-code"/></svg><span>Fundamentals</span></a><a class="tab" href="architectures.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-network"/></svg><span>Architectures</span></a><a class="tab on" href="speech.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg><span>Speech</span></a><a class="tab" href="practice-a.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-target"/></svg><span>Practice 1</span></a><a class="tab" href="practice-b.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-target"/></svg><span>Practice 2</span></a><a class="tab" href="interview.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg><span>Interview</span></a>
+    </nav>
+      <span class="hdr-div"></span>
+      <span class="pgstat" title="Questions ticked on this page"><span id="pgCount">0 / 0</span></span>
+      <button class="btn" id="drillBtn" title="Hide every answer, reveal one at a time"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-help"/></svg><span>Drill</span></button>
+      <button class="btn" id="themeBtn" title="Switch light and dark"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-moon"/></svg><span id="themeLbl">Dark</span></button>
+  </div>
+</div>
+<div class="app has-toc" style="--tc:var(--t-recall)">
+  <aside id="sidebar">
+      <div class="sb-search"><input id="search" type="search" placeholder="Search this page&hellip;" autocomplete="off">
+    </div>
+      <nav>
+      <div class="nav-grp"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-home"/></svg>On this page</div>
+      <a href="#top" data-t="top"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compass"/></svg>Overview</a>
+      <div class="nav-group">
+        <a class="nav-file" href="#f08AudioSpeechP" data-t="f08AudioSpeechP"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg><span>Audio Speech Processing</span><svg class="ic nav-caret" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg></a>
+        <div class="nav-kids">
+          <a class="nav-sub" href="#f08AudioSpeechP-p0" data-t="f08AudioSpeechP-p0">1. The signal: sampling, Nyquist, bit depth</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p1" data-t="f08AudioSpeechP-p1">2. From waveform to frames</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p2" data-t="f08AudioSpeechP-p2">3. The mel scale, and why it is not linear</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p3" data-t="f08AudioSpeechP-p3">4. MFCCs, and whether you still need them</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p4" data-t="f08AudioSpeechP-p4">5. The whole front end in 40 lines</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p5" data-t="f08AudioSpeechP-p5">6. Self-supervised speech: wav2vec 2.0 and HuBERT</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p6" data-t="f08AudioSpeechP-p6">7. Three ASR architectures</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p7" data-t="f08AudioSpeechP-p7">8. CTC, worked</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p8" data-t="f08AudioSpeechP-p8">9. The CTC program</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p9" data-t="f08AudioSpeechP-p9">10. RNN-T and streaming</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p10" data-t="f08AudioSpeechP-p10">11. Whisper</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p11" data-t="f08AudioSpeechP-p11">12. Decoding, language models and biasing</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p12" data-t="f08AudioSpeechP-p12">13. Text to speech</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p13" data-t="f08AudioSpeechP-p13">14. VAD, wake words, diarization</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p14" data-t="f08AudioSpeechP-p14">15. Evaluation: WER, CER, MOS, RTF</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p15" data-t="f08AudioSpeechP-p15">16. Robustness and augmentation</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p16" data-t="f08AudioSpeechP-p16">17. Deployment and on-device</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p17" data-t="f08AudioSpeechP-p17">18. Pitfalls</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p18" data-t="f08AudioSpeechP-p18">19. Interview drill</a>
+          <a class="nav-sub" href="#f08AudioSpeechP-p19" data-t="f08AudioSpeechP-p19">Related files</a>
+        </div>
+      </div>
+    </nav>
+  </aside>
+  <main>
+    <div class="wrap">
+      <nav class="crumb"><a href="../index.html">Home</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><a href="index.html">Deep Learning</a><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chevron"/></svg><b>Speech</b>
+      </nav>
+      <section class="hero" id="top">
+        <div class="eyebrow">Deep Learning &middot; Speech</div>
+        <h1>Speech</h1>
+        <p class="lede">Audio front end, mel spectrograms, CTC, Whisper, wav2vec, text to speech</p>
+      </section>
+      <section class="sec" id="figs">
+        <figure class="viz">
+          <figcaption><b>RNN, LSTM, GRU, Transformer &mdash; which one, and why</b><span>four answers to &#8220;how do I handle something that arrives in order?&#8221;</span>
+          </figcaption>
+          <div class="viz-scroll"><svg viewBox="0 0 920 634" role="img" aria-label="RNN, LSTM, GRU, Transformer &mdash; which one, and why"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-opacity="0.22"/></filter></defs><rect x="10" y="10" width="900" height="67" rx="9" fill="var(--fig-surface-2)" stroke="var(--fig-recall)"/><text x="27" y="31" font-size="11.5" fill="var(--fig-ink-2)"><tspan font-weight="800" fill="var(--fig-recall)">In plain English:</tspan> All four read a sequence. They differ in how far back they can genuinely remember, and whether they must be read </text><text x="27" y="48" font-size="11.5" fill="var(--fig-ink-2)">strictly in order. That second point is what ended the argument: a transformer reads the whole thing at once, so it can use every </text><text x="27" y="65" font-size="11.5" fill="var(--fig-ink-2)">processor you own.</text><text x="18" y="103" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">HOW FAR BACK &middot; CAN IT PARALLELISE &middot; WHEN TO USE</text><rect x="10" y="117" width="900" height="66" rx="11" fill="var(--fig-surface-2)" stroke="var(--fig-border)" stroke-width="1.4"/><rect x="10" y="117" width="5" height="66" rx="2.5" fill="var(--fig-crit)"/><text x="34" y="145" text-anchor="start" font-size="13" font-weight="800" fill="var(--fig-crit)">RNN</text><text x="34" y="165" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">a note, overwritten each step</text><rect x="260" y="137" width="140" height="28" rx="7" fill="var(--fig-surface)" stroke="var(--fig-crit)" stroke-width="1.5"/><text x="330" y="155.4" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-crit)">~5-10 steps</text><rect x="410" y="137" width="66" height="28" rx="7" fill="var(--fig-surface)" stroke="var(--fig-crit)" stroke-width="1.5"/><text x="443" y="155.4" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-crit)">no</text><text x="496" y="156" text-anchor="start" font-size="10.4" font-weight="400" fill="var(--fig-ink-2)">teaching only &mdash; superseded in practice</text><rect x="10" y="191" width="900" height="66" rx="11" fill="var(--fig-surface-2)" stroke="var(--fig-border)" stroke-width="1.4"/><rect x="10" y="191" width="5" height="66" rx="2.5" fill="var(--fig-recall)"/><text x="34" y="219" text-anchor="start" font-size="13" font-weight="800" fill="var(--fig-recall)">LSTM</text><text x="34" y="239" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">a belt plus three gates</text><rect x="260" y="211" width="140" height="28" rx="7" fill="var(--fig-surface)" stroke="var(--fig-recall)" stroke-width="1.5"/><text x="330" y="229.4" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-recall)">100s of steps</text><rect x="410" y="211" width="66" height="28" rx="7" fill="var(--fig-surface)" stroke="var(--fig-crit)" stroke-width="1.5"/><text x="443" y="229.4" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-crit)">no</text><text x="496" y="230" text-anchor="start" font-size="10.4" font-weight="400" fill="var(--fig-ink-2)">long sequences, small data, on-device</text><rect x="10" y="265" width="900" height="66" rx="11" fill="var(--fig-surface-2)" stroke="var(--fig-border)" stroke-width="1.4"/><rect x="10" y="265" width="5" height="66" rx="2.5" fill="var(--fig-good)"/><text x="34" y="293" text-anchor="start" font-size="13" font-weight="800" fill="var(--fig-good)">GRU</text><text x="34" y="313" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">a note plus two gates</text><rect x="260" y="285" width="140" height="28" rx="7" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5"/><text x="330" y="303.4" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-good)">100s of steps</text><rect x="410" y="285" width="66" height="28" rx="7" fill="var(--fig-surface)" stroke="var(--fig-crit)" stroke-width="1.5"/><text x="443" y="303.4" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-crit)">no</text><text x="496" y="304" text-anchor="start" font-size="10.4" font-weight="400" fill="var(--fig-ink-2)">the cheaper LSTM &mdash; try it first</text><rect x="10" y="339" width="900" height="66" rx="11" fill="var(--fig-surface-2)" stroke="var(--fig-border)" stroke-width="1.4"/><rect x="10" y="339" width="5" height="66" rx="2.5" fill="var(--fig-accent)"/><text x="34" y="367" text-anchor="start" font-size="13" font-weight="800" fill="var(--fig-accent)">Transformer</text><text x="34" y="387" text-anchor="start" font-size="9.8" font-weight="400" fill="var(--fig-mut)">every word looks at every word</text><rect x="260" y="359" width="140" height="28" rx="7" fill="var(--fig-surface)" stroke="var(--fig-accent)" stroke-width="1.5"/><text x="330" y="377.4" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-accent)">the whole input</text><rect x="410" y="359" width="66" height="28" rx="7" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5"/><text x="443" y="377.4" text-anchor="middle" font-size="10.2" font-weight="700" fill="var(--fig-good)">yes</text><text x="496" y="378" text-anchor="start" font-size="10.4" font-weight="400" fill="var(--fig-ink-2)">the default now, if you have the compute</text><text x="18" y="435" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-warn)">THE COST OF READING EVERYTHING AT ONCE</text><rect x="10" y="449" width="900" height="96" rx="11" fill="var(--fig-surface-2)" stroke="var(--fig-border)" stroke-width="1.4"/><rect x="10" y="449" width="5" height="96" rx="2.5" fill="var(--fig-warn)"/><text x="34" y="477" text-anchor="start" font-size="10.4" font-weight="400" fill="var(--fig-ink-2)">A transformer compares every position with every other one, so doubling the input roughly quadruples the </text><text x="34" y="492" text-anchor="start" font-size="10.4" font-weight="400" fill="var(--fig-ink-2)">work. An RNN family member walks the sequence once, which is cheap per step but cannot be spread across </text><text x="34" y="507" text-anchor="start" font-size="10.4" font-weight="400" fill="var(--fig-ink-2)">processors &mdash; and is why the long-context race is a race to make that comparison cheaper.</text><rect x="660" y="471" width="240" height="52" rx="9" fill="var(--fig-surface)" stroke="var(--fig-warn)" stroke-width="1.6"/><text x="780" y="493" text-anchor="middle" font-size="13" font-weight="700" fill="var(--fig-ink)">n&sup2; comparisons</text><text x="780" y="509" text-anchor="middle" font-size="9.6" fill="var(--fig-mut)">the price of parallelism</text><rect x="10" y="557" width="900" height="67" rx="9" fill="var(--fig-surface-2)" stroke="var(--fig-accent)"/><text x="27" y="578" font-size="11.5" fill="var(--fig-ink-2)"><tspan font-weight="800" fill="var(--fig-accent)">How to answer &#8220;which would you use?&#8221;:</tspan> transformer unless something stops you &mdash; and then name the something: a tiny dataset, a </text><text x="27" y="595" font-size="11.5" fill="var(--fig-ink-2)">microcontroller, a strict latency budget, or a stream that arrives one item at a time. That is a design answer rather than a fashion </text><text x="27" y="612" font-size="11.5" fill="var(--fig-ink-2)">one.</text></svg></div>
+        </figure>
+        <figure class="viz">
+          <figcaption><b>A recurrent network &mdash; reading one word at a time, keeping a note</b><span>the same small box used once per word, passing a note to itself</span>
+          </figcaption>
+          <div class="viz-scroll"><svg viewBox="0 0 920 700" role="img" aria-label="A recurrent network &mdash; reading one word at a time, keeping a note"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker><filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-opacity="0.22"/></filter></defs><rect x="10" y="10" width="900" height="67" rx="9" fill="var(--fig-surface-2)" stroke="var(--fig-recall)"/><text x="27" y="31" font-size="11.5" fill="var(--fig-ink-2)"><tspan font-weight="800" fill="var(--fig-recall)">In plain English:</tspan> Reading a sentence aloud, you do not re-read it from the start at every word &mdash; you carry a running sense of it in </text><text x="27" y="48" font-size="11.5" fill="var(--fig-ink-2)">your head. That running note is the whole mechanism. The catch: the note is a fixed size, so everything you have read must be squeezed </text><text x="27" y="65" font-size="11.5" fill="var(--fig-ink-2)">into it.</text><text x="18" y="103" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-accent)">THE SAME BOX, USED ONCE PER WORD</text><rect x="10" y="117" width="900" height="150" rx="11" fill="var(--fig-surface-2)" stroke="var(--fig-border)" stroke-width="1.4"/><rect x="10" y="117" width="5" height="150" rx="2.5" fill="var(--fig-accent)"/><rect x="36" y="159" width="130" height="60" rx="9" fill="var(--fig-surface)" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="101" y="185" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--fig-ink)">the box</text><text x="101" y="201" text-anchor="middle" font-size="9.6" fill="var(--fig-mut)">one set of dials</text><path d="M166 177 C 210 137, 210 235, 168 209" fill="none" stroke="var(--fig-agentic)" stroke-width="1.8" marker-end="url(#a)"/><text x="178" y="235" text-anchor="start" font-size="9.4" font-weight="400" fill="var(--fig-agentic)">its own note</text><text x="246" y="193" text-anchor="start" font-size="17" font-weight="800" fill="var(--fig-mut)">=</text><rect x="292" y="159" width="118" height="60" rx="9" fill="var(--fig-surface)" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="351" y="193.5" text-anchor="middle" font-size="12" font-weight="700" fill="var(--fig-ink)">box</text><rect x="306" y="229" width="90" height="26" rx="7" fill="var(--fig-surface)" stroke="var(--fig-mut)" stroke-width="1.5"/><text x="351" y="246.4" text-anchor="middle" font-size="11" font-weight="700" fill="var(--fig-mut)">the</text><line x1="351" y1="227" x2="351" y2="223" stroke="var(--fig-mut)" stroke-width="1.4" marker-end="url(#a)"/><line x1="412" y1="189" x2="440" y2="189" stroke="var(--fig-agentic)" stroke-width="1.8" marker-end="url(#a)"/><text x="426" y="183" text-anchor="middle" font-size="8.8" fill="var(--fig-agentic)">note</text><rect x="444" y="159" width="118" height="60" rx="9" fill="var(--fig-surface)" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="503" y="193.5" text-anchor="middle" font-size="12" font-weight="700" fill="var(--fig-ink)">box</text><rect x="458" y="229" width="90" height="26" rx="7" fill="var(--fig-surface)" stroke="var(--fig-mut)" stroke-width="1.5"/><text x="503" y="246.4" text-anchor="middle" font-size="11" font-weight="700" fill="var(--fig-mut)">film</text><line x1="503" y1="227" x2="503" y2="223" stroke="var(--fig-mut)" stroke-width="1.4" marker-end="url(#a)"/><line x1="564" y1="189" x2="592" y2="189" stroke="var(--fig-agentic)" stroke-width="1.8" marker-end="url(#a)"/><text x="578" y="183" text-anchor="middle" font-size="8.8" fill="var(--fig-agentic)">note</text><rect x="596" y="159" width="118" height="60" rx="9" fill="var(--fig-surface)" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="655" y="193.5" text-anchor="middle" font-size="12" font-weight="700" fill="var(--fig-ink)">box</text><rect x="610" y="229" width="90" height="26" rx="7" fill="var(--fig-surface)" stroke="var(--fig-mut)" stroke-width="1.5"/><text x="655" y="246.4" text-anchor="middle" font-size="11" font-weight="700" fill="var(--fig-mut)">was</text><line x1="655" y1="227" x2="655" y2="223" stroke="var(--fig-mut)" stroke-width="1.4" marker-end="url(#a)"/><line x1="716" y1="189" x2="744" y2="189" stroke="var(--fig-agentic)" stroke-width="1.8" marker-end="url(#a)"/><text x="730" y="183" text-anchor="middle" font-size="8.8" fill="var(--fig-agentic)">note</text><rect x="748" y="159" width="118" height="60" rx="9" fill="var(--fig-surface)" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="807" y="193.5" text-anchor="middle" font-size="12" font-weight="700" fill="var(--fig-ink)">box</text><rect x="762" y="229" width="90" height="26" rx="7" fill="var(--fig-surface)" stroke="var(--fig-mut)" stroke-width="1.5"/><text x="807" y="246.4" text-anchor="middle" font-size="11" font-weight="700" fill="var(--fig-mut)">not</text><line x1="807" y1="227" x2="807" y2="223" stroke="var(--fig-mut)" stroke-width="1.4" marker-end="url(#a)"/><text x="292" y="143" text-anchor="start" font-size="9.6" font-weight="400" fill="var(--fig-mut)">unrolled, it is one box per word &mdash; but the dials inside are the same box each time</text><text x="18" y="293" text-anchor="start" font-size="10" font-weight="800" letter-spacing=".08em" fill="var(--fig-recall)">WHAT THE NOTE HOLDS, WORD BY WORD</text><rect x="10" y="307" width="900" height="44" rx="11" fill="var(--fig-surface-2)" stroke="var(--fig-border)" stroke-width="1.4"/><rect x="10" y="307" width="5" height="44" rx="2.5" fill="var(--fig-recall)"/><rect x="32" y="315" width="110" height="28" rx="7" fill="var(--fig-surface)" stroke="var(--fig-recall)" stroke-width="1.5"/><text x="87" y="333.4" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-recall)">the</text><line x1="150" y1="329" x2="176" y2="329" stroke="var(--fig-mut)" stroke-width="1.8" marker-end="url(#a)"/><text x="188" y="334" text-anchor="start" font-size="11" font-weight="400" fill="var(--fig-ink-2)">something is coming</text><rect x="10" y="358" width="900" height="44" rx="11" fill="var(--fig-surface-2)" stroke="var(--fig-border)" stroke-width="1.4"/><rect x="10" y="358" width="5" height="44" rx="2.5" fill="var(--fig-recall)"/><rect x="32" y="366" width="110" height="28" rx="7" fill="var(--fig-surface)" stroke="var(--fig-recall)" stroke-width="1.5"/><text x="87" y="384.4" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-recall)">film</text><line x1="150" y1="380" x2="176" y2="380" stroke="var(--fig-mut)" stroke-width="1.8" marker-end="url(#a)"/><text x="188" y="385" text-anchor="start" font-size="11" font-weight="400" fill="var(--fig-ink-2)">the subject is a film</text><rect x="10" y="409" width="900" height="44" rx="11" fill="var(--fig-surface-2)" stroke="var(--fig-border)" stroke-width="1.4"/><rect x="10" y="409" width="5" height="44" rx="2.5" fill="var(--fig-recall)"/><rect x="32" y="417" width="110" height="28" rx="7" fill="var(--fig-surface)" stroke="var(--fig-recall)" stroke-width="1.5"/><text x="87" y="435.4" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-recall)">was</text><line x1="150" y1="431" x2="176" y2="431" stroke="var(--fig-mut)" stroke-width="1.8" marker-end="url(#a)"/><text x="188" y="436" text-anchor="start" font-size="11" font-weight="400" fill="var(--fig-ink-2)">a verdict is about to arrive</text><rect x="10" y="460" width="900" height="44" rx="11" fill="var(--fig-surface-2)" stroke="var(--fig-border)" stroke-width="1.4"/><rect x="10" y="460" width="5" height="44" rx="2.5" fill="var(--fig-warn)"/><rect x="32" y="468" width="110" height="28" rx="7" fill="var(--fig-surface)" stroke="var(--fig-warn)" stroke-width="1.5"/><text x="87" y="486.4" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-warn)">not</text><line x1="150" y1="482" x2="176" y2="482" stroke="var(--fig-mut)" stroke-width="1.8" marker-end="url(#a)"/><text x="188" y="487" text-anchor="start" font-size="11" font-weight="400" fill="var(--fig-ink-2)">flip whatever comes next</text><rect x="10" y="511" width="900" height="44" rx="11" fill="var(--fig-surface-2)" stroke="var(--fig-border)" stroke-width="1.4"/><rect x="10" y="511" width="5" height="44" rx="2.5" fill="var(--fig-good)"/><rect x="32" y="519" width="110" height="28" rx="7" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5"/><text x="87" y="537.4" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-good)">good</text><line x1="150" y1="533" x2="176" y2="533" stroke="var(--fig-mut)" stroke-width="1.8" marker-end="url(#a)"/><text x="188" y="538" text-anchor="start" font-size="11" font-weight="400" fill="var(--fig-ink-2)">verdict: negative</text><rect x="18" y="570" width="286.667" height="54" rx="10" fill="var(--fig-surface)" stroke="var(--fig-warn)" stroke-width="1.5" filter="url(#sh)"/><text x="161.333" y="595.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">the note is fixed size</text><text x="161.333" y="609" text-anchor="middle" font-size="10" fill="var(--fig-mut)">long inputs must be squeezed</text><rect x="316.667" y="570" width="286.667" height="54" rx="10" fill="var(--fig-surface)" stroke="var(--fig-crit)" stroke-width="1.5" filter="url(#sh)"/><text x="460" y="595.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">strictly one at a time</text><text x="460" y="609" text-anchor="middle" font-size="10" fill="var(--fig-mut)">so it cannot be parallelised</text><rect x="615.333" y="570" width="286.667" height="54" rx="10" fill="var(--fig-surface)" stroke="var(--fig-good)" stroke-width="1.5" filter="url(#sh)"/><text x="758.667" y="595.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--fig-ink)">shares its dials</text><text x="758.667" y="609" text-anchor="middle" font-size="10" fill="var(--fig-mut)">any length of input, same net</text><rect x="10" y="640" width="900" height="50" rx="9" fill="var(--fig-surface-2)" stroke="var(--fig-accent)"/><text x="27" y="661" font-size="11.5" fill="var(--fig-ink-2)"><tspan font-weight="800" fill="var(--fig-accent)">The limitation that led to everything else:</tspan> by word 40 the note has been overwritten dozens of times, and whatever word 3 contributed </text><text x="27" y="678" font-size="11.5" fill="var(--fig-ink-2)">has mostly faded. The next figure shows why &mdash; and LSTM and GRU are both answers to it.</text></svg></div>
+        </figure>
+      </section>
+      <section class="filesec" id="f08AudioSpeechP">
+        <header class="filehead">
+          <div class="fh-top"><span class="fh-num">Audio Speech Processing</span><span class="fh-count">10 sections</span>
+          </div>
+          <h2>Audio and Speech Processing</h2>
+          <div class="note">
+            <p><strong>Why this file exists.</strong> Every other modality in this folder had a reference; speech had
+              only a line in the README. Speech is also the one modality where the <em>front end</em> — turning
+              pressure waves into numbers — decides how good the model can possibly be, so it gets worked
+              through here rather than assumed.</p>
+            <p>Every number below was computed by the programs in sections 5, 9 and 15, and their output is
+              pasted verbatim.</p>
+            <p><strong>Companion:</strong> voice agents built on top of this — ASR into an <abbr title="large language model">LLM</abbr> into TTS, the latency
+              budget, barge-in and turn-taking — are in
+              <a href="../07_GenAI_and_LLMs/voice.html#f28VoiceAgentsa"><code>../07_GenAI_and_LLMs/28_Voice_Agents_and_Realtime.md</code></a>.</p>
+          </div>
+        </header>
+        <div class="parthead" id="f08AudioSpeechP-p0"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>1. The signal: sampling, Nyquist, bit depth</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <p>Sound is air pressure over time. A microphone measures it; an ADC samples that measurement at a
+            fixed rate and rounds each sample to a fixed number of bits.</p>
+          <div class="tbl-wrap">
+            <table class="t3">
+              <thead>
+                <tr>
+                  <th>Term</th>
+                  <th>What it is</th>
+                  <th>Speech default</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="g1">
+                  <td><strong>Sample rate</strong>
+                  </td>
+                  <td>measurements per second</td>
+                  <td><strong>16,000 Hz</strong>
+                  </td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Nyquist frequency</strong>
+                  </td>
+                  <td>the highest frequency representable, = rate / 2</td>
+                  <td>8,000 Hz</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>Bit depth</strong>
+                  </td>
+                  <td>bits per sample</td>
+                  <td>16-bit signed</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Channels</strong>
+                  </td>
+                  <td>microphones</td>
+                  <td>1 (mono) for ASR</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>Frame</strong>
+                  </td>
+                  <td>a short slice analysed as one unit</td>
+                  <td><span class="mag">25 ms</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p><strong>Why 16 kHz for speech and 44.1 kHz for music.</strong> Nyquist says you can represent frequencies up
+            to half the sample rate. Speech intelligibility lives below 8 kHz — the formants that
+            distinguish vowels are under 3 kHz, and fricatives like <code>/s/</code> reach 4–8 kHz. So 16 kHz captures
+            everything that matters for recognition. Music needs the full 20 kHz of human hearing, hence
+            44.1 kHz. Telephone audio is 8 kHz, which is why <code>/s/</code> and <code>/f/</code> are hard to tell apart on a
+            phone call and why a model trained on 16 kHz degrades badly on telephony without retraining.</p>
+          <pre class="code" data-lang="text"><code>  16,000 samples/sec x 16 bits x 1 channel = 256 kbit/s = 32 KB per second
+                                              -&gt; 1.92 MB per minute of raw PCM
+  the same minute as 80-band log-mel at 100 frames/sec:
+      6,000 frames x 80 bands x 4 bytes    = 1.92 MB     &lt;- no smaller, but far more learnable</code></pre>
+          <div class="note">
+            <p><strong>Aliasing, in one sentence.</strong> A frequency above Nyquist does not disappear — it <em>folds back</em>
+              and shows up as a lower frequency that was never there, which is why every resampler
+              low-pass filters before it downsamples.</p>
+          </div>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p1"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>2. From waveform to frames</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <p>Speech is <strong>non-stationary</strong>: the spectrum during <code>/s/</code> is nothing like the spectrum during
+            <code>/a/</code>. But over <span class="mag">20–30 ms</span> it is approximately stationary, which is the entire justification for
+            framing.</p>
+          <pre class="code" data-lang="text"><code>  |---- 25 ms window ----|
+            |---- 25 ms window ----|          hop = 10 ms, so windows OVERLAP by 15 ms
+                      |---- 25 ms window ----|
+
+  hop 10 ms  -&gt;  100 frames per second, the number every speech paper assumes</code></pre>
+          <p>Each frame is multiplied by a <strong>window function</strong> (Hann, Hamming) before the FFT. Without it,
+            the frame's abrupt edges act like a rectangular pulse and smear energy across every frequency —
+            spectral leakage. The window tapers both ends to zero, which costs a little resolution and
+            removes the artefact.</p>
+          <p>Then the FFT turns 400 samples of amplitude-over-time into 257 bins of energy-over-frequency:</p>
+          <pre class="code" data-lang="text"><code>  frame (400 samples, 25 ms)  --window--&gt;  --FFT (n_fft=512)--&gt;  257 bins, 31.25 Hz apart
+                                                                  |power = |X(k)|^2</code></pre>
+          <p><strong>The resolution trade-off you will be asked about.</strong> A longer window gives finer frequency
+            resolution and coarser time resolution; a shorter window does the reverse. You cannot have both
+            — that is the uncertainty principle, and <span class="mag">25 ms</span> is the compromise the field settled on for
+            speech.</p>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-network"/></svg>3. The mel scale, and why it is not linear</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <p>Human pitch perception is roughly logarithmic: the gap from 100 Hz to 200 Hz sounds far bigger
+            than the gap from 4,000 Hz to 8,000 Hz, even though both are one octave. The <strong>mel scale</strong>
+            encodes that.</p>
+          <pre class="code" data-lang="text"><code>  mel(f) = 2595 * log10(1 + f/700)</code></pre>
+          <p>Computed:</p>
+          <div class="tbl-wrap">
+            <table class="t3">
+              <thead>
+                <tr>
+                  <th>Hz</th>
+                  <th>mel</th>
+                  <th>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="g1">
+                  <td>100</td>
+                  <td>150.49</td>
+                  <td>
+                  </td>
+                </tr>
+                <tr class="g0">
+                  <td>200</td>
+                  <td>283.23</td>
+                  <td>100→200 Hz spans <strong>132.74 mel</strong>
+                  </td>
+                </tr>
+                <tr class="g1">
+                  <td>400</td>
+                  <td>509.38</td>
+                  <td>
+                  </td>
+                </tr>
+                <tr class="g0">
+                  <td>1000</td>
+                  <td>999.99</td>
+                  <td>the scale is pinned so 1000 Hz ≈ 1000 mel</td>
+                </tr>
+                <tr class="g1">
+                  <td>4000</td>
+                  <td>2146.06</td>
+                  <td>
+                  </td>
+                </tr>
+                <tr class="g0">
+                  <td>8000</td>
+                  <td>2840.02</td>
+                  <td>4000→8000 Hz spans only <strong>693.96 mel</strong> for four times the bandwidth</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>A <strong>mel filterbank</strong> places triangular filters at equal spacing <em>on the mel axis</em>, which makes
+            them narrow at the bottom and wide at the top:</p>
+          <pre class="code" data-lang="text"><code>     filter  0:     0.0 -    91.6 Hz  (width   91.6 Hz)
+     filter  1:    44.4 -   141.7 Hz  (width   97.4 Hz)
+     filter 19:  1550.4 -  1844.8 Hz  (width  294.4 Hz)
+     filter 38:  6535.0 -  7481.4 Hz  (width  946.4 Hz)
+     filter 39:  6993.7 -  8000.0 Hz  (width 1006.3 Hz)</code></pre>
+          <p>Multiplying the 257-bin power spectrum by 40 (or 80) triangles collapses it to 40 numbers that
+            follow perception rather than physics. Then take the <strong>log</strong>, because loudness perception is
+            also logarithmic and because it turns multiplicative channel effects into additive ones — which
+            is what makes mean normalisation able to remove a microphone's colouration.</p>
+          <div class="note n-key">
+            <p><strong>Key idea.</strong> Log-mel is not compression for its own sake. It is a <em>perceptually weighted</em>
+              representation, and every modern speech model — Whisper, wav2vec's downstream heads,
+              Conformer — eats either log-mel or the raw waveform, nothing in between.</p>
+          </div>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p3"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>4. MFCCs, and whether you still need them</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <p><strong>Mel-frequency cepstral coefficients</strong> apply a DCT to the log-mel vector and keep the first
+            12–13 coefficients.</p>
+          <pre class="code" data-lang="text"><code>  waveform -&gt; frames -&gt; |FFT|^2 -&gt; mel filterbank -&gt; log -&gt; DCT -&gt; keep 13 -&gt; MFCC</code></pre>
+          <p>The DCT does two things: it <strong>decorrelates</strong> the mel bands (adjacent bands are highly
+            correlated because the triangles overlap), and it <strong>compacts</strong> the energy into the first few
+            coefficients. Decorrelation mattered enormously when the acoustic model was a Gaussian mixture
+            with a diagonal covariance — correlated features broke that assumption outright.</p>
+          <p><strong>It does not matter for neural networks.</strong> A <abbr title="convolutional neural network">CNN</abbr> or transformer models correlations natively,
+            and the DCT throws away information. So:</p>
+          <div class="tbl-wrap">
+            <table class="t2">
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>Use it when</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="g1">
+                  <td><strong>MFCC (13 + deltas)</strong>
+                  </td>
+                  <td>classical GMM-HMM, tiny embedded keyword spotters, speaker ID with i-vectors, anything where 13 numbers per frame is the budget</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Log-mel (80 bands)</strong>
+                  </td>
+                  <td>any neural ASR or TTS built in the last decade — Whisper uses 80, Conformer 80</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>Raw waveform</strong>
+                  </td>
+                  <td>wav2vec 2.0 and friends, which learn their own front end with strided convolutions</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p4"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>5. The whole front end in 40 lines</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <p>No <code>librosa</code>. The point is that the front end is four operations and you should be able to
+            defend each one.</p>
+          <pre class="code" data-lang="python"><code><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+SR, N_FFT, HOP, WIN, N_MELS = <span class="num">16000</span>, <span class="num">512</span>, <span class="num">160</span>, <span class="num">400</span>, <span class="num">40</span>
+
+
+<span class="kw">def</span> <span class="fn">hz_to_mel</span>(f):
+    <span class="kw">return</span> <span class="num">2595.0</span> * np.<span class="fn">log10</span>(<span class="num">1.0</span> + f / <span class="num">700.0</span>)
+
+
+<span class="kw">def</span> <span class="fn">mel_to_hz</span>(m):
+    <span class="kw">return</span> <span class="num">700.0</span> * (<span class="num">10.0</span> ** (m / <span class="num">2595.0</span>) - <span class="num">1.0</span>)
+
+
+<span class="kw">def</span> <span class="fn">mel_filterbank</span>(sr=SR, n_fft=N_FFT, n_mels=N_MELS, fmin=<span class="num">0.0</span>, fmax=<span class="kw">None</span>):
+    <span class="str">"""n_mels triangles, equally spaced on the mel scale, laid over the FFT bins."""</span>
+    fmax = fmax <span class="kw">or</span> sr / <span class="num">2.0</span>
+    edges = <span class="fn">mel_to_hz</span>(np.<span class="fn">linspace</span>(<span class="fn">hz_to_mel</span>(fmin), <span class="fn">hz_to_mel</span>(fmax), n_mels + <span class="num">2</span>))
+    bins = np.<span class="fn">floor</span>((n_fft + <span class="num">1</span>) * edges / sr).<span class="fn">astype</span>(int)
+    fb = np.<span class="fn">zeros</span>((n_mels, n_fft // <span class="num">2</span> + <span class="num">1</span>))
+    <span class="kw">for</span> m <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, n_mels + <span class="num">1</span>):
+        lo, mid, hi = bins[m - <span class="num">1</span>], bins[m], bins[m + <span class="num">1</span>]
+        <span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(lo, mid):
+            fb[m - <span class="num">1</span>, k] = (k - lo) / <span class="fn">max</span>(<span class="num">1</span>, mid - lo)      <span class="cmt"># rising edge</span>
+        <span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(mid, hi):
+            fb[m - <span class="num">1</span>, k] = (hi - k) / <span class="fn">max</span>(<span class="num">1</span>, hi - mid)      <span class="cmt"># falling edge</span>
+    <span class="kw">return</span> fb, edges
+
+
+<span class="kw">def</span> <span class="fn">frame</span>(x, win=WIN, hop=HOP):
+    n = <span class="num">1</span> + (<span class="fn">len</span>(x) - win) // hop
+    <span class="kw">return</span> np.<span class="fn">stack</span>([x[i * hop:i * hop + win] <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n)])
+
+
+<span class="kw">def</span> <span class="fn">log_mel</span>(x):
+    frames = <span class="fn">frame</span>(x) * np.<span class="fn">hanning</span>(WIN)                     <span class="cmt"># taper each frame</span>
+    spec = np.<span class="fn">abs</span>(np.fft.<span class="fn">rfft</span>(frames, N_FFT)) ** <span class="num">2</span>          <span class="cmt"># power spectrum</span>
+    fb, _ = <span class="fn">mel_filterbank</span>()
+    <span class="kw">return</span> np.<span class="fn">log</span>(fb @ spec.T + 1e-<span class="num">10</span>).T                    <span class="cmt"># (frames, n_mels)</span>
+
+
+<span class="kw">def</span> <span class="fn">dct2</span>(x, n_out=<span class="num">13</span>):
+    <span class="str">"""MFCCs: the DCT decorrelates the mel bands so a diagonal covariance is usable."""</span>
+    n = x.shape[-<span class="num">1</span>]
+    k = np.<span class="fn">arange</span>(n_out)[:, <span class="kw">None</span>]
+    basis = np.<span class="fn">cos</span>(np.pi * k * (<span class="num">2</span> * np.<span class="fn">arange</span>(n) + <span class="num">1</span>) / (<span class="num">2</span> * n))
+    <span class="kw">return</span> x @ basis.T
+
+
+rng = np.random.<span class="fn">RandomState</span>(<span class="num">0</span>)
+t = np.<span class="fn">arange</span>(<span class="fn">int</span>(<span class="num">0.5</span> * SR)) / SR
+sig = (<span class="num">0.6</span> * np.<span class="fn">sin</span>(<span class="num">2</span> * np.pi * <span class="num">220</span> * t) +          <span class="cmt"># a 220 Hz tone</span>
+       <span class="num">0.3</span> * np.<span class="fn">sin</span>(<span class="num">2</span> * np.pi * <span class="num">440</span> * t) +          <span class="cmt"># its octave</span>
+       <span class="num">0.1</span> * rng.<span class="fn">randn</span>(<span class="fn">len</span>(t)))                     <span class="cmt"># and some noise</span>
+lm, mf = <span class="fn">log_mel</span>(sig), <span class="fn">dct2</span>(<span class="fn">log_mel</span>(sig))
+fb, edges = <span class="fn">mel_filterbank</span>()
+
+<span class="fn">print</span>(<span class="str">"1.0 s of audio = %d samples -&gt; %d frames"</span> % (SR, <span class="fn">len</span>(<span class="fn">frame</span>(np.<span class="fn">zeros</span>(SR)))))
+<span class="fn">print</span>(<span class="str">"FFT size %d -&gt; %d bins, each %.2f Hz wide"</span> % (N_FFT, N_FFT // <span class="num">2</span> + <span class="num">1</span>, SR / N_FFT))
+<span class="fn">print</span>(<span class="str">"log-mel %s   MFCC %s"</span> % (lm.shape, mf.shape))
+<span class="fn">print</span>(<span class="str">"log-mel of frame 10, bands 0-7: "</span> + <span class="str">" "</span>.<span class="fn">join</span>(<span class="str">"%6.2f"</span> % v <span class="kw">for</span> v <span class="kw">in</span> lm[<span class="num">10</span>, :<span class="num">8</span>]))
+<span class="fn">print</span>(<span class="str">"loudest band in frame 10 is band %d, centred at %.0f Hz"</span>
+      % (<span class="fn">int</span>(np.<span class="fn">argmax</span>(lm[<span class="num">10</span>])), edges[<span class="fn">int</span>(np.<span class="fn">argmax</span>(lm[<span class="num">10</span>])) + <span class="num">1</span>]))
+<span class="fn">print</span>(<span class="str">"MFCCs 0-6 of frame 10:          "</span> + <span class="str">" "</span>.<span class="fn">join</span>(<span class="str">"%7.2f"</span> % v <span class="kw">for</span> v <span class="kw">in</span> mf[<span class="num">10</span>, :<span class="num">7</span>]))</code></pre>
+          <pre class="code" data-lang="text"><code>1.0 s of audio = 16000 samples -&gt; 98 frames
+FFT size 512 -&gt; 257 bins, each 31.25 Hz wide
+log-mel (48, 40)   MFCC (48, 13)
+log-mel of frame 10, bands 0-7:   0.22   1.26   3.56   8.13   8.18   3.81   4.91   7.08
+loudest band in frame 10 is band 4, centred at 252 Hz
+MFCCs 0-6 of frame 10:           105.78   10.67   25.08    7.99   -8.43  -14.23  -17.65</code></pre>
+          <p>Three things to read out of that:</p>
+          <ul>
+            <li class="dl"><b class="dt">The loudest mel band is band 4, centred at 252 Hz</b><span class="dd">which is where the 220 Hz tone lives.
+                The front end found the signal, and you can check it by hand.</span>
+            </li>
+            <li><strong>98 frames, not 100.</strong> <code>1 + (16000 - 400) // 160 = 98</code>; the missing two are the window
+                overhanging the end. Libraries pad and report 100, and the discrepancy is a classic
+                off-by-two when aligning features with labels.</li>
+            <li><strong>MFCC c0 = 105.78 is loudness</strong>, and the rest describe spectral shape. Dropping c0 is the
+                standard way to make a feature volume-invariant.</li>
+          </ul>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p5"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>6. Self-supervised speech: wav2vec 2.0 and HuBERT</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <p>Labelled speech is expensive — someone has to transcribe it. Self-supervised models learn from
+            unlabelled audio first, then fine-tune on a fraction of the labels.</p>
+          <div class="tbl-wrap">
+            <table class="t3">
+              <thead>
+                <tr>
+                  <th>Model</th>
+                  <th>Pretext task</th>
+                  <th>Key mechanism</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="g1">
+                  <td><strong>wav2vec 2.0</strong>
+                  </td>
+                  <td>contrastive: identify the true quantized latent for a masked span among distractors</td>
+                  <td><abbr title="convolutional neural network">CNN</abbr> feature encoder over the <strong>raw waveform</strong> → transformer → product-quantized targets</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>HuBERT</strong>
+                  </td>
+                  <td>masked prediction of <em>cluster IDs</em> from an offline k-means over features</td>
+                  <td>iterative: cluster, predict, re-cluster on better features</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>WavLM</strong>
+                  </td>
+                  <td>HuBERT + simulated overlapped speech and noise</td>
+                  <td>built for meetings, diarization, separation</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Whisper</strong>
+                  </td>
+                  <td>none — plain supervised, at 680k hours</td>
+                  <td>scale of weakly-labelled web data instead of a pretext task</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p><strong>Why it mattered.</strong> wav2vec 2.0 reached usable word error rates with <strong>10 minutes</strong> of labelled
+            audio, where a supervised model needed hundreds of hours. For any language without a large
+            transcribed corpus, that is the difference between having ASR and not.</p>
+          <div class="note">
+            <p><strong>The interview version.</strong> wav2vec 2.0 is contrastive over quantized latents; HuBERT is masked
+              prediction over k-means cluster IDs, which sidesteps the negative-sampling machinery entirely
+              and is easier to train stably. Both learn representations; neither is an ASR system until you
+              put a CTC head on top and fine-tune.</p>
+          </div>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p6"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-network"/></svg>7. Three ASR architectures</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <p>Every production system is one of these three, and the choice is a latency decision more than an
+            accuracy one.</p>
+          <div class="tbl-wrap">
+            <table class="t4">
+              <thead>
+                <tr>
+                  <th>
+                  </th>
+                  <th><strong>CTC</strong>
+                  </th>
+                  <th><strong>RNN-T (transducer)</strong>
+                  </th>
+                  <th><strong>Attention encoder-decoder</strong>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="g1">
+                  <td><strong>Streams?</strong>
+                  </td>
+                  <td>Yes</td>
+                  <td><strong>Yes — the on-device standard</strong>
+                  </td>
+                  <td>No, without hacks</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Output dependency</strong>
+                  </td>
+                  <td>Conditionally independent per frame</td>
+                  <td>Autoregressive over labels</td>
+                  <td>Fully autoregressive</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>Built-in LM</strong>
+                  </td>
+                  <td>None</td>
+                  <td>Yes, the prediction network</td>
+                  <td>Yes, the decoder</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Alignment</strong>
+                  </td>
+                  <td>Marginalised over all monotonic alignments</td>
+                  <td>Marginalised, in 2-D</td>
+                  <td>Learned via cross-attention, free to reorder</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>Typical use</strong>
+                  </td>
+                  <td>wav2vec fine-tunes, simple pipelines, forced alignment</td>
+                  <td>Phone keyboards, in-car assistants, live captions</td>
+                  <td>Whisper, batch transcription</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Failure mode</strong>
+                  </td>
+                  <td>Cannot model that "the" follows "of" — needs an external LM</td>
+                  <td>Heavier, trickier to train, needs careful pruning</td>
+                  <td>Can hallucinate fluent text unconstrained by the audio</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p><strong>The one-liner:</strong> CTC is fast and dumb about language, attention models are accurate and cannot
+            stream, RNN-T is the compromise that made on-device dictation work.</p>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p7"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>8. CTC, worked</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <p>CTC's problem: the audio is 300 frames, the transcript is 8 characters, and nobody labelled
+            which frame belongs to which character. Its answer: introduce a <strong>blank</strong> symbol, define a
+            collapse rule, and sum the probability of <em>every</em> frame-to-label alignment that collapses to the
+            target.</p>
+          <pre class="code" data-lang="text"><code>  collapse rule:  squeeze repeated symbols, THEN remove blanks
+      a a - b b  -&gt;  a b          "-" is blank, not silence
+      a - a b    -&gt;  a a b        the blank is what lets you spell "aa"</code></pre>
+          <p>Take a 3-frame example over the alphabet <code>{a, b, blank}</code>, with the target <code>ab</code>:</p>
+          <div class="tbl-wrap">
+            <table class="t4">
+              <thead>
+                <tr>
+                  <th>frame</th>
+                  <th>p(blank)</th>
+                  <th>p(a)</th>
+                  <th>p(b)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="g1">
+                  <td>1</td>
+                  <td>0.2</td>
+                  <td>0.7</td>
+                  <td>0.1</td>
+                </tr>
+                <tr class="g0">
+                  <td>2</td>
+                  <td>0.3</td>
+                  <td>0.2</td>
+                  <td>0.5</td>
+                </tr>
+                <tr class="g1">
+                  <td>3</td>
+                  <td>0.4</td>
+                  <td>0.1</td>
+                  <td>0.5</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Five alignments collapse to <code>ab</code>, and CTC's loss is built on the sum of all five:</p>
+          <pre class="code" data-lang="text"><code>   - a b   0.2 x 0.2 x 0.5 = 0.0200
+   a - b   0.7 x 0.3 x 0.5 = 0.1050
+   a a b   0.7 x 0.2 x 0.5 = 0.0700
+   a b -   0.7 x 0.5 x 0.4 = 0.1400
+   a b b   0.7 x 0.5 x 0.5 = 0.1750
+   ----------------------------------
+   P(target) = 0.5100</code></pre>
+          <p>Brute force is <code>3^T</code> and useless past a handful of frames, so the real implementation is a
+            <strong>forward algorithm</strong> over the target padded with blanks — <code>- a - b -</code>:</p>
+          <pre class="code" data-lang="text"><code>forward lattice (rows = frames, columns = extended target):
+                -        a        -        b        -
+frame 1    0.2000   0.7000   0.0000   0.0000   0.0000
+frame 2    0.0600   0.1800   0.2100   0.3500   0.0000
+frame 3    0.0240   0.0240   0.1560   0.3700   0.1400
+
+P(target) = alpha[T][last blank] + alpha[T][last label] = 0.1400 + 0.3700 = 0.5100
+CTC loss  = -ln(0.5100) = 0.6733</code></pre>
+          <p><strong>The two numbers agree exactly</strong>, which is the point of the exercise: the lattice is not an
+            approximation, it is the same sum computed in <code>O(T · S)</code> instead of <code>O(3^T)</code>.</p>
+          <p>Three rules govern the lattice, and they are the whole algorithm:</p>
+          <ol>
+            <li>From state <code>s</code> you may stay at <code>s</code> or step to <code>s+1</code>.</li>
+            <li>You may <strong>skip</strong> from <code>s</code> to <code>s+2</code> only if <code>s+2</code> is a real label and it differs from the
+                 label at <code>s</code> — that is what forces a blank between doubled letters, so <code>hello</code> needs a blank
+                 between the two <code>l</code>s.</li>
+            <li>The answer is the last two states summed, because a valid path may or may not end on a blank.</li>
+          </ol>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p8"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>9. The CTC program</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px"><pre class="code" data-lang="python"><code><span class="kw">import</span> itertools
+<span class="kw">import</span> math
+
+BLANK = <span class="str">"-"</span>
+P = [{<span class="str">"-"</span>: <span class="num">0.2</span>, <span class="str">"a"</span>: <span class="num">0.7</span>, <span class="str">"b"</span>: <span class="num">0.1</span>},          <span class="cmt"># frame 1</span>
+     {<span class="str">"-"</span>: <span class="num">0.3</span>, <span class="str">"a"</span>: <span class="num">0.2</span>, <span class="str">"b"</span>: <span class="num">0.5</span>},          <span class="cmt"># frame 2</span>
+     {<span class="str">"-"</span>: <span class="num">0.4</span>, <span class="str">"a"</span>: <span class="num">0.1</span>, <span class="str">"b"</span>: <span class="num">0.5</span>}]          <span class="cmt"># frame 3</span>
+TARGET = <span class="str">"ab"</span>
+
+
+<span class="kw">def</span> <span class="fn">collapse</span>(path):
+    <span class="str">"""CTC's decoding rule: squeeze repeats, then drop blanks."""</span>
+    out = []
+    <span class="kw">for</span> ch <span class="kw">in</span> path:
+        <span class="kw">if</span> <span class="kw">not</span> out <span class="kw">or</span> ch != out[-<span class="num">1</span>]:
+            out.<span class="fn">append</span>(ch)
+    <span class="kw">return</span> <span class="str">""</span>.<span class="fn">join</span>(c <span class="kw">for</span> c <span class="kw">in</span> out <span class="kw">if</span> c != BLANK)
+
+
+total = <span class="num">0.0</span>                                    <span class="cmt"># ---- brute force over every alignment</span>
+<span class="kw">for</span> path <span class="kw">in</span> itertools.<span class="fn">product</span>(<span class="str">"-ab"</span>, repeat=<span class="fn">len</span>(P)):
+    <span class="kw">if</span> <span class="fn">collapse</span>(path) != TARGET:
+        <span class="kw">continue</span>
+    p = <span class="num">1.0</span>
+    <span class="kw">for</span> t, ch <span class="kw">in</span> <span class="fn">enumerate</span>(path):
+        p *= P[t][ch]
+    total += p
+    <span class="fn">print</span>(<span class="str">"   %s   %.1f x %.1f x %.1f = %.4f"</span>
+          % (<span class="str">" "</span>.<span class="fn">join</span>(path), P[<span class="num">0</span>][path[<span class="num">0</span>]], P[<span class="num">1</span>][path[<span class="num">1</span>]], P[<span class="num">2</span>][path[<span class="num">2</span>]], p))
+<span class="fn">print</span>(<span class="str">"   P(target) = %.4f"</span> % total)
+
+ext = [BLANK]                                  <span class="cmt"># ---- the forward algorithm</span>
+<span class="kw">for</span> ch <span class="kw">in</span> TARGET:
+    ext += [ch, BLANK]                         <span class="cmt"># - a - b -</span>
+S = <span class="fn">len</span>(ext)
+alpha = [[<span class="num">0.0</span>] * S <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(P))]
+alpha[<span class="num">0</span>][<span class="num">0</span>] = P[<span class="num">0</span>][ext[<span class="num">0</span>]]
+alpha[<span class="num">0</span>][<span class="num">1</span>] = P[<span class="num">0</span>][ext[<span class="num">1</span>]]
+<span class="kw">for</span> t <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="fn">len</span>(P)):
+    <span class="kw">for</span> s <span class="kw">in</span> <span class="fn">range</span>(S):
+        v = alpha[t - <span class="num">1</span>][s]                    <span class="cmt"># stay</span>
+        <span class="kw">if</span> s &gt; <span class="num">0</span>:
+            v += alpha[t - <span class="num">1</span>][s - <span class="num">1</span>]           <span class="cmt"># step</span>
+        <span class="kw">if</span> s &gt; <span class="num">1</span> <span class="kw">and</span> ext[s] != BLANK <span class="kw">and</span> ext[s] != ext[s - <span class="num">2</span>]:
+            v += alpha[t - <span class="num">1</span>][s - <span class="num">2</span>]           <span class="cmt"># skip a blank, only between DIFFERENT labels</span>
+        alpha[t][s] = v * P[t][ext[s]]
+
+<span class="fn">print</span>(<span class="str">"        "</span> + <span class="str">""</span>.<span class="fn">join</span>(<span class="str">"%9s"</span> % c <span class="kw">for</span> c <span class="kw">in</span> ext))
+<span class="kw">for</span> t <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(P)):
+    <span class="fn">print</span>(<span class="str">"frame %d "</span> % (t + <span class="num">1</span>) + <span class="str">""</span>.<span class="fn">join</span>(<span class="str">"%9.4f"</span> % v <span class="kw">for</span> v <span class="kw">in</span> alpha[t]))
+fwd = alpha[-<span class="num">1</span>][S - <span class="num">1</span>] + alpha[-<span class="num">1</span>][S - <span class="num">2</span>]
+<span class="fn">print</span>(<span class="str">"P(target) = %.4f + %.4f = %.4f"</span> % (alpha[-<span class="num">1</span>][S - <span class="num">1</span>], alpha[-<span class="num">1</span>][S - <span class="num">2</span>], fwd))
+<span class="fn">print</span>(<span class="str">"matches brute force: %s     CTC loss = -ln P = %.4f"</span>
+      % (<span class="fn">abs</span>(fwd - total) &lt; 1e-<span class="num">12</span>, -math.<span class="fn">log</span>(fwd)))</code></pre>
+          <pre class="code" data-lang="text"><code>   - a b   0.2 x 0.2 x 0.5 = 0.0200
+   a - b   0.7 x 0.3 x 0.5 = 0.1050
+   a a b   0.7 x 0.2 x 0.5 = 0.0700
+   a b -   0.7 x 0.5 x 0.4 = 0.1400
+   a b b   0.7 x 0.5 x 0.5 = 0.1750
+   P(target) = 0.5100
+                -        a        -        b        -
+frame 1    0.2000   0.7000   0.0000   0.0000   0.0000
+frame 2    0.0600   0.1800   0.2100   0.3500   0.0000
+frame 3    0.0240   0.0240   0.1560   0.3700   0.1400
+P(target) = 0.1400 + 0.3700 = 0.5100
+matches brute force: True     CTC loss = -ln P = 0.6733</code></pre>
+          <p>In production this runs in log space with <code>logsumexp</code>, because at 300 frames the products
+            underflow float32 within about 40 steps.</p>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p9"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-layers"/></svg>10. RNN-T and streaming</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <p>CTC assumes each frame's output is independent given the audio. That is false — <code>q</code> is followed
+            by <code>u</code> — and it is why CTC systems need an external language model.</p>
+          <p><strong>RNN-T</strong> fixes it by adding a <strong>prediction network</strong> (a small LM over what has been emitted so
+            far) and a <strong>joint network</strong> that combines it with the encoder:</p>
+          <pre class="code" data-lang="text"><code>  audio frames --&gt; ENCODER -----\
+                                 &gt;--- JOINT --&gt; softmax over (vocab + blank)
+  emitted text --&gt; PREDICTION --/
+
+  at each step: emit a symbol and stay on the same frame, or emit BLANK and advance a frame
+  -&gt; the lattice is 2-D (frames x labels), not 1-D like CTC</code></pre>
+          <p>That "emit or advance" loop is what makes it stream: it consumes audio left to right and can
+            emit as soon as it is confident, with no need to see the end of the utterance.</p>
+          <p><strong>Streaming has a cost, and the cost is context.</strong> A streaming encoder can only attend to a
+            limited right context, so it decides on a word before hearing what follows. Typical designs:</p>
+          <div class="tbl-wrap">
+            <table class="t3">
+              <thead>
+                <tr>
+                  <th>Approach</th>
+                  <th>Right context</th>
+                  <th>Effect</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="g1">
+                  <td>Full attention</td>
+                  <td>the whole utterance</td>
+                  <td>best WER, cannot stream</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Chunked attention</strong>
+                  </td>
+                  <td><span class="mag">320–640 ms</span>
+                  </td>
+                  <td>the usual compromise</td>
+                </tr>
+                <tr class="g1">
+                  <td>Look-ahead convolutions</td>
+                  <td><span class="mag">100–200 ms</span>
+                  </td>
+                  <td>cheap, small gain</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Two-pass</strong>
+                  </td>
+                  <td>stream with RNN-T, then rescore the whole thing with an attention decoder</td>
+                  <td>what phones actually do — instant text that quietly improves</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p10"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>11. Whisper</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <p>Whisper is a plain encoder-decoder transformer trained on 680,000 hours of weakly-labelled
+            multilingual audio. Its interest is architectural simplicity plus a training-data thesis: scale
+            and diversity beat clever objectives.</p>
+          <pre class="code" data-lang="text"><code>  audio -&gt; pad or trim to EXACTLY 30 s -&gt; 80-band log-mel, 100 fps -&gt; 3000 x 80
+        -&gt; 2 conv layers (stride 2 on time) -&gt; 1500 encoder positions
+        -&gt; encoder -&gt; decoder, prompted with special tokens</code></pre>
+          <p>The decoder is steered by a <strong>token prompt</strong>, which is why one model does several jobs:</p>
+          <pre class="code" data-lang="text"><code>  &lt;|startoftranscript|&gt; &lt;|en|&gt; &lt;|transcribe|&gt; &lt;|notimestamps|&gt; ...text...
+                         ^lang  ^task          ^timestamp mode
+                                &lt;|translate|&gt; gives English out from any language in</code></pre>
+          <p><strong>Its three well-known failure modes</strong>, all of which come up in interviews:</p>
+          <ol>
+            <li><strong><abbr title="a fluent, confident answer that is not supported by the evidence or the facts">Hallucination</abbr> on silence or noise.</strong> With no speech in the window the decoder still
+                 produces fluent text — often a YouTube sign-off from the training data. Fix: run a VAD first
+                 and skip windows with no speech.</li>
+            <li><strong>Repetition loops.</strong> Greedy decoding can lock into a repeated phrase. Fix: the temperature
+                 fallback schedule, plus a repetition/compression-ratio check that retries the window.</li>
+            <li><strong>Timestamps are approximate.</strong> They come from timestamp tokens, not from an alignment.
+                 For word-level timing, force-align the output with a CTC model instead.</li>
+          </ol>
+          <p><strong>The 30-second window is a hard constraint.</strong> Every clip is padded to 30 s, so a 2-second
+            command costs the same compute as a 30-second one — which matters enormously for a voice agent
+            and is a large part of why streaming wrappers around Whisper are awkward.</p>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p11"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>12. Decoding, language models and biasing</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <p>The acoustic model gives probabilities; decoding turns them into text.</p>
+          <div class="tbl-wrap">
+            <table class="t3">
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>What it does</th>
+                  <th>When</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="g1">
+                  <td><strong>Greedy / best path</strong>
+                  </td>
+                  <td>argmax per frame, then collapse</td>
+                  <td>CTC, latency-critical, surprisingly close to beam for strong models</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Beam search</strong>
+                  </td>
+                  <td>keep the best <code>k</code> prefixes by accumulated score</td>
+                  <td>the default everywhere else</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>Prefix beam search</strong>
+                  </td>
+                  <td>beam search that merges paths collapsing to the same text</td>
+                  <td>correct beam search <em>for CTC</em> — plain beam search double-counts</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Shallow fusion</strong>
+                  </td>
+                  <td>add <code>λ · log P_LM(y)</code> to the beam score</td>
+                  <td>cheap way to inject a domain LM</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>Contextual biasing</strong>
+                  </td>
+                  <td>boost a per-session word list — contacts, playlist names, part numbers</td>
+                  <td>the single highest-value trick in product ASR</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p><strong>Biasing is what makes an assistant feel personal.</strong> "Call Aoife" fails against a generic model
+            and succeeds when the beam is boosted toward the names in your contact list, injected at session
+            start. Implemented as a weighted FST, a trie of boosted prefixes, or by prompting a
+            prompt-conditioned model.</p>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p12"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>13. Text to speech</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <p>TTS is the mirror image, and it is a three-stage pipeline in almost every system:</p>
+          <pre class="code" data-lang="text"><code>  text -&gt; TEXT NORMALISATION -&gt; PHONEMES -&gt; ACOUSTIC MODEL -&gt; VOCODER -&gt; waveform
+          "$3.50" -&gt; "three     grapheme    mel spectrogram   mel -&gt; audio
+           dollars fifty"       to phoneme</code></pre>
+          <div class="tbl-wrap">
+            <table class="t3">
+              <thead>
+                <tr>
+                  <th>Stage</th>
+                  <th>Job</th>
+                  <th>Representative models</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="g1">
+                  <td><strong>Normalisation</strong>
+                  </td>
+                  <td>numbers, dates, currency, abbreviations into spoken words</td>
+                  <td>rules plus a small seq2seq; the stage that embarrasses you in a demo</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>G2P</strong>
+                  </td>
+                  <td>letters to phonemes, with a lexicon for exceptions</td>
+                  <td>dictionary + neural fallback</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>Acoustic model</strong>
+                  </td>
+                  <td>phonemes to mel spectrogram, with duration and pitch</td>
+                  <td><strong>Tacotron 2</strong> (autoregressive, attention), <strong>FastSpeech 2</strong> (non-autoregressive, explicit duration predictor)</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Vocoder</strong>
+                  </td>
+                  <td>mel to waveform</td>
+                  <td>Griffin-Lim (fast, robotic), WaveNet (excellent, slow), <strong>HiFi-GAN</strong> (the practical default)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p><strong>Autoregressive versus not.</strong> Tacotron 2 sounds natural but decodes one frame at a time and can
+            fail catastrophically — attention slips and it babbles or stops early. FastSpeech 2 predicts
+            durations explicitly, generates all frames in parallel, is roughly an order of magnitude faster
+            and cannot lose alignment. For a real-time agent that robustness is worth more than the last
+            sliver of naturalness.</p>
+          <p><strong>Where it has gone since:</strong> neural audio codecs (EnCodec, SoundStream) turn audio into discrete
+            tokens, and a language model over those tokens does TTS — VALL-E style — which is what enables
+            voice cloning from a few seconds of reference audio, and is the same trick that underlies
+            speech-to-speech models.</p>
+          <p><strong>Streaming TTS</strong> matters more than quality for agents: synthesise the first clause while the
+            <abbr title="large language model">LLM</abbr> is still writing the rest, so audio starts in <span class="mag">~200 ms</span> instead of after the full sentence.
+            Chunk on punctuation and clause boundaries, never on a fixed token count, or the prosody breaks
+            mid-phrase.</p>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p13"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>14. VAD, wake words, diarization</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <p>The small models around the big one, and the ones that decide how a product <em>feels</em>.</p>
+          <div class="tbl-wrap">
+            <table class="t3">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Question</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="g1">
+                  <td><strong>VAD</strong>
+                  </td>
+                  <td>is anyone speaking right now?</td>
+                  <td>Runs constantly, must be tiny. WebRTC VAD (GMM) or Silero (small neural). Gates everything downstream.</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Wake word</strong>
+                  </td>
+                  <td>did they say the trigger phrase?</td>
+                  <td>Always-on, on-device, tuned for <strong>false accepts per hour</strong> rather than accuracy. Typically a few hundred KB.</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>Endpointing</strong>
+                  </td>
+                  <td>have they <em>finished</em> speaking?</td>
+                  <td>Different from VAD, and the hardest of the three — see the voice-agent file.</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Diarization</strong>
+                  </td>
+                  <td>who spoke when?</td>
+                  <td>Segment, embed each segment (x-vector/ECAPA), cluster. Overlapping speech is where it fails.</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>Speaker verification</strong>
+                  </td>
+                  <td>is this the enrolled user?</td>
+                  <td>Cosine similarity between embeddings against a threshold set by the false-accept budget.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p><strong>Wake-word metrics are asymmetric on purpose.</strong> A missed wake word annoys; a false accept means
+            the device started recording someone's living room. So the operating point is set by false
+            accepts per hour — commonly under 1 — and the miss rate is whatever that costs.</p>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p14"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chart"/></svg>15. Evaluation: WER, CER, MOS, RTF</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <p><strong>Word error rate</strong> is edit distance over words, divided by the reference length:</p>
+          <pre class="code" data-lang="text"><code>  WER = (substitutions + deletions + insertions) / reference words</code></pre>
+          <p>Computed on five cases:</p>
+          <pre class="code" data-lang="text"><code>REFERENCE                                  HYPOTHESIS                               S D I  WER
+set the temperature to twenty two degrees  set the temperature to twenty degrees    0 1 0  0.1429
+set the temperature to twenty two degrees  set the temperature to twenty two degree 1 0 0  0.1429
+call mum on the way home                   call mom on the way home                 1 0 0  0.1667
+navigate to kings cross                    navigate to kings cross station now      0 0 2  0.5000
+yes                                        yes yes yes yes                          0 0 3  3.0000</code></pre>
+          <p>Read those five rows carefully, because each is a lesson:</p>
+          <ul>
+            <li class="dl"><b class="dt">Rows 1 and 2 score identically at 0.1429</b><span class="dd">but dropping "two" from a temperature command
+                changes the outcome, while "degree" for "degrees" changes nothing. WER cannot tell them apart.</span>
+            </li>
+            <li><strong><code>mum</code> → <code>mom</code> costs 0.1667</strong>, and is completely harmless. WER counts characters of
+                disagreement, not meaning.</li>
+            <li><strong>The last row is 3.0000.</strong> Insertions are counted against the <em>reference</em> length, so WER is
+                unbounded and is not a percentage. Anyone who says "97% accurate" from a WER of 0.03 is
+                quoting a number that cannot be inverted like that.</li>
+          </ul>
+          <div class="tbl-wrap">
+            <table class="t3">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Measures</th>
+                  <th>Watch out</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="g1">
+                  <td><strong>WER</strong>
+                  </td>
+                  <td>word-level errors</td>
+                  <td>normalisation decides the number: casing, punctuation, "20" vs "twenty"</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>CER</strong>
+                  </td>
+                  <td>character-level</td>
+                  <td>the right choice for Chinese, Japanese, and for spelling-heavy content</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>Entity error rate</strong>
+                  </td>
+                  <td>did the <em>name</em>, <em>number</em> or <em>address</em> survive</td>
+                  <td>the metric your product actually cares about</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>MOS / CMOS</strong>
+                  </td>
+                  <td>human 1–5 naturalness for TTS</td>
+                  <td>needs many raters; CMOS compares two systems and is far more sensitive</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>RTF</strong>
+                  </td>
+                  <td>processing time / audio duration</td>
+                  <td><strong>must be well under 1.0</strong> to stream; 0.1 means 10x faster than real time</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Latency</strong>
+                  </td>
+                  <td>time to first token, and to final</td>
+                  <td>RTF can be excellent while latency is terrible, if you buffer</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="note n-crit">
+            <p><strong>Warning — normalisation is where WER numbers are won.</strong> Two systems on the same audio can
+              differ by several points purely from how they render numbers, contractions and punctuation
+              before scoring. Fix one normaliser, publish it, and compare only within it.</p>
+          </div>
+          <pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">wer</span>(ref, hyp):
+    <span class="str">"""Levenshtein over words, plus the edit breakdown."""</span>
+    r, h = ref.<span class="fn">split</span>(), hyp.<span class="fn">split</span>()
+    d = [[<span class="num">0</span>] * (<span class="fn">len</span>(h) + <span class="num">1</span>) <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(r) + <span class="num">1</span>)]
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(r) + <span class="num">1</span>):
+        d[i][<span class="num">0</span>] = i
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(h) + <span class="num">1</span>):
+        d[<span class="num">0</span>][j] = j
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="fn">len</span>(r) + <span class="num">1</span>):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="fn">len</span>(h) + <span class="num">1</span>):
+            <span class="kw">if</span> r[i - <span class="num">1</span>] == h[j - <span class="num">1</span>]:
+                d[i][j] = d[i - <span class="num">1</span>][j - <span class="num">1</span>]
+            <span class="kw">else</span>:
+                d[i][j] = <span class="num">1</span> + <span class="fn">min</span>(d[i - <span class="num">1</span>][j],        <span class="cmt"># deletion</span>
+                                  d[i][j - <span class="num">1</span>],        <span class="cmt"># insertion</span>
+                                  d[i - <span class="num">1</span>][j - <span class="num">1</span>])    <span class="cmt"># substitution</span>
+    <span class="kw">return</span> d[<span class="fn">len</span>(r)][<span class="fn">len</span>(h)] / <span class="fn">float</span>(<span class="fn">len</span>(r))</code></pre></div>
+        <div class="parthead" id="f08AudioSpeechP-p15"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>16. Robustness and augmentation</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <p>A model trained on clean read speech falls apart on a car at 70 km/h. What closes the gap:</p>
+          <div class="tbl-wrap">
+            <table class="t2 t-def">
+              <thead>
+                <tr>
+                  <th>Technique</th>
+                  <th>What it simulates</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="g1">
+                  <td class="c-term"><strong>SpecAugment</strong>
+                  </td>
+                  <td>masks bands of frequency and spans of time in the log-mel — the single most effective ASR augmentation, and it costs nothing</td>
+                </tr>
+                <tr class="g0">
+                  <td class="c-term"><strong>Noise mixing</strong>
+                  </td>
+                  <td>add babble, road, fan noise at sampled SNRs</td>
+                </tr>
+                <tr class="g1">
+                  <td class="c-term"><strong>Room impulse responses</strong>
+                  </td>
+                  <td>far-field reverberation, so the model survives a speaker across the room</td>
+                </tr>
+                <tr class="g0">
+                  <td class="c-term"><strong>Speed and tempo perturbation</strong>
+                  </td>
+                  <td>0.9x/1.0x/1.1x, which also shifts pitch — cheap speaker variety</td>
+                </tr>
+                <tr class="g1">
+                  <td class="c-term"><strong>Codec simulation</strong>
+                  </td>
+                  <td>encode and <abbr title="generating output tokens one at a time after prefill">decode</abbr> through the codecs your product actually uses</td>
+                </tr>
+                <tr class="g0">
+                  <td class="c-term"><strong>Gain and clipping</strong>
+                  </td>
+                  <td>microphone distance and overdriven input</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p><strong>In a car specifically</strong>, add: engine and road noise scaled with speed, HVAC, open windows,
+            music playing through the same speakers you are recording near — which is why <strong>acoustic echo
+            cancellation</strong> and beamforming across a microphone array are part of the pipeline, not
+            afterthoughts. Barge-in is impossible without echo cancellation, because the device would hear
+            its own voice and interrupt itself.</p>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p16"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cloud"/></svg>17. Deployment and on-device</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <div class="tbl-wrap">
+            <table class="t3">
+              <thead>
+                <tr>
+                  <th>Constraint</th>
+                  <th>Cloud</th>
+                  <th>On-device</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="g1">
+                  <td><strong>Model size</strong>
+                  </td>
+                  <td>any</td>
+                  <td><span class="mag">10–200 MB</span> after <abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">quantization</abbr>
+                  </td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Latency</strong>
+                  </td>
+                  <td>network round trip, <span class="mag">50–300 ms</span>
+                  </td>
+                  <td>none</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>Privacy</strong>
+                  </td>
+                  <td>audio leaves the device</td>
+                  <td>it does not — often the deciding argument</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Availability</strong>
+                  </td>
+                  <td>needs connectivity</td>
+                  <td>works in a tunnel, which is why cars care</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>Cost</strong>
+                  </td>
+                  <td>per hour of audio</td>
+                  <td>one-time</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Update</strong>
+                  </td>
+                  <td>instant</td>
+                  <td>ships with firmware</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>The usual answer is <strong>both</strong>: a tiny always-on wake word and VAD on device, a compact streaming
+            RNN-T on device for commands, and a cloud model for long or unusual utterances — with a policy
+            that decides per utterance and degrades gracefully when the network is gone.</p>
+          <pre class="code" data-lang="text"><code>  RTF budget for streaming on a CPU core:
+     RTF 0.3  -&gt; comfortable, room for the rest of the pipeline
+     RTF 0.7  -&gt; works, but any hiccup causes audio to queue
+     RTF 1.0  -&gt; the buffer grows without bound. Not streaming.</code></pre>
+          <p>Quantization to int8 typically costs a few tenths of a point of WER and buys 2–4x on both size
+            and speed; that trade is almost always worth taking on-device.</p>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p17"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-warn"/></svg>18. Pitfalls</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <div class="tbl-wrap">
+            <table class="t2">
+              <thead>
+                <tr>
+                  <th>Pitfall</th>
+                  <th>Why it hurts</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="g1">
+                  <td><strong>Training at 16 kHz, deploying on 8 kHz telephony</strong>
+                  </td>
+                  <td>The model has never seen a band-limited signal; WER can double. Train on both, or resample and fine-tune.</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Frame-count off-by-two</strong>
+                  </td>
+                  <td><code>1 + (N - win)//hop</code> versus a padded library's count. Silently misaligns features and labels.</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>Comparing WER across normalisers</strong>
+                  </td>
+                  <td>Points of difference come from punctuation and number formatting, not from the model.</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>No VAD in front of Whisper</strong>
+                  </td>
+                  <td>It hallucinates fluent text on silence, confidently.</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>Beam search on CTC without prefix merging</strong>
+                  </td>
+                  <td>Paths that collapse to the same string are scored separately, so the beam is wasted.</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Ignoring echo cancellation</strong>
+                  </td>
+                  <td>The assistant hears its own TTS and barges in on itself.</td>
+                </tr>
+                <tr class="g1">
+                  <td><strong>MOS from five raters</strong>
+                  </td>
+                  <td>The confidence interval is wider than any difference you are trying to show.</td>
+                </tr>
+                <tr class="g0">
+                  <td><strong>Evaluating only on read speech</strong>
+                  </td>
+                  <td>Spontaneous speech has disfluencies, restarts and overlap; read-speech WER flatters a model by a factor of two.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="parthead" id="f08AudioSpeechP-p18"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>19. Interview drill</span><i></i>
+        </div>
+        <article class="q" id="f08AudioSpeechP-0">
+          <div class="q-h"><span class="q-n">&bull;</span>
+            <h3>Q1. Why 16 kHz for speech?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08AudioSpeechP-0"><span></span></label>
+          </div>
+          <div class="q-a">
+            <p>Nyquist: a sample rate of 16 kHz represents frequencies up to 8 kHz, and everything that
+              distinguishes speech sounds — formants under 3 kHz, fricatives up to about 8 kHz — lives below
+              that. Music needs 44.1 kHz because human hearing goes to 20 kHz. Telephony is 8 kHz, and models
+              do not transfer between the two without retraining.</p>
+          </div><button class="reveal">Reveal answer</button>
+        </article>
+        <article class="q" id="f08AudioSpeechP-1">
+          <div class="q-h"><span class="q-n">&bull;</span>
+            <h3>Q2. Walk me from a waveform to log-mel.</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08AudioSpeechP-1"><span></span></label>
+          </div>
+          <div class="q-a">
+            <p>Frame at <span class="mag">25 ms</span> with a <span class="mag">10 ms</span> hop, so frames overlap and you get 100 per second. Window each frame
+              with a Hann window to stop spectral leakage. FFT to a power spectrum — 257 bins at n_fft 512.
+              Multiply by a bank of triangular mel filters, which are narrow at low frequencies and wide at
+              high ones because pitch perception is logarithmic. Take the log. That is 80 numbers per frame.</p>
+          </div><button class="reveal">Reveal answer</button>
+        </article>
+        <article class="q" id="f08AudioSpeechP-2">
+          <div class="q-h"><span class="q-n">&bull;</span>
+            <h3>Q3. Do you still use MFCCs?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08AudioSpeechP-2"><span></span></label>
+          </div>
+          <div class="q-a">
+            <p>Only for classical models or tiny embedded ones. The DCT existed to decorrelate features for
+              diagonal-covariance GMMs; a neural network models correlation natively, and the DCT discards
+              information. Modern systems use log-mel or the raw waveform.</p>
+          </div><button class="reveal">Reveal answer</button>
+        </article>
+        <article class="q" id="f08AudioSpeechP-3">
+          <div class="q-h"><span class="q-n">&bull;</span>
+            <h3>Q4. Explain CTC to someone who has not seen it.</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08AudioSpeechP-3"><span></span></label>
+          </div>
+          <div class="q-a">
+            <p>You have 300 frames and 8 characters and no alignment. CTC adds a blank symbol and a collapse
+              rule — squeeze repeats, drop blanks — then defines the probability of the transcript as the sum
+              over every alignment that collapses to it, computed with a forward algorithm in <code>O(T·S)</code>. On my
+              three-frame example, five alignments spell "ab" and they sum to 0.5100, which the lattice
+              reproduces exactly.</p>
+          </div><button class="reveal">Reveal answer</button>
+        </article>
+        <article class="q" id="f08AudioSpeechP-4">
+          <div class="q-h"><span class="q-n">&bull;</span>
+            <h3>Q5. Why does CTC need an external language model?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08AudioSpeechP-4"><span></span></label>
+          </div>
+          <div class="q-a">
+            <p>Because it assumes outputs are conditionally independent given the audio, so it has no way to
+              know that "u" usually follows "q". RNN-T fixes that with a prediction network that conditions on
+              what has already been emitted.</p>
+          </div><button class="reveal">Reveal answer</button>
+        </article>
+        <article class="q" id="f08AudioSpeechP-5">
+          <div class="q-h"><span class="q-n">&bull;</span>
+            <h3>Q6. Which architecture would you pick for an in-car assistant, and why?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08AudioSpeechP-5"><span></span></label>
+          </div>
+          <div class="q-a">
+            <p>RNN-T, on device. It streams, so text appears as the user speaks; it has an internal language
+              model, so it does not need a separate one; and on-device means it still works in a tunnel and
+              the audio never leaves the car. I would keep a cloud attention model as a second pass for long
+              or unusual utterances.</p>
+          </div><button class="reveal">Reveal answer</button>
+        </article>
+        <article class="q" id="f08AudioSpeechP-6">
+          <div class="q-h"><span class="q-n">&bull;</span>
+            <h3>Q7. What are Whisper's failure modes?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08AudioSpeechP-6"><span></span></label>
+          </div>
+          <div class="q-a">
+            <p>Hallucinated text on silence — put a VAD in front of it. Repetition loops under greedy decoding
+              — use the temperature fallback and a compression-ratio check. Approximate timestamps, because
+              they come from tokens rather than an alignment — force-align with a CTC model if you need word
+              timings. And the fixed 30-second window, which makes short utterances expensive.</p>
+          </div><button class="reveal">Reveal answer</button>
+        </article>
+        <article class="q" id="f08AudioSpeechP-7">
+          <div class="q-h"><span class="q-n">&bull;</span>
+            <h3>Q8. Is a WER of 0.05 the same as 95% accuracy?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08AudioSpeechP-7"><span></span></label>
+          </div>
+          <div class="q-a">
+            <p>No. WER counts insertions against the reference length, so it is unbounded — my "yes" versus
+              "yes yes yes yes" example scores 3.0000. It also weights every word equally, so getting the
+              name or the number wrong scores the same as getting a plural wrong. I report WER plus an entity
+              error rate for the fields that matter.</p>
+          </div><button class="reveal">Reveal answer</button>
+        </article>
+        <article class="q" id="f08AudioSpeechP-8">
+          <div class="q-h"><span class="q-n">&bull;</span>
+            <h3>Q9. How would you make a model robust to a noisy car?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08AudioSpeechP-8"><span></span></label>
+          </div>
+          <div class="q-a">
+            <p>SpecAugment as the baseline, then mix in real road, engine and HVAC noise at sampled SNRs,
+              convolve with room impulse responses for the cabin, and simulate the codec. In the vehicle
+              itself, beamforming across the microphone array and acoustic echo cancellation — without echo
+              cancellation the assistant interrupts itself the moment barge-in is enabled.</p>
+          </div><button class="reveal">Reveal answer</button>
+        </article>
+        <article class="q" id="f08AudioSpeechP-9">
+          <div class="q-h"><span class="q-n">&bull;</span>
+            <h3>Q10. How does TTS actually produce audio?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08AudioSpeechP-9"><span></span></label>
+          </div>
+          <div class="q-a">
+            <p>Normalise the text, convert to phonemes, predict a mel spectrogram with an acoustic model —
+              Tacotron 2 autoregressively, FastSpeech 2 in parallel with an explicit duration predictor — then
+              a vocoder such as HiFi-GAN turns mel into a waveform. For an agent, stream it: synthesise the
+              first clause while the language model is still writing, and chunk on clause boundaries so the
+              prosody survives.</p>
+          </div><button class="reveal">Reveal answer</button>
+        </article>
+        <div class="parthead" id="f08AudioSpeechP-p19"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>Related files</span><i></i>
+        </div>
+        <div class="q-a" style="margin:0 0 12px">
+          <div class="tbl-wrap">
+            <table class="t2">
+              <thead>
+                <tr>
+                  <th>Topic</th>
+                  <th>Where</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="g1">
+                  <td>Voice agents: ASR + <abbr title="large language model">LLM</abbr> + TTS, latency budget, barge-in, turn-taking</td>
+                  <td><a href="../07_GenAI_and_LLMs/voice.html#f28VoiceAgentsa"><code>../07_GenAI_and_LLMs/28_Voice_Agents_and_Realtime.md</code></a>
+                  </td>
+                </tr>
+                <tr class="g0">
+                  <td>Transformer internals, attention, encoder-decoder</td>
+                  <td><a href="../06_NLP_and_Transformers/transformers.html#f02Transformers"><code>../06_NLP_and_Transformers/02_Transformers_InDepth.md</code></a>
+                  </td>
+                </tr>
+                <tr class="g1">
+                  <td>Multimodal models, including audio encoders</td>
+                  <td><a href="../06_NLP_and_Transformers/multimodal.html#f03MultimodalAI"><code>../06_NLP_and_Transformers/03_Multimodal_AI.md</code></a>
+                  </td>
+                </tr>
+                <tr class="g0">
+                  <td>Sequence models: <abbr title="recurrent neural network">RNN</abbr>, <abbr title="long short-term memory">LSTM</abbr>, <abbr title="gated recurrent unit">GRU</abbr>
+                  </td>
+                  <td><a href="fundamentals.html#f03SequenceMode"><code>03_Sequence_Models.md</code></a>
+                  </td>
+                </tr>
+                <tr class="g1">
+                  <td>CNNs, which is what a speech front end still uses</td>
+                  <td><a href="fundamentals.html#f02CNNsmd"><code>02_CNNs.md</code></a>
+                  </td>
+                </tr>
+                <tr class="g0">
+                  <td>Practice problems on transformers and attention</td>
+                  <td><a href="../05_Deep_Learning/practice-a.html#f04Transformers"><code>Practice/04_Transformers_and_Attention.md</code></a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+      <nav class="pnav"><a class="prev" href="architectures.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrowl"/></svg><span class="pnav-t"><span>Previous</span><b>Architectures</b></span></a><a class="next" href="practice-a.html"><span class="pnav-t"><span>Next</span><b>Practice 1</b></span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></a>
+      </nav>
+      <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
+    </div>
+  </main>
+  <aside class="toc" id="toc">
+    <div class="toc-h"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>On this page</div>
+    <div class="toc-g" data-for="f08AudioSpeechP"><b>Audio Speech Processing</b>
+      <a href="#f08AudioSpeechP-0" data-c="f08AudioSpeechP-0">Q1. Why 16 kHz for speech?</a>
+      <a href="#f08AudioSpeechP-1" data-c="f08AudioSpeechP-1">Q2. Walk me from a waveform to log-mel.</a>
+      <a href="#f08AudioSpeechP-2" data-c="f08AudioSpeechP-2">Q3. Do you still use MFCCs?</a>
+      <a href="#f08AudioSpeechP-3" data-c="f08AudioSpeechP-3">Q4. Explain CTC to someone who has not seen it.</a>
+      <a href="#f08AudioSpeechP-4" data-c="f08AudioSpeechP-4">Q5. Why does CTC need an external language model?</a>
+      <a href="#f08AudioSpeechP-5" data-c="f08AudioSpeechP-5">Q6. Which architecture would you pick for an in-car assistant, and why?</a>
+      <a href="#f08AudioSpeechP-6" data-c="f08AudioSpeechP-6">Q7. What are Whisper's failure modes?</a>
+      <a href="#f08AudioSpeechP-7" data-c="f08AudioSpeechP-7">Q8. Is a WER of 0.05 the same as 95% accuracy?</a>
+      <a href="#f08AudioSpeechP-8" data-c="f08AudioSpeechP-8">Q9. How would you make a model robust to a noisy car?</a>
+      <a href="#f08AudioSpeechP-9" data-c="f08AudioSpeechP-9">Q10. How does TTS actually produce audio?</a>
+    </div>
+  </aside>
+</div>
+<button class="totop" id="totop" title="Back to top">&#8593;</button>
+<script>
+var LS='ai14.done.v2', TH='ai14.theme';
+var done={};try{done=JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){}
+var root=document.documentElement;
+function setTheme(t){root.setAttribute('data-theme',t);try{localStorage.setItem(TH,t)}catch(e){}
+  var b=document.getElementById('themeLbl'); if(b)b.textContent=(t==='dark'?'Light':'Dark');}
+setTheme((function(){try{return localStorage.getItem(TH)}catch(e){return null}})()||
+  (window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'));
+var tb=document.getElementById('themeBtn');
+if(tb)tb.onclick=function(){setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark')};
+
+var boxes=[].slice.call(document.querySelectorAll('.q-done input'));
+function refresh(){
+  var n=0;
+  boxes.forEach(function(b){
+    var q=b.closest('.q'), on=!!done[b.dataset.id];
+    b.checked=on; q.classList.toggle('done',on); if(on)n++;
+    var l=document.querySelector('nav a[data-q="'+q.id+'"]'); if(l)l.classList.toggle('done',on);
+  });
+  var el=document.getElementById('pgCount');
+  if(el)el.textContent=n+' / '+boxes.length;
+}
+boxes.forEach(function(b){b.addEventListener('change',function(){
+  if(b.checked)done[b.dataset.id]=1;else delete done[b.dataset.id];
+  try{localStorage.setItem(LS,JSON.stringify(done))}catch(e){}refresh();});});
+refresh();
+
+var db=document.getElementById('drillBtn');
+if(db)db.onclick=function(){var on=document.body.classList.toggle('drill');db.classList.toggle('on',on);
+  if(!on)[].forEach.call(document.querySelectorAll('.q.open'),function(q){q.classList.remove('open')});};
+[].forEach.call(document.querySelectorAll('.reveal'),function(b){
+  b.onclick=function(){b.closest('.q').classList.add('open')};});
+
+var qs=[].slice.call(document.querySelectorAll('.q')), inp=document.getElementById('search'),
+    noRes=document.getElementById('noRes');
+qs.forEach(function(q){q._t=q.textContent.toLowerCase()});
+function runSearch(){
+  if(!inp)return; var v=inp.value.trim().toLowerCase(), hits=0;
+  qs.forEach(function(q){var s=!v||q._t.indexOf(v)>-1;q.style.display=s?'':'none';if(s)hits++;});
+  /* a heading survives the filter only while something under it is still showing */
+  [].forEach.call(document.querySelectorAll('.parthead'),function(p){
+    var vis=true;
+    if(v){
+      vis=false;
+      var n=p.nextElementSibling;
+      while(n&&!n.classList.contains('parthead')){
+        if(n.classList.contains('q')&&n.style.display!=='none'){vis=true;break}
+        n=n.nextElementSibling;
+      }
+    }
+    p.style.display=vis?'':'none';
+    if(p.id){var l=document.querySelector('nav a[data-t="'+p.id+'"]');
+      if(l)l.style.display=vis?'':'none';}
+  });
+  if(noRes)noRes.classList.toggle('show',hits===0&&qs.length>0);
+}
+if(inp)inp.addEventListener('input',runSearch);
+
+/* The sidebar lists main headings only, so scroll tracking follows those headings
+   (data-t -> element id) rather than one entry per question card. */
+var navLinks=[].slice.call(document.querySelectorAll('nav a[data-t]'));
+var navTargets=navLinks.map(function(l){return document.getElementById(l.getAttribute('data-t'))});
+var totop=document.getElementById('totop');
+function onScroll(){
+  var sc=document.documentElement.scrollTop;
+  if(totop)totop.classList.toggle('show',sc>600);
+  var cur=-1;
+  for(var i=0;i<navTargets.length;i++){
+    var el=navTargets[i];
+    if(!el||el.offsetParent===null)continue;
+    if(el.getBoundingClientRect().top<=140)cur=i;else break;
+  }
+  navLinks.forEach(function(l){l.classList.remove('active')});
+  if(cur>=0){var l=navLinks[cur];
+    l.classList.add('active');
+    var r=l.getBoundingClientRect();
+    if(r.top<80||r.bottom>window.innerHeight-10)l.scrollIntoView({block:'center'});}
+}
+
+/* The sidebar lists topics; a topic's subtopics appear when you click it and fold away
+   when you click it again. Scrolling deliberately does not expand anything: opening
+   whatever you happened to be reading left single-topic pages permanently expanded,
+   which is the wall of subtopics this was meant to remove. */
+function openGroup(g, on){
+  if(!g)return;
+  if(on===undefined)on=!g.classList.contains('open');
+  if(on)[].forEach.call(document.querySelectorAll('.nav-group.open'),function(o){
+    if(o!==g)o.classList.remove('open')});
+  g.classList.toggle('open',on);
+}
+[].forEach.call(document.querySelectorAll('.nav-group > .nav-file'),function(a){
+  var g=a.parentNode;
+  a.addEventListener('click',function(){openGroup(g)});
+  var car=a.querySelector('.nav-caret');
+  /* the caret opens and folds without jumping the page */
+  if(car)car.addEventListener('click',function(e){
+    e.preventDefault();e.stopPropagation();openGroup(g);
+  });
+});
+window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+if(totop)totop.onclick=function(){window.scrollTo({top:0,behavior:'smooth'})};
+
+var sb=document.getElementById('sidebar'), mb=document.getElementById('menuBtn');
+function setNav(open){
+  if(!sb)return;
+  sb.classList.toggle('open',open);
+  document.body.classList.toggle('nav-open',open);
+}
+if(mb)mb.onclick=function(e){e.stopPropagation();setNav(!sb.classList.contains('open'))};
+if(sb)sb.addEventListener('click',function(e){if(e.target.tagName==='A'&&window.innerWidth<=1060)setNav(false)});
+/* an open drawer has to be dismissable without hunting for the button again: tapping
+   the page behind it, or Escape, closes it */
+document.addEventListener('click',function(e){
+  if(!sb||!sb.classList.contains('open'))return;
+  if(sb.contains(e.target)||(mb&&mb.contains(e.target)))return;
+  setNav(false);
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&sb&&sb.classList.contains('open'))setNav(false);
+});
+
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'){if(e.key==='Escape'){e.target.value='';runSearch();e.target.blur()}return}
+  if(e.key==='/'&&inp){e.preventDefault();inp.focus()}
+  else if(e.key==='d'&&db){db.click()}
+  else if(e.key==='t'&&tb){tb.click()}
+  else if(e.key==='j'||e.key==='k'){
+    var vis=qs.filter(function(q){return q.style.display!=='none'}),idx=-1;
+    for(var i=0;i<vis.length;i++){if(vis[i].getBoundingClientRect().top>64){idx=i;break}}
+    if(e.key==='k')idx=(idx<0?vis.length:idx)-2;
+    var t=vis[Math.max(0,Math.min(vis.length-1,idx<0?0:idx))];
+    if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}
+});
+/* reading progress */
+(function(){
+  var b=document.createElement('div'); b.id='rprog'; document.body.appendChild(b);
+  var t=null;
+  function upd(){
+    var h=document.documentElement, m=(h.scrollHeight-h.clientHeight);
+    b.style.width=(m>0?(h.scrollTop/m)*100:0)+'%';
+  }
+  addEventListener('scroll',function(){ if(t)return; t=requestAnimationFrame(function(){t=null;upd();}); },
+                   {passive:true});
+  addEventListener('resize',upd); upd();
+})();
+
+/* copy button on every code block */
+(function(){
+  document.querySelectorAll('pre.code').forEach(function(pre){
+    var b=document.createElement('button'); b.className='copy'; b.type='button'; b.textContent='Copy';
+    b.addEventListener('click',function(){
+      var code=pre.querySelector('code'); var txt=code?code.innerText:pre.innerText;
+      var done=function(){ b.textContent='Copied'; b.classList.add('ok');
+        setTimeout(function(){ b.textContent='Copy'; b.classList.remove('ok'); },1400); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(done,function(){});
+      } else {
+        var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta);
+        ta.select(); try{document.execCommand('copy');done();}catch(e){} document.body.removeChild(ta);
+      }
+    });
+    pre.appendChild(b);
+  });
+})();
+
+/* Right-hand rail: reveal the group for the file section being read, and mark the
+   card in view. Scrolling is done on the rail itself - scrollIntoView would drag the
+   window along with it. */
+(function(){
+  var toc=document.getElementById('toc'); if(!toc)return;
+  document.body.classList.add('js');
+  var groups=[].slice.call(toc.querySelectorAll('.toc-g'));
+  if(!groups.length)return;
+  var secs=groups.map(function(g){return document.getElementById(g.getAttribute('data-for'))});
+  var links=groups.map(function(g){return [].slice.call(g.querySelectorAll('a[data-c]'))});
+  var curG=-1;
+  function upd(){
+    var i,g=-1;
+    for(i=0;i<secs.length;i++){
+      var el=secs[i]; if(!el)continue;
+      if(el.getBoundingClientRect().top<=160)g=i; else break;
+    }
+    if(g<0)g=0;
+    if(g!==curG){groups.forEach(function(x,k){x.classList.toggle('on',k===g)});curG=g;}
+    var ls=links[g]||[],act=null;
+    for(i=0;i<ls.length;i++){
+      var t=document.getElementById(ls[i].getAttribute('data-c'));
+      if(!t||t.style.display==='none')continue;
+      if(t.getBoundingClientRect().top<=160)act=ls[i]; else break;
+    }
+    ls.forEach(function(a){a.classList.remove('on')});
+    if(act){
+      act.classList.add('on');
+      var top=act.offsetTop,h=act.offsetHeight;
+      if(top<toc.scrollTop+8||top+h>toc.scrollTop+toc.clientHeight-8)
+        toc.scrollTop=top-toc.clientHeight/2+h/2;
+    }
+  }
+  addEventListener('scroll',upd,{passive:true});
+  addEventListener('resize',upd); upd();
+})();
+
+/* deep link on each question card */
+(function(){
+  document.querySelectorAll('.q[id] > .q-h').forEach(function(h){
+    var id=h.parentNode.id, a=document.createElement('a');
+    a.className='q-anchor'; a.href='#'+id; a.textContent='#';
+    a.title='Copy a link to this question';
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      var url=location.href.split('#')[0]+'#'+id;
+      history.replaceState(null,'','#'+id);
+      var done=function(){ a.classList.add('ok'); a.textContent='✓';
+        setTimeout(function(){ a.classList.remove('ok'); a.textContent='#'; },1200); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(done,done);
+      } else { done(); }
+    });
+    var label=h.querySelector('.q-done');
+    if(label){ h.insertBefore(a,label); } else { h.appendChild(a); }
+  });
+})();
+
+</script>
+</body></html>
