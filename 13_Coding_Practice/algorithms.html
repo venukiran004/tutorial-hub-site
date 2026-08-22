@@ -1097,7 +1097,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
       </section>
       <section class="filesec" id="f09AlgorithmsDa">
         <header class="filehead">
-          <div class="fh-top"><span class="fh-num">Algorithms DataStructures Math</span><span class="fh-count">210 sections</span>
+          <div class="fh-top"><span class="fh-num">Algorithms DataStructures Math</span><span class="fh-count">211 sections</span>
           </div>
           <h2>Algorithms, Data Structures, Math &amp; Crypto — Coding Practice</h2>
           <div class="note">
@@ -6450,11 +6450,109 @@ c.next = a                  <span class="cmt"># close the loop</span>
 
 <span class="cmt"># Floyd's tortoise and hare: O(n) time, O(1) memory - no set of seen nodes.</span></code></pre></div><button class="reveal">Reveal answer</button>
         </article>
-        <div class="parthead" id="f09AlgorithmsDa-p1"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compass"/></svg>Predict the Output — Scenario Questions</span><i></i>
-        </div>
         <article class="q" id="f09AlgorithmsDa-156">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q1. Slicing past the end of a list — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-156"><span></span></label>
+            <h3>Program 157: Aho-Corasick: find every keyword in one pass</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-156"><span></span></label>
+          </div>
+          <div class="q-a"><pre class="code" data-lang="python"><code><span class="str">"""Aho-Corasick builds a trie of all the patterns, then adds a "failure link" from
+each node to the longest proper suffix that is also a prefix of some pattern - the
+same idea as the KMP failure function, generalised to many patterns at once.
+
+One scan of the text finds every occurrence of every pattern:
+    naive multi-pattern : O(len(text) * sum(len(p)))
+    Aho-Corasick        : O(sum(len(p)) + len(text) + matches)
+
+This is the algorithm behind keyword filters, PII redaction and blocklists, where
+you need hundreds of terms checked against every document.
+"""</span>
+<span class="kw">from</span> collections <span class="kw">import</span> deque
+
+
+<span class="kw">class</span> AhoCorasick:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, patterns):
+        <span class="cmt"># goto[state][char] -&gt; state ; out[state] -&gt; patterns ending here</span>
+        <span class="kw">self</span>.goto = [{}]
+        <span class="kw">self</span>.out = [[]]
+        <span class="kw">self</span>.fail = [<span class="num">0</span>]
+        <span class="kw">for</span> p <span class="kw">in</span> patterns:
+            <span class="kw">self</span>.<span class="fn">_add</span>(p)
+        <span class="kw">self</span>.<span class="fn">_build_failure_links</span>()
+
+    <span class="kw">def</span> <span class="fn">_add</span>(<span class="kw">self</span>, pattern):
+        state = <span class="num">0</span>
+        <span class="kw">for</span> ch <span class="kw">in</span> pattern:
+            <span class="kw">if</span> ch <span class="kw">not</span> <span class="kw">in</span> <span class="kw">self</span>.goto[state]:
+                <span class="kw">self</span>.goto.<span class="fn">append</span>({})
+                <span class="kw">self</span>.out.<span class="fn">append</span>([])
+                <span class="kw">self</span>.fail.<span class="fn">append</span>(<span class="num">0</span>)
+                <span class="kw">self</span>.goto[state][ch] = <span class="fn">len</span>(<span class="kw">self</span>.goto) - <span class="num">1</span>
+            state = <span class="kw">self</span>.goto[state][ch]
+        <span class="kw">self</span>.out[state].<span class="fn">append</span>(pattern)
+
+    <span class="kw">def</span> <span class="fn">_build_failure_links</span>(<span class="kw">self</span>):
+        q = <span class="fn">deque</span>()
+        <span class="kw">for</span> ch, nxt <span class="kw">in</span> <span class="kw">self</span>.goto[<span class="num">0</span>].<span class="fn">items</span>():
+            <span class="kw">self</span>.fail[nxt] = <span class="num">0</span>              <span class="cmt"># depth-1 nodes fail back to the root</span>
+            q.<span class="fn">append</span>(nxt)
+        <span class="kw">while</span> q:
+            state = q.<span class="fn">popleft</span>()
+            <span class="kw">for</span> ch, nxt <span class="kw">in</span> <span class="kw">self</span>.goto[state].<span class="fn">items</span>():
+                q.<span class="fn">append</span>(nxt)
+                f = <span class="kw">self</span>.fail[state]
+                <span class="kw">while</span> f <span class="kw">and</span> ch <span class="kw">not</span> <span class="kw">in</span> <span class="kw">self</span>.goto[f]:
+                    f = <span class="kw">self</span>.fail[f]
+                <span class="kw">self</span>.fail[nxt] = <span class="kw">self</span>.goto[f].<span class="fn">get</span>(ch, <span class="num">0</span>)
+                <span class="cmt"># inherit the matches of the node we fail to - "he" inside "she"</span>
+                <span class="kw">self</span>.out[nxt] += <span class="kw">self</span>.out[<span class="kw">self</span>.fail[nxt]]
+
+    <span class="kw">def</span> <span class="fn">search</span>(<span class="kw">self</span>, text):
+        state, hits = <span class="num">0</span>, []
+        <span class="kw">for</span> i, ch <span class="kw">in</span> <span class="fn">enumerate</span>(text):
+            <span class="kw">while</span> state <span class="kw">and</span> ch <span class="kw">not</span> <span class="kw">in</span> <span class="kw">self</span>.goto[state]:
+                state = <span class="kw">self</span>.fail[state]
+            state = <span class="kw">self</span>.goto[state].<span class="fn">get</span>(ch, <span class="num">0</span>)
+            <span class="kw">for</span> pattern <span class="kw">in</span> <span class="kw">self</span>.out[state]:
+                hits.<span class="fn">append</span>((i - <span class="fn">len</span>(pattern) + <span class="num">1</span>, pattern))
+        <span class="kw">return</span> hits
+
+
+patterns = [<span class="str">"he"</span>, <span class="str">"she"</span>, <span class="str">"his"</span>, <span class="str">"hers"</span>]
+text = <span class="str">"ushers hit his shed"</span>
+
+ac = <span class="fn">AhoCorasick</span>(patterns)
+found = ac.<span class="fn">search</span>(text)
+<span class="fn">print</span>(<span class="str">"text     :"</span>, text)
+<span class="fn">print</span>(<span class="str">"patterns :"</span>, patterns)
+<span class="kw">for</span> pos, pat <span class="kw">in</span> found:
+    <span class="fn">print</span>(<span class="str">"   at %2d  %-5s %s"</span> % (pos, pat, <span class="str">" "</span> * pos + pat))
+
+<span class="cmt"># The overlapping matches are the point: "she", "he" and "hers" all sit inside "ushers".</span>
+<span class="fn">print</span>(<span class="str">"total matches:"</span>, <span class="fn">len</span>(found))
+
+<span class="cmt"># Same answers as the naive scan, but the naive one restarts at every position</span>
+naive = <span class="fn">sorted</span>((i, p) <span class="kw">for</span> p <span class="kw">in</span> patterns
+               <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(text)) <span class="kw">if</span> text.<span class="fn">startswith</span>(p, i))
+<span class="fn">print</span>(<span class="str">"agrees with naive scan:"</span>, <span class="fn">sorted</span>(found) == naive)
+<span class="fn">print</span>(<span class="str">"trie states built:"</span>, <span class="fn">len</span>(ac.goto))</code></pre>
+            <p><strong>Output</strong>
+            </p>
+            <pre class="code" data-lang="text"><code>text     : ushers hit his shed
+patterns : ['he', 'she', 'his', 'hers']
+   at  1  she    she
+   at  2  he      he
+   at  2  hers    hers
+   at 11  his              his
+   at 15  she                  she
+   at 16  he                    he
+total matches: 6
+agrees with naive scan: True
+trie states built: 10</code></pre></div><button class="reveal">Reveal answer</button>
+        </article>
+        <div class="parthead" id="f09AlgorithmsDa-p1"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-compass"/></svg>Predict the Output — Scenario Questions</span><i></i>
+        </div>
+        <article class="q" id="f09AlgorithmsDa-157">
+          <div class="q-h"><span class="q-n">&bull;</span>
+            <h3>Q1. Slicing past the end of a list — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-157"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6470,9 +6568,9 @@ c.next = a                  <span class="cmt"># close the loop</span>
             <p><strong>Explanation:</strong> Slicing clamps to the bounds and never raises; only INDEXING raises <code>IndexError</code>. That is why an off-by-one in a slice fails silently instead of loudly.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-157">
+        <article class="q" id="f09AlgorithmsDa-158">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q2. A reversed slice with a positive step — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-157"><span></span></label>
+            <h3>Q2. A reversed slice with a positive step — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-158"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6488,9 +6586,9 @@ c.next = a                  <span class="cmt"># close the loop</span>
             <p><strong>Explanation:</strong> <code>a[4:1]</code> is empty because the default step is +1 and you cannot walk forward from 4 to 1. You must give a negative step for a backwards slice.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-158">
+        <article class="q" id="f09AlgorithmsDa-159">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q3. Integer division with a negative operand — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-158"><span></span></label>
+            <h3>Q3. Integer division with a negative operand — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-159"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6505,9 +6603,9 @@ c.next = a                  <span class="cmt"># close the loop</span>
             <p><strong>Explanation:</strong> <code>//</code> floors toward negative infinity, so <code>-7 // 2</code> is <code>-4</code>, not <code>-3</code>. The remainder takes the sign of the DIVISOR. <code>int()</code> truncates toward zero, and <code>round()</code> uses banker's rounding, so -3.5 goes to the even -4.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-159">
+        <article class="q" id="f09AlgorithmsDa-160">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q4. Banker's rounding — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-159"><span></span></label>
+            <h3>Q4. Banker's rounding — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-160"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6520,9 +6618,9 @@ c.next = a                  <span class="cmt"># close the loop</span>
             <p><strong>Explanation:</strong> Python rounds half to EVEN, so 0.5 and 2.5 both go to the even neighbour. And 2.675 is really 2.67499999... in binary, so it rounds down. Use <code>decimal.Decimal</code> when the rounding rule is part of the requirement.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-160">
+        <article class="q" id="f09AlgorithmsDa-161">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q5. Comparing floats for equality — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-160"><span></span></label>
+            <h3>Q5. Comparing floats for equality — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-161"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6538,9 +6636,9 @@ True</code></pre>
             <p><strong>Explanation:</strong> Ten binary approximations of 0.1 do not add to exactly 1.0. Never write <code>==</code> between computed floats; compare with a tolerance or <code>math.isclose</code>.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-161">
+        <article class="q" id="f09AlgorithmsDa-162">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q6. Mutating a list while iterating it — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-161"><span></span></label>
+            <h3>Q6. Mutating a list while iterating it — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-162"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6555,9 +6653,9 @@ True</code></pre>
             <p><strong>Explanation:</strong> Removing shifts every later element down one, but the loop's index still advances - so the element that moved into the vacated slot is skipped. Iterate over a copy, or build a new list.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-162">
+        <article class="q" id="f09AlgorithmsDa-163">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q7. Sorting is stable — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-162"><span></span></label>
+            <h3>Q7. Sorting is stable — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-163"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6569,9 +6667,9 @@ True</code></pre>
             <p><strong>Explanation:</strong> Python's sort is stable: records with an equal key keep their original relative order. That is what lets you sort by a minor key first and a major key second.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-163">
+        <article class="q" id="f09AlgorithmsDa-164">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q8. sort() returns None — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-163"><span></span></label>
+            <h3>Q8. sort() returns None — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-164"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6587,9 +6685,9 @@ c = <span class="fn">sorted</span>([<span class="num">3</span>, <span class="num
             <p><strong>Explanation:</strong> <code>list.sort()</code> sorts in place and returns <code>None</code>; <code>sorted()</code> returns a new list. Assigning the result of <code>.sort()</code> is one of the most common beginner bugs.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-164">
+        <article class="q" id="f09AlgorithmsDa-165">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q9. max() with a key function — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-164"><span></span></label>
+            <h3>Q9. max() with a key function — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-165"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6605,9 +6703,9 @@ banana</code></pre>
             <p><strong>Explanation:</strong> Without a key, <code>max</code> compares the strings themselves, so it returns the alphabetically last. With <code>key=len</code> it returns the longest - and ties go to the FIRST one seen, which the tuple key breaks deterministically.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-165">
+        <article class="q" id="f09AlgorithmsDa-166">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q10. Building a matrix with the multiplication operator — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-165"><span></span></label>
+            <h3>Q10. Building a matrix with the multiplication operator — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-166"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6622,9 +6720,9 @@ True</code></pre>
             <p><strong>Explanation:</strong> <code>[row] * 3</code> copies the REFERENCE three times, so all three rows are one object. Use <code>[[0] * 3 for _ in range(3)]</code> to get independent rows.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-166">
+        <article class="q" id="f09AlgorithmsDa-167">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q11. Recursion without a base case guard — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-166"><span></span></label>
+            <h3>Q11. Recursion without a base case guard — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-167"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6648,9 +6746,9 @@ RecursionError</code></pre>
             <p><strong>Explanation:</strong> Python has no tail-call elimination, so every recursive call keeps a frame. Deep recursion hits the limit rather than running slowly - convert to a loop.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-167">
+        <article class="q" id="f09AlgorithmsDa-168">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q12. Default argument shared across calls in a recursive helper — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-167"><span></span></label>
+            <h3>Q12. Default argument shared across calls in a recursive helper — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-168"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6669,9 +6767,9 @@ RecursionError</code></pre>
             <p><strong>Explanation:</strong> The default list is created ONCE when the <code>def</code> runs, so every call appends to the same list. Use <code>acc=None</code> and create the list inside.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-168">
+        <article class="q" id="f09AlgorithmsDa-169">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q13. Integer caching and the identity operator — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-168"><span></span></label>
+            <h3>Q13. Integer caching and the identity operator — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-169"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6690,9 +6788,9 @@ True</code></pre>
             <p><strong>Explanation:</strong> Small integers (-5..256) are pre-allocated and shared. Larger ones may or may not be, depending on constant folding - which is exactly why you compare values with <code>==</code>.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-169">
+        <article class="q" id="f09AlgorithmsDa-170">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q14. Sum of an empty sequence — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-169"><span></span></label>
+            <h3>Q14. Sum of an empty sequence — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-170"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6712,9 +6810,9 @@ empty</code></pre>
             <p><strong>Explanation:</strong> <code>sum</code> has an identity element (0) so it handles empty input; <code>max</code> has none and raises unless you pass <code>default</code>. Edge cases like this are what an interviewer probes.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-170">
+        <article class="q" id="f09AlgorithmsDa-171">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q15. Chained comparison versus a bitwise operator — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-170"><span></span></label>
+            <h3>Q15. Chained comparison versus a bitwise operator — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-171"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6731,9 +6829,9 @@ True
             <p><strong>Explanation:</strong> <code>1 &lt; 2 &lt; 3</code> chains, but <code>(1 &lt; 2) &lt; 3</code> compares <code>True &lt; 3</code>, i.e. <code>1 &lt; 3</code>. Booleans are integers in Python, which is why <code>True + True</code> is 2.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-171">
+        <article class="q" id="f09AlgorithmsDa-172">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q16. Set operations do not preserve order — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-171"><span></span></label>
+            <h3>Q16. Set operations do not preserve order — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-172"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6749,9 +6847,9 @@ True
             <p><strong>Explanation:</strong> A set deduplicates but gives no ordering guarantee, so anything order-dependent must sort. <code>dict.fromkeys</code> deduplicates AND preserves first-seen order.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-172">
+        <article class="q" id="f09AlgorithmsDa-173">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q17. Modifying a dict during iteration — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-172"><span></span></label>
+            <h3>Q17. Modifying a dict during iteration — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-173"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6770,9 +6868,9 @@ True
             <p><strong>Explanation:</strong> Deleting during iteration invalidates the iterator. Iterate over <code>list(d)</code> or build the keys to remove first, then delete.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-173">
+        <article class="q" id="f09AlgorithmsDa-174">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q18. Tuple comparison is lexicographic — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-173"><span></span></label>
+            <h3>Q18. Tuple comparison is lexicographic — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-174"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6789,9 +6887,9 @@ True
             <p><strong>Explanation:</strong> Tuples compare element by element and stop at the first difference. This is what makes <code>(priority, item)</code> tuples work directly in a heap.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-174">
+        <article class="q" id="f09AlgorithmsDa-175">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q19. heapq gives you a MIN-heap — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-174"><span></span></label>
+            <h3>Q19. heapq gives you a MIN-heap — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-175"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6810,9 +6908,9 @@ h = []
             <p><strong>Explanation:</strong> <code>heapq</code> is a min-heap: <code>heappop</code> gives the smallest. For a max-heap, push negated values or use <code>nlargest</code>. <code>h[0]</code> is the smallest but the rest of the list is NOT sorted.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-175">
+        <article class="q" id="f09AlgorithmsDa-176">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q20. bisect finds the insertion point, not the item — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-175"><span></span></label>
+            <h3>Q20. bisect finds the insertion point, not the item — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-176"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6830,9 +6928,9 @@ bisect.<span class="fn">insort</span>(a, <span class="num">4</span>)
             <p><strong>Explanation:</strong> <code>bisect_left</code> returns where the value would go to keep the list sorted, so a value that is absent still returns a valid index. Checking <code>a[i] == x</code> is what turns it into a membership test.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-176">
+        <article class="q" id="f09AlgorithmsDa-177">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q21. Copying a nested structure — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-176"><span></span></label>
+            <h3>Q21. Copying a nested structure — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-177"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6850,9 +6948,9 @@ a[<span class="num">0</span>].<span class="fn">append</span>(<span class="num">9
             <p><strong>Explanation:</strong> A slice copy is SHALLOW: the outer list is new but the inner lists are shared. Only <code>deepcopy</code> recurses.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-177">
+        <article class="q" id="f09AlgorithmsDa-178">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q22. String concatenation in a loop — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-177"><span></span></label>
+            <h3>Q22. String concatenation in a loop — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-178"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6873,9 +6971,9 @@ a[<span class="num">0</span>].<span class="fn">append</span>(<span class="num">9
             <p><strong>Explanation:</strong> Both give the same string, but <code>+=</code> builds a new immutable string each time - O(n^2) total. <code>str.join</code> allocates once. On long loops this is the difference between milliseconds and seconds.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-178">
+        <article class="q" id="f09AlgorithmsDa-179">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q23. Generators are consumed once — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-178"><span></span></label>
+            <h3>Q23. Generators are consumed once — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-179"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6891,9 +6989,9 @@ a[<span class="num">0</span>].<span class="fn">append</span>(<span class="num">9
             <p><strong>Explanation:</strong> A generator object is exhausted after one full pass. The second <code>sum</code> sees nothing and returns 0. If you need it twice, materialise it into a list or call the generator function again.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-179">
+        <article class="q" id="f09AlgorithmsDa-180">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q24. zip stops at the shortest input — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-179"><span></span></label>
+            <h3>Q24. zip stops at the shortest input — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-180"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6908,9 +7006,9 @@ names = [<span class="str">"a"</span>, <span class="str">"b"</span>]
             <p><strong>Explanation:</strong> <code>zip</code> silently truncates to the shortest iterable, which loses data with no warning. Use <code>strict=True</code> (3.10+) or <code>itertools.zip_longest</code> when the lengths should match.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-180">
+        <article class="q" id="f09AlgorithmsDa-181">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q25. enumerate with a start value — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-180"><span></span></label>
+            <h3>Q25. enumerate with a start value — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-181"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6928,9 +7026,9 @@ names = [<span class="str">"a"</span>, <span class="str">"b"</span>]
             <p><strong>Explanation:</strong> <code>enumerate</code> is zero-based by default; <code>start=1</code> is what you want for human-facing line or row numbers.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-181">
+        <article class="q" id="f09AlgorithmsDa-182">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q26. all() and any() on an empty sequence — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-181"><span></span></label>
+            <h3>Q26. all() and any() on an empty sequence — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-182"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6945,9 +7043,9 @@ True</code></pre>
             <p><strong>Explanation:</strong> <code>all([])</code> is True (vacuous truth - no counterexample exists) and <code>any([])</code> is False. This trips up validation code that assumes an empty input must fail.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-182">
+        <article class="q" id="f09AlgorithmsDa-183">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q27. Bitwise operations and two's complement — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-182"><span></span></label>
+            <h3>Q27. Bitwise operations and two's complement — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-183"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6964,9 +7062,9 @@ True</code></pre>
             <p><strong>Explanation:</strong> <code>~5</code> is <code>-6</code> because Python integers are conceptually infinite two's complement: <code>~x</code> equals <code>-x - 1</code>. Masking with <code>&amp; 0xFF</code> is how you get C-style behaviour.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-183">
+        <article class="q" id="f09AlgorithmsDa-184">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q28. divmod and negative numbers — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-183"><span></span></label>
+            <h3>Q28. divmod and negative numbers — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-184"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -6981,9 +7079,9 @@ True</code></pre>
             <p><strong>Explanation:</strong> <code>divmod(a, b)</code> returns <code>(a // b, a % b)</code>, and both follow the floor convention, so the remainder always has the divisor's sign. This matters for circular-buffer indexing.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-184">
+        <article class="q" id="f09AlgorithmsDa-185">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q29. Mutable objects as dictionary values — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-184"><span></span></label>
+            <h3>Q29. Mutable objects as dictionary values — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-185"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -7002,9 +7100,9 @@ e[<span class="str">"x"</span>].<span class="fn">append</span>(<span class="num"
             <p><strong>Explanation:</strong> <code>dict.fromkeys</code> gives every key the SAME default object, so appending through one key is visible through the other. <code>defaultdict(list)</code> calls the factory per key.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-185">
+        <article class="q" id="f09AlgorithmsDa-186">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q30. Identity of slices — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-185"><span></span></label>
+            <h3>Q30. Identity of slices — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-186"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -7023,9 +7121,9 @@ True
             <p><strong>Explanation:</strong> A full slice makes a new list, so <code>is</code> is False but <code>==</code> is True. Assignment binds another name to the SAME object, which is why mutating <code>c</code> would show up in <code>a</code>.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-186">
+        <article class="q" id="f09AlgorithmsDa-187">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q31. Exception inside a comprehension — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-186"><span></span></label>
+            <h3>Q31. Exception inside a comprehension — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-187"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -7042,9 +7140,9 @@ True
             <p><strong>Explanation:</strong> A comprehension has no error handling of its own - one bad element kills the whole expression. Filter first, or use a loop with try/except per item.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-187">
+        <article class="q" id="f09AlgorithmsDa-188">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q32. Nested function scope in a loop — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-187"><span></span></label>
+            <h3>Q32. Nested function scope in a loop — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-188"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -7061,9 +7159,9 @@ handlers = [<span class="kw">lambda</span> i=i: i <span class="kw">for</span> i 
             <p><strong>Explanation:</strong> All three lambdas close over the same variable <code>i</code>, which is 2 by the time they run. Binding it as a default argument captures the value at definition time.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-188">
+        <article class="q" id="f09AlgorithmsDa-189">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q33. Truthiness of zero and empty containers — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-188"><span></span></label>
+            <h3>Q33. Truthiness of zero and empty containers — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-189"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -7077,9 +7175,9 @@ handlers = [<span class="kw">lambda</span> i=i: i <span class="kw">for</span> i 
             <p><strong>Explanation:</strong> <code>"0"</code>, <code>[0]</code> and <code>" "</code> are all non-empty and therefore True. Checking <code>if value:</code> when you mean <code>if value is not None:</code> is how a legitimate zero gets discarded.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-189">
+        <article class="q" id="f09AlgorithmsDa-190">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q34. in on a dict checks keys — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-189"><span></span></label>
+            <h3>Q34. in on a dict checks keys — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-190"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -7095,9 +7193,9 @@ True</code></pre>
             <p><strong>Explanation:</strong> Membership on a dict tests KEYS. Testing a value needs <code>.values()</code>, which is O(n) - the opposite of the O(1) key lookup.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-190">
+        <article class="q" id="f09AlgorithmsDa-191">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q35. Integer overflow does not exist — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-190"><span></span></label>
+            <h3>Q35. Integer overflow does not exist — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-191"><span></span></label>
           </div>
           <div class="q-a"><pre class="code" data-lang="python"><code>big = <span class="num">2</span> ** <span class="num">100</span>
 <span class="fn">print</span>(big)
@@ -7111,9 +7209,9 @@ True
             <p><strong>Explanation:</strong> Python integers are arbitrary precision, so there is no overflow and no wraparound. That removes a whole class of C bugs and makes very large arithmetic quietly slow instead.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-191">
+        <article class="q" id="f09AlgorithmsDa-192">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q36. A shallow copy of a dict of lists — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-191"><span></span></label>
+            <h3>Q36. A shallow copy of a dict of lists — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-192"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -7128,9 +7226,9 @@ copy1[<span class="str">"c"</span>] = [<span class="num">4</span>]
             <p><strong>Explanation:</strong> <code>.copy()</code> is shallow: the new dict has its own key set (so <code>"c"</code> did not leak back) but the SAME list objects (so the append did).</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-192">
+        <article class="q" id="f09AlgorithmsDa-193">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q37. Order of evaluation in an assignment — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-192"><span></span></label>
+            <h3>Q37. Order of evaluation in an assignment — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-193"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -7144,9 +7242,9 @@ i, a[i] = <span class="num">1</span>, <span class="num">5</span>
             <p><strong>Explanation:</strong> The right-hand side is evaluated first into a tuple, then the targets are assigned LEFT TO RIGHT. So <code>i</code> becomes 1 before <code>a[i]</code> is resolved, and the write lands at index 1.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-193">
+        <article class="q" id="f09AlgorithmsDa-194">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q38. Comparing collections of different types — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-193"><span></span></label>
+            <h3>Q38. Comparing collections of different types — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-194"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -7163,9 +7261,9 @@ True</code></pre>
             <p><strong>Explanation:</strong> A list never equals a tuple regardless of contents. Sets ignore order. Numeric equality crosses int/float, so <code>1 == 1.0</code> propagates through containers.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-194">
+        <article class="q" id="f09AlgorithmsDa-195">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q39. min and max on strings — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-194"><span></span></label>
+            <h3>Q39. min and max on strings — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-195"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
@@ -7182,9 +7280,9 @@ n
             <p><strong>Explanation:</strong> Strings compare by code point, so <code>"10" &lt; "9"</code> because <code>"1" &lt; "9"</code>. Sorting numeric strings without converting them is a classic reporting bug.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-195">
+        <article class="q" id="f09AlgorithmsDa-196">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q40. Slice assignment on a step slice — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-195"><span></span></label>
+            <h3>Q40. Slice assignment on a step slice — what is the output?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-196"><span></span></label>
           </div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span><span class="kt">From the runnable 650-program set</span><span class="kt">Output</span>
@@ -7208,9 +7306,9 @@ ValueError</code></pre>
         </article>
         <div class="parthead" id="f09AlgorithmsDa-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-branch"/></svg>Array Algorithms &amp; Sorting (Q45–Q56)</span><i></i>
         </div>
-        <article class="q" id="f09AlgorithmsDa-196">
+        <article class="q" id="f09AlgorithmsDa-197">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q45 · Find the maximum sum subarray (Kadane's Algorithm)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-196"><span></span></label>
+            <h3>Q45 · Find the maximum sum subarray (Kadane's Algorithm)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-197"><span></span></label>
           </div>
           <div class="q-a"><pre class="code" data-lang="python"><code><span class="str">"""
 Find the contiguous subarray with the largest sum.
@@ -7254,9 +7352,9 @@ Space Complexity: O(1)
 (6, [4, -1, 2, 1])
 (9, [1, 2, 3, -2, 5])</code></pre></div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-197">
+        <article class="q" id="f09AlgorithmsDa-198">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q46 · Find all pairs with a given sum</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-197"><span></span></label>
+            <h3>Q46 · Find all pairs with a given sum</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-198"><span></span></label>
           </div>
           <div class="q-a"><pre class="code" data-lang="python"><code><span class="str">"""
 Find all pairs of numbers that add up to a target.
@@ -7288,9 +7386,9 @@ Time Complexity: O(n)
 [(3, 4), (2, 5), (1, 6)]
 [(4, 5), (2, 7)]</code></pre></div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-198">
+        <article class="q" id="f09AlgorithmsDa-199">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q47 · Find all pairs with a given difference</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-198"><span></span></label>
+            <h3>Q47 · Find all pairs with a given difference</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-199"><span></span></label>
           </div>
           <div class="q-a"><pre class="code" data-lang="python"><code><span class="str">"""
 Find all pairs where |a - b| = k.
@@ -7320,9 +7418,9 @@ Time Complexity: O(n)
 [(1, 4), (2, 5), (5, 8)]
 [(1, 3), (2, 4), (3, 5)]</code></pre></div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-199">
+        <article class="q" id="f09AlgorithmsDa-200">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q48 · Find the majority element</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-199"><span></span></label>
+            <h3>Q48 · Find the majority element</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-200"><span></span></label>
           </div>
           <div class="q-a"><pre class="code" data-lang="python"><code><span class="str">"""
 The majority element appears more than n/2 times.
@@ -7363,9 +7461,9 @@ Space Complexity: O(1)
 3
 None</code></pre></div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-200">
+        <article class="q" id="f09AlgorithmsDa-201">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q49 · Find the kth largest element</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-200"><span></span></label>
+            <h3>Q49 · Find the kth largest element</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-201"><span></span></label>
           </div>
           <div class="q-a"><pre class="code" data-lang="python"><code><span class="str">"""
 Multiple approaches:
@@ -7423,9 +7521,9 @@ Multiple approaches:
 5
 4</code></pre></div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-201">
+        <article class="q" id="f09AlgorithmsDa-202">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q50 · Find the kth smallest element</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-201"><span></span></label>
+            <h3>Q50 · Find the kth smallest element</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-202"><span></span></label>
           </div>
           <div class="q-a"><pre class="code" data-lang="python"><code><span class="str">"""
 Similar to kth largest but find minimum side.
@@ -7454,9 +7552,9 @@ Time Complexity: O(n log k) with heap
 7
 10</code></pre></div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-202">
+        <article class="q" id="f09AlgorithmsDa-203">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q51 · Sort a list without using sort()</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-202"><span></span></label>
+            <h3>Q51 · Sort a list without using sort()</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-203"><span></span></label>
           </div>
           <div class="q-a"><pre class="code" data-lang="python"><code><span class="str">"""
 Implementing a simple sorting algorithm manually.
@@ -7487,9 +7585,9 @@ Time Complexity: O(n^2)
             <pre class="code" data-lang="text"><code>Q51: Sort Without sort()
 [11, 12, 22, 25, 34, 64, 90]</code></pre></div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-203">
+        <article class="q" id="f09AlgorithmsDa-204">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q52 · Implement bubble sort</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-203"><span></span></label>
+            <h3>Q52 · Implement bubble sort</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-204"><span></span></label>
           </div>
           <div class="q-a"><pre class="code" data-lang="python"><code><span class="str">"""
 Repeatedly swap adjacent elements if they are in the wrong order.
@@ -7525,9 +7623,9 @@ Space Complexity: O(1)
 [11, 12, 22, 25, 34, 64, 90]
 [1, 2, 4, 5, 8]</code></pre></div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-204">
+        <article class="q" id="f09AlgorithmsDa-205">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q53 · Implement selection sort</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-204"><span></span></label>
+            <h3>Q53 · Implement selection sort</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-205"><span></span></label>
           </div>
           <div class="q-a"><pre class="code" data-lang="python"><code><span class="str">"""
 Find the minimum element and place it at the beginning, repeat.
@@ -7558,9 +7656,9 @@ Space Complexity: O(1)
             <pre class="code" data-lang="text"><code>Q53: Selection Sort
 [11, 12, 22, 25, 64]</code></pre></div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-205">
+        <article class="q" id="f09AlgorithmsDa-206">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q54 · Implement insertion sort</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-205"><span></span></label>
+            <h3>Q54 · Implement insertion sort</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-206"><span></span></label>
           </div>
           <div class="q-a"><pre class="code" data-lang="python"><code><span class="str">"""
 Build sorted array one element at a time by inserting into correct position.
@@ -7591,9 +7689,9 @@ Space Complexity: O(1)
             <pre class="code" data-lang="text"><code>Q54: Insertion Sort
 [5, 6, 11, 12, 13]</code></pre></div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-206">
+        <article class="q" id="f09AlgorithmsDa-207">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q55 · Implement merge sort</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-206"><span></span></label>
+            <h3>Q55 · Implement merge sort</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-207"><span></span></label>
           </div>
           <div class="q-a"><pre class="code" data-lang="python"><code><span class="str">"""
 Divide and conquer: split array in half, sort each half, merge.
@@ -7639,9 +7737,9 @@ Space Complexity: O(n)
             <pre class="code" data-lang="text"><code>Q55: Merge Sort
 [3, 9, 10, 27, 38, 43, 82]</code></pre></div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-207">
+        <article class="q" id="f09AlgorithmsDa-208">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q56 · Implement quick sort</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-207"><span></span></label>
+            <h3>Q56 · Implement quick sort</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-208"><span></span></label>
           </div>
           <div class="q-a"><pre class="code" data-lang="python"><code><span class="str">"""
 Divide and conquer: choose pivot, partition into less/greater, sort recursively.
@@ -7699,9 +7797,9 @@ arr = [<span class="num">10</span>, <span class="num">7</span>, <span class="num
         </article>
         <div class="parthead" id="f09AlgorithmsDa-p3"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-branch"/></svg>Bonus String Algorithms (Q651–Q652)</span><i></i>
         </div>
-        <article class="q" id="f09AlgorithmsDa-208">
+        <article class="q" id="f09AlgorithmsDa-209">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q651 · Longest Substring Without Repeating Characters</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-208"><span></span></label>
+            <h3>Q651 · Longest Substring Without Repeating Characters</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-209"><span></span></label>
           </div>
           <div class="q-a"><pre class="code" data-lang="python"><code><span class="str">"""
 Find the longest substring that doesn't have repeating characters.
@@ -7758,9 +7856,9 @@ Length: 6
 Input: dvdf → Output: vdf
 Input: pwwkew → Output: wke</code></pre></div><button class="reveal">Reveal answer</button>
         </article>
-        <article class="q" id="f09AlgorithmsDa-209">
+        <article class="q" id="f09AlgorithmsDa-210">
           <div class="q-h"><span class="q-n">&bull;</span>
-            <h3>Q652 · String Compression (Run-Length Encoding)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-209"><span></span></label>
+            <h3>Q652 · String Compression (Run-Length Encoding)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f09AlgorithmsDa-210"><span></span></label>
           </div>
           <div class="q-a"><pre class="code" data-lang="python"><code><span class="str">"""
 Compress a string by counting consecutive identical characters.
@@ -8016,60 +8114,61 @@ FILE 1 COMPLETE - Questions 1-102 (Extended)
       <a href="#f09AlgorithmsDa-153" data-c="f09AlgorithmsDa-153">Program 154: Matrix Rotation In Place</a>
       <a href="#f09AlgorithmsDa-154" data-c="f09AlgorithmsDa-154">Program 155: Reservoir Sampling: k Items From an Unknown Stream</a>
       <a href="#f09AlgorithmsDa-155" data-c="f09AlgorithmsDa-155">Program 156: Detecting a Cycle in a Linked List</a>
-      <a href="#f09AlgorithmsDa-156" data-c="f09AlgorithmsDa-156">Q1. Slicing past the end of a list — what is the output?</a>
-      <a href="#f09AlgorithmsDa-157" data-c="f09AlgorithmsDa-157">Q2. A reversed slice with a positive step — what is the output?</a>
-      <a href="#f09AlgorithmsDa-158" data-c="f09AlgorithmsDa-158">Q3. Integer division with a negative operand — what is the output?</a>
-      <a href="#f09AlgorithmsDa-159" data-c="f09AlgorithmsDa-159">Q4. Banker's rounding — what is the output?</a>
-      <a href="#f09AlgorithmsDa-160" data-c="f09AlgorithmsDa-160">Q5. Comparing floats for equality — what is the output?</a>
-      <a href="#f09AlgorithmsDa-161" data-c="f09AlgorithmsDa-161">Q6. Mutating a list while iterating it — what is the output?</a>
-      <a href="#f09AlgorithmsDa-162" data-c="f09AlgorithmsDa-162">Q7. Sorting is stable — what is the output?</a>
-      <a href="#f09AlgorithmsDa-163" data-c="f09AlgorithmsDa-163">Q8. sort() returns None — what is the output?</a>
-      <a href="#f09AlgorithmsDa-164" data-c="f09AlgorithmsDa-164">Q9. max() with a key function — what is the output?</a>
-      <a href="#f09AlgorithmsDa-165" data-c="f09AlgorithmsDa-165">Q10. Building a matrix with the multiplication operator — what is the output?</a>
-      <a href="#f09AlgorithmsDa-166" data-c="f09AlgorithmsDa-166">Q11. Recursion without a base case guard — what is the output?</a>
-      <a href="#f09AlgorithmsDa-167" data-c="f09AlgorithmsDa-167">Q12. Default argument shared across calls in a recursive helper — what is the output?</a>
-      <a href="#f09AlgorithmsDa-168" data-c="f09AlgorithmsDa-168">Q13. Integer caching and the identity operator — what is the output?</a>
-      <a href="#f09AlgorithmsDa-169" data-c="f09AlgorithmsDa-169">Q14. Sum of an empty sequence — what is the output?</a>
-      <a href="#f09AlgorithmsDa-170" data-c="f09AlgorithmsDa-170">Q15. Chained comparison versus a bitwise operator — what is the output?</a>
-      <a href="#f09AlgorithmsDa-171" data-c="f09AlgorithmsDa-171">Q16. Set operations do not preserve order — what is the output?</a>
-      <a href="#f09AlgorithmsDa-172" data-c="f09AlgorithmsDa-172">Q17. Modifying a dict during iteration — what is the output?</a>
-      <a href="#f09AlgorithmsDa-173" data-c="f09AlgorithmsDa-173">Q18. Tuple comparison is lexicographic — what is the output?</a>
-      <a href="#f09AlgorithmsDa-174" data-c="f09AlgorithmsDa-174">Q19. heapq gives you a MIN-heap — what is the output?</a>
-      <a href="#f09AlgorithmsDa-175" data-c="f09AlgorithmsDa-175">Q20. bisect finds the insertion point, not the item — what is the output?</a>
-      <a href="#f09AlgorithmsDa-176" data-c="f09AlgorithmsDa-176">Q21. Copying a nested structure — what is the output?</a>
-      <a href="#f09AlgorithmsDa-177" data-c="f09AlgorithmsDa-177">Q22. String concatenation in a loop — what is the output?</a>
-      <a href="#f09AlgorithmsDa-178" data-c="f09AlgorithmsDa-178">Q23. Generators are consumed once — what is the output?</a>
-      <a href="#f09AlgorithmsDa-179" data-c="f09AlgorithmsDa-179">Q24. zip stops at the shortest input — what is the output?</a>
-      <a href="#f09AlgorithmsDa-180" data-c="f09AlgorithmsDa-180">Q25. enumerate with a start value — what is the output?</a>
-      <a href="#f09AlgorithmsDa-181" data-c="f09AlgorithmsDa-181">Q26. all() and any() on an empty sequence — what is the output?</a>
-      <a href="#f09AlgorithmsDa-182" data-c="f09AlgorithmsDa-182">Q27. Bitwise operations and two's complement — what is the output?</a>
-      <a href="#f09AlgorithmsDa-183" data-c="f09AlgorithmsDa-183">Q28. divmod and negative numbers — what is the output?</a>
-      <a href="#f09AlgorithmsDa-184" data-c="f09AlgorithmsDa-184">Q29. Mutable objects as dictionary values — what is the output?</a>
-      <a href="#f09AlgorithmsDa-185" data-c="f09AlgorithmsDa-185">Q30. Identity of slices — what is the output?</a>
-      <a href="#f09AlgorithmsDa-186" data-c="f09AlgorithmsDa-186">Q31. Exception inside a comprehension — what is the output?</a>
-      <a href="#f09AlgorithmsDa-187" data-c="f09AlgorithmsDa-187">Q32. Nested function scope in a loop — what is the output?</a>
-      <a href="#f09AlgorithmsDa-188" data-c="f09AlgorithmsDa-188">Q33. Truthiness of zero and empty containers — what is the output?</a>
-      <a href="#f09AlgorithmsDa-189" data-c="f09AlgorithmsDa-189">Q34. in on a dict checks keys — what is the output?</a>
-      <a href="#f09AlgorithmsDa-190" data-c="f09AlgorithmsDa-190">Q35. Integer overflow does not exist — what is the output?</a>
-      <a href="#f09AlgorithmsDa-191" data-c="f09AlgorithmsDa-191">Q36. A shallow copy of a dict of lists — what is the output?</a>
-      <a href="#f09AlgorithmsDa-192" data-c="f09AlgorithmsDa-192">Q37. Order of evaluation in an assignment — what is the output?</a>
-      <a href="#f09AlgorithmsDa-193" data-c="f09AlgorithmsDa-193">Q38. Comparing collections of different types — what is the output?</a>
-      <a href="#f09AlgorithmsDa-194" data-c="f09AlgorithmsDa-194">Q39. min and max on strings — what is the output?</a>
-      <a href="#f09AlgorithmsDa-195" data-c="f09AlgorithmsDa-195">Q40. Slice assignment on a step slice — what is the output?</a>
-      <a href="#f09AlgorithmsDa-196" data-c="f09AlgorithmsDa-196">Q45 · Find the maximum sum subarray (Kadane's Algorithm)</a>
-      <a href="#f09AlgorithmsDa-197" data-c="f09AlgorithmsDa-197">Q46 · Find all pairs with a given sum</a>
-      <a href="#f09AlgorithmsDa-198" data-c="f09AlgorithmsDa-198">Q47 · Find all pairs with a given difference</a>
-      <a href="#f09AlgorithmsDa-199" data-c="f09AlgorithmsDa-199">Q48 · Find the majority element</a>
-      <a href="#f09AlgorithmsDa-200" data-c="f09AlgorithmsDa-200">Q49 · Find the kth largest element</a>
-      <a href="#f09AlgorithmsDa-201" data-c="f09AlgorithmsDa-201">Q50 · Find the kth smallest element</a>
-      <a href="#f09AlgorithmsDa-202" data-c="f09AlgorithmsDa-202">Q51 · Sort a list without using sort()</a>
-      <a href="#f09AlgorithmsDa-203" data-c="f09AlgorithmsDa-203">Q52 · Implement bubble sort</a>
-      <a href="#f09AlgorithmsDa-204" data-c="f09AlgorithmsDa-204">Q53 · Implement selection sort</a>
-      <a href="#f09AlgorithmsDa-205" data-c="f09AlgorithmsDa-205">Q54 · Implement insertion sort</a>
-      <a href="#f09AlgorithmsDa-206" data-c="f09AlgorithmsDa-206">Q55 · Implement merge sort</a>
-      <a href="#f09AlgorithmsDa-207" data-c="f09AlgorithmsDa-207">Q56 · Implement quick sort</a>
-      <a href="#f09AlgorithmsDa-208" data-c="f09AlgorithmsDa-208">Q651 · Longest Substring Without Repeating Characters</a>
-      <a href="#f09AlgorithmsDa-209" data-c="f09AlgorithmsDa-209">Q652 · String Compression (Run-Length Encoding)</a>
+      <a href="#f09AlgorithmsDa-156" data-c="f09AlgorithmsDa-156">Program 157: Aho-Corasick: find every keyword in one pass</a>
+      <a href="#f09AlgorithmsDa-157" data-c="f09AlgorithmsDa-157">Q1. Slicing past the end of a list — what is the output?</a>
+      <a href="#f09AlgorithmsDa-158" data-c="f09AlgorithmsDa-158">Q2. A reversed slice with a positive step — what is the output?</a>
+      <a href="#f09AlgorithmsDa-159" data-c="f09AlgorithmsDa-159">Q3. Integer division with a negative operand — what is the output?</a>
+      <a href="#f09AlgorithmsDa-160" data-c="f09AlgorithmsDa-160">Q4. Banker's rounding — what is the output?</a>
+      <a href="#f09AlgorithmsDa-161" data-c="f09AlgorithmsDa-161">Q5. Comparing floats for equality — what is the output?</a>
+      <a href="#f09AlgorithmsDa-162" data-c="f09AlgorithmsDa-162">Q6. Mutating a list while iterating it — what is the output?</a>
+      <a href="#f09AlgorithmsDa-163" data-c="f09AlgorithmsDa-163">Q7. Sorting is stable — what is the output?</a>
+      <a href="#f09AlgorithmsDa-164" data-c="f09AlgorithmsDa-164">Q8. sort() returns None — what is the output?</a>
+      <a href="#f09AlgorithmsDa-165" data-c="f09AlgorithmsDa-165">Q9. max() with a key function — what is the output?</a>
+      <a href="#f09AlgorithmsDa-166" data-c="f09AlgorithmsDa-166">Q10. Building a matrix with the multiplication operator — what is the output?</a>
+      <a href="#f09AlgorithmsDa-167" data-c="f09AlgorithmsDa-167">Q11. Recursion without a base case guard — what is the output?</a>
+      <a href="#f09AlgorithmsDa-168" data-c="f09AlgorithmsDa-168">Q12. Default argument shared across calls in a recursive helper — what is the output?</a>
+      <a href="#f09AlgorithmsDa-169" data-c="f09AlgorithmsDa-169">Q13. Integer caching and the identity operator — what is the output?</a>
+      <a href="#f09AlgorithmsDa-170" data-c="f09AlgorithmsDa-170">Q14. Sum of an empty sequence — what is the output?</a>
+      <a href="#f09AlgorithmsDa-171" data-c="f09AlgorithmsDa-171">Q15. Chained comparison versus a bitwise operator — what is the output?</a>
+      <a href="#f09AlgorithmsDa-172" data-c="f09AlgorithmsDa-172">Q16. Set operations do not preserve order — what is the output?</a>
+      <a href="#f09AlgorithmsDa-173" data-c="f09AlgorithmsDa-173">Q17. Modifying a dict during iteration — what is the output?</a>
+      <a href="#f09AlgorithmsDa-174" data-c="f09AlgorithmsDa-174">Q18. Tuple comparison is lexicographic — what is the output?</a>
+      <a href="#f09AlgorithmsDa-175" data-c="f09AlgorithmsDa-175">Q19. heapq gives you a MIN-heap — what is the output?</a>
+      <a href="#f09AlgorithmsDa-176" data-c="f09AlgorithmsDa-176">Q20. bisect finds the insertion point, not the item — what is the output?</a>
+      <a href="#f09AlgorithmsDa-177" data-c="f09AlgorithmsDa-177">Q21. Copying a nested structure — what is the output?</a>
+      <a href="#f09AlgorithmsDa-178" data-c="f09AlgorithmsDa-178">Q22. String concatenation in a loop — what is the output?</a>
+      <a href="#f09AlgorithmsDa-179" data-c="f09AlgorithmsDa-179">Q23. Generators are consumed once — what is the output?</a>
+      <a href="#f09AlgorithmsDa-180" data-c="f09AlgorithmsDa-180">Q24. zip stops at the shortest input — what is the output?</a>
+      <a href="#f09AlgorithmsDa-181" data-c="f09AlgorithmsDa-181">Q25. enumerate with a start value — what is the output?</a>
+      <a href="#f09AlgorithmsDa-182" data-c="f09AlgorithmsDa-182">Q26. all() and any() on an empty sequence — what is the output?</a>
+      <a href="#f09AlgorithmsDa-183" data-c="f09AlgorithmsDa-183">Q27. Bitwise operations and two's complement — what is the output?</a>
+      <a href="#f09AlgorithmsDa-184" data-c="f09AlgorithmsDa-184">Q28. divmod and negative numbers — what is the output?</a>
+      <a href="#f09AlgorithmsDa-185" data-c="f09AlgorithmsDa-185">Q29. Mutable objects as dictionary values — what is the output?</a>
+      <a href="#f09AlgorithmsDa-186" data-c="f09AlgorithmsDa-186">Q30. Identity of slices — what is the output?</a>
+      <a href="#f09AlgorithmsDa-187" data-c="f09AlgorithmsDa-187">Q31. Exception inside a comprehension — what is the output?</a>
+      <a href="#f09AlgorithmsDa-188" data-c="f09AlgorithmsDa-188">Q32. Nested function scope in a loop — what is the output?</a>
+      <a href="#f09AlgorithmsDa-189" data-c="f09AlgorithmsDa-189">Q33. Truthiness of zero and empty containers — what is the output?</a>
+      <a href="#f09AlgorithmsDa-190" data-c="f09AlgorithmsDa-190">Q34. in on a dict checks keys — what is the output?</a>
+      <a href="#f09AlgorithmsDa-191" data-c="f09AlgorithmsDa-191">Q35. Integer overflow does not exist — what is the output?</a>
+      <a href="#f09AlgorithmsDa-192" data-c="f09AlgorithmsDa-192">Q36. A shallow copy of a dict of lists — what is the output?</a>
+      <a href="#f09AlgorithmsDa-193" data-c="f09AlgorithmsDa-193">Q37. Order of evaluation in an assignment — what is the output?</a>
+      <a href="#f09AlgorithmsDa-194" data-c="f09AlgorithmsDa-194">Q38. Comparing collections of different types — what is the output?</a>
+      <a href="#f09AlgorithmsDa-195" data-c="f09AlgorithmsDa-195">Q39. min and max on strings — what is the output?</a>
+      <a href="#f09AlgorithmsDa-196" data-c="f09AlgorithmsDa-196">Q40. Slice assignment on a step slice — what is the output?</a>
+      <a href="#f09AlgorithmsDa-197" data-c="f09AlgorithmsDa-197">Q45 · Find the maximum sum subarray (Kadane's Algorithm)</a>
+      <a href="#f09AlgorithmsDa-198" data-c="f09AlgorithmsDa-198">Q46 · Find all pairs with a given sum</a>
+      <a href="#f09AlgorithmsDa-199" data-c="f09AlgorithmsDa-199">Q47 · Find all pairs with a given difference</a>
+      <a href="#f09AlgorithmsDa-200" data-c="f09AlgorithmsDa-200">Q48 · Find the majority element</a>
+      <a href="#f09AlgorithmsDa-201" data-c="f09AlgorithmsDa-201">Q49 · Find the kth largest element</a>
+      <a href="#f09AlgorithmsDa-202" data-c="f09AlgorithmsDa-202">Q50 · Find the kth smallest element</a>
+      <a href="#f09AlgorithmsDa-203" data-c="f09AlgorithmsDa-203">Q51 · Sort a list without using sort()</a>
+      <a href="#f09AlgorithmsDa-204" data-c="f09AlgorithmsDa-204">Q52 · Implement bubble sort</a>
+      <a href="#f09AlgorithmsDa-205" data-c="f09AlgorithmsDa-205">Q53 · Implement selection sort</a>
+      <a href="#f09AlgorithmsDa-206" data-c="f09AlgorithmsDa-206">Q54 · Implement insertion sort</a>
+      <a href="#f09AlgorithmsDa-207" data-c="f09AlgorithmsDa-207">Q55 · Implement merge sort</a>
+      <a href="#f09AlgorithmsDa-208" data-c="f09AlgorithmsDa-208">Q56 · Implement quick sort</a>
+      <a href="#f09AlgorithmsDa-209" data-c="f09AlgorithmsDa-209">Q651 · Longest Substring Without Repeating Characters</a>
+      <a href="#f09AlgorithmsDa-210" data-c="f09AlgorithmsDa-210">Q652 · String Compression (Run-Length Encoding)</a>
     </div>
   </aside>
 </div>
