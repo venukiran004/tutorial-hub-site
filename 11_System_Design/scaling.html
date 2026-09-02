@@ -1831,17 +1831,14 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p><strong>Definition.</strong> Keep <strong>copies of the database</strong>. The <strong>primary handles all writes</strong>; <strong>replicas
               handle reads</strong>. This spreads read load and ensures high availability.</p>
-            <div class="diagram"><pre>                       WRITE PATH
-                          <span class="d-l">│</span>
-                          <span class="d-a">▼</span>
-                  <span class="d-l">┌─────────────────┐</span>
-                  <span class="d-l">│</span> PRIMARY (writes)<span class="d-l">│</span>
-                  <span class="d-l">└───────┬─────────┘</span>
-       data sync <span class="d-l">┌────────┼────────┐</span> data sync
-                 <span class="d-a">▼</span>        <span class="d-a">▼</span>        <span class="d-a">▼</span>
-           <span class="d-l">┌─────────┐┌─────────┐┌──┐</span>
-           <span class="d-l">│</span> REPLICA <span class="d-l">││</span> REPLICA <span class="d-l">││</span> REPLICA <span class="d-l">│</span>   <span class="d-a">←</span> all serve READS
-           <span class="d-l">└─────────┘└─────────┘└──┘</span></pre></div>
+            <div class="diagram"><pre>                  <span class="d-l">┌──────────────────┐</span>
+                  <span class="d-l">│</span> PRIMARY (writes) <span class="d-l">│</span>
+                  <span class="d-l">└────────┬─────────┘</span>
+  data sync   <span class="d-l">┌────────────┼────────────┐</span>  data sync
+              <span class="d-a">▼</span>            <span class="d-a">▼</span>            <span class="d-a">▼</span>
+         <span class="d-l">┌─────────┐</span>  <span class="d-l">┌─────────┐</span>  <span class="d-l">┌─────────┐</span>
+         <span class="d-l">│</span> REPLICA <span class="d-l">│</span>  <span class="d-l">│</span> REPLICA <span class="d-l">│</span>  <span class="d-l">│</span> REPLICA <span class="d-l">│</span>  <span class="d-a">◄</span> all serve READS
+         <span class="d-l">└─────────┘</span>  <span class="d-l">└─────────┘</span>  <span class="d-l">└─────────┘</span></pre></div>
             <p><strong>Why it works:</strong> most applications are <strong>read-heavy</strong> (think <span class="mag">90%</span> reads, <span class="mag">10%</span> writes). Offloading
               reads to replicas frees the primary to focus on writes.</p>
             <p><strong>Key concepts:</strong>
@@ -1904,13 +1901,11 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p><strong>Definition.</strong> Split a <strong>massive table by columns</strong> based on access patterns. <strong>Reduces
               unnecessary disk I/O</strong> by scanning only the relevant fields.</p>
-            <div class="diagram"><pre>   ONE WIDE "users" TABLE  <span class="d-a">→</span>  split by COLUMN GROUPS by how often they're accessed
-
-   <span class="d-l">┌────────────</span> PROFILE (hot) <span class="d-l">────────────┐</span>   <span class="d-l">┌─────────</span> BILLING (cold) <span class="d-l">────────┐</span>
-   <span class="d-l">│</span> User_ID <span class="d-l">│</span> Name <span class="d-l">│</span> Email <span class="d-l">│</span> Settings      <span class="d-l">│</span>   <span class="d-l">│</span> User_ID <span class="d-l">│</span> Payment <span class="d-l">│</span> TX history <span class="d-l">│</span>
-   <span class="d-l">│</span> (frequently accessed data)             <span class="d-l">│</span>   <span class="d-l">│</span> (less-frequently accessed)     <span class="d-l">│</span>
-   <span class="d-l">└────────────────────────────────────────┘</span>   <span class="d-l">└────────────────────────────────┘</span>
-            shares the same User_ID  <span class="d-a">◄</span><span class="d-l">───────────────────────────────────────────┘</span></pre></div>
+            <div class="diagram"><pre>   <span class="d-l">┌────────────</span> PROFILE (hot) <span class="d-l">────────────┐</span>    <span class="d-l">┌──────────</span> BILLING (cold) <span class="d-l">───────────┐</span>
+   <span class="d-l">│</span>  User_ID <span class="d-l">│</span> Name <span class="d-l">│</span> Email <span class="d-l">│</span> Settings    <span class="d-l">│</span>    <span class="d-l">│</span>  User_ID <span class="d-l">│</span> Payment <span class="d-l">│</span> TX history     <span class="d-l">│</span>
+   <span class="d-l">│</span>  (frequently accessed data)           <span class="d-l">│</span>    <span class="d-l">│</span>  (less-frequently accessed)         <span class="d-l">│</span>
+   <span class="d-l">└───────────────────┬───────────────────┘</span>    <span class="d-l">└──────────────────┬──────────────────┘</span>
+                       <span class="d-l">└────────</span> shares the same User_ID <span class="d-l">──────────┘</span></pre></div>
             <p><strong>Difference from <abbr title="splitting one dataset across machines by a partition key">sharding</abbr>:</strong> sharding splits <strong>rows</strong> (same columns, different rows on each server);
               vertical partitioning splits <strong>columns</strong> (different columns grouped by access frequency).</p>
             <p><strong>Why do it:</strong>
@@ -1934,18 +1929,18 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p><strong>Definition.</strong> Store <strong>frequently accessed data in RAM</strong> instead of fetching it from disk every
               time. Uses a <strong><abbr title="time to live">TTL</abbr> (Time To Live)</strong> to expire stale data. This is the single biggest speed hack —
               remember RAM is <span class="mag">~100,000×</span> faster than a cross-continent disk/network fetch (<a href="javascript:void(0)">§4</a>).</p>
-            <div class="diagram"><pre>                 <span class="d-l">┌──────────────────────────────┐</span>
-                 <span class="d-l">│</span> App requests data.           <span class="d-l">│</span>
-                 <span class="d-l">│</span> Checks CACHE (RAM) first.    <span class="d-l">│</span>
-                 <span class="d-l">└───────────────┬──────────────┘</span>
-                  CACHE HIT <span class="d-a">◄</span><span class="d-l">────┴────</span><span class="d-a">►</span> CACHE MISS
-                 <span class="d-l">│</span>                              <span class="d-l">│</span>
-                      <span class="d-a">▼</span>                     <span class="d-a">▼</span>
-              <span class="d-l">┌──────────────┐</span>    <span class="d-l">┌─────────────────────────────┐</span>
-              <span class="d-l">│</span> Return data  <span class="d-l">│</span>    <span class="d-l">│</span> Fetch from DATABASE (disk)  <span class="d-l">│</span>
-              <span class="d-l">│</span> INSTANTLY * <span class="d-l">││</span>   <span class="d-l">│</span> Save a copy to cache        <span class="d-l">│</span>
-              <span class="d-l">└──────────────┘</span>    <span class="d-l">│</span> Return data                 <span class="d-l">│</span>
-                                  <span class="d-l">└─────────────────────────────┘</span></pre></div>
+            <div class="diagram"><pre>                <span class="d-l">┌────────────────────────────────┐</span>
+                <span class="d-l">│</span>       App requests data.       <span class="d-l">│</span>
+                <span class="d-l">│</span>   Checks CACHE (RAM) first.    <span class="d-l">│</span>
+                <span class="d-l">└────────────────┬───────────────┘</span>
+                    CACHE HIT <span class="d-a">◄</span><span class="d-l">──┴──</span><span class="d-a">►</span> CACHE MISS
+                      <span class="d-l">│</span>                      <span class="d-l">│</span>
+                      <span class="d-a">▼</span>                      <span class="d-a">▼</span>
+            <span class="d-l">┌────────────────────┐</span>  <span class="d-l">┌───────────────────────────────┐</span>
+            <span class="d-l">│</span>    Return data     <span class="d-l">│</span>  <span class="d-l">│</span>  Fetch from DATABASE (disk)   <span class="d-l">│</span>
+            <span class="d-l">│</span>     INSTANTLY      <span class="d-l">│</span>  <span class="d-l">│</span>     Save a copy to cache      <span class="d-l">│</span>
+            <span class="d-l">└────────────────────┘</span>  <span class="d-l">│</span>          Return data          <span class="d-l">│</span>
+                                    <span class="d-l">└───────────────────────────────┘</span></pre></div>
             <p><strong>Where caches live (multiple layers):</strong>
               - <strong>Client / browser cache</strong> (closest, free).
               - <strong><abbr title="content delivery network">CDN</abbr> cache</strong> (edge, for static assets — see <a href="javascript:void(0)">§22</a>).
@@ -2162,26 +2157,27 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p>Add the media + data-scaling layers to the resilient core and you get a <strong>globally distributed data
               layer optimized for extreme read/write volumes and low latency</strong>:</p>
-            <div class="diagram"><pre>   <span class="d-l">┌──────┐</span>   static media    <span class="d-l">┌───────────┐</span>  direct pull   <span class="d-l">┌──────────────┐</span>
-   <span class="d-l">│</span>CLIENT<span class="d-l">│</span> <span class="d-l">─────────────────</span><span class="d-a">►</span><span class="d-l">│</span> CDN EDGE  <span class="d-l">│───────────────</span><span class="d-a">►</span><span class="d-l">│</span> BLOB STORAGE <span class="d-l">│</span> (videos/images)
-   <span class="d-l">│</span>      <span class="d-l">│</span>    <span class="d-l">│</span>      <span class="d-l">│</span>   NODE                                                             <span class="d-l">│</span>                <span class="d-l">└──────────────┘</span>
-   <span class="d-l">└──┬───┘</span>                   <span class="d-l">└───────────┘</span>
-      <span class="d-l">│</span> dynamic requests
-      <span class="d-a">▼</span>
-   <span class="d-l">┌───────────┐</span>      <span class="d-l">┌─────────────────────────</span> DISTRIBUTED DATA LAYER <span class="d-l">───────────────────┐</span>
-   <span class="d-l">│</span>APP SERVERS<span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">────</span><span class="d-a">►</span><span class="d-l">│</span>  <span class="d-l">┌───────────┐</span>                                                     <span class="d-l">│</span>
-   <span class="d-l">│</span>  (scaled  <span class="d-l">│</span>      <span class="d-l">│</span>  <span class="d-l">│</span>   CACHE   <span class="d-l">│</span>  <span class="d-a">←</span> checked first (Redis)                            <span class="d-l">│</span>
-   <span class="d-l">│</span>   out)    <span class="d-l">│</span>      <span class="d-l">│</span>  <span class="d-l">└─────┬─────┘</span>                                                     <span class="d-l">│</span>
-                         <span class="d-l">└───────────┘</span>      <span class="d-l">│</span>        <span class="d-a">▼</span>                                                           <span class="d-l">│</span>
-                      <span class="d-l">│</span>  <span class="d-l">┌──────────────┐</span>   reads   <span class="d-l">┌─────────┐┌─────────┐┌─────────┐</span>      <span class="d-l">│</span>
-                      <span class="d-l">│</span>  <span class="d-l">│</span>   PRIMARY    <span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">─────────</span><span class="d-a">►</span><span class="d-l">│</span> REPLICA <span class="d-l">││</span> REPLICA <span class="d-l">││</span> REPLICA <span class="d-l">│</span>      <span class="d-l">│</span>
-                      <span class="d-l">│</span>  <span class="d-l">│</span>   DATABASE   <span class="d-l">│</span>           <span class="d-l">└─────────┘└─────────┘└─────────┘</span>      <span class="d-l">│</span>
-                      <span class="d-l">│</span>  <span class="d-l">└──────┬───────┘</span>                                                  <span class="d-l">│</span>
-                      <span class="d-l">│</span>         <span class="d-a">▼</span>  writes distributed by shard key                         <span class="d-l">│</span>
-                      <span class="d-l">│</span>  <span class="d-l">┌─────────┐┌─────────┐┌─────────┐</span>                                 <span class="d-l">│</span>
-                      <span class="d-l">│</span>  <span class="d-l">│</span> SHARD 1 <span class="d-l">││</span> SHARD 2 <span class="d-l">││</span> SHARD 3 <span class="d-l">│</span>  <span class="d-a">←</span> data segments                <span class="d-l">│</span>
-                      <span class="d-l">│</span>  <span class="d-l">└─────────┘└─────────┘└─────────┘</span>                                 <span class="d-l">│</span>
-                      <span class="d-l">└────────────────────────────────────────────────────────────────────┘</span></pre></div>
+            <div class="diagram"><pre>   <span class="d-l">┌──────────┐</span>   static media    <span class="d-l">┌────────────┐</span>   direct pull   <span class="d-l">┌──────────────────┐</span>
+   <span class="d-l">│</span>  CLIENT  <span class="d-l">│──────────────────</span><span class="d-a">►</span><span class="d-l">│</span>  CDN EDGE  <span class="d-l">│────────────────</span><span class="d-a">►</span><span class="d-l">│</span>   BLOB STORAGE   <span class="d-l">│</span>
+   <span class="d-l">│</span>          <span class="d-l">│</span>                   <span class="d-l">│</span>    NODE    <span class="d-l">│</span>                 <span class="d-l">│</span> (videos/images)  <span class="d-l">│</span>
+   <span class="d-l">└────┬─────┘</span>                   <span class="d-l">└────────────┘</span>                 <span class="d-l">└──────────────────┘</span>
+        <span class="d-l">│</span> dynamic requests
+        <span class="d-a">▼</span>
+  <span class="d-l">┌──────────────┐</span>   <span class="d-l">┌──────────────────</span> DISTRIBUTED DATA LAYER <span class="d-l">──────────────────┐</span>
+  <span class="d-l">│</span> APP SERVERS  <span class="d-l">│</span>   <span class="d-l">│</span>  <span class="d-l">┌───────────┐</span>                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> (scaled out) <span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">─</span><span class="d-a">►</span><span class="d-l">│</span>  <span class="d-l">│</span>   CACHE   <span class="d-l">│</span>  <span class="d-a">◄</span> checked first (Redis)                    <span class="d-l">│</span>
+  <span class="d-l">└──────────────┘</span>   <span class="d-l">│</span>  <span class="d-l">└─────┬─────┘</span>                                             <span class="d-l">│</span>
+                     <span class="d-l">│</span>        <span class="d-a">▼</span>                                                   <span class="d-l">│</span>
+                     <span class="d-l">│</span>  <span class="d-l">┌──────────────┐</span>reads <span class="d-l">┌─────────┐</span> <span class="d-l">┌─────────┐</span> <span class="d-l">┌─────────┐</span> <span class="d-l">│</span>
+                     <span class="d-l">│</span>  <span class="d-l">│</span>   PRIMARY    <span class="d-l">│─────</span><span class="d-a">►</span><span class="d-l">│</span> REPLICA <span class="d-l">│</span> <span class="d-l">│</span> REPLICA <span class="d-l">│</span> <span class="d-l">│</span> REPLICA <span class="d-l">│</span> <span class="d-l">│</span>
+                     <span class="d-l">│</span>  <span class="d-l">│</span>   DATABASE   <span class="d-l">│</span>      <span class="d-l">└─────────┘</span> <span class="d-l">└─────────┘</span> <span class="d-l">└─────────┘</span> <span class="d-l">│</span>
+                     <span class="d-l">│</span>  <span class="d-l">└──────┬───────┘</span>                                          <span class="d-l">│</span>
+                     <span class="d-l">│</span>         <span class="d-a">▼</span>  writes distributed by shard key                 <span class="d-l">│</span>
+                     <span class="d-l">│</span>  <span class="d-l">┌─────────┐</span>  <span class="d-l">┌─────────┐</span>  <span class="d-l">┌─────────┐</span>                     <span class="d-l">│</span>
+                     <span class="d-l">│</span>  <span class="d-l">│</span> SHARD 1 <span class="d-l">│</span>  <span class="d-l">│</span> SHARD 2 <span class="d-l">│</span>  <span class="d-l">│</span> SHARD 3 <span class="d-l">│</span>  <span class="d-a">◄</span> data segments    <span class="d-l">│</span>
+                     <span class="d-l">│</span>  <span class="d-l">└─────────┘</span>  <span class="d-l">└─────────┘</span>  <span class="d-l">└─────────┘</span>                     <span class="d-l">│</span>
+                     <span class="d-l">│</span>                                                            <span class="d-l">│</span>
+                     <span class="d-l">└────────────────────────────────────────────────────────────┘</span></pre></div>
             <p><strong>Reading the diagram:</strong> static media bypasses your servers entirely (<abbr title="content delivery network">CDN</abbr> → blob storage). Dynamic
               requests hit scaled-out app servers, which check the <strong>cache</strong> first, fall back to a <strong>primary +
               read replicas</strong>, and the data itself is <strong>sharded</strong> across segments. Every bottleneck from Part E is
@@ -2384,11 +2380,12 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <h3>API Gateway</h3>
             <p>The <strong>single entry point for all client requests.</strong> It <strong>centralizes routing, authentication, and
               logging — hiding internal microservice complexity</strong> behind one clean facade.</p>
-            <div class="diagram"><pre>   BOTS **                       <span class="d-l">┌──────────────┐</span>
-   NORMAL USERS * <span class="d-l">────</span> traffic <span class="d-l">──</span><span class="d-a">►</span><span class="d-l">│</span> API GATEWAY  <span class="d-l">│──</span> routes <span class="d-l">──</span><span class="d-a">►</span> [ internal microservices ]
-   BOTS **                       <span class="d-l">│</span> auth/route/  <span class="d-l">│</span>             [ auth | billing | catalog ]
-                                   <span class="d-l">│</span> log/limit    <span class="d-l">│</span>
-                                 <span class="d-l">└──────────────┘</span></pre></div>
+            <div class="diagram"><pre>   NORMAL USERS <span class="d-l">──┐</span>
+                  <span class="d-l">│</span>                <span class="d-l">┌────────────────┐</span>
+   BOTS <span class="d-l">──────────┼───</span> traffic <span class="d-l">───</span><span class="d-a">►</span><span class="d-l">│</span>  API GATEWAY   <span class="d-l">│──</span> routes <span class="d-l">──</span><span class="d-a">►</span>  [ internal services ]
+                  <span class="d-l">│</span>                <span class="d-l">│</span>  auth · route  <span class="d-l">│</span>   [ auth | billing | catalog ]
+   BOTS <span class="d-l">──────────┘</span>                <span class="d-l">│</span>  log · limit   <span class="d-l">│</span>
+                                   <span class="d-l">└────────────────┘</span></pre></div>
             <p><strong>Responsibilities:</strong> request routing, authentication/authorization, <strong>rate limiting</strong>, request/
               response transformation, SSL termination, logging/metrics, API versioning, and aggregation. It means
               clients deal with <strong>one</strong> endpoint instead of dozens of services.</p>
