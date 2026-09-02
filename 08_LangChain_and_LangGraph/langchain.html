@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1215,15 +1227,15 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
           <div class="q-a">
             <p>LangChain v0.3 is a modular Python framework for building applications powered by large language models. Its architecture is split into core packages (<code>langchain-core</code> for base abstractions, partner packages for provider-specific integrations, and <code>langgraph</code> for stateful agents), all unified by the Runnable interface and <abbr title="LangChain Expression Language">LCEL</abbr> pipe syntax.</p>
             <div class="diagram"><pre>LANGCHAIN v0.3 ARCHITECTURE:
-  ┌──────────────────────────────────────────────┐
-  │  langchain           — high-level chains     │
-  │  langchain-core      — LCEL, base interfaces │
-  │  langchain-community — 3rd-party integrations│
-  │  langchain-openai    — OpenAI-specific       │
-  │  langchain-anthropic — Anthropic-specific    │
-  │  langgraph           — stateful agents       │
-  │  langsmith           — observability         │
-  └──────────────────────────────────────────────┘
+  <span class="d-l">┌──────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span>  langchain           — high-level chains     <span class="d-l">│</span>
+  <span class="d-l">│</span>  langchain-core      — LCEL, base interfaces <span class="d-l">│</span>
+  <span class="d-l">│</span>  langchain-community — 3rd-party integrations<span class="d-l">│</span>
+  <span class="d-l">│</span>  langchain-openai    — OpenAI-specific       <span class="d-l">│</span>
+  <span class="d-l">│</span>  langchain-anthropic — Anthropic-specific    <span class="d-l">│</span>
+  <span class="d-l">│</span>  langgraph           — stateful agents       <span class="d-l">│</span>
+  <span class="d-l">│</span>  langsmith           — observability         <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────────────────────┘</span>
   
   KEY CONCEPTS:
   - Runnable: Base unit — anything with invoke/ainvoke/stream/astream
@@ -1424,15 +1436,15 @@ message = <span class="fn">HumanMessage</span>(content=[
 ])
 gpt4o.<span class="fn">invoke</span>([message])</code></pre>
             <div class="diagram"><pre>MULTIMODAL PROVIDER SUPPORT MATRIX:
-  ┌──────────────┬────────┬────────┬────────┐
-  │              │ GPT-4o│ Claude│ Gemini│
-  ├──────────────┼────────┼────────┼────────┤
-  │ Image (URL)  │   ✅   │   ✅   │   ✅   │
-  │ Image (b64)  │   ✅   │   ✅   │   ✅   │
-  │ Audio        │   ✅*  │   ❌   │   ✅   │
-  │ Video        │   ❌   │   ❌   │   ✅   │
-  │ PDF (native) │   ❌   │   ✅   │   ✅   │
-  └──────────────┴────────┴────────┴────────┘
+  <span class="d-l">┌──────────────┬────────┬────────┬────────┐</span>
+  <span class="d-l">│</span>              <span class="d-l">│</span> GPT-4o<span class="d-l">│</span> Claude<span class="d-l">│</span> Gemini<span class="d-l">│</span>
+  <span class="d-l">├──────────────┼────────┼────────┼────────┤</span>
+  <span class="d-l">│</span> Image (URL)  <span class="d-l">│</span>   √   <span class="d-l">│</span>   √   <span class="d-l">│</span>   √   <span class="d-l">│</span>
+  <span class="d-l">│</span> Image (b64)  <span class="d-l">│</span>   √   <span class="d-l">│</span>   √   <span class="d-l">│</span>   √   <span class="d-l">│</span>
+  <span class="d-l">│</span> Audio        <span class="d-l">│</span>   √*  <span class="d-l">│</span>   ×   <span class="d-l">│</span>   √   <span class="d-l">│</span>
+  <span class="d-l">│</span> Video        <span class="d-l">│</span>   ×   <span class="d-l">│</span>   ×   <span class="d-l">│</span>   √   <span class="d-l">│</span>
+  <span class="d-l">│</span> PDF (native) <span class="d-l">│</span>   ×   <span class="d-l">│</span>   √   <span class="d-l">│</span>   √   <span class="d-l">│</span>
+  <span class="d-l">└──────────────┴────────┴────────┴────────┘</span>
   * gpt-4o-audio-preview model required</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -2051,12 +2063,12 @@ agent = <span class="fn">create_agent</span>(
 agent = <span class="fn">create_agent</span>(model=<span class="str">"openai:gpt-4o"</span>, tools=tools,
                      middleware=[enforce_step_budget, fallback_model])</code></pre>
             <div class="diagram"><pre>MIDDLEWARE HOOK POINTS (each middleware can implement any of these):
-  before_agent  → once, before the run starts        (load memory, validate input)
-  before_model  → every loop iteration, pre-LLM      (trim/summarize context, budgets)
-  wrap_model_call  → around the LLM call             (retry, fallback, cache, rewrite)
-  wrap_tool_call   → around each tool call           (approval, retry, sandboxing)
-  after_model   → every iteration, post-LLM          (guardrails on the response)
-  after_agent   → once, at the end                   (save memory, final validation)</pre></div>
+  before_agent  <span class="d-a">→</span> once, before the run starts        (load memory, validate input)
+  before_model  <span class="d-a">→</span> every loop iteration, pre-LLM      (trim/summarize context, budgets)
+  wrap_model_call  <span class="d-a">→</span> around the LLM call             (retry, fallback, cache, rewrite)
+  wrap_tool_call   <span class="d-a">→</span> around each tool call           (approval, retry, sandboxing)
+  after_model   <span class="d-a">→</span> every iteration, post-LLM          (guardrails on the response)
+  after_agent   <span class="d-a">→</span> once, at the end                   (save memory, final validation)</pre></div>
             <div class="note">
               <p><strong>How to think about it:</strong> middleware is to agents what <abbr title="LangChain Expression Language">LCEL</abbr> decorators (<code>with_retry</code>, <code>with_fallbacks</code>) are to chains — cross-cutting behavior composed <em>around</em> the core loop instead of coded <em>into</em> it. Interview line: "<code>create_agent</code> = <code>create_react_agent</code> + a middleware pipeline where <abbr title="deciding what occupies the context window at each step, from a much larger pool of candidates">context engineering</abbr> and safety live."</p>
             </div>

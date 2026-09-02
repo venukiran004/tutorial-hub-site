@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1233,7 +1245,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <div class="diagram"><pre>   L2 (Ridge): circle           L1 (Lasso): diamond
       ___                           /\
      /   \  ellipse                /  \   ellipse tends to
-    | .   | touches the           /    \  touch a CORNER →
+    | .   | touches the           /    \  touch a CORNER <span class="d-a">→</span>
      \___/  side (β≠0)            \    /  one coordinate = 0
                                    \  /
                                     \/</pre></div>
@@ -1710,7 +1722,7 @@ lasso = model.named_steps[<span class="str">"lassocv"</span>]
               the direction where the <strong>class means are far apart</strong> <em>and</em> each class is <strong>tight</strong>. The
               projection makes classes as distinguishable as possible.</p>
             <div class="diagram"><pre>PCA axis (max variance)        LDA axis (max separation)
- ○○●●○●○●  ← classes overlap     ○○○○ | ●●●●  ← classes split cleanly</pre></div>
+ ○○●●○●○●  <span class="d-a">←</span> classes overlap     ○○○○ | ●●●●  <span class="d-a">←</span> classes split cleanly</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fldamd-18">
@@ -2134,7 +2146,7 @@ pred = clf.<span class="fn">predict</span>(X_test)        <span class="cmt"># al
        / \                              / \
       o   o                            o   o
      / \ / \                          / \
-    o  o o  o                        o   o   ← keeps splitting the worst leaf</pre></div>
+    o  o o  o                        o   o   <span class="d-a">←</span> keeps splitting the worst leaf</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="flightgbmmd-33">
@@ -2559,12 +2571,12 @@ clf.<span class="fn">fit</span>(X_train, y_train, eval_set=[(X_val, y_val)],
               <li>A <strong>residual</strong> <span class="mth"><i>e</i><sub><i>i</i></sub> <span class="mth-op">=</span> <i>y</i><sub><i>i</i></sub> <span class="mth-op">−</span> <i>ŷ</i><sub><i>i</i></sub></span> is the leftover error for point $i$. We want
                   the line that minimizes <span class="mth"><span class="mth-bigop">∑</span> <i>e</i><sub><i>i</i></sub><sup>2</sup></span>.</li>
             </ul>
-            <div class="diagram"><pre>price │              •  ← actual point
-      │           ╱  ↕ residual eᵢ = yᵢ − ŷᵢ
-      │        •╱
-      │      ╱•          ╱ = fitted line ŷ = β₀ + β₁·size
-      │   •╱             minimizes Σ eᵢ²  (squared vertical gaps)
-      └──────────────── size</pre></div>
+            <div class="diagram"><pre>price <span class="d-l">│</span>              •  <span class="d-a">←</span> actual point
+      <span class="d-l">│</span>           <span class="d-l">╱</span>  ↕ residual eᵢ = yᵢ − ŷᵢ
+      <span class="d-l">│</span>        •<span class="d-l">╱</span>
+      <span class="d-l">│</span>      <span class="d-l">╱</span>•          <span class="d-l">╱</span> = fitted line ŷ = β₀ + β₁·size
+      <span class="d-l">│</span>   •<span class="d-l">╱</span>             minimizes Σ eᵢ²  (squared vertical gaps)
+      <span class="d-l">└────────────────</span> size</pre></div>
             <p><strong>Why squared error?</strong> Three reasons: (1) it's smooth and differentiable, so we can
               solve it with calculus; (2) it penalizes large misses much more than small ones;
               (3) it's the <strong>maximum-likelihood</strong> solution when noise is Gaussian (§3.6).</p>
@@ -3363,12 +3375,12 @@ reg = model.named_steps[<span class="str">"linearregression"</span>]
             <p>Linear regression outputs any real number — useless for a probability that must lie
               in $[0,1]$. The <strong>sigmoid</strong> bends the unbounded linear score into an S-curve between
               0 and 1:</p>
-            <div class="diagram"><pre>P(y=1) 1 ┤            ╭────────
-         │         ╱
-     0.5 ┤───────╱   ← decision boundary at score z = 0
-         │     ╱
-       0 ┤────╯
-         └──────────────────── z = xᵀβ
+            <div class="diagram"><pre>P(y=1) 1 <span class="d-l">┤</span>            <span class="d-l">╭────────</span>
+         <span class="d-l">│</span>         <span class="d-l">╱</span>
+     0.5 <span class="d-l">┤───────╱</span>   <span class="d-a">←</span> decision boundary at score z = 0
+         <span class="d-l">│</span>     <span class="d-l">╱</span>
+       0 <span class="d-l">┤────╯</span>
+         <span class="d-l">└────────────────────</span> z = xᵀβ
         −∞        0         +∞</pre></div>
             <ul>
               <li>Large positive score → probability near 1.</li>
@@ -4403,11 +4415,11 @@ pred = clf.<span class="fn">predict</span>(texts_test)</code></pre>
             <p>Imagine an elongated cloud of 2-D points. <abbr title="principal component analysis">PCA</abbr> finds the long axis of the cloud (most
               spread = PC1) and the perpendicular short axis (PC2). Re-express each point in those
               axes; drop the short one → 1-D data that keeps most of the information.</p>
-            <div class="diagram"><pre> x₂ │      ╱ PC1 (max variance)
-    │    ╱•••
-    │  ╱••••• ╲ PC2 (⟂, less variance)
-    │╱•••••
-    └────────── x₁</pre></div>
+            <div class="diagram"><pre> x₂ <span class="d-l">│</span>      <span class="d-l">╱</span> PC1 (max variance)
+    <span class="d-l">│</span>    <span class="d-l">╱</span>•••
+    <span class="d-l">│</span>  <span class="d-l">╱</span>••••• <span class="d-l">╲</span> PC2 (⟂, less variance)
+    <span class="d-l">│╱</span>•••••
+    <span class="d-l">└──────────</span> x₁</pre></div>
             <p>PCA is <strong>unsupervised</strong> — it knows nothing about labels; it just chases variance.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -4838,11 +4850,11 @@ Z = pca.<span class="fn">fit_transform</span>(X)
             <p>A straight line can't fit a U-shape. But if we invent a new feature <span class="mth"><i>x</i><sup>2</sup></span> and regress
               on both $x$ and <span class="mth"><i>x</i><sup>2</sup></span>, the same linear machinery bends the fit into a parabola; add
               <span class="mth"><i>x</i><sup>3</sup></span> for an S-curve, and so on.</p>
-            <div class="diagram"><pre>y │        •            degree 1 (line): underfits
-  │      •  ╱· · · ·     degree 2 (parabola): good fit
-  │    • ╱               degree 15: wiggles through every point (overfit)
-  │  •_╱
-  └──────────── x</pre></div>
+            <div class="diagram"><pre>y <span class="d-l">│</span>        •            degree 1 (line): underfits
+  <span class="d-l">│</span>      •  <span class="d-l">╱</span>· · · ·     degree 2 (parabola): good fit
+  <span class="d-l">│</span>    • <span class="d-l">╱</span>               degree 15: wiggles through every point (overfit)
+  <span class="d-l">│</span>  •_<span class="d-l">╱</span>
+  <span class="d-l">└────────────</span> x</pre></div>
             <p><strong>Worked example.</strong> Fit degree 2 → <span class="mth"><i>ŷ</i> <span class="mth-op">=</span> 1 <span class="mth-op">+</span> 0.5<i>x</i> <span class="mth-op">+</span> 2<i>x</i><sup>2</sup></span>. At <span class="mth"><i>x</i><span class="mth-op">=</span>3</span>:
               $1+1.5+18=20.5$. We never left linear regression; we just fed it <span class="mth">[<i>x</i>, <i>x</i><sup>2</sup>]</span> as columns.
               For multiple features, "polynomial" also includes <strong>interaction terms</strong> <span class="mth"><i>x</i><sub><i>i</i></sub><i>x</i><sub><i>j</i></sub></span> —
@@ -6160,10 +6172,10 @@ model.<span class="fn">fit</span>(X_train, y_train)
               because a wide margin generalizes best. Only the points on the buffer's edge — the
               <strong>support vectors</strong> — matter; the rest could be deleted without changing the boundary.</p>
             <div class="diagram"><pre>        margin
-     ←──────────→
-  ○  │          │  ×
-  ○  │ boundary │  × ×
-○ ○  │          │  ×
+     <span class="d-a">←</span><span class="d-l">──────────</span><span class="d-a">→</span>
+  ○  <span class="d-l">│</span>          <span class="d-l">│</span>  ×
+  ○  <span class="d-l">│</span> boundary <span class="d-l">│</span>  × ×
+○ ○  <span class="d-l">│</span>          <span class="d-l">│</span>  ×
      support  support
      vectors   vectors</pre></div>
             <ul>

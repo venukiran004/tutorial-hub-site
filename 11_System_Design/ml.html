@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1212,7 +1224,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
      - Data freshness &amp; versioning
      
   4. MODEL DESIGN (10 min)
-     - Architecture (simple → complex)
+     - Architecture (simple <span class="d-a">→</span> complex)
      - Training strategy
      - Feature importance
      
@@ -1234,15 +1246,15 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
           <div class="q-a">
             <p>Problem formulation translates a business objective into a well-defined ML task with an appropriate loss function and proxy metrics. Getting this step right is critical because an incorrectly framed problem leads to models that optimize for the wrong outcome.</p>
             <div class="diagram"><pre>COMMON ML TASK MAPPINGS:
-  Business Problem        │ ML Task             │ Loss Function
-  ────────────────────────┼─────────────────────┼──────────────
-  "Will user click?"      │ Binary classification│ Binary CE
-  "What will user buy?"   │ Ranking             │ Pairwise/Listwise
-  "Is this spam?"         │ Binary classification│ Binary CE
-  "How much revenue?"     │ Regression          │ MSE / MAE
-  "Which category?"       │ Multi-class         │ Cross-entropy
-  "Similar items?"        │ Embedding + ANN     │ Contrastive
-  "Generate response"     │ Seq2Seq / LLM       │ Next-token
+  Business Problem        <span class="d-l">│</span> ML Task             <span class="d-l">│</span> Loss Function
+  <span class="d-l">────────────────────────┼─────────────────────┼──────────────</span>
+  "Will user click?"      <span class="d-l">│</span> Binary classification<span class="d-l">│</span> Binary CE
+  "What will user buy?"   <span class="d-l">│</span> Ranking             <span class="d-l">│</span> Pairwise/Listwise
+  "Is this spam?"         <span class="d-l">│</span> Binary classification<span class="d-l">│</span> Binary CE
+  "How much revenue?"     <span class="d-l">│</span> Regression          <span class="d-l">│</span> MSE / MAE
+  "Which category?"       <span class="d-l">│</span> Multi-class         <span class="d-l">│</span> Cross-entropy
+  "Similar items?"        <span class="d-l">│</span> Embedding + ANN     <span class="d-l">│</span> Contrastive
+  "Generate response"     <span class="d-l">│</span> Seq2Seq / LLM       <span class="d-l">│</span> Next-token
   
   PROXY METRICS vs BUSINESS METRICS:
   Business: Revenue, user retention, engagement time
@@ -1259,10 +1271,10 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
           <div class="q-a">
             <p>The data pipeline defines how raw data flows from sources through ingestion, transformation, and storage to produce training-ready datasets. Proper pipeline design ensures data quality, correct labeling, and temporal integrity for ML training.</p>
             <div class="diagram"><pre>DATA PIPELINE COMPONENTS:
-  ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
-  │  Sources  │──→│ Ingestion│──→│Transform │──→│  Store  │
-  │          │   │ (Kafka)  │   │ (Spark)  │   │ (S3/DW)  │
-  └──────────┘   └──────────┘   └──────────┘   └──────────┘
+  <span class="d-l">┌──────────┐</span>   <span class="d-l">┌──────────┐</span>   <span class="d-l">┌──────────┐</span>   <span class="d-l">┌──────────┐</span>
+  <span class="d-l">│</span>  Sources  <span class="d-l">│──</span><span class="d-a">→</span><span class="d-l">│</span> Ingestion<span class="d-l">│──</span><span class="d-a">→</span><span class="d-l">│</span>Transform <span class="d-l">│──</span><span class="d-a">→</span><span class="d-l">│</span>  Store  <span class="d-l">│</span>
+  <span class="d-l">│</span>          <span class="d-l">│</span>   <span class="d-l">│</span> (Kafka)  <span class="d-l">│</span>   <span class="d-l">│</span> (Spark)  <span class="d-l">│</span>   <span class="d-l">│</span> (S3/DW)  <span class="d-l">│</span>
+  <span class="d-l">└──────────┘</span>   <span class="d-l">└──────────┘</span>   <span class="d-l">└──────────┘</span>   <span class="d-l">└──────────┘</span>
   
   Sources: Click logs, user actions, transactions, 3rd party APIs
   Ingestion: Kafka (streaming), Airflow (batch)
@@ -1293,19 +1305,19 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
   Cross features:    User × Item interactions, historical CTR per user-item
   
   FEATURE COMPUTATION:
-  ┌────────────────────────────────────────────────┐
-  │  Batch features (precomputed):                 │
-  │  - User lifetime stats (total orders, avg $)   │
-  │  - Item popularity (last 30 days clicks)       │
-  │  - Updated daily/hourly via Spark              │
-  └────────────────────────────────────────────────┘
-  ┌────────────────────────────────────────────────┐
-  │  Real-time features (computed at request):     │
-  │  - Items viewed in current session             │
-  │  - Time since last purchase                    │
-  │  - Current cart contents                       │
-  │  - Computed via Flink or app-level             │
-  └────────────────────────────────────────────────┘
+  <span class="d-l">┌────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span>  Batch features (precomputed):                 <span class="d-l">│</span>
+  <span class="d-l">│</span>  - User lifetime stats (total orders, avg $)   <span class="d-l">│</span>
+  <span class="d-l">│</span>  - Item popularity (last 30 days clicks)       <span class="d-l">│</span>
+  <span class="d-l">│</span>  - Updated daily/hourly via Spark              <span class="d-l">│</span>
+  <span class="d-l">└────────────────────────────────────────────────┘</span>
+  <span class="d-l">┌────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span>  Real-time features (computed at request):     <span class="d-l">│</span>
+  <span class="d-l">│</span>  - Items viewed in current session             <span class="d-l">│</span>
+  <span class="d-l">│</span>  - Time since last purchase                    <span class="d-l">│</span>
+  <span class="d-l">│</span>  - Current cart contents                       <span class="d-l">│</span>
+  <span class="d-l">│</span>  - Computed via Flink or app-level             <span class="d-l">│</span>
+  <span class="d-l">└────────────────────────────────────────────────┘</span>
   
   FEATURE STORE provides:
   - Consistent feature values for training &amp; serving (no skew)
@@ -1319,21 +1331,21 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
           </div>
           <div class="q-a">
             <p>Model architecture selection is the process of choosing the right model complexity—from heuristic baselines to deep learning—based on data volume, latency requirements, and business constraints. Starting simple and adding complexity incrementally is a best practice that avoids over-engineering.</p>
-            <div class="diagram"><pre>PROGRESSION (simple → complex):
+            <div class="diagram"><pre>PROGRESSION (simple <span class="d-a">→</span> complex):
   1. Heuristic baseline (rules, most popular)
   2. Logistic regression / Linear model
   3. Gradient boosted trees (XGBoost, LightGBM)
   4. Deep learning (embeddings + DNN)
-  5. Multi-stage (retrieval → ranking → re-ranking)
+  5. Multi-stage (retrieval <span class="d-a">→</span> ranking <span class="d-a">→</span> re-ranking)
   
   ALWAYS START SIMPLE. Add complexity only when data + metrics justify it.
   
   COMMON ARCHITECTURES:
-  Recommendation:  Two-tower (user + item embeddings) → GBDT/DNN cross-features
+  Recommendation:  Two-tower (user + item embeddings) <span class="d-a">→</span> GBDT/DNN cross-features
   Fraud:           GBDT with engineered features (interpretable) + graph features
-  Search:          BM25 retrieval → neural re-ranker (cross-encoder)
+  Search:          BM25 retrieval <span class="d-a">→</span> neural re-ranker (cross-encoder)
   Ads:             Wide &amp; Deep (memorization + generalization)
-  NLP:             Pre-trained LLM → fine-tune or RAG</pre></div>
+  NLP:             Pre-trained LLM <span class="d-a">→</span> fine-tune or RAG</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f05MLSystemDesi-6">
@@ -1349,7 +1361,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
   LLM fine-tuning:      Multi-GPU, QLoRA for efficiency
   
   HYPERPARAMETER TUNING:
-  Grid search → Random search → Bayesian (Optuna)
+  Grid search <span class="d-a">→</span> Random search <span class="d-a">→</span> Bayesian (Optuna)
   Run on a sample first, then full data with best HPs
   
   EXPERIMENT TRACKING:
@@ -1364,25 +1376,25 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
           <div class="q-a">
             <p>Online inference serves predictions in real time per request, while offline (batch) inference precomputes predictions for all entities on a schedule. Many production systems use a nearline hybrid approach to balance latency, freshness, and computational cost.</p>
             <div class="diagram"><pre>COMPARISON:
-  Aspect       │ Online (Real-time)        │ Offline (Batch)
-  ─────────────┼───────────────────────────┼──────────────────
-  Latency      │ ms (P99 &lt; 100ms)          │ Hours OK
-  Freshness    │ Real-time                 │ Updated daily/hourly
-  Scale        │ Per-request compute       │ Process all at once
-  Cost         │ Higher (always-on)        │ Lower (scheduled)
-  Use case     │ Search, recommendations   │ Email campaigns, reports
+  Aspect       <span class="d-l">│</span> Online (Real-time)        <span class="d-l">│</span> Offline (Batch)
+  <span class="d-l">─────────────┼───────────────────────────┼──────────────────</span>
+  Latency      <span class="d-l">│</span> ms (P99 &lt; 100ms)          <span class="d-l">│</span> Hours OK
+  Freshness    <span class="d-l">│</span> Real-time                 <span class="d-l">│</span> Updated daily/hourly
+  Scale        <span class="d-l">│</span> Per-request compute       <span class="d-l">│</span> Process all at once
+  Cost         <span class="d-l">│</span> Higher (always-on)        <span class="d-l">│</span> Lower (scheduled)
+  Use case     <span class="d-l">│</span> Search, recommendations   <span class="d-l">│</span> Email campaigns, reports
   
   NEARLINE (hybrid):
-  Precompute candidates offline → re-rank online with real-time features
-  Example: Precompute top-100 candidates per user → re-rank at request time
+  Precompute candidates offline <span class="d-a">→</span> re-rank online with real-time features
+  Example: Precompute top-100 candidates per user <span class="d-a">→</span> re-rank at request time
   
   LATENCY BUDGET:
   Total budget: 200ms
-  ├── Network:        20ms
-  ├── Feature fetch:  30ms (Redis lookup)
-  ├── Model inference: 50ms
-  ├── Business logic:  20ms
-  └── Buffer:         80ms</pre></div>
+  <span class="d-l">├──</span> Network:        20ms
+  <span class="d-l">├──</span> Feature fetch:  30ms (Redis lookup)
+  <span class="d-l">├──</span> Model inference: 50ms
+  <span class="d-l">├──</span> Business logic:  20ms
+  <span class="d-l">└──</span> Buffer:         80ms</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f05MLSystemDesi-8">
@@ -1393,16 +1405,16 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p>Model serving and optimization encompasses techniques—such as <abbr title="training a smaller model to reproduce a larger model&#x27;s behaviour">distillation</abbr>, <abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">quantization</abbr>, and multi-stage pipelines—that reduce inference latency and cost in production. These optimizations are essential for meeting real-time SLAs while controlling infrastructure spend.</p>
             <div class="diagram"><pre>OPTIMIZATION TECHNIQUES:
   1. Model distillation: Train small model to mimic large model
-  2. Quantization: FP32 → INT8 (2-4× faster, &lt;1% accuracy loss)
+  2. Quantization: FP32 <span class="d-a">→</span> INT8 (2-4× faster, &lt;1% accuracy loss)
   3. Feature caching: Pre-compute and cache expensive features
   4. Batching: Group multiple requests for GPU efficiency
   5. Model sharding: Split large model across GPUs
   6. Approximate NN: Use ANN (FAISS, ScaNN) instead of exact search
   
   MULTI-STAGE PIPELINE (common for ranking):
-  Stage 1 - Retrieval:  Fast, low-precision (ANN, BM25) → 1000 candidates
-  Stage 2 - Ranking:    Medium model (GBDT) → 100 candidates
-  Stage 3 - Re-ranking: Heavy model (DNN) + business rules → 20 final results
+  Stage 1 - Retrieval:  Fast, low-precision (ANN, BM25) <span class="d-a">→</span> 1000 candidates
+  Stage 2 - Ranking:    Medium model (GBDT) <span class="d-a">→</span> 100 candidates
+  Stage 3 - Re-ranking: Heavy model (DNN) + business rules <span class="d-a">→</span> 20 final results
   
   Each stage: higher precision, higher cost, fewer candidates</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -1427,7 +1439,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
   4. Event-based: Major business change (new product category)
   
   DATA FLYWHEEL:
-  More users → More data → Better model → Better experience → More users
+  More users <span class="d-a">→</span> More data <span class="d-a">→</span> Better model <span class="d-a">→</span> Better experience <span class="d-a">→</span> More users
   Design system to capture feedback loops</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1440,14 +1452,14 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <div class="diagram"><pre>A/B TESTING FOR ML:
   1. Define metric (CTR, revenue per user, engagement)
   2. Power analysis (sample size needed)
-  3. Random user split (hash(user_id) → A or B)
+  3. Random user split (hash(user_id) <span class="d-a">→</span> A or B)
   4. Run for sufficient duration (2-4 weeks min)
   5. Check statistical significance (p &lt; 0.05)
   6. Guard against: novelty effects, selection bias, metric gaming
   
   COMMON PITFALLS:
-  - Peeking: Checking results too early → false positives
-  - Multiple testing: Testing many metrics → Bonferroni correction
+  - Peeking: Checking results too early <span class="d-a">→</span> false positives
+  - Multiple testing: Testing many metrics <span class="d-a">→</span> Bonferroni correction
   - Simpson's paradox: Aggregate trend reverses in subgroups
   - Interference: Users in A affect users in B (social networks)
   
@@ -1465,7 +1477,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <div class="diagram"><pre>BIAS SOURCES:
   Data bias:     Training data doesn't represent target population
   Selection bias: Only observe users who interact (survivorship bias)
-  Feedback loops: Model recommendations → user behavior → training data
+  Feedback loops: Model recommendations <span class="d-a">→</span> user behavior <span class="d-a">→</span> training data
   
 FAIRNESS METRICS:
   Demographic parity: Predictions equal across groups
@@ -1489,10 +1501,10 @@ MITIGATION:
 REQUIREMENTS: 1B users, 100M items, &lt;200ms latency, personalized
 
 ARCHITECTURE:
-  ┌─────────┐     ┌──────────┐     ┌──────────┐     ┌───────────┐
-  │ Retrieval│────→│ Ranking  │────→│Re-ranking│────→│ Business │
-  │ (1000)   │    │ (100)    │    │ (20)     │    │ Rules       │
-  └─────────┘     └──────────┘     └──────────┘     └───────────┘
+  <span class="d-l">┌─────────┐</span>     <span class="d-l">┌──────────┐</span>     <span class="d-l">┌──────────┐</span>     <span class="d-l">┌───────────┐</span>
+  <span class="d-l">│</span> Retrieval<span class="d-l">│────</span><span class="d-a">→</span><span class="d-l">│</span> Ranking  <span class="d-l">│────</span><span class="d-a">→</span><span class="d-l">│</span>Re-ranking<span class="d-l">│────</span><span class="d-a">→</span><span class="d-l">│</span> Business <span class="d-l">│</span>
+  <span class="d-l">│</span> (1000)   <span class="d-l">│</span>    <span class="d-l">│</span> (100)    <span class="d-l">│</span>    <span class="d-l">│</span> (20)     <span class="d-l">│</span>    <span class="d-l">│</span> Rules       <span class="d-l">│</span>
+  <span class="d-l">└─────────┘</span>     <span class="d-l">└──────────┘</span>     <span class="d-l">└──────────┘</span>     <span class="d-l">└───────────┘</span>
   
   Retrieval (&lt; 10ms): Collaborative filtering (ANN), content-based, trending
   Ranking (&lt; 50ms): DNN predicting P(click), P(watch&gt;30min), P(like)
@@ -1515,7 +1527,7 @@ ARCHITECTURE:
 REQUIREMENTS: &lt;100ms, 0.01% fraud rate, minimize false positives
 
 ARCHITECTURE:
-  Rule Engine (instant) → ML Model (10ms) → Risk Score
+  Rule Engine (instant) <span class="d-a">→</span> ML Model (10ms) <span class="d-a">→</span> Risk Score
   
   FEATURES:
     Transaction: Amount, merchant, time, location
@@ -1536,7 +1548,7 @@ ARCHITECTURE:
             <div class="diagram"><pre>DESIGN: Search Ranking
 
 ARCHITECTURE:
-  Query → Query Understanding → Retrieval → Ranking → Re-ranking
+  Query <span class="d-a">→</span> Query Understanding <span class="d-a">→</span> Retrieval <span class="d-a">→</span> Ranking <span class="d-a">→</span> Re-ranking
   
   Retrieval: BM25 + semantic embedding ANN
   Ranking: GBDT/cross-encoder with BM25 score, embedding similarity, CTR
@@ -1559,7 +1571,7 @@ MODEL: Wide &amp; Deep (memorization + generalization)
     Ad: Creative type, historical CTR, campaign
     Cross: User-ad affinity, user CTR for ad category
     
-  AUCTION: bid_amount × P(click) → expected revenue
+  AUCTION: bid_amount × P(click) <span class="d-a">→</span> expected revenue
   CALIBRATION: Critical — P(click) accuracy affects pricing</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1570,7 +1582,7 @@ MODEL: Wide &amp; Deep (memorization + generalization)
           <div class="q-a">
             <p>These additional case studies—content moderation, notification relevance, and semantic search—illustrate how multi-stage ML pipelines, human-in-the-loop systems, and embedding-based retrieval are applied across diverse product domains.</p>
             <div class="diagram"><pre>CONTENT MODERATION:
-  Rule filter → ML classifier → Human review queue
+  Rule filter <span class="d-a">→</span> ML classifier <span class="d-a">→</span> Human review queue
   Multi-label: violence, hate, spam, NSFW
   High recall priority, human-in-the-loop for borderline
 
@@ -1579,7 +1591,7 @@ NOTIFICATION RELEVANCE:
   Rate limit to prevent user fatigue
   
 SEMANTIC SEARCH:
-  Two-tower model → embed items offline → ANN at query time
+  Two-tower model <span class="d-a">→</span> embed items offline <span class="d-a">→</span> ANN at query time
   Training: Contrastive learning (positive + negative pairs)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1718,43 +1730,43 @@ SEMANTIC SEARCH:
 KEY ARCHITECTURAL DECISIONS:
 
   MICROSERVICES (700+ services):
-  ┌───────────────────────────────────────────────────────────┐
-  │ Started as monolith → migrated to microservices (2008-12) │
-  │ Each service: independent team, own data store, own CI/CD │
-  │ Communication: REST + gRPC between services               │
-  │ Service discovery: Eureka (custom, open-sourced)          │
-  │ Circuit breaker: Hystrix → resilience4j                   │
-  │ API Gateway: Zuul → Spring Cloud Gateway                  │
-  │ IPC: Ribbon (client-side load balancing)                  │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Started as monolith <span class="d-a">→</span> migrated to microservices (2008-12) <span class="d-l">│</span>
+  <span class="d-l">│</span> Each service: independent team, own data store, own CI/CD <span class="d-l">│</span>
+  <span class="d-l">│</span> Communication: REST + gRPC between services               <span class="d-l">│</span>
+  <span class="d-l">│</span> Service discovery: Eureka (custom, open-sourced)          <span class="d-l">│</span>
+  <span class="d-l">│</span> Circuit breaker: Hystrix <span class="d-a">→</span> resilience4j                   <span class="d-l">│</span>
+  <span class="d-l">│</span> API Gateway: Zuul <span class="d-a">→</span> Spring Cloud Gateway                  <span class="d-l">│</span>
+  <span class="d-l">│</span> IPC: Ribbon (client-side load balancing)                  <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   CONTENT DELIVERY:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Open Connect: Netflix's own CDN (1000+ locations)         │
-  │ Appliances placed inside ISP networks                     │
-  │ During off-peak: pre-populate predicted popular content   │
-  │ Adaptive streaming: VMAF quality metric, per-title encode │
-  │ Shot-based encoding: different bitrate per scene          │
-  │ Result: best quality at lowest bandwidth                  │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Open Connect: Netflix's own CDN (1000+ locations)         <span class="d-l">│</span>
+  <span class="d-l">│</span> Appliances placed inside ISP networks                     <span class="d-l">│</span>
+  <span class="d-l">│</span> During off-peak: pre-populate predicted popular content   <span class="d-l">│</span>
+  <span class="d-l">│</span> Adaptive streaming: VMAF quality metric, per-title encode <span class="d-l">│</span>
+  <span class="d-l">│</span> Shot-based encoding: different bitrate per scene          <span class="d-l">│</span>
+  <span class="d-l">│</span> Result: best quality at lowest bandwidth                  <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   DATA PLATFORM:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Real-time: Kafka → Flink → data lake                      │
-  │ Batch: Spark on S3                                        │
-  │ A/B testing: everything is an experiment                  │
-  │ Feature store: custom (Cosmos)                            │
-  │ ML platform: Metaflow (open-sourced)                      │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Real-time: Kafka <span class="d-a">→</span> Flink <span class="d-a">→</span> data lake                      <span class="d-l">│</span>
+  <span class="d-l">│</span> Batch: Spark on S3                                        <span class="d-l">│</span>
+  <span class="d-l">│</span> A/B testing: everything is an experiment                  <span class="d-l">│</span>
+  <span class="d-l">│</span> Feature store: custom (Cosmos)                            <span class="d-l">│</span>
+  <span class="d-l">│</span> ML platform: Metaflow (open-sourced)                      <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   CHAOS ENGINEERING (invented here):
-  ┌───────────────────────────────────────────────────────────┐
-  │ Chaos Monkey: random instance termination                 │
-  │ Chaos Kong: simulate full region outage                   │
-  │ FIT (Failure Injection Testing): controlled experiments   │
-  │ Everything runs on AWS (except Open Connect)              │
-  │ Multi-region active-active deployment                     │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Chaos Monkey: random instance termination                 <span class="d-l">│</span>
+  <span class="d-l">│</span> Chaos Kong: simulate full region outage                   <span class="d-l">│</span>
+  <span class="d-l">│</span> FIT (Failure Injection Testing): controlled experiments   <span class="d-l">│</span>
+  <span class="d-l">│</span> Everything runs on AWS (except Open Connect)              <span class="d-l">│</span>
+  <span class="d-l">│</span> Multi-region active-active deployment                     <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   KEY LESSON:
   "The best way to avoid failure is to fail constantly."
@@ -1767,65 +1779,65 @@ KEY ARCHITECTURAL DECISIONS:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>GOOGLE SEARCH:
-  ┌───────────────────────────────────────────────────────────┐
-  │ CRAWL → INDEX → SERVE                                     │
-  │                                                           │
-  │ Crawl:                                                    │
-  │   Distributed crawler (billions of pages)                 │
-  │   Prioritized by PageRank and freshness                   │
-  │   Politeness: respect robots.txt, rate limits             │
-  │                                                           │
-  │ Index:                                                    │
-  │   Inverted index: word → [doc1, doc2, doc3]               │
-  │   Sharded by document hash across 10K+ machines           │
-  │   Updated continuously (not batch)                        │
-  │                                                           │
-  │ Serve:                                                    │
-  │   Query → Parse → Retrieve candidates → Rank → Return     │
-  │   Ranking: 200+ signals (PageRank, freshness, user        │
-  │   context, ML models, quality scores)                     │
-  │   Latency target: &lt; 200ms end-to-end                      │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> CRAWL <span class="d-a">→</span> INDEX <span class="d-a">→</span> SERVE                                     <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Crawl:                                                    <span class="d-l">│</span>
+  <span class="d-l">│</span>   Distributed crawler (billions of pages)                 <span class="d-l">│</span>
+  <span class="d-l">│</span>   Prioritized by PageRank and freshness                   <span class="d-l">│</span>
+  <span class="d-l">│</span>   Politeness: respect robots.txt, rate limits             <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Index:                                                    <span class="d-l">│</span>
+  <span class="d-l">│</span>   Inverted index: word <span class="d-a">→</span> [doc1, doc2, doc3]               <span class="d-l">│</span>
+  <span class="d-l">│</span>   Sharded by document hash across 10K+ machines           <span class="d-l">│</span>
+  <span class="d-l">│</span>   Updated continuously (not batch)                        <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Serve:                                                    <span class="d-l">│</span>
+  <span class="d-l">│</span>   Query <span class="d-a">→</span> Parse <span class="d-a">→</span> Retrieve candidates <span class="d-a">→</span> Rank <span class="d-a">→</span> Return     <span class="d-l">│</span>
+  <span class="d-l">│</span>   Ranking: 200+ signals (PageRank, freshness, user        <span class="d-l">│</span>
+  <span class="d-l">│</span>   context, ML models, quality scores)                     <span class="d-l">│</span>
+  <span class="d-l">│</span>   Latency target: &lt; 200ms end-to-end                      <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   GOOGLE INFRASTRUCTURE:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Spanner:    Globally distributed SQL with strong          │
-  │             consistency. TrueTime (GPS + atomic clocks).  │
-  │             Commit-wait: wait for uncertainty window.     │
-  │                                                           │
-  │ Bigtable:   Wide-column store for massive scale.          │
-  │             Sorted by row key. Column families.           │
-  │             Used by: Gmail, Maps, Analytics.              │
-  │                                                           │
-  │ Colossus:   Distributed file system (successor to GFS).   │
-  │             Foundation for all Google storage.            │
-  │                                                           │
-  │ Borg:       Container orchestration (predecessor of K8s). │
-  │             Manages all Google workloads.                 │
-  │                                                           │
-  │ MapReduce → Flume → Dataflow (streaming + batch unified)  │
-  │ Pub/Sub:   Messaging at global scale                      │
-  │ Dremel:    Columnar query engine → BigQuery               │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Spanner:    Globally distributed SQL with strong          <span class="d-l">│</span>
+  <span class="d-l">│</span>             consistency. TrueTime (GPS + atomic clocks).  <span class="d-l">│</span>
+  <span class="d-l">│</span>             Commit-wait: wait for uncertainty window.     <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Bigtable:   Wide-column store for massive scale.          <span class="d-l">│</span>
+  <span class="d-l">│</span>             Sorted by row key. Column families.           <span class="d-l">│</span>
+  <span class="d-l">│</span>             Used by: Gmail, Maps, Analytics.              <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Colossus:   Distributed file system (successor to GFS).   <span class="d-l">│</span>
+  <span class="d-l">│</span>             Foundation for all Google storage.            <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Borg:       Container orchestration (predecessor of K8s). <span class="d-l">│</span>
+  <span class="d-l">│</span>             Manages all Google workloads.                 <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> MapReduce <span class="d-a">→</span> Flume <span class="d-a">→</span> Dataflow (streaming + batch unified)  <span class="d-l">│</span>
+  <span class="d-l">│</span> Pub/Sub:   Messaging at global scale                      <span class="d-l">│</span>
+  <span class="d-l">│</span> Dremel:    Columnar query engine <span class="d-a">→</span> BigQuery               <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   YOUTUBE:
-  ┌───────────────────────────────────────────────────────────┐
-  │ 500+ hours of video uploaded per minute                   │
-  │                                                           │
-  │ Upload pipeline:                                          │
-  │   Upload → Virus scan → Transcode (100+ formats) →        │
-  │   Thumbnail generation → Content ID check → Publish       │
-  │                                                           │
-  │ Serving:                                                  │
-  │   CDN (Google's global network) for video chunks          │
-  │   Adaptive bitrate streaming (DASH)                       │
-  │   Edge caching + predictive pre-fetching                  │
-  │                                                           │
-  │ Recommendations:                                          │
-  │   Two-stage: Candidate generation (deep neural nets) →    │
-  │   Ranking (engagement prediction model)                   │
-  │   Billions of candidates → thousands → tens               │
-  └───────────────────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> 500+ hours of video uploaded per minute                   <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Upload pipeline:                                          <span class="d-l">│</span>
+  <span class="d-l">│</span>   Upload <span class="d-a">→</span> Virus scan <span class="d-a">→</span> Transcode (100+ formats) <span class="d-a">→</span>        <span class="d-l">│</span>
+  <span class="d-l">│</span>   Thumbnail generation <span class="d-a">→</span> Content ID check <span class="d-a">→</span> Publish       <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Serving:                                                  <span class="d-l">│</span>
+  <span class="d-l">│</span>   CDN (Google's global network) for video chunks          <span class="d-l">│</span>
+  <span class="d-l">│</span>   Adaptive bitrate streaming (DASH)                       <span class="d-l">│</span>
+  <span class="d-l">│</span>   Edge caching + predictive pre-fetching                  <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Recommendations:                                          <span class="d-l">│</span>
+  <span class="d-l">│</span>   Two-stage: Candidate generation (deep neural nets) <span class="d-a">→</span>    <span class="d-l">│</span>
+  <span class="d-l">│</span>   Ranking (engagement prediction model)                   <span class="d-l">│</span>
+  <span class="d-l">│</span>   Billions of candidates <span class="d-a">→</span> thousands <span class="d-a">→</span> tens               <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f10RealWorldArc-21">
@@ -1836,48 +1848,48 @@ KEY ARCHITECTURAL DECISIONS:
             <div class="diagram"><pre>AMAZON RETAIL + AWS:
 
   TWO-PIZZA TEAMS:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Each team: 6-10 people, owns a service end-to-end         │
-  │ "You build it, you run it" — Werner Vogels                │
-  │ Thousands of services (SOA since 2001)                    │
-  │ API-first mandate: all teams MUST expose APIs             │
-  │ No direct database access between services                │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Each team: 6-10 people, owns a service end-to-end         <span class="d-l">│</span>
+  <span class="d-l">│</span> "You build it, you run it" — Werner Vogels                <span class="d-l">│</span>
+  <span class="d-l">│</span> Thousands of services (SOA since 2001)                    <span class="d-l">│</span>
+  <span class="d-l">│</span> API-first mandate: all teams MUST expose APIs             <span class="d-l">│</span>
+  <span class="d-l">│</span> No direct database access between services                <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   DYNAMO (DynamoDB foundation):
-  ┌───────────────────────────────────────────────────────────┐
-  │ Designed for: always-available shopping cart              │
-  │ Architecture: consistent hashing + vector clocks          │
-  │ Quorum: configurable W and R                              │
-  │ Conflict resolution: last-writer-wins or app-level        │
-  │ Sloppy quorum + hinted handoff for high availability      │
-  │ Anti-entropy: Merkle trees for replica sync               │
-  │                                                           │
-  │ DynamoDB (managed):                                       │
-  │   Single-digit millisecond latency at any scale           │
-  │   Auto-scaling, global tables, TTL                        │
-  │   Streams (CDC) for event-driven architectures            │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Designed for: always-available shopping cart              <span class="d-l">│</span>
+  <span class="d-l">│</span> Architecture: consistent hashing + vector clocks          <span class="d-l">│</span>
+  <span class="d-l">│</span> Quorum: configurable W and R                              <span class="d-l">│</span>
+  <span class="d-l">│</span> Conflict resolution: last-writer-wins or app-level        <span class="d-l">│</span>
+  <span class="d-l">│</span> Sloppy quorum + hinted handoff for high availability      <span class="d-l">│</span>
+  <span class="d-l">│</span> Anti-entropy: Merkle trees for replica sync               <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> DynamoDB (managed):                                       <span class="d-l">│</span>
+  <span class="d-l">│</span>   Single-digit millisecond latency at any scale           <span class="d-l">│</span>
+  <span class="d-l">│</span>   Auto-scaling, global tables, TTL                        <span class="d-l">│</span>
+  <span class="d-l">│</span>   Streams (CDC) for event-driven architectures            <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   CELL-BASED ARCHITECTURE:
-  ┌───────────────────────────────────────────────────────────┐
-  │ AWS itself uses cell-based architecture                   │
-  │ Each Availability Zone is essentially a cell              │
-  │ Shuffle sharding: each customer gets unique combination   │
-  │   of cells → one customer's failure doesn't cascade       │
-  │ Blast radius containment is a core design principle       │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> AWS itself uses cell-based architecture                   <span class="d-l">│</span>
+  <span class="d-l">│</span> Each Availability Zone is essentially a cell              <span class="d-l">│</span>
+  <span class="d-l">│</span> Shuffle sharding: each customer gets unique combination   <span class="d-l">│</span>
+  <span class="d-l">│</span>   of cells <span class="d-a">→</span> one customer's failure doesn't cascade       <span class="d-l">│</span>
+  <span class="d-l">│</span> Blast radius containment is a core design principle       <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   KEY PRINCIPLES:
-  ┌───────────────────────────────────────────────────────────┐
-  │ 1. Everything fails: design for failure                   │
-  │ 2. Favor simplicity over perfection                       │
-  │ 3. Automate everything                                    │
-  │ 4. Small blast radius (cells, shuffle sharding)           │
-  │ 5. Static stability (pre-provisioned, no cascading        │
-  │    discovery during failures)                             │
-  │ 6. Avoid thundering herds (jitter in retries and caching) │
-  └───────────────────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> 1. Everything fails: design for failure                   <span class="d-l">│</span>
+  <span class="d-l">│</span> 2. Favor simplicity over perfection                       <span class="d-l">│</span>
+  <span class="d-l">│</span> 3. Automate everything                                    <span class="d-l">│</span>
+  <span class="d-l">│</span> 4. Small blast radius (cells, shuffle sharding)           <span class="d-l">│</span>
+  <span class="d-l">│</span> 5. Static stability (pre-provisioned, no cascading        <span class="d-l">│</span>
+  <span class="d-l">│</span>    discovery during failures)                             <span class="d-l">│</span>
+  <span class="d-l">│</span> 6. Avoid thundering herds (jitter in retries and caching) <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f10RealWorldArc-22">
@@ -1888,56 +1900,56 @@ KEY ARCHITECTURAL DECISIONS:
             <div class="diagram"><pre>SCALE: 3B+ monthly active users
 
   NEWS FEED:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Fan-out on write (push) + pull hybrid:                    │
-  │                                                           │
-  │ Normal user posts → fan-out to followers' feeds (push)    │
-  │ Celebrity posts → fan-out on read (pull at view time)     │
-  │                                                           │
-  │ Feed ranking: ML model predicting engagement              │
-  │ Features: affinity, content type, recency, interactions   │
-  │ Re-rank at view time with latest signals                  │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Fan-out on write (push) + pull hybrid:                    <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Normal user posts <span class="d-a">→</span> fan-out to followers' feeds (push)    <span class="d-l">│</span>
+  <span class="d-l">│</span> Celebrity posts <span class="d-a">→</span> fan-out on read (pull at view time)     <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Feed ranking: ML model predicting engagement              <span class="d-l">│</span>
+  <span class="d-l">│</span> Features: affinity, content type, recency, interactions   <span class="d-l">│</span>
+  <span class="d-l">│</span> Re-rank at view time with latest signals                  <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   DATA INFRASTRUCTURE:
-  ┌───────────────────────────────────────────────────────────┐
-  │ TAO: Graph store (social graph)                           │
-  │   Objects (users, posts) + Associations (friendship, like)│
-  │   Read-optimized, cache-first architecture                │
-  │   MySQL backend + distributed cache (Memcached)           │
-  │   Cache hit rate: 99.8%                                   │
-  │                                                           │
-  │ Memcached (at massive scale):                             │
-  │   Thousands of Memcached servers                          │
-  │   Custom UDP-based protocol for gets (lower overhead)     │
-  │   Lease mechanism to prevent thundering herds             │
-  │   Regional pools + cross-region invalidation              │
-  │                                                           │
-  │ RocksDB: Embedded storage engine (open-sourced)           │
-  │   Used in MySQL (MyRocks), ZippyDB, LogDevice             │
-  │                                                           │
-  │ Scuba: Real-time analytics (in-memory, fast queries)      │
-  │ Presto/Trino: Interactive SQL on data lake                │
-  │ Hive: Batch processing on data warehouse                  │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> TAO: Graph store (social graph)                           <span class="d-l">│</span>
+  <span class="d-l">│</span>   Objects (users, posts) + Associations (friendship, like)<span class="d-l">│</span>
+  <span class="d-l">│</span>   Read-optimized, cache-first architecture                <span class="d-l">│</span>
+  <span class="d-l">│</span>   MySQL backend + distributed cache (Memcached)           <span class="d-l">│</span>
+  <span class="d-l">│</span>   Cache hit rate: 99.8%                                   <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Memcached (at massive scale):                             <span class="d-l">│</span>
+  <span class="d-l">│</span>   Thousands of Memcached servers                          <span class="d-l">│</span>
+  <span class="d-l">│</span>   Custom UDP-based protocol for gets (lower overhead)     <span class="d-l">│</span>
+  <span class="d-l">│</span>   Lease mechanism to prevent thundering herds             <span class="d-l">│</span>
+  <span class="d-l">│</span>   Regional pools + cross-region invalidation              <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> RocksDB: Embedded storage engine (open-sourced)           <span class="d-l">│</span>
+  <span class="d-l">│</span>   Used in MySQL (MyRocks), ZippyDB, LogDevice             <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Scuba: Real-time analytics (in-memory, fast queries)      <span class="d-l">│</span>
+  <span class="d-l">│</span> Presto/Trino: Interactive SQL on data lake                <span class="d-l">│</span>
+  <span class="d-l">│</span> Hive: Batch processing on data warehouse                  <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   MESSAGING (WhatsApp):
-  ┌───────────────────────────────────────────────────────────┐
-  │ Erlang-based (millions of connections per server)         │
-  │ End-to-end encryption (Signal protocol)                   │
-  │ Offline message queuing                                   │
-  │ Multi-device sync                                         │
-  │ 2B+ users, 100B+ messages/day                             │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Erlang-based (millions of connections per server)         <span class="d-l">│</span>
+  <span class="d-l">│</span> End-to-end encryption (Signal protocol)                   <span class="d-l">│</span>
+  <span class="d-l">│</span> Offline message queuing                                   <span class="d-l">│</span>
+  <span class="d-l">│</span> Multi-device sync                                         <span class="d-l">│</span>
+  <span class="d-l">│</span> 2B+ users, 100B+ messages/day                             <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   AI/ML AT SCALE:
-  ┌───────────────────────────────────────────────────────────┐
-  │ PyTorch: Developed by Meta (most popular ML framework)    │
-  │ Training: Custom AI clusters (16K+ GPUs per cluster)      │
-  │ Inference: Runs on every feed load, every ad, every       │
-  │   content moderation decision                             │
-  │ LLaMA: Open-source LLM family                             │
-  └───────────────────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> PyTorch: Developed by Meta (most popular ML framework)    <span class="d-l">│</span>
+  <span class="d-l">│</span> Training: Custom AI clusters (16K+ GPUs per cluster)      <span class="d-l">│</span>
+  <span class="d-l">│</span> Inference: Runs on every feed load, every ad, every       <span class="d-l">│</span>
+  <span class="d-l">│</span>   content moderation decision                             <span class="d-l">│</span>
+  <span class="d-l">│</span> LLaMA: Open-source LLM family                             <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f10RealWorldArc-23">
@@ -1948,57 +1960,57 @@ KEY ARCHITECTURAL DECISIONS:
             <div class="diagram"><pre>SCALE: 130M+ monthly users, millions of trips/day
 
   GEOSPATIAL:
-  ┌──────────────────────────────────────────────────────────┐
-  │ Driver location tracking:                                │
-  │   Drivers send GPS every 4 seconds                       │
-  │   Millions of location updates per second                │
-  │   Stored in: H3 (hexagonal grid system by Uber)          │
-  │                                                          │
-  │ H3 Geospatial Index:                                     │
-  │   Earth divided into hexagonal cells at multiple         │
-  │   resolutions. Efficient nearest-neighbor queries.       │
-  │   Open-sourced by Uber.                                  │
-  │                                                          │
-  │ Matching:                                                │
-  │   Rider request → Find nearby drivers (H3 ring search)   │
-  │   Optimize: minimize ETA, maximize driver utilization    │
-  │   ML model predicts ETA, surge pricing                   │
-  └──────────────────────────────────────────────────────────┘
+  <span class="d-l">┌──────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Driver location tracking:                                <span class="d-l">│</span>
+  <span class="d-l">│</span>   Drivers send GPS every 4 seconds                       <span class="d-l">│</span>
+  <span class="d-l">│</span>   Millions of location updates per second                <span class="d-l">│</span>
+  <span class="d-l">│</span>   Stored in: H3 (hexagonal grid system by Uber)          <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> H3 Geospatial Index:                                     <span class="d-l">│</span>
+  <span class="d-l">│</span>   Earth divided into hexagonal cells at multiple         <span class="d-l">│</span>
+  <span class="d-l">│</span>   resolutions. Efficient nearest-neighbor queries.       <span class="d-l">│</span>
+  <span class="d-l">│</span>   Open-sourced by Uber.                                  <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> Matching:                                                <span class="d-l">│</span>
+  <span class="d-l">│</span>   Rider request <span class="d-a">→</span> Find nearby drivers (H3 ring search)   <span class="d-l">│</span>
+  <span class="d-l">│</span>   Optimize: minimize ETA, maximize driver utilization    <span class="d-l">│</span>
+  <span class="d-l">│</span>   ML model predicts ETA, surge pricing                   <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────────────────────────────────┘</span>
 
   ARCHITECTURE EVOLUTION:
-  ┌──────────────────────────────────────────────────────────┐
-  │ v1 (2010): Python monolith                               │
-  │ v2 (2014): SOA with domain services                      │
-  │ v3 (2018): Domain-Oriented Microservice Architecture     │
-  │            (DOMA) — group services into domains          │
-  │                                                          │
-  │ DOMA:                                                    │
-  │ ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-  │ │ Marketplace  │  │ Payments     │  │ Maps         │     │
-  │ │ Domain       │  │ Domain       │  │ Domain       │     │
-  │ │              │  │              │  │              │     │
-  │ │ Gateway      │  │ Gateway      │  │ Gateway      │     │
-  │ │ [Services]   │  │ [Services]   │  │ [Services]   │     │
-  │ │ [Data Store] │  │ [Data Store] │  │ [Data Store] │     │
-  │ └──────────────┘  └──────────────┘  └──────────────┘     │
-  │                                                          │
-  │ Each domain: gateway (single entry), internal services,  │
-  │ own data stores. Cross-domain: via domain gateways only. │
-  └──────────────────────────────────────────────────────────┘
+  <span class="d-l">┌──────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> v1 (2010): Python monolith                               <span class="d-l">│</span>
+  <span class="d-l">│</span> v2 (2014): SOA with domain services                      <span class="d-l">│</span>
+  <span class="d-l">│</span> v3 (2018): Domain-Oriented Microservice Architecture     <span class="d-l">│</span>
+  <span class="d-l">│</span>            (DOMA) — group services into domains          <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> DOMA:                                                    <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">┌──────────────┐</span>  <span class="d-l">┌──────────────┐</span>  <span class="d-l">┌──────────────┐</span>     <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">│</span> Marketplace  <span class="d-l">│</span>  <span class="d-l">│</span> Payments     <span class="d-l">│</span>  <span class="d-l">│</span> Maps         <span class="d-l">│</span>     <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">│</span> Domain       <span class="d-l">│</span>  <span class="d-l">│</span> Domain       <span class="d-l">│</span>  <span class="d-l">│</span> Domain       <span class="d-l">│</span>     <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">│</span>              <span class="d-l">│</span>  <span class="d-l">│</span>              <span class="d-l">│</span>  <span class="d-l">│</span>              <span class="d-l">│</span>     <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">│</span> Gateway      <span class="d-l">│</span>  <span class="d-l">│</span> Gateway      <span class="d-l">│</span>  <span class="d-l">│</span> Gateway      <span class="d-l">│</span>     <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">│</span> [Services]   <span class="d-l">│</span>  <span class="d-l">│</span> [Services]   <span class="d-l">│</span>  <span class="d-l">│</span> [Services]   <span class="d-l">│</span>     <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">│</span> [Data Store] <span class="d-l">│</span>  <span class="d-l">│</span> [Data Store] <span class="d-l">│</span>  <span class="d-l">│</span> [Data Store] <span class="d-l">│</span>     <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">└──────────────┘</span>  <span class="d-l">└──────────────┘</span>  <span class="d-l">└──────────────┘</span>     <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> Each domain: gateway (single entry), internal services,  <span class="d-l">│</span>
+  <span class="d-l">│</span> own data stores. Cross-domain: via domain gateways only. <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────────────────────────────────┘</span>
 
   KEY TECHNOLOGIES:
-  ┌──────────────────────────────────────────────────────────┐
-  │ Cadence/Temporal: Workflow engine (open-sourced)         │
-  │   Durable execution for long-running business processes  │
-  │   Trip lifecycle, payment flows, driver onboarding       │
-  │                                                          │
-  │ Kafka: Event backbone (trillions of messages/day)        │
-  │ Cassandra: Driver/rider data (write-heavy)               │
-  │ MySQL: Transactional data (orders, payments)             │
-  │ Redis: Caching, rate limiting, real-time features        │
-  │ Elasticsearch: Search (restaurants, destinations)        │
-  │ Pinot: Real-time analytics (Apache Pinot, open-sourced)  │
-  └──────────────────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌──────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Cadence/Temporal: Workflow engine (open-sourced)         <span class="d-l">│</span>
+  <span class="d-l">│</span>   Durable execution for long-running business processes  <span class="d-l">│</span>
+  <span class="d-l">│</span>   Trip lifecycle, payment flows, driver onboarding       <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> Kafka: Event backbone (trillions of messages/day)        <span class="d-l">│</span>
+  <span class="d-l">│</span> Cassandra: Driver/rider data (write-heavy)               <span class="d-l">│</span>
+  <span class="d-l">│</span> MySQL: Transactional data (orders, payments)             <span class="d-l">│</span>
+  <span class="d-l">│</span> Redis: Caching, rate limiting, real-time features        <span class="d-l">│</span>
+  <span class="d-l">│</span> Elasticsearch: Search (restaurants, destinations)        <span class="d-l">│</span>
+  <span class="d-l">│</span> Pinot: Real-time analytics (Apache Pinot, open-sourced)  <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f10RealWorldArc-24">
@@ -2007,48 +2019,48 @@ KEY ARCHITECTURAL DECISIONS:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>SLACK:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Cell-based architecture:                                  │
-  │   Each workspace assigned to a cell                       │
-  │   Cell = complete stack (API, WebSocket, DB, cache)       │
-  │   Failure in one cell doesn't affect other workspaces     │
-  │                                                           │
-  │ Real-time messaging:                                      │
-  │   WebSocket connections for real-time updates             │
-  │   Channel Server: maintains channel state + subscriptions │
-  │   Message Store: MySQL (sharded by channel)               │
-  │   Search: Elasticsearch (indexed async)                   │
-  │                                                           │
-  │ Evolution:                                                │
-  │   PHP monolith → Java services + MySQL                    │
-  │   WebSocket gateway (Envoy-based)                         │
-  │   Vitess for MySQL sharding at scale                      │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Cell-based architecture:                                  <span class="d-l">│</span>
+  <span class="d-l">│</span>   Each workspace assigned to a cell                       <span class="d-l">│</span>
+  <span class="d-l">│</span>   Cell = complete stack (API, WebSocket, DB, cache)       <span class="d-l">│</span>
+  <span class="d-l">│</span>   Failure in one cell doesn't affect other workspaces     <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Real-time messaging:                                      <span class="d-l">│</span>
+  <span class="d-l">│</span>   WebSocket connections for real-time updates             <span class="d-l">│</span>
+  <span class="d-l">│</span>   Channel Server: maintains channel state + subscriptions <span class="d-l">│</span>
+  <span class="d-l">│</span>   Message Store: MySQL (sharded by channel)               <span class="d-l">│</span>
+  <span class="d-l">│</span>   Search: Elasticsearch (indexed async)                   <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Evolution:                                                <span class="d-l">│</span>
+  <span class="d-l">│</span>   PHP monolith <span class="d-a">→</span> Java services + MySQL                    <span class="d-l">│</span>
+  <span class="d-l">│</span>   WebSocket gateway (Envoy-based)                         <span class="d-l">│</span>
+  <span class="d-l">│</span>   Vitess for MySQL sharding at scale                      <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
 DISCORD:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Scale: 200M+ monthly users, 15M+ concurrent               │
-  │                                                           │
-  │ Technology:                                               │
-  │   Elixir/Erlang for real-time (millions of connections)   │
-  │   Rust for performance-critical services                  │
-  │   Cassandra → ScyllaDB (C++ rewrite, lower latency)       │
-  │                                                           │
-  │ Message storage evolution:                                │
-  │   MongoDB → Cassandra → ScyllaDB                          │
-  │   Problem: Cassandra hot partitions + read latency spikes │
-  │   ScyllaDB: P99 from 40-125ms → 15ms (read latency)       │
-  │   Data model: messages partitioned by channel + bucket    │
-  │                                                           │
-  │ Voice/Video:                                              │
-  │   Custom protocol (low latency over UDP)                  │
-  │   Selective forwarding unit (SFU) for group calls         │
-  │   Deployed at edge locations globally                     │
-  │                                                           │
-  │ Key Innovation:                                           │
-  │   Lazy-loading guilds: don't load all member data until   │
-  │   user opens that server (scales to millions of members)  │
-  └───────────────────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Scale: 200M+ monthly users, 15M+ concurrent               <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Technology:                                               <span class="d-l">│</span>
+  <span class="d-l">│</span>   Elixir/Erlang for real-time (millions of connections)   <span class="d-l">│</span>
+  <span class="d-l">│</span>   Rust for performance-critical services                  <span class="d-l">│</span>
+  <span class="d-l">│</span>   Cassandra <span class="d-a">→</span> ScyllaDB (C++ rewrite, lower latency)       <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Message storage evolution:                                <span class="d-l">│</span>
+  <span class="d-l">│</span>   MongoDB <span class="d-a">→</span> Cassandra <span class="d-a">→</span> ScyllaDB                          <span class="d-l">│</span>
+  <span class="d-l">│</span>   Problem: Cassandra hot partitions + read latency spikes <span class="d-l">│</span>
+  <span class="d-l">│</span>   ScyllaDB: P99 from 40-125ms <span class="d-a">→</span> 15ms (read latency)       <span class="d-l">│</span>
+  <span class="d-l">│</span>   Data model: messages partitioned by channel + bucket    <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Voice/Video:                                              <span class="d-l">│</span>
+  <span class="d-l">│</span>   Custom protocol (low latency over UDP)                  <span class="d-l">│</span>
+  <span class="d-l">│</span>   Selective forwarding unit (SFU) for group calls         <span class="d-l">│</span>
+  <span class="d-l">│</span>   Deployed at edge locations globally                     <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Key Innovation:                                           <span class="d-l">│</span>
+  <span class="d-l">│</span>   Lazy-loading guilds: don't load all member data until   <span class="d-l">│</span>
+  <span class="d-l">│</span>   user opens that server (scales to millions of members)  <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f10RealWorldArc-25">
@@ -2059,51 +2071,51 @@ DISCORD:
             <div class="diagram"><pre>SCALE: Hundreds of billions in payment volume
 
   ARCHITECTURE PRINCIPLES:
-  ┌───────────────────────────────────────────────────────────┐
-  │ 1. IDEMPOTENCY EVERYWHERE                                 │
-  │    Every API call has an idempotency key                  │
-  │    Retries are safe — same result regardless              │
-  │    Critical for payments: can't charge twice!             │
-  │                                                           │
-  │ 2. EXACTLY-ONCE PROCESSING                                │
-  │    Idempotent consumers + at-least-once delivery          │
-  │    Outbox pattern for event publishing                    │
-  │    Request IDs tracked in persistent store                │
-  │                                                           │
-  │ 3. API-FIRST DESIGN                                       │
-  │    RESTful APIs with meticulous versioning                │
-  │    Backward-compatible changes (additive only)            │
-  │    Stripe's API is the gold standard for developer UX     │
-  │                                                           │
-  │ 4. ACID TRANSACTIONS (Ruby on Rails + MySQL)              │
-  │    Financial correctness requires strong consistency      │
-  │    Double-entry bookkeeping (every credit has a debit)    │
-  │    Reconciliation pipelines verify consistency daily      │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> 1. IDEMPOTENCY EVERYWHERE                                 <span class="d-l">│</span>
+  <span class="d-l">│</span>    Every API call has an idempotency key                  <span class="d-l">│</span>
+  <span class="d-l">│</span>    Retries are safe — same result regardless              <span class="d-l">│</span>
+  <span class="d-l">│</span>    Critical for payments: can't charge twice!             <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 2. EXACTLY-ONCE PROCESSING                                <span class="d-l">│</span>
+  <span class="d-l">│</span>    Idempotent consumers + at-least-once delivery          <span class="d-l">│</span>
+  <span class="d-l">│</span>    Outbox pattern for event publishing                    <span class="d-l">│</span>
+  <span class="d-l">│</span>    Request IDs tracked in persistent store                <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 3. API-FIRST DESIGN                                       <span class="d-l">│</span>
+  <span class="d-l">│</span>    RESTful APIs with meticulous versioning                <span class="d-l">│</span>
+  <span class="d-l">│</span>    Backward-compatible changes (additive only)            <span class="d-l">│</span>
+  <span class="d-l">│</span>    Stripe's API is the gold standard for developer UX     <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 4. ACID TRANSACTIONS (Ruby on Rails + MySQL)              <span class="d-l">│</span>
+  <span class="d-l">│</span>    Financial correctness requires strong consistency      <span class="d-l">│</span>
+  <span class="d-l">│</span>    Double-entry bookkeeping (every credit has a debit)    <span class="d-l">│</span>
+  <span class="d-l">│</span>    Reconciliation pipelines verify consistency daily      <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   PAYMENT FLOW:
-  ┌───────────────────────────────────────────────────────────┐
-  │ API Request → Auth → Rate Limit → Payment Intent →        │
-  │ Fraud Check → Charge → Network (Visa/MC) → Webhook →      │
-  │ Settlement → Payout                                       │
-  │                                                           │
-  │ Each step: idempotent, retriable, compensatable           │
-  │ State machine for payment lifecycle                       │
-  │ Saga pattern for multi-step payment flows                 │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> API Request <span class="d-a">→</span> Auth <span class="d-a">→</span> Rate Limit <span class="d-a">→</span> Payment Intent <span class="d-a">→</span>        <span class="d-l">│</span>
+  <span class="d-l">│</span> Fraud Check <span class="d-a">→</span> Charge <span class="d-a">→</span> Network (Visa/MC) <span class="d-a">→</span> Webhook <span class="d-a">→</span>      <span class="d-l">│</span>
+  <span class="d-l">│</span> Settlement <span class="d-a">→</span> Payout                                       <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Each step: idempotent, retriable, compensatable           <span class="d-l">│</span>
+  <span class="d-l">│</span> State machine for payment lifecycle                       <span class="d-l">│</span>
+  <span class="d-l">│</span> Saga pattern for multi-step payment flows                 <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   TECHNOLOGY:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Ruby on Rails: Main API layer (monorepo)                  │
-  │ MySQL: Primary data store (strong consistency)            │
-  │ Redis: Caching, rate limiting                             │
-  │ Kafka: Event streaming, webhooks                          │
-  │ Sorbet: Gradual typing for Ruby (developed by Stripe)     │
-  │ Temporal: Workflow orchestration (Stripe contributed)     │
-  │                                                           │
-  │ Interesting: Stripe kept Ruby on Rails at massive scale   │
-  │ (proves monolith can work with discipline + good tooling) │
-  └───────────────────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Ruby on Rails: Main API layer (monorepo)                  <span class="d-l">│</span>
+  <span class="d-l">│</span> MySQL: Primary data store (strong consistency)            <span class="d-l">│</span>
+  <span class="d-l">│</span> Redis: Caching, rate limiting                             <span class="d-l">│</span>
+  <span class="d-l">│</span> Kafka: Event streaming, webhooks                          <span class="d-l">│</span>
+  <span class="d-l">│</span> Sorbet: Gradual typing for Ruby (developed by Stripe)     <span class="d-l">│</span>
+  <span class="d-l">│</span> Temporal: Workflow orchestration (Stripe contributed)     <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Interesting: Stripe kept Ruby on Rails at massive scale   <span class="d-l">│</span>
+  <span class="d-l">│</span> (proves monolith can work with discipline + good tooling) <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f10RealWorldArc-26">
@@ -2114,51 +2126,51 @@ DISCORD:
             <div class="diagram"><pre>KEY CHALLENGES: Fan-out for timeline, real-time delivery
 
   TIMELINE:
-  ┌───────────────────────────────────────────────────────────┐
-  │ HYBRID FAN-OUT:                                           │
-  │                                                           │
-  │ Normal users (&lt; 5K followers):                            │
-  │   Tweet → Fan-out on write → Pre-compute followers'       │
-  │   timelines in Redis sorted sets                          │
-  │                                                           │
-  │ High-follower users (celebrities, &gt; 5K followers):        │
-  │   Tweet → Store centrally                                 │
-  │   Timeline request → Merge celebrity tweets on read       │
-  │   (fan-out on read for these users)                       │
-  │                                                           │
-  │ This hybrid solves the "Lady Gaga problem":               │
-  │   80M followers × fan-out on write = 80M Redis writes!    │
-  │   Instead: store once, merge on read.                     │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> HYBRID FAN-OUT:                                           <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Normal users (&lt; 5K followers):                            <span class="d-l">│</span>
+  <span class="d-l">│</span>   Tweet <span class="d-a">→</span> Fan-out on write <span class="d-a">→</span> Pre-compute followers'       <span class="d-l">│</span>
+  <span class="d-l">│</span>   timelines in Redis sorted sets                          <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> High-follower users (celebrities, &gt; 5K followers):        <span class="d-l">│</span>
+  <span class="d-l">│</span>   Tweet <span class="d-a">→</span> Store centrally                                 <span class="d-l">│</span>
+  <span class="d-l">│</span>   Timeline request <span class="d-a">→</span> Merge celebrity tweets on read       <span class="d-l">│</span>
+  <span class="d-l">│</span>   (fan-out on read for these users)                       <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> This hybrid solves the "Lady Gaga problem":               <span class="d-l">│</span>
+  <span class="d-l">│</span>   80M followers × fan-out on write = 80M Redis writes!    <span class="d-l">│</span>
+  <span class="d-l">│</span>   Instead: store once, merge on read.                     <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   INFRASTRUCTURE:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Manhattan: In-house distributed KV store (replaced MySQL) │
-  │ Snowflake: Distributed ID generation                      │
-  │   (timestamp | datacenter | machine | sequence)           │
-  │   Sortable, unique, decentralized (no coordination)       │
-  │   Widely adopted across industry                          │
-  │                                                           │
-  │ GraphQL Federation: Unified API layer                     │
-  │ Kafka: Event backbone                                     │
-  │ Redis: Timeline cache                                     │
-  │ Elasticsearch: Tweet search                               │
-  │ Scala/Java: Backend services                              │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Manhattan: In-house distributed KV store (replaced MySQL) <span class="d-l">│</span>
+  <span class="d-l">│</span> Snowflake: Distributed ID generation                      <span class="d-l">│</span>
+  <span class="d-l">│</span>   (timestamp | datacenter | machine | sequence)           <span class="d-l">│</span>
+  <span class="d-l">│</span>   Sortable, unique, decentralized (no coordination)       <span class="d-l">│</span>
+  <span class="d-l">│</span>   Widely adopted across industry                          <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> GraphQL Federation: Unified API layer                     <span class="d-l">│</span>
+  <span class="d-l">│</span> Kafka: Event backbone                                     <span class="d-l">│</span>
+  <span class="d-l">│</span> Redis: Timeline cache                                     <span class="d-l">│</span>
+  <span class="d-l">│</span> Elasticsearch: Tweet search                               <span class="d-l">│</span>
+  <span class="d-l">│</span> Scala/Java: Backend services                              <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   SNOWFLAKE ID FORMAT:
-  ┌───────────────────────────────────────────────────────────┐
-  │ 64-bit ID:                                                │
-  │ [1 bit unused][41 bits timestamp][5 bits datacenter]      │
-  │ [5 bits machine][12 bits sequence]                        │
-  │                                                           │
-  │ Timestamp: milliseconds since custom epoch                │
-  │ → Roughly sortable by time                                │
-  │ → 69 years of unique IDs                                  │
-  │ → 4096 IDs per millisecond per machine                    │
-  │                                                           │
-  │ No coordination between machines → zero bottleneck        │
-  └───────────────────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> 64-bit ID:                                                <span class="d-l">│</span>
+  <span class="d-l">│</span> [1 bit unused][41 bits timestamp][5 bits datacenter]      <span class="d-l">│</span>
+  <span class="d-l">│</span> [5 bits machine][12 bits sequence]                        <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Timestamp: milliseconds since custom epoch                <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-a">→</span> Roughly sortable by time                                <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-a">→</span> 69 years of unique IDs                                  <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-a">→</span> 4096 IDs per millisecond per machine                    <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> No coordination between machines <span class="d-a">→</span> zero bottleneck        <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f10RealWorldArc-27">
@@ -2169,49 +2181,49 @@ DISCORD:
             <div class="diagram"><pre>SCALE: 1B+ members, millions of concurrent sessions
 
   ARCHITECTURE:
-  ┌──────────────────────────────────────────────────────────┐
-  │ EVOLUTION:                                               │
-  │ 2003: Java monolith (Leo)                                │
-  │ 2010: SOA (hundreds of services)                         │
-  │ 2015: "Superblocks" (group related services)             │
-  │ 2020+: Rest.li framework, multi-product architecture     │
-  │                                                          │
-  │ Rest.li: RESTful service framework (open-sourced)        │
-  │   Type-safe, schema-first API development                │
-  │   Automatic client code generation                       │
-  └──────────────────────────────────────────────────────────┘
+  <span class="d-l">┌──────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> EVOLUTION:                                               <span class="d-l">│</span>
+  <span class="d-l">│</span> 2003: Java monolith (Leo)                                <span class="d-l">│</span>
+  <span class="d-l">│</span> 2010: SOA (hundreds of services)                         <span class="d-l">│</span>
+  <span class="d-l">│</span> 2015: "Superblocks" (group related services)             <span class="d-l">│</span>
+  <span class="d-l">│</span> 2020+: Rest.li framework, multi-product architecture     <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> Rest.li: RESTful service framework (open-sourced)        <span class="d-l">│</span>
+  <span class="d-l">│</span>   Type-safe, schema-first API development                <span class="d-l">│</span>
+  <span class="d-l">│</span>   Automatic client code generation                       <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────────────────────────────────┘</span>
 
   DATA INFRASTRUCTURE:
-  ┌──────────────────────────────────────────────────────────┐
-  │ Espresso: NoSQL document store (LinkedIn's main DB)      │
-  │   Built on MySQL + custom routing + caching              │
-  │   Auto-sharding, online migration                        │
-  │                                                          │
-  │ Ambry: Distributed object store (profile photos, files)  │
-  │                                                          │
-  │ Venice: Derived data platform (read-only stores)         │
-  │   Batch-computed datasets served at low latency          │
-  │   Used for: "People You May Know", feed ranking features │
-  │                                                          │
-  │ Brooklin: Change data capture + streaming bridge         │
-  │                                                          │
-  │ Apache Kafka (created at LinkedIn):                      │
-  │   Backbone for all event streaming                       │
-  │   Trillions of messages per day                          │
-  │   Used for: activity tracking, CDC, metrics, logs        │
-  │                                                          │
-  │ Apache Samza (created at LinkedIn):                      │
-  │   Stream processing framework                            │
-  │   Built on Kafka + YARN                                  │
-  └──────────────────────────────────────────────────────────┘
+  <span class="d-l">┌──────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Espresso: NoSQL document store (LinkedIn's main DB)      <span class="d-l">│</span>
+  <span class="d-l">│</span>   Built on MySQL + custom routing + caching              <span class="d-l">│</span>
+  <span class="d-l">│</span>   Auto-sharding, online migration                        <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> Ambry: Distributed object store (profile photos, files)  <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> Venice: Derived data platform (read-only stores)         <span class="d-l">│</span>
+  <span class="d-l">│</span>   Batch-computed datasets served at low latency          <span class="d-l">│</span>
+  <span class="d-l">│</span>   Used for: "People You May Know", feed ranking features <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> Brooklin: Change data capture + streaming bridge         <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> Apache Kafka (created at LinkedIn):                      <span class="d-l">│</span>
+  <span class="d-l">│</span>   Backbone for all event streaming                       <span class="d-l">│</span>
+  <span class="d-l">│</span>   Trillions of messages per day                          <span class="d-l">│</span>
+  <span class="d-l">│</span>   Used for: activity tracking, CDC, metrics, logs        <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> Apache Samza (created at LinkedIn):                      <span class="d-l">│</span>
+  <span class="d-l">│</span>   Stream processing framework                            <span class="d-l">│</span>
+  <span class="d-l">│</span>   Built on Kafka + YARN                                  <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────────────────────────────────┘</span>
 
   GRAPH &amp; AI:
-  ┌──────────────────────────────────────────────────────────┐
-  │ Economic Graph: World's professionals, companies, skills │
-  │ Recommendation: Graph neural networks for PYMK           │
-  │ Search: Query understanding + ML ranking                 │
-  │ Feed: Real-time ML ranking (engagement + relevance)      │
-  └──────────────────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌──────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Economic Graph: World's professionals, companies, skills <span class="d-l">│</span>
+  <span class="d-l">│</span> Recommendation: Graph neural networks for PYMK           <span class="d-l">│</span>
+  <span class="d-l">│</span> Search: Query understanding + ML ranking                 <span class="d-l">│</span>
+  <span class="d-l">│</span> Feed: Real-time ML ranking (engagement + relevance)      <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f10RealWorldArc-28">
@@ -2221,51 +2233,51 @@ DISCORD:
           <div class="q-a">
             <div class="diagram"><pre>PATTERNS EVERY TECH GIANT USES:
 
-  ┌───────────────────────────────────────────────────────────┐
-  │ 1. EVENT-DRIVEN BACKBONE                                  │
-  │    Kafka (or equivalent) as the central nervous system    │
-  │    All state changes published as events                  │
-  │    Derived stores populated via CDC/events                │
-  │    Used by: ALL of them                                   │
-  │                                                           │
-  │ 2. CELL / BLAST RADIUS ISOLATION                          │
-  │    Partition users/tenants into independent cells         │
-  │    Failure contained within a cell                        │
-  │    Used by: AWS, Slack, Microsoft                         │
-  │                                                           │
-  │ 3. MULTI-STAGE ML PIPELINE                                │
-  │    Retrieval (fast, cheap) → Ranking (ML, expensive)      │
-  │    Used by: Netflix, YouTube, LinkedIn, Uber              │
-  │                                                           │
-  │ 4. CACHING AT EVERY LAYER                                 │
-  │    CDN → Gateway → App (Redis) → DB query cache           │
-  │    Cache hit rates: 90-99.8%                              │
-  │    Used by: ALL of them                                   │
-  │                                                           │
-  │ 5. CUSTOM INFRASTRUCTURE                                  │
-  │    At extreme scale, off-the-shelf doesn't work           │
-  │    Build custom: storage (DynamoDB), messaging (Kafka),   │
-  │    file system (Colossus), graph store (TAO)              │
-  │    Lesson: you DON'T need this until you're at their scale│
-  │                                                           │
-  │ 6. OBSERVABILITY-FIRST                                    │
-  │    Distributed tracing across all services                │
-  │    Metrics on everything                                  │
-  │    Automated anomaly detection                            │
-  │    Used by: ALL of them                                   │
-  │                                                           │
-  │ 7. PROGRESSIVE DEPLOYMENT                                 │
-  │    Canary → 1% → 5% → 25% → 100%                          │
-  │    Automatic rollback on metric regression                │
-  │    Feature flags for instant killswitch                   │
-  │    Used by: ALL of them                                   │
-  │                                                           │
-  │ 8. SCHEMA-FIRST APIS                                      │
-  │    Protobuf, Thrift, or OpenAPI schemas                   │
-  │    Auto-generated clients                                 │
-  │    Schema registry for evolution                          │
-  │    Used by: Google, Meta, LinkedIn, Uber                  │
-  └───────────────────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> 1. EVENT-DRIVEN BACKBONE                                  <span class="d-l">│</span>
+  <span class="d-l">│</span>    Kafka (or equivalent) as the central nervous system    <span class="d-l">│</span>
+  <span class="d-l">│</span>    All state changes published as events                  <span class="d-l">│</span>
+  <span class="d-l">│</span>    Derived stores populated via CDC/events                <span class="d-l">│</span>
+  <span class="d-l">│</span>    Used by: ALL of them                                   <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 2. CELL / BLAST RADIUS ISOLATION                          <span class="d-l">│</span>
+  <span class="d-l">│</span>    Partition users/tenants into independent cells         <span class="d-l">│</span>
+  <span class="d-l">│</span>    Failure contained within a cell                        <span class="d-l">│</span>
+  <span class="d-l">│</span>    Used by: AWS, Slack, Microsoft                         <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 3. MULTI-STAGE ML PIPELINE                                <span class="d-l">│</span>
+  <span class="d-l">│</span>    Retrieval (fast, cheap) <span class="d-a">→</span> Ranking (ML, expensive)      <span class="d-l">│</span>
+  <span class="d-l">│</span>    Used by: Netflix, YouTube, LinkedIn, Uber              <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 4. CACHING AT EVERY LAYER                                 <span class="d-l">│</span>
+  <span class="d-l">│</span>    CDN <span class="d-a">→</span> Gateway <span class="d-a">→</span> App (Redis) <span class="d-a">→</span> DB query cache           <span class="d-l">│</span>
+  <span class="d-l">│</span>    Cache hit rates: 90-99.8%                              <span class="d-l">│</span>
+  <span class="d-l">│</span>    Used by: ALL of them                                   <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 5. CUSTOM INFRASTRUCTURE                                  <span class="d-l">│</span>
+  <span class="d-l">│</span>    At extreme scale, off-the-shelf doesn't work           <span class="d-l">│</span>
+  <span class="d-l">│</span>    Build custom: storage (DynamoDB), messaging (Kafka),   <span class="d-l">│</span>
+  <span class="d-l">│</span>    file system (Colossus), graph store (TAO)              <span class="d-l">│</span>
+  <span class="d-l">│</span>    Lesson: you DON'T need this until you're at their scale<span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 6. OBSERVABILITY-FIRST                                    <span class="d-l">│</span>
+  <span class="d-l">│</span>    Distributed tracing across all services                <span class="d-l">│</span>
+  <span class="d-l">│</span>    Metrics on everything                                  <span class="d-l">│</span>
+  <span class="d-l">│</span>    Automated anomaly detection                            <span class="d-l">│</span>
+  <span class="d-l">│</span>    Used by: ALL of them                                   <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 7. PROGRESSIVE DEPLOYMENT                                 <span class="d-l">│</span>
+  <span class="d-l">│</span>    Canary <span class="d-a">→</span> 1% <span class="d-a">→</span> 5% <span class="d-a">→</span> 25% <span class="d-a">→</span> 100%                          <span class="d-l">│</span>
+  <span class="d-l">│</span>    Automatic rollback on metric regression                <span class="d-l">│</span>
+  <span class="d-l">│</span>    Feature flags for instant killswitch                   <span class="d-l">│</span>
+  <span class="d-l">│</span>    Used by: ALL of them                                   <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 8. SCHEMA-FIRST APIS                                      <span class="d-l">│</span>
+  <span class="d-l">│</span>    Protobuf, Thrift, or OpenAPI schemas                   <span class="d-l">│</span>
+  <span class="d-l">│</span>    Auto-generated clients                                 <span class="d-l">│</span>
+  <span class="d-l">│</span>    Schema registry for evolution                          <span class="d-l">│</span>
+  <span class="d-l">│</span>    Used by: Google, Meta, LinkedIn, Uber                  <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f10RealWorldArc-29">
@@ -2275,48 +2287,48 @@ DISCORD:
           <div class="q-a">
             <div class="diagram"><pre>LESSONS APPLICABLE AT ANY SCALE:
 
-  ┌───────────────────────────────────────────────────────────┐
-  │ 1. START SIMPLE, ADD COMPLEXITY ONLY WHEN PROVEN NEEDED   │
-  │    Stripe runs on Rails. LinkedIn started as a monolith.  │
-  │    Complexity should be earned, not assumed.              │
-  │                                                           │
-  │ 2. CONWAY'S LAW IS REAL                                   │
-  │    Your architecture WILL mirror your org structure.      │
-  │    Use inverse Conway: structure teams for the arch you   │
-  │    want. Amazon's 2-pizza teams → microservices.          │
-  │                                                           │
-  │ 3. EVENTS ARE THE BACKBONE                                │
-  │    Kafka (or similar) should be your integration layer.   │
-  │    Services publish events, consumers build derived state.│
-  │    This is the most important architectural decision      │
-  │    after your database choice.                            │
-  │                                                           │
-  │ 4. CACHE AGGRESSIVELY, INVALIDATE CAREFULLY               │
-  │    Meta gets 99.8% cache hit rates.                       │
-  │    Cache everything that can be stale for even 1 second.  │
-  │    TTL + event-driven invalidation = best combination.    │
-  │                                                           │
-  │ 5. DESIGN FOR FAILURE FROM DAY ONE                        │
-  │    Timeouts on every call. Circuit breakers on every dep. │
-  │    Retry with backoff + jitter. Idempotency everywhere.   │
-  │    These patterns cost nothing to add early but are       │
-  │    painful to retrofit later.                             │
-  │                                                           │
-  │ 6. OBSERVABILITY IS NOT OPTIONAL                          │
-  │    Structured logs, distributed traces, metrics.          │
-  │    If you can't observe it, you can't debug it.           │
-  │    OpenTelemetry is the industry standard.                │
-  │                                                           │
-  │ 7. IDEMPOTENCY IS THE MOST IMPORTANT PATTERN              │
-  │    Networks fail. Retries happen. Duplicates happen.      │
-  │    Make every operation safe to retry.                    │
-  │    This is non-negotiable for financial systems.          │
-  │                                                           │
-  │ 8. DON'T COPY GOOGLE/NETFLIX ARCHITECTURE                 │
-  │    They built for billions of users with thousands of     │
-  │    engineers. You probably have neither.                  │
-  │    Use their PRINCIPLES, not their SOLUTIONS.             │
-  └───────────────────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> 1. START SIMPLE, ADD COMPLEXITY ONLY WHEN PROVEN NEEDED   <span class="d-l">│</span>
+  <span class="d-l">│</span>    Stripe runs on Rails. LinkedIn started as a monolith.  <span class="d-l">│</span>
+  <span class="d-l">│</span>    Complexity should be earned, not assumed.              <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 2. CONWAY'S LAW IS REAL                                   <span class="d-l">│</span>
+  <span class="d-l">│</span>    Your architecture WILL mirror your org structure.      <span class="d-l">│</span>
+  <span class="d-l">│</span>    Use inverse Conway: structure teams for the arch you   <span class="d-l">│</span>
+  <span class="d-l">│</span>    want. Amazon's 2-pizza teams <span class="d-a">→</span> microservices.          <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 3. EVENTS ARE THE BACKBONE                                <span class="d-l">│</span>
+  <span class="d-l">│</span>    Kafka (or similar) should be your integration layer.   <span class="d-l">│</span>
+  <span class="d-l">│</span>    Services publish events, consumers build derived state.<span class="d-l">│</span>
+  <span class="d-l">│</span>    This is the most important architectural decision      <span class="d-l">│</span>
+  <span class="d-l">│</span>    after your database choice.                            <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 4. CACHE AGGRESSIVELY, INVALIDATE CAREFULLY               <span class="d-l">│</span>
+  <span class="d-l">│</span>    Meta gets 99.8% cache hit rates.                       <span class="d-l">│</span>
+  <span class="d-l">│</span>    Cache everything that can be stale for even 1 second.  <span class="d-l">│</span>
+  <span class="d-l">│</span>    TTL + event-driven invalidation = best combination.    <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 5. DESIGN FOR FAILURE FROM DAY ONE                        <span class="d-l">│</span>
+  <span class="d-l">│</span>    Timeouts on every call. Circuit breakers on every dep. <span class="d-l">│</span>
+  <span class="d-l">│</span>    Retry with backoff + jitter. Idempotency everywhere.   <span class="d-l">│</span>
+  <span class="d-l">│</span>    These patterns cost nothing to add early but are       <span class="d-l">│</span>
+  <span class="d-l">│</span>    painful to retrofit later.                             <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 6. OBSERVABILITY IS NOT OPTIONAL                          <span class="d-l">│</span>
+  <span class="d-l">│</span>    Structured logs, distributed traces, metrics.          <span class="d-l">│</span>
+  <span class="d-l">│</span>    If you can't observe it, you can't debug it.           <span class="d-l">│</span>
+  <span class="d-l">│</span>    OpenTelemetry is the industry standard.                <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 7. IDEMPOTENCY IS THE MOST IMPORTANT PATTERN              <span class="d-l">│</span>
+  <span class="d-l">│</span>    Networks fail. Retries happen. Duplicates happen.      <span class="d-l">│</span>
+  <span class="d-l">│</span>    Make every operation safe to retry.                    <span class="d-l">│</span>
+  <span class="d-l">│</span>    This is non-negotiable for financial systems.          <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 8. DON'T COPY GOOGLE/NETFLIX ARCHITECTURE                 <span class="d-l">│</span>
+  <span class="d-l">│</span>    They built for billions of users with thousands of     <span class="d-l">│</span>
+  <span class="d-l">│</span>    engineers. You probably have neither.                  <span class="d-l">│</span>
+  <span class="d-l">│</span>    Use their PRINCIPLES, not their SOLUTIONS.             <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f10RealWorldArc-30">

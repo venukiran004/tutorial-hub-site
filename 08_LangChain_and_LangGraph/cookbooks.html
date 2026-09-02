@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1126,13 +1138,13 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <div class="keyterms"><span class="kt">two stages</span><span class="kt">Stage 1 must not miss</span><span class="kt">Stage 2 must rank correctly</span>
             </div>
             <p>Every serious <abbr title="retrieval-augmented generation">RAG</abbr> retriever is <strong>two stages</strong>, and almost every strategy below is just "which stage am I improving?"</p>
-            <div class="diagram"><pre>        ┌──────────── STAGE 1: RECALL ────────────┐   ┌───── STAGE 2: PRECISION ───┐
-query ─▶│ cast a WIDE net, cheaply → top ~20-50    │──▶│ re-score them EXPENSIVELY │──▶ top 3-5 ─▶ LLM
-        │  • dense similarity (bi-encoder)         │   │  • cross-encoder reranker │
-        │  • BM25 (keyword)                        │   │  (slow, very accurate)    │
-        │  • hybrid = both, fused by RRF           │   └───────────────────────────┘
-        │  • MMR = drop near-duplicates            │
-        └─────────────────────────────────────────┘
+            <div class="diagram"><pre>        <span class="d-l">┌────────────</span> STAGE 1: RECALL <span class="d-l">────────────┐</span>   <span class="d-l">┌─────</span> STAGE 2: PRECISION <span class="d-l">───┐</span>
+query <span class="d-l">─</span><span class="d-a">►</span><span class="d-l">│</span> cast a WIDE net, cheaply <span class="d-a">→</span> top ~20-50    <span class="d-l">│──</span><span class="d-a">►</span><span class="d-l">│</span> re-score them EXPENSIVELY <span class="d-l">│──</span><span class="d-a">►</span> top 3-5 <span class="d-l">─</span><span class="d-a">►</span> LLM
+        <span class="d-l">│</span>  • dense similarity (bi-encoder)         <span class="d-l">│</span>   <span class="d-l">│</span>  • cross-encoder reranker <span class="d-l">│</span>
+        <span class="d-l">│</span>  • BM25 (keyword)                        <span class="d-l">│</span>   <span class="d-l">│</span>  (slow, very accurate)    <span class="d-l">│</span>
+        <span class="d-l">│</span>  • hybrid = both, fused by RRF           <span class="d-l">│</span>   <span class="d-l">└───────────────────────────┘</span>
+        <span class="d-l">│</span>  • MMR = drop near-duplicates            <span class="d-l">│</span>
+        <span class="d-l">└─────────────────────────────────────────┘</span>
         "don't MISS the right doc"                     "put the right doc FIRST"</pre></div>
             <ul>
               <li><strong>Stage 1 must not miss</strong> the answer (high <em>recall</em>) — it's fast and approximate, so cast wide (<code>fetch_k=20-50</code>).</li>
@@ -1153,18 +1165,18 @@ query ─▶│ cast a WIDE net, cheaply → top ~20-50    │──▶│ re-sc
             </div>
             <p>This is the concept that makes the two-stage design make sense, and it's the thing most people get fuzzy on.</p>
             <div class="diagram"><pre>BI-ENCODER (retrieval — fast)          CROSS-ENCODER (reranking — accurate)
-──────────────────────────────         ──────────────────────────────────────
- query ─▶[encoder]─▶ vec_q             ┌─────────────────────────┐
-                        │              │  [query  SEP  document] │  ← BOTH together
- doc   ─▶[encoder]─▶ vec_d             │        [encoder]        │     in ONE pass
-                        │              │            │            │
-              cosine(vec_q, vec_d)     │      relevance score    │
-                                       └─────────────────────────┘
- ✓ Docs embedded ONCE, offline         ✗ Must run at QUERY time for EVERY (q,d) pair
- ✓ Query = 1 embed + ANN search        ✗ 100 docs = 100 forward passes
- ✓ Scales to millions                  ✗ Can't pre-compute, can't index
- ✗ Query &amp; doc never "see" each other  ✓ Full attention between q and d → far more accurate
-   → misses subtle relevance</pre></div>
+<span class="d-l">──────────────────────────────</span>         <span class="d-l">──────────────────────────────────────</span>
+ query <span class="d-l">─</span><span class="d-a">►</span>[encoder]<span class="d-l">─</span><span class="d-a">►</span> vec_q             <span class="d-l">┌─────────────────────────┐</span>
+                        <span class="d-l">│</span>              <span class="d-l">│</span>  [query  SEP  document] <span class="d-l">│</span>  <span class="d-a">←</span> BOTH together
+ doc   <span class="d-l">─</span><span class="d-a">►</span>[encoder]<span class="d-l">─</span><span class="d-a">►</span> vec_d             <span class="d-l">│</span>        [encoder]        <span class="d-l">│</span>     in ONE pass
+                        <span class="d-l">│</span>              <span class="d-l">│</span>            <span class="d-l">│</span>            <span class="d-l">│</span>
+              cosine(vec_q, vec_d)     <span class="d-l">│</span>      relevance score    <span class="d-l">│</span>
+                                       <span class="d-l">└─────────────────────────┘</span>
+ √ Docs embedded ONCE, offline         × Must run at QUERY time for EVERY (q,d) pair
+ √ Query = 1 embed + ANN search        × 100 docs = 100 forward passes
+ √ Scales to millions                  × Can't pre-compute, can't index
+ × Query &amp; doc never "see" each other  √ Full attention between q and d <span class="d-a">→</span> far more accurate
+   <span class="d-a">→</span> misses subtle relevance</pre></div>
             <div class="tbl-wrap">
               <table class="t3">
                 <thead>
@@ -1264,12 +1276,12 @@ vectorstore = Chroma.<span class="fn">from_documents</span>(chunks, embeddings, 
             <p><strong>Intuition.</strong> Embed the query, find the chunks whose vectors point in the most similar <em>direction</em>. Direction ≈ meaning, so this matches <strong>paraphrase</strong> ("how do I get my money back?" finds a "Refund Policy" chunk with no shared words).</p>
             <p><strong>Formula — cosine similarity</strong> (angle between vectors, ignores length):</p>
             <div class="diagram"><pre>                  A · B            Σ aᵢbᵢ
-cos(A, B) = ───────────────  = ──────────────────
+cos(A, B) = <span class="d-l">───────────────</span>  = <span class="d-l">──────────────────</span>
               ‖A‖ · ‖B‖        √Σaᵢ² · √Σbᵢ²
 
-  = 1.0  → identical direction (same meaning)
-  = 0.0  → orthogonal (unrelated)
-  = -1.0 → opposite</pre></div>
+  = 1.0  <span class="d-a">→</span> identical direction (same meaning)
+  = 0.0  <span class="d-a">→</span> orthogonal (unrelated)
+  = -1.0 <span class="d-a">→</span> opposite</pre></div>
             <p><strong>From scratch</strong> (verified output):</p>
             <pre class="code" data-lang="python"><code><span class="kw">import</span> math
 
@@ -1317,14 +1329,14 @@ retriever = vectorstore.<span class="fn">as_retriever</span>(
             <p><strong>Formula:</strong>
             </p>
             <div class="diagram"><pre>                       f(q,D) · (k₁ + 1)
-BM25(D,Q) = Σ IDF(q) · ─────────────────────────────────
+BM25(D,Q) = Σ IDF(q) · <span class="d-l">─────────────────────────────────</span>
             q∈Q         f(q,D) + k₁ · (1 - b + b · |D|/avgdl)
 
   f(q,D) = times term q appears in doc D       k₁ ≈ 1.5 (TF saturation)
   |D|    = length of D,  avgdl = mean length   b  ≈ 0.75 (length normalization)
 
               N - n(q) + 0.5
-IDF(q) = ln( ──────────────── + 1 )      N = total docs, n(q) = docs containing q
+IDF(q) = ln( <span class="d-l">────────────────</span> + 1 )      N = total docs, n(q) = docs containing q
                 n(q) + 0.5</pre></div>
             <p><strong>From scratch</strong> (verified output):</p>
             <pre class="code" data-lang="python"><code><span class="kw">import</span> math
@@ -1397,9 +1409,9 @@ bm25_retriever.<span class="fn">invoke</span>(<span class="str">"refund policy e
             <div class="keyterms"><span class="kt">Intuition</span><span class="kt">both</span><span class="kt">The merge problem</span><span class="kt">cannot just add them</span><span class="kt">LangChain</span><span class="kt">Tuning weights</span>
             </div>
             <p><strong>Intuition.</strong> Run <strong>both</strong> retrievers and merge their results. Dense catches meaning, sparse catches exact terms. The union has far better recall than either alone.</p>
-            <div class="diagram"><pre>              ┌─▶ dense (bi-encoder) ─▶ [d1, d5, d2, ...] ─┐
-query ────────┤                                            ├─▶ FUSE (RRF) ─▶ merged ranking
-              └─▶ sparse (BM25)      ─▶ [d5, d9, d1, ...] ─┘</pre></div>
+            <div class="diagram"><pre>              <span class="d-l">┌─</span><span class="d-a">►</span> dense (bi-encoder) <span class="d-l">─</span><span class="d-a">►</span> [d1, d5, d2, ...] <span class="d-l">─┐</span>
+query <span class="d-l">────────┤</span>                                            <span class="d-l">├─</span><span class="d-a">►</span> FUSE (RRF) <span class="d-l">─</span><span class="d-a">►</span> merged ranking
+              <span class="d-l">└─</span><span class="d-a">►</span> sparse (BM25)      <span class="d-l">─</span><span class="d-a">►</span> [d5, d9, d1, ...] <span class="d-l">─┘</span></pre></div>
             <p><strong>The merge problem:</strong> dense scores are cosines (~0.0–1.0), <abbr title="Best Match 25, the classic keyword-ranking function">BM25</abbr> scores are unbounded (0 → 15+). You <strong>cannot just add them</strong> — different scales. Two options: normalize both (fragile, corpus-dependent), or <strong>ignore the scores and use only the ranks</strong> → that's <abbr title="reciprocal rank fusion — merges two ranked lists by summing 1/(k+rank), needing no score calibration">RRF</abbr>, next section.</p>
             <p><strong>LangChain</strong> — <code>EnsembleRetriever</code> does hybrid + RRF fusion for you:</p>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> langchain.retrievers <span class="kw">import</span> EnsembleRetriever
@@ -1428,12 +1440,12 @@ hybrid.<span class="fn">invoke</span>(<span class="str">"what is the refund wind
             <p><strong>Formula:</strong>
             </p>
             <div class="diagram"><pre>                      1
-RRF(d) =  Σ    ─────────────────           k ≈ 60 (dampens the top ranks)
+RRF(d) =  Σ    <span class="d-l">─────────────────</span>           k ≈ 60 (dampens the top ranks)
         lists   k + rank(d, list)          rank is 1-based
 
 Why k=60? It flattens the curve so the #1 slot isn't overwhelming:
-  rank 1 → 1/61 = 0.0164        rank 5  → 1/65 = 0.0154
-  rank 2 → 1/62 = 0.0161        rank 20 → 1/80 = 0.0125
+  rank 1 <span class="d-a">→</span> 1/61 = 0.0164        rank 5  <span class="d-a">→</span> 1/65 = 0.0154
+  rank 2 <span class="d-a">→</span> 1/62 = 0.0161        rank 20 <span class="d-a">→</span> 1/80 = 0.0125
 A doc at rank 2 in BOTH lists (0.0323) beats a doc at rank 1 in ONE (0.0164).</pre></div>
             <p><strong>From scratch</strong> (verified output):</p>
             <pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">reciprocal_rank_fusion</span>(ranked_lists, k=<span class="num">60</span>):
@@ -1470,11 +1482,11 @@ sparse = [<span class="str">"C"</span>, <span class="str">"A"</span>, <span clas
             <p><strong>Formula</strong> (greedy — pick one at a time):</p>
             <div class="diagram"><pre>MMR = argmax [ λ · sim(dᵢ, q)  -  (1-λ) · max sim(dᵢ, dⱼ) ]
       dᵢ∈R\S                            dⱼ∈S
-              └── relevance ──┘         └── redundancy ──┘
+              <span class="d-l">└──</span> relevance <span class="d-l">──┘</span>         <span class="d-l">└──</span> redundancy <span class="d-l">──┘</span>
 
-  λ = 1.0 → pure relevance (identical to plain similarity search)
-  λ = 0.5 → balanced
-  λ = 0.0 → pure diversity (relevance ignored)
+  λ = 1.0 <span class="d-a">→</span> pure relevance (identical to plain similarity search)
+  λ = 0.5 <span class="d-a">→</span> balanced
+  λ = 0.0 <span class="d-a">→</span> pure diversity (relevance ignored)
   S = already-selected docs,  R = candidate pool</pre></div>
             <p><strong>From scratch</strong> (verified output):</p>
             <pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">mmr</span>(query_vec, doc_vecs, k=<span class="num">3</span>, lambda_mult=<span class="num">0.5</span>):
@@ -1501,9 +1513,9 @@ dv = [[<span class="num">0.90</span>, <span class="num">0.10</span>],   <span cl
 <span class="fn">print</span>(<span class="fn">mmr</span>(qv, dv, k=<span class="num">3</span>, lambda_mult=<span class="num">1.0</span>))   <span class="cmt"># [0, 1, 2]  ← grabs the near-duplicate d1!</span>
 <span class="fn">print</span>(<span class="fn">mmr</span>(qv, dv, k=<span class="num">3</span>, lambda_mult=<span class="num">0.3</span>))   <span class="cmt"># [0, 3, 2]  ← skips d1, takes the diverse d3</span></code></pre>
             <p>The 2nd pick at <code>λ=0.3</code>, after <code>d0</code> is selected — the redundancy penalty flips the winner:</p>
-            <div class="diagram"><pre>d1: 0.3·0.9912 − 0.7·0.9998 = −0.4025   ← most relevant, but a near-dup → heavily penalized
+            <div class="diagram"><pre>d1: 0.3·0.9912 − 0.7·0.9998 = −0.4025   <span class="d-a">←</span> most relevant, but a near-dup <span class="d-a">→</span> heavily penalized
 d2: 0.3·0.7071 − 0.7·0.7809 = −0.3345
-d3: 0.3·0.2169 − 0.7·0.3234 = −0.1613   ← WINS: least redundant</pre></div>
+d3: 0.3·0.2169 − 0.7·0.3234 = −0.1613   <span class="d-a">←</span> WINS: least redundant</pre></div>
             <p><strong>LangChain:</strong>
             </p>
             <pre class="code" data-lang="python"><code>retriever = vectorstore.<span class="fn">as_retriever</span>(
@@ -1529,7 +1541,7 @@ d3: 0.3·0.2169 − 0.7·0.3234 = −0.1613   ← WINS: least redundant</pre></d
             <p><strong>Intuition.</strong> Stage 1 gave you ~20 plausible candidates but its ordering is mediocre (the <abbr title="a model that embeds query and passage separately, so passages can be indexed in advance">bi-encoder</abbr> never let the query and doc <em>interact</em>). A <strong><abbr title="a model that scores a query and passage together in one pass, more accurate but slower than separate embeddings">cross-encoder</abbr></strong> reads <code>[query SEP doc]</code> together and scores true relevance. Slow — so only on the shortlist. <strong>This is usually the single biggest quality win in <abbr title="retrieval-augmented generation">RAG</abbr> for the least effort.</strong>
             </p>
             <div class="diagram"><pre>        [bi-encoder retrieval]              [cross-encoder rerank]
-query ──▶ 10,000 docs → top 20   ──────▶   score each (q, dᵢ) pair → top 4 ──▶ LLM
+query <span class="d-l">──</span><span class="d-a">►</span> 10,000 docs <span class="d-a">→</span> top 20   <span class="d-l">──────</span><span class="d-a">►</span>   score each (q, dᵢ) pair <span class="d-a">→</span> top 4 <span class="d-l">──</span><span class="d-a">►</span> LLM
           ~5ms, approximate                 20 × ~20ms = ~400ms, accurate</pre></div>
             <p><strong>From scratch</strong> (the mechanism — a real cross-encoder is a fine-tuned transformer):</p>
             <pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">rerank</span>(query, docs, cross_encoder, top_n=<span class="num">4</span>):
@@ -1567,19 +1579,19 @@ compression_retriever.<span class="fn">invoke</span>(<span class="str">"what is 
             <h3>10. The Full Pipeline (everything combined)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f17RAGImplement-9"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>                    ┌──────────────── STAGE 1: RECALL (wide, cheap) ────────────────┐
-query ──▶ rewrite ──┤  dense (k=20) ──┐                                             │
-                    │                 ├──▶ RRF fuse ──▶ MMR (drop near-dups) ──▶ 20 │
-                    │  BM25  (k=20) ──┘                                             │
-                    └──────────────────────────────┬────────────────────────────────┘
-                                                    ▼
-                    ┌──────── STAGE 2: PRECISION ────────┐
-                    │  cross-encoder rerank → top 4                                 │
-                    └──────────────────┬─────────────────┘
-                                       ▼
-                          no-context guard (score &lt; threshold → abstain)
-                                       ▼
-                          build grounded prompt ──▶ LLM ──▶ answer + citations</pre></div>
+            <div class="diagram"><pre>                    <span class="d-l">┌────────────────</span> STAGE 1: RECALL (wide, cheap) <span class="d-l">────────────────┐</span>
+query <span class="d-l">──</span><span class="d-a">►</span> rewrite <span class="d-l">──┤</span>  dense (k=20) <span class="d-l">──┐</span>                                             <span class="d-l">│</span>
+                    <span class="d-l">│</span>                 <span class="d-l">├──</span><span class="d-a">►</span> RRF fuse <span class="d-l">──</span><span class="d-a">►</span> MMR (drop near-dups) <span class="d-l">──</span><span class="d-a">►</span> 20 <span class="d-l">│</span>
+                    <span class="d-l">│</span>  BM25  (k=20) <span class="d-l">──┘</span>                                             <span class="d-l">│</span>
+                    <span class="d-l">└──────────────────────────────┬────────────────────────────────┘</span>
+                                                    <span class="d-a">▼</span>
+                    <span class="d-l">┌────────</span> STAGE 2: PRECISION <span class="d-l">────────┐</span>
+                    <span class="d-l">│</span>  cross-encoder rerank <span class="d-a">→</span> top 4                                 <span class="d-l">│</span>
+                    <span class="d-l">└──────────────────┬─────────────────┘</span>
+                                       <span class="d-a">▼</span>
+                          no-context guard (score &lt; threshold <span class="d-a">→</span> abstain)
+                                       <span class="d-a">▼</span>
+                          build grounded prompt <span class="d-l">──</span><span class="d-a">►</span> LLM <span class="d-l">──</span><span class="d-a">►</span> answer + citations</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> langchain.retrievers <span class="kw">import</span> EnsembleRetriever, ContextualCompressionRetriever
 <span class="kw">from</span> langchain.retrievers.document_compressors <span class="kw">import</span> CrossEncoderReranker
 <span class="kw">from</span> langchain_community.cross_encoders <span class="kw">import</span> HuggingFaceCrossEncoder
@@ -1957,9 +1969,9 @@ tools = [search, calculator]</code></pre></div><button class="reveal">Reveal ans
             <div class="keyterms"><span class="kt">Core idea</span><span class="kt">Use when</span><span class="kt">Don&#x27;t use when</span>
             </div>
             <p><strong>Core idea:</strong> <em>one</em> <abbr title="large language model">LLM</abbr> call classifies the request → a conditional edge sends it down one of N known paths. No loop, no tools. The cheapest "agentic" thing that works.</p>
-            <div class="diagram"><pre>query ─▶ [classify] ─┬─▶ billing_handler ──▶ END
-                     ├─▶ tech_handler    ──▶ END
-                     └─▶ general_handler ──▶ END</pre></div>
+            <div class="diagram"><pre>query <span class="d-l">─</span><span class="d-a">►</span> [classify] <span class="d-l">─┬─</span><span class="d-a">►</span> billing_handler <span class="d-l">──</span><span class="d-a">►</span> END
+                     <span class="d-l">├─</span><span class="d-a">►</span> tech_handler    <span class="d-l">──</span><span class="d-a">►</span> END
+                     <span class="d-l">└─</span><span class="d-a">►</span> general_handler <span class="d-l">──</span><span class="d-a">►</span> END</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field
 
 <span class="kw">class</span> <span class="fn">Route</span>(BaseModel):
@@ -1996,11 +2008,11 @@ app = g.<span class="fn">compile</span>()</code></pre>
             </div>
             <p><strong>Core idea:</strong> the workhorse. <abbr title="large language model">LLM</abbr> <strong>Reasons</strong> about what to do, <strong>Acts</strong> by calling a tool, sees the result, repeats until it can answer. <em>This is what most people mean by "an agent."</em>
             </p>
-            <div class="diagram"><pre>        ┌──────────────────────────────┐
-        ▼                              │
- [agent] ──has tool_calls?──▶ [tools] ─┘
-        │
-        └──no──▶ END</pre></div>
+            <div class="diagram"><pre>        <span class="d-l">┌──────────────────────────────┐</span>
+        <span class="d-a">▼</span>                              <span class="d-l">│</span>
+ [agent] <span class="d-l">──</span>has tool_calls?<span class="d-l">──</span><span class="d-a">►</span> [tools] <span class="d-l">─┘</span>
+        <span class="d-l">│</span>
+        <span class="d-l">└──</span>no<span class="d-l">──</span><span class="d-a">►</span> END</pre></div>
             <p><strong>The one-liner (use this in real life):</strong>
             </p>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> langgraph.prebuilt <span class="kw">import</span> create_react_agent
@@ -2038,9 +2050,9 @@ app = g.<span class="fn">compile</span>()</code></pre>
             <div class="keyterms"><span class="kt">Core idea</span><span class="kt">critique your own output</span><span class="kt">Use when</span><span class="kt">Don&#x27;t use when</span>
             </div>
             <p><strong>Core idea:</strong> generate → <strong>critique your own output</strong> → revise. Loop a fixed number of times. Quality goes up, cost goes up linearly.</p>
-            <div class="diagram"><pre>[generate] ──▶ [critique] ──▶ good enough? ──no──▶ [generate] (with critique)
-                                   │yes
-                                   ▼
+            <div class="diagram"><pre>[generate] <span class="d-l">──</span><span class="d-a">►</span> [critique] <span class="d-l">──</span><span class="d-a">►</span> good enough? <span class="d-l">──</span>no<span class="d-l">──</span><span class="d-a">►</span> [generate] (with critique)
+                                   <span class="d-l">│</span>yes
+                                   <span class="d-a">▼</span>
                                   END</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">class</span> <span class="fn">ReflectState</span>(TypedDict):
     messages: Annotated[list, add_messages]
@@ -2081,9 +2093,9 @@ app = g.<span class="fn">compile</span>()</code></pre>
             </div>
             <p><strong>Core idea:</strong> Reflection <strong>forgets</strong> its lessons after each run. Reflexion writes the lesson into <strong>episodic memory</strong> that survives across trials/sessions — so it stops repeating the same mistake. <em>"Reinforcement learning where the gradient is natural language."</em>
             </p>
-            <div class="diagram"><pre>[act] ──▶ [evaluate] ──fail──▶ [reflect: write a LESSON] ──▶ memory ──┐
-   ▲                                                                  │
-   └────────────── next trial reads the lessons ──────────────────────┘</pre></div>
+            <div class="diagram"><pre>[act] <span class="d-l">──</span><span class="d-a">►</span> [evaluate] <span class="d-l">──</span>fail<span class="d-l">──</span><span class="d-a">►</span> [reflect: write a LESSON] <span class="d-l">──</span><span class="d-a">►</span> memory <span class="d-l">──┐</span>
+   <span class="d-a">▲</span>                                                                  <span class="d-l">│</span>
+   <span class="d-l">└──────────────</span> next trial reads the lessons <span class="d-l">──────────────────────┘</span></pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">class</span> <span class="fn">ReflexionState</span>(TypedDict):
     task: str
     attempt: str
@@ -2130,7 +2142,7 @@ app = g.<span class="fn">compile</span>(checkpointer=checkpointer) <span class="
             <div class="keyterms"><span class="kt">Core idea</span><span class="kt">whole plan up front</span><span class="kt">re-plan</span><span class="kt">Use when</span><span class="kt">Don&#x27;t use when</span>
             </div>
             <p><strong>Core idea:</strong> make the <strong>whole plan up front</strong>, execute steps one by one, then <strong>re-plan</strong> with what you learned. ReAct decides one step at a time (myopic); this keeps a long-horizon goal.</p>
-            <div class="diagram"><pre>[planner] ──▶ [execute step 1] ──▶ [replan] ──▶ [execute step 2] ──▶ ... ──▶ END
+            <div class="diagram"><pre>[planner] <span class="d-l">──</span><span class="d-a">►</span> [execute step 1] <span class="d-l">──</span><span class="d-a">►</span> [replan] <span class="d-l">──</span><span class="d-a">►</span> [execute step 2] <span class="d-l">──</span><span class="d-a">►</span> ... <span class="d-l">──</span><span class="d-a">►</span> END
              (plan = [s1, s2, s3])   (revise remaining steps)</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">class</span> <span class="fn">PlanState</span>(TypedDict):
     task: str
@@ -2180,9 +2192,9 @@ app = g.<span class="fn">compile</span>()</code></pre>
             <div class="keyterms"><span class="kt">Core idea</span><span class="kt">supervisor</span><span class="kt">Use when</span><span class="kt">Don&#x27;t use when</span>
             </div>
             <p><strong>Core idea:</strong> one <strong><abbr title="an agent that routes work to other agents and owns the overall plan">supervisor</abbr></strong> <abbr title="large language model">LLM</abbr> routes work to specialist agents; each returns to the supervisor, which decides the next move or finishes. The most common and most controllable multi-agent shape.</p>
-            <div class="diagram"><pre>              ┌──────▶ [researcher] ──┐
-[supervisor] ─┼──────▶ [coder]      ──┼──▶ back to supervisor ──▶ ... ──▶ END
-              └──────▶ [writer]     ──┘</pre></div>
+            <div class="diagram"><pre>              <span class="d-l">┌──────</span><span class="d-a">►</span> [researcher] <span class="d-l">──┐</span>
+[supervisor] <span class="d-l">─┼──────</span><span class="d-a">►</span> [coder]      <span class="d-l">──┼──</span><span class="d-a">►</span> back to supervisor <span class="d-l">──</span><span class="d-a">►</span> ... <span class="d-l">──</span><span class="d-a">►</span> END
+              <span class="d-l">└──────</span><span class="d-a">►</span> [writer]     <span class="d-l">──┘</span></pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> langgraph.prebuilt <span class="kw">import</span> create_react_agent
 
 <span class="cmt"># 1) specialists — each is just a ReAct agent with its own tools</span>
@@ -2232,8 +2244,8 @@ app = g.<span class="fn">compile</span>()</code></pre>
             <div class="keyterms"><span class="kt">Core idea</span><span class="kt">hand off directly to each other</span><span class="kt">Use when</span><span class="kt">Don&#x27;t use when</span><span class="kt">Cap handoffs</span>
             </div>
             <p><strong>Core idea:</strong> no boss — agents <strong>hand off directly to each other</strong> when they hit something outside their specialty. Handoff = a tool that returns <code>Command(goto=...)</code>.</p>
-            <div class="diagram"><pre>[flight_agent] ◀──── handoff ────▶ [hotel_agent]
-       └──────── handoff ────────▶ [car_agent]</pre></div>
+            <div class="diagram"><pre>[flight_agent] <span class="d-a">◄</span><span class="d-l">────</span> handoff <span class="d-l">────</span><span class="d-a">►</span> [hotel_agent]
+       <span class="d-l">└────────</span> handoff <span class="d-l">────────</span><span class="d-a">►</span> [car_agent]</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> langgraph.types <span class="kw">import</span> Command
 
 <span class="kw">def</span> <span class="fn">make_handoff</span>(target: str):
@@ -2265,9 +2277,9 @@ app = g.<span class="fn">compile</span>()</code></pre>
             <div class="keyterms"><span class="kt">Core idea</span><span class="kt">supervisor graphs</span><span class="kt">Use when</span><span class="kt">Don&#x27;t use when</span>
             </div>
             <p><strong>Core idea:</strong> a <abbr title="an agent that routes work to other agents and owns the overall plan">supervisor</abbr> whose "workers" are themselves <strong>supervisor graphs</strong>. Any compiled graph can be a node — that's the whole trick. Use it when one supervisor has too many workers to route well.</p>
-            <div class="diagram"><pre>              ┌─▶ [research_team_supervisor] ─▶ {searcher, scraper}
-[top_boss] ───┤
-              └─▶ [writing_team_supervisor]  ─▶ {writer, editor}</pre></div>
+            <div class="diagram"><pre>              <span class="d-l">┌─</span><span class="d-a">►</span> [research_team_supervisor] <span class="d-l">─</span><span class="d-a">►</span> {searcher, scraper}
+[top_boss] <span class="d-l">───┤</span>
+              <span class="d-l">└─</span><span class="d-a">►</span> [writing_team_supervisor]  <span class="d-l">─</span><span class="d-a">►</span> {writer, editor}</pre></div>
             <pre class="code" data-lang="python"><code>research_team = <span class="fn">build_supervisor_graph</span>([searcher, scraper]).<span class="fn">compile</span>()   <span class="cmt"># a compiled graph</span>
 writing_team  = <span class="fn">build_supervisor_graph</span>([writer, editor]).<span class="fn">compile</span>()
 
@@ -2293,11 +2305,11 @@ app = top.<span class="fn">compile</span>()</code></pre>
             <div class="keyterms"><span class="kt">Core idea</span><span class="kt">grades</span><span class="kt">rewrites the query and retries</span><span class="kt">CRAG/Self-RAG</span>
             </div>
             <p><strong>Core idea:</strong> plain <abbr title="retrieval-augmented generation">RAG</abbr> retrieves once and hopes. Agentic RAG <strong>grades</strong> what it retrieved, and if it's bad, <strong>rewrites the query and retries</strong> — or gives up honestly.</p>
-            <div class="diagram"><pre>[retrieve] ──▶ [grade docs] ──relevant──▶ [generate] ──▶ END
-                     │
+            <div class="diagram"><pre>[retrieve] <span class="d-l">──</span><span class="d-a">►</span> [grade docs] <span class="d-l">──</span>relevant<span class="d-l">──</span><span class="d-a">►</span> [generate] <span class="d-l">──</span><span class="d-a">►</span> END
+                     <span class="d-l">│</span>
                   irrelevant
-                     ▼
-              [rewrite query] ──▶ back to retrieve  (max N times)</pre></div>
+                     <span class="d-a">▼</span>
+              [rewrite query] <span class="d-l">──</span><span class="d-a">►</span> back to retrieve  (max N times)</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">class</span> <span class="fn">RagState</span>(TypedDict):
     question: str
     documents: list
@@ -2444,17 +2456,17 @@ app = g.<span class="fn">compile</span>()</code></pre>
               </table>
             </div>
             <div class="diagram"><pre>Do the steps depend on runtime results?
-├─ NO ──▶ Known fixed sequence?  ──▶ CHAIN
-│         Known set of paths?     ──▶ ROUTER
-└─ YES
-   ├─ Needs tools, few steps?              ──▶ REACT
-   ├─ Output quality matters most?         ──▶ REFLECTION
-   │     └─ ...and it repeats similar tasks?  ──▶ REFLEXION
-   ├─ Long horizon, many stages?           ──▶ PLAN-AND-EXECUTE
-   ├─ Distinct specialties?                ──▶ SUPERVISOR
-   │     └─ ...too many workers?              ──▶ HIERARCHICAL
-   │     └─ ...natural peer handoffs?         ──▶ SWARM
-   └─ Q&amp;A over your documents?             ──▶ AGENTIC RAG</pre></div>
+<span class="d-l">├─</span> NO <span class="d-l">──</span><span class="d-a">►</span> Known fixed sequence?  <span class="d-l">──</span><span class="d-a">►</span> CHAIN
+<span class="d-l">│</span>         Known set of paths?     <span class="d-l">──</span><span class="d-a">►</span> ROUTER
+<span class="d-l">└─</span> YES
+   <span class="d-l">├─</span> Needs tools, few steps?              <span class="d-l">──</span><span class="d-a">►</span> REACT
+   <span class="d-l">├─</span> Output quality matters most?         <span class="d-l">──</span><span class="d-a">►</span> REFLECTION
+   <span class="d-l">│</span>     <span class="d-l">└─</span> ...and it repeats similar tasks?  <span class="d-l">──</span><span class="d-a">►</span> REFLEXION
+   <span class="d-l">├─</span> Long horizon, many stages?           <span class="d-l">──</span><span class="d-a">►</span> PLAN-AND-EXECUTE
+   <span class="d-l">├─</span> Distinct specialties?                <span class="d-l">──</span><span class="d-a">►</span> SUPERVISOR
+   <span class="d-l">│</span>     <span class="d-l">└─</span> ...too many workers?              <span class="d-l">──</span><span class="d-a">►</span> HIERARCHICAL
+   <span class="d-l">│</span>     <span class="d-l">└─</span> ...natural peer handoffs?         <span class="d-l">──</span><span class="d-a">►</span> SWARM
+   <span class="d-l">└─</span> Q&amp;A over your documents?             <span class="d-l">──</span><span class="d-a">►</span> AGENTIC RAG</pre></div>
             <p><strong>Universal guards — every pattern above needs these:</strong>
               - [ ] <code>recursion_limit</code> + an explicit <strong>step/iteration cap</strong> in the router (loops are the #1 agent failure).
               - [ ] A <strong>guaranteed exit branch</strong> the router can always reach.
@@ -2488,15 +2500,15 @@ app = g.<span class="fn">compile</span>()</code></pre>
             </div>
             <p>Why text-only RAG fails on real documents:</p>
             <div class="diagram"><pre>A 10-K financial report:            What naive text extraction gets:
-  ┌────────────────────────┐
-  │ prose  prose  prose    │  ✓ extracted fine
-  │ ┌────────────────────┐ │
-  │ │ REVENUE TABLE      │ │  ✗ rows mangled into "2023 4.2 5.1 2024 6.3..."
-  │ │ (the actual answer)│ │     — numbers divorced from their headers
-  │ └────────────────────┘ │
-  │ [Chart: margin trend]  │  ✗ dropped entirely (it's pixels)
-  │ prose  prose           │  ✓ fine
-  └────────────────────────┘</pre></div>
+  <span class="d-l">┌────────────────────────┐</span>
+  <span class="d-l">│</span> prose  prose  prose    <span class="d-l">│</span>  √ extracted fine
+  <span class="d-l">│</span> <span class="d-l">┌────────────────────┐</span> <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">│</span> REVENUE TABLE      <span class="d-l">│</span> <span class="d-l">│</span>  × rows mangled into "2023 4.2 5.1 2024 6.3..."
+  <span class="d-l">│</span> <span class="d-l">│</span> (the actual answer)<span class="d-l">│</span> <span class="d-l">│</span>     — numbers divorced from their headers
+  <span class="d-l">│</span> <span class="d-l">└────────────────────┘</span> <span class="d-l">│</span>
+  <span class="d-l">│</span> [Chart: margin trend]  <span class="d-l">│</span>  × dropped entirely (it's pixels)
+  <span class="d-l">│</span> prose  prose           <span class="d-l">│</span>  √ fine
+  <span class="d-l">└────────────────────────┘</span></pre></div>
             <p>The user asks <em>"what was the 2024 revenue?"</em> — the answer lives in the table your pipeline mangled or the chart it dropped. <strong>Every multimodal RAG design is an answer to one question: <em>what do you embed, and what do you hand the LLM?</em></strong>
             </p>
           </div><button class="reveal">Reveal answer</button>
@@ -2656,10 +2668,10 @@ app = g.<span class="fn">compile</span>()</code></pre>
             <div class="keyterms"><span class="kt">Intuition</span><span class="kt">together</span><span class="kt">LangChain implementation</span><span class="kt">Where A breaks</span>
             </div>
             <p><strong>Intuition.</strong> CLIP trained an image encoder and a text encoder <strong>together</strong> on 400M (image, caption) pairs with a contrastive objective: matching pairs pulled close, mismatched pairs pushed apart. Result: <em>one</em> vector space where <code>embed_text("a dashboard screenshot")</code> lands near actual dashboard screenshots — so text→image search is just cosine, no captions needed.</p>
-            <div class="diagram"><pre>      "revenue chart" ──[text encoder]──▶ ●───┐
-                                              │ close in the SAME space
-      chart.png ───────[image encoder]──▶ ●───┘
-      cat.jpg ─────────[image encoder]──▶           ● (far away)</pre></div>
+            <div class="diagram"><pre>      "revenue chart" <span class="d-l">──</span>[text encoder]<span class="d-l">──</span><span class="d-a">►</span> ●<span class="d-l">───┐</span>
+                                              <span class="d-l">│</span> close in the SAME space
+      chart.png <span class="d-l">───────</span>[image encoder]<span class="d-l">──</span><span class="d-a">►</span> ●<span class="d-l">───┘</span>
+      cat.jpg <span class="d-l">─────────</span>[image encoder]<span class="d-l">──</span><span class="d-a">►</span>           ● (far away)</pre></div>
             <p><strong>LangChain implementation:</strong>
             </p>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> langchain_experimental.open_clip <span class="kw">import</span> OpenCLIPEmbeddings
@@ -2692,14 +2704,14 @@ docs = vectorstore.<span class="fn">similarity_search</span>(<span class="str">"
             <p><strong>Intuition.</strong> Don't embed the image — embed a <strong>description of it</strong>. At index time a VLM writes "Bar chart of quarterly revenue 2022-2024; Q4-2024 peaks at $6.3M…" and <em>that text</em> goes in the vectorstore. The <strong>original</strong> image/table goes in a plain docstore under the same <code>doc_id</code>. Query time: search hits the summary (plain text retrieval), but what comes back — and what the <abbr title="large language model">LLM</abbr> sees — is the <strong>original</strong>.</p>
             <p><strong>The rule that makes B work: <em>retrieve by the proxy, generate from the original.</em></strong> The summary only has to be good enough to be <em>found</em>; the VLM re-reads the real pixels/HTML at answer time, so summary lossiness doesn't cap answer quality.</p>
             <div class="diagram"><pre>INDEX (once)                                          QUERY (per request)
- PDF ─▶ partition_pdf ─▶ texts ──────────────┐
-                       ├ tables (HTML) ─▶ LLM summary ─▶ ┌─────────────┐      "2024 revenue?"
-                       └ images (b64) ──▶ VLM summary ─▶  │ vectorstore │◀────── embed &amp; search
-                                                          │ (summaries) │
-                              originals ────────────────▶ │  docstore   │─▶ doc_id hit → ORIGINAL
-                              keyed by doc_id             │ (originals) │       │
-                                                          └─────────────┘       ▼
-                                                              text + b64 images → VLM → answer</pre></div>
+ PDF <span class="d-l">─</span><span class="d-a">►</span> partition_pdf <span class="d-l">─</span><span class="d-a">►</span> texts <span class="d-l">──────────────┐</span>
+                       <span class="d-l">├</span> tables (HTML) <span class="d-l">─</span><span class="d-a">►</span> LLM summary <span class="d-l">─</span><span class="d-a">►</span> <span class="d-l">┌─────────────┐</span>      "2024 revenue?"
+                       <span class="d-l">└</span> images (b64) <span class="d-l">──</span><span class="d-a">►</span> VLM summary <span class="d-l">─</span><span class="d-a">►</span>  <span class="d-l">│</span> vectorstore <span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">──────</span> embed &amp; search
+                                                          <span class="d-l">│</span> (summaries) <span class="d-l">│</span>
+                              originals <span class="d-l">────────────────</span><span class="d-a">►</span> <span class="d-l">│</span>  docstore   <span class="d-l">│─</span><span class="d-a">►</span> doc_id hit <span class="d-a">→</span> ORIGINAL
+                              keyed by doc_id             <span class="d-l">│</span> (originals) <span class="d-l">│</span>       <span class="d-l">│</span>
+                                                         <span class="d-l">└─────────────┘</span>       <span class="d-a">▼</span>
+                                                              text + b64 images <span class="d-a">→</span> VLM <span class="d-a">→</span> answer</pre></div>
             <p><strong>Full implementation:</strong>
             </p>
             <pre class="code" data-lang="python"><code><span class="kw">import</span> uuid, base64
@@ -2851,10 +2863,10 @@ recalls = <span class="fn">defaultdict</span>(list)
             <div class="keyterms"><span class="kt">as HTML</span><span class="kt">passed to the VLM</span><span class="kt">Per-modality Recall@k</span><span class="kt">once</span>
             </div>
             <div class="diagram"><pre>What's in the corpus?
-├─ photos / products / visual-similarity queries  ──▶  A (CLIP shared space)
-├─ business/technical PDFs: tables, charts, prose ──▶  B (summarize + MultiVectorRetriever) ← default
-│      └─ and answers hinge on exact table cells  ──▶  B with tables kept as HTML (not images)
-└─ scanned / layout-is-the-content (forms, manuals) ─▶  C (ColPali)  [or B with hi_res OCR]</pre></div>
+<span class="d-l">├─</span> photos / products / visual-similarity queries  <span class="d-l">──</span><span class="d-a">►</span>  A (CLIP shared space)
+<span class="d-l">├─</span> business/technical PDFs: tables, charts, prose <span class="d-l">──</span><span class="d-a">►</span>  B (summarize + MultiVectorRetriever) <span class="d-a">←</span> default
+<span class="d-l">│</span>      <span class="d-l">└─</span> and answers hinge on exact table cells  <span class="d-l">──</span><span class="d-a">►</span>  B with tables kept as HTML (not images)
+<span class="d-l">└─</span> scanned / layout-is-the-content (forms, manuals) <span class="d-l">─</span><span class="d-a">►</span>  C (ColPali)  [or B with hi_res OCR]</pre></div>
             <ul>
               <li>[ ] Tables extracted <strong>as HTML</strong> (<code>infer_table_structure=True</code>) — structure is the answer.</li>
               <li>[ ] Summary prompts force <strong>units, date ranges, and key figures</strong> into image/table summaries (they're the retrieval signal).</li>

@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1219,16 +1231,16 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Phase 1: PREFILL (Prompt Processing)
-├── Process all input tokens in parallel
-├── Compute-bound (matrix multiplications)
-├── Generates KV cache for all input tokens
-└── Time ∝ prompt_length
+<span class="d-l">├──</span> Process all input tokens in parallel
+<span class="d-l">├──</span> Compute-bound (matrix multiplications)
+<span class="d-l">├──</span> Generates KV cache for all input tokens
+<span class="d-l">└──</span> Time ∝ prompt_length
 
 Phase 2: DECODE (Token Generation)
-├── Generate one token at a time (autoregressive)
-├── Memory-bound (loading model weights for 1 token)
-├── KV cache grows with each new token
-└── Time ∝ output_length × per_token_latency</pre></div>
+<span class="d-l">├──</span> Generate one token at a time (autoregressive)
+<span class="d-l">├──</span> Memory-bound (loading model weights for 1 token)
+<span class="d-l">├──</span> KV cache grows with each new token
+<span class="d-l">└──</span> Time ∝ output_length × per_token_latency</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02LLMInference-1">
@@ -1330,8 +1342,8 @@ memory_kv = <span class="num">2</span> × n_layers × n_heads × head_dim × seq
               </table>
             </div>
             <div class="diagram"><pre>Arithmetic Intensity = FLOPs / Bytes loaded
-- Prefill: High AI → compute-bound
-- Decode: Low AI → memory-bound
+- Prefill: High AI <span class="d-a">→</span> compute-bound
+- Decode: Low AI <span class="d-a">→</span> memory-bound
 
 Memory bandwidth utilization:
   Decode throughput ≈ Model size / Memory bandwidth
@@ -1348,11 +1360,11 @@ Memory bandwidth utilization:
             <div class="diagram"><pre>Without KV Cache: recompute attention for ALL previous tokens at each step
 With KV Cache: store and reuse K, V from previous steps
 
-Step 1: Q₁, K₁, V₁ → store K₁, V₁ in cache
-Step 2: Q₂, K=[K₁,K₂], V=[V₁,V₂] → append K₂, V₂ to cache
-Step 3: Q₃, K=[K₁,K₂,K₃], V=[V₁,V₂,V₃] → append K₃, V₃
+Step 1: Q₁, K₁, V₁ <span class="d-a">→</span> store K₁, V₁ in cache
+Step 2: Q₂, K=[K₁,K₂], V=[V₁,V₂] <span class="d-a">→</span> append K₂, V₂ to cache
+Step 3: Q₃, K=[K₁,K₂,K₃], V=[V₁,V₂,V₃] <span class="d-a">→</span> append K₃, V₃
 
-Saves: O(n²) → O(n) compute per step (but O(n) memory)</pre></div>
+Saves: O(n²) <span class="d-a">→</span> O(n) compute per step (but O(n) memory)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02LLMInference-5">
@@ -1361,22 +1373,22 @@ Saves: O(n²) → O(n) compute per step (but O(n) memory)</pre></div>
           </div>
           <div class="q-a">
             <h4><abbr title="holding the KV cache in fixed-size, non-contiguous pages (like OS virtual memory) to remove fragmentation and raise batch size">PagedAttention</abbr> (vLLM)</h4>
-            <div class="diagram"><pre>Problem: Naive KV cache pre-allocates max_seq_len → wastes memory
+            <div class="diagram"><pre>Problem: Naive KV cache pre-allocates max_seq_len <span class="d-a">→</span> wastes memory
 Solution: Allocate KV cache in pages (blocks), like OS virtual memory
 
 Benefits:
 - No pre-allocation waste
 - Memory sharing (prompt prefix caching)
-- Non-contiguous memory → reduced fragmentation
+- Non-contiguous memory <span class="d-a">→</span> reduced fragmentation
 - ~2-4x more concurrent requests
 
 Block table:
 Request 1: [Block 3, Block 7, Block 1]  (non-contiguous)
 Request 2: [Block 3, Block 5]            (shares Block 3 = prefix cache)</pre></div>
             <h4>Multi-Query Attention (<abbr title="multi-query attention — all query heads share a single key/value head">MQA</abbr>) &amp; Grouped-Query Attention (<abbr title="grouped-query attention — several query heads share one key/value head, shrinking the KV cache">GQA</abbr>)</h4>
-            <div class="diagram"><pre>Multi-Head Attention (MHA): n_heads × (K, V)  → full KV cache
-Multi-Query Attention (MQA): 1 × (K, V)       → n_heads share one KV
-Grouped-Query Attention (GQA): n_groups × (K, V)  → groups share KV
+            <div class="diagram"><pre>Multi-Head Attention (MHA): n_heads × (K, V)  <span class="d-a">→</span> full KV cache
+Multi-Query Attention (MQA): 1 × (K, V)       <span class="d-a">→</span> n_heads share one KV
+Grouped-Query Attention (GQA): n_groups × (K, V)  <span class="d-a">→</span> groups share KV
 
 KV Cache reduction:
 MHA:  2 × n_layers × n_heads × head_dim × seq_len
@@ -1384,7 +1396,7 @@ GQA:  2 × n_layers × n_groups × head_dim × seq_len  (n_groups &lt;&lt; n_hea
 MQA:  2 × n_layers × 1 × head_dim × seq_len
 
 Example: LLaMA-2 70B uses GQA with 8 groups (vs 64 heads)
-→ 8x KV cache reduction</pre></div>
+<span class="d-a">→</span> 8x KV cache reduction</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02LLMInference-6">
@@ -1392,11 +1404,11 @@ Example: LLaMA-2 70B uses GQA with 8 groups (vs 64 heads)
             <h3>Prefix Caching</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-6"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>System prompt + common prefixes → cache and share across requests
+            <div class="diagram"><pre>System prompt + common prefixes <span class="d-a">→</span> cache and share across requests
 
 Request 1: [System prompt | User query A]
 Request 2: [System prompt | User query B]
-           └── shared ──┘ └── unique ──┘
+           <span class="d-l">└──</span> shared <span class="d-l">──┘</span> <span class="d-l">└──</span> unique <span class="d-l">──┘</span>
 
 - Avoid recomputing shared prefix KV cache
 - vLLM, SGLang support automatic prefix caching</pre></div>
@@ -1539,7 +1551,7 @@ FP16: 7B × 2 = 14 GB
 INT8: 7B × 1 = 7 GB
 INT4: 7B × 0.5 = 3.5 GB
 
-→ INT4 enables 7B model on consumer GPU (4-6 GB VRAM)</pre></div>
+<span class="d-a">→</span> INT4 enables 7B model on consumer GPU (4-6 GB VRAM)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="f02LLMInference-p4"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-message"/></svg>4. Attention Optimizations</span><i></i>
@@ -1550,7 +1562,7 @@ INT4: 7B × 0.5 = 3.5 GB
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Problem: Standard attention: Q×Kᵀ creates O(n²) intermediate matrix
-→ Requires O(n²) memory, slow for long sequences
+<span class="d-a">→</span> Requires O(n²) memory, slow for long sequences
 
 Flash Attention solution:
 - Tile-based computation (process blocks that fit in SRAM)
@@ -1585,7 +1597,7 @@ Flash Attention 3 (Hopper GPUs):
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Full attention: O(n²) — every token attends to all others
-Sliding window: Each token attends to only W nearby tokens → O(n × W)
+Sliding window: Each token attends to only W nearby tokens <span class="d-a">→</span> O(n × W)
 
 Used in: Mistral, Mixtral
 Benefits: Handles long contexts with bounded memory
@@ -1605,7 +1617,7 @@ Request 1: [=====]------   (done early, waits)
 Request 2: [============]  (longest)
 Request 3: [========]---   (done early, waits)
 
-→ Low GPU utilization, high latency for short requests</pre></div>
+<span class="d-a">→</span> Low GPU utilization, high latency for short requests</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02LLMInference-16">
@@ -1615,13 +1627,13 @@ Request 3: [========]---   (done early, waits)
           <div class="q-a">
             <div class="diagram"><pre>Requests enter and leave independently
 
-Time →
+Time <span class="d-a">→</span>
 Request 1: [=====]
 Request 2: [============]
 Request 3:    [========]
 Request 4:       [====]
 
-→ No waiting, higher throughput, lower latency</pre></div>
+<span class="d-a">→</span> No waiting, higher throughput, lower latency</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02LLMInference-17">
@@ -1649,7 +1661,7 @@ Without chunking:
 With chunking:
 [PREFILL chunk 1][DECODE][PREFILL chunk 2][DECODE]...
 
-→ Better TPOT for ongoing requests during new prefills</pre></div>
+<span class="d-a">→</span> Better TPOT for ongoing requests during new prefills</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="f02LLMInference-p6"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>6. Speculative Decoding</span><i></i>
@@ -1659,7 +1671,7 @@ With chunking:
             <h3>Core Idea</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-19"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Problem: Decode is memory-bound → GPU underutilized
+            <div class="diagram"><pre>Problem: Decode is memory-bound <span class="d-a">→</span> GPU underutilized
 Solution: Use a small "draft" model to generate K tokens speculatively,
           then verify all K tokens in parallel with the large model
 
@@ -1936,8 +1948,8 @@ Best for: Within a single node</code></pre></div><button class="reveal">Reveal a
           <div class="q-a">
             <div class="diagram"><pre>Split model layers across GPUs (vertical split)
 
-GPU 0: Layers 0-15   →
-GPU 1: Layers 16-31  →  Sequential flow
+GPU 0: Layers 0-15   <span class="d-a">→</span>
+GPU 1: Layers 16-31  <span class="d-a">→</span>  Sequential flow
 
 + Micro-batching to fill pipeline bubbles
 
@@ -2038,12 +2050,12 @@ llm = <span class="fn">LLM</span>(model=<span class="str">"meta-llama/Llama-2-70
             <h3>Knowledge Distillation</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-31"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Teacher (large model) → Student (small model)
+            <div class="diagram"><pre>Teacher (large model) <span class="d-a">→</span> Student (small model)
 
 Loss = α × L_CE(student, labels) + (1-α) × L_KD(student_logits, teacher_logits)
 L_KD = KL(softmax(teacher_logits/T), softmax(student_logits/T))
 
-T = temperature (higher → softer distributions → more knowledge transfer)</pre></div>
+T = temperature (higher <span class="d-a">→</span> softer distributions <span class="d-a">→</span> more knowledge transfer)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02LLMInference-32">
@@ -2139,7 +2151,7 @@ T = temperature (higher → softer distributions → more knowledge transfer)</p
             <h3>Single-Model Serving</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-34"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Client → Load Balancer → vLLM/TGI instances → GPU cluster
+            <div class="diagram"><pre>Client <span class="d-a">→</span> Load Balancer <span class="d-a">→</span> vLLM/TGI instances <span class="d-a">→</span> GPU cluster
                        ↕
                  Request Queue (priority-based)</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -2149,10 +2161,10 @@ T = temperature (higher → softer distributions → more knowledge transfer)</p
             <h3>Router Pattern (Multiple Models)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02LLMInference-35"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Client → API Gateway → Router
-                        ├── Small model (fast, simple queries)
-                        ├── Medium model (balanced)
-                        └── Large model (complex queries)
+            <div class="diagram"><pre>Client <span class="d-a">→</span> API Gateway <span class="d-a">→</span> Router
+                        <span class="d-l">├──</span> Small model (fast, simple queries)
+                        <span class="d-l">├──</span> Medium model (balanced)
+                        <span class="d-l">└──</span> Large model (complex queries)
 
 Router decides based on: query complexity, latency requirements, cost</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -2442,8 +2454,8 @@ python benchmark_serving.py \
 | Llama 3.1 70B  | $0.50   | $0.70   | (via Groq/Together)
 
 Self-hosted (A100-80GB @ $2/hr):
-- LLaMA-2 70B INT4: ~1500 tokens/sec → ~$0.48 per 1M tokens
-- LLaMA-2 7B FP16: ~3000 tokens/sec → ~$0.24 per 1M tokens</pre></div>
+- LLaMA-2 70B INT4: ~1500 tokens/sec <span class="d-a">→</span> ~$0.48 per 1M tokens
+- LLaMA-2 7B FP16: ~3000 tokens/sec <span class="d-a">→</span> ~$0.24 per 1M tokens</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02LLMInference-43">
@@ -2509,8 +2521,8 @@ Self-hosted (A100-80GB @ $2/hr):
             <p>At each decoding step, the grammar defines which tokens are <strong>valid continuations</strong>. Invalid tokens are masked (logits set to <span class="mth"><span class="mth-op">−</span>∞</span>) before sampling, guaranteeing structurally correct output.</p>
             <div class="diagram"><pre>Standard Decoding:          Grammar-Constrained Decoding:
 
-Logits → Softmax → Sample   Logits → Grammar Mask → Softmax → Sample
-                                       ↑
+Logits <span class="d-a">→</span> Softmax <span class="d-a">→</span> Sample   Logits <span class="d-a">→</span> Grammar Mask <span class="d-a">→</span> Softmax <span class="d-a">→</span> Sample
+                                       <span class="d-a">↑</span>
                               Only tokens valid per
                               grammar state are kept</pre></div>
           </div><button class="reveal">Reveal answer</button>

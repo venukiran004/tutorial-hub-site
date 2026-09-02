@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -2232,9 +2244,9 @@ result = graph.<span class="fn">invoke</span>({
           <p><strong>Good for:</strong> Support tickets, customer service, conversational flows where "who should handle this next" is a <em>local</em> decision, not a central plan.</p>
           <p><strong>Architecture:</strong>
           </p>
-          <div class="diagram"><pre>Support Agent (active) ← can hand off to → Refunds Agent
-    ↓ (handoff tool call)
-Refunds Agent (now active) ← can hand off to → Support Agent</pre></div>
+          <div class="diagram"><pre>Support Agent (active) <span class="d-a">←</span> can hand off to <span class="d-a">→</span> Refunds Agent
+    <span class="d-a">↓</span> (handoff tool call)
+Refunds Agent (now active) <span class="d-a">←</span> can hand off to <span class="d-a">→</span> Support Agent</pre></div>
           <h3>Code Example</h3>
           <pre class="code" data-lang="python"><code><span class="kw">from</span> typing <span class="kw">import</span> Literal
 <span class="kw">from</span> langchain_core.messages <span class="kw">import</span> HumanMessage, AIMessage
@@ -2411,17 +2423,17 @@ answer = summarizer.<span class="fn">invoke</span>(docs)</code></pre>
           <p><strong>Why:</strong> No decisions = no agent. Plain retrieval pipelines are deterministic, cheaper, and faster.</p>
           <h3>Decision Tree: When Do I Actually Need an Agent?</h3>
           <div class="diagram"><pre>Does the path depend on runtime decisions the LLM makes?
-├─ NO → Use a chain or pipeline
-└─ YES
-   ├─ Is it a simple classification to known paths?
-   │  └─ NO → Use a router
-   └─ Does the LLM need to decide on every step (tool calls, follow-ups, etc.)?
-      └─ YES → Now you have an agent
-         ├─ Single agent, unpredictable tools? → ReAct
-         ├─ Output quality critical? → Reflection
-         ├─ Long-horizon, planning-heavy? → Plan-and-Execute
-         ├─ Multiple domains, visibility required? → Supervisor
-         └─ Conversational handoffs? → Swarm</pre></div>
+<span class="d-l">├─</span> NO <span class="d-a">→</span> Use a chain or pipeline
+<span class="d-l">└─</span> YES
+   <span class="d-l">├─</span> Is it a simple classification to known paths?
+   <span class="d-l">│</span>  <span class="d-l">└─</span> NO <span class="d-a">→</span> Use a router
+   <span class="d-l">└─</span> Does the LLM need to decide on every step (tool calls, follow-ups, etc.)?
+      <span class="d-l">└─</span> YES <span class="d-a">→</span> Now you have an agent
+         <span class="d-l">├─</span> Single agent, unpredictable tools? <span class="d-a">→</span> ReAct
+         <span class="d-l">├─</span> Output quality critical? <span class="d-a">→</span> Reflection
+         <span class="d-l">├─</span> Long-horizon, planning-heavy? <span class="d-a">→</span> Plan-and-Execute
+         <span class="d-l">├─</span> Multiple domains, visibility required? <span class="d-a">→</span> Supervisor
+         <span class="d-l">└─</span> Conversational handoffs? <span class="d-a">→</span> Swarm</pre></div>
         </div>
         <div class="parthead" id="f11AgenticSyste-p13"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>Interview Questions by Pattern</span><i></i>
         </div>
@@ -2888,13 +2900,13 @@ builder.<span class="fn">add_conditional_edges</span>(<span class="str">"agent"<
           <p><strong>Flowchart:</strong>
           </p>
           <div class="diagram"><pre>Start with a question that has an unpredictable path?
-├─ NO → Use a chain or pipeline, not an agent
-└─ YES
-   ├─ Single agent, any tool mix? → ReAct (default)
-   ├─ Output quality is the bottleneck? → Reflection
-   ├─ Long multi-step task, planning is hard? → Plan-and-Execute
-   ├─ Multiple domain experts, need visible routing? → Supervisor
-   └─ Conversational flow, peers handle different parts? → Swarm</pre></div>
+<span class="d-l">├─</span> NO <span class="d-a">→</span> Use a chain or pipeline, not an agent
+<span class="d-l">└─</span> YES
+   <span class="d-l">├─</span> Single agent, any tool mix? <span class="d-a">→</span> ReAct (default)
+   <span class="d-l">├─</span> Output quality is the bottleneck? <span class="d-a">→</span> Reflection
+   <span class="d-l">├─</span> Long multi-step task, planning is hard? <span class="d-a">→</span> Plan-and-Execute
+   <span class="d-l">├─</span> Multiple domain experts, need visible routing? <span class="d-a">→</span> Supervisor
+   <span class="d-l">└─</span> Conversational flow, peers handle different parts? <span class="d-a">→</span> Swarm</pre></div>
         </div>
         <div class="parthead" id="f11AgenticSyste-p15"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>Error Handling Flows by Pattern</span><i></i>
         </div>
@@ -3387,17 +3399,17 @@ Swarm (avg): <span class="num">2000</span>–<span class="num">8000</span> token
           <h3>1.1 Definition</h3>
           <p>An <strong>agentic system</strong> is an AI system that can <strong>perceive</strong> its environment, <strong>reason</strong> about goals, <strong>plan</strong> multi-step actions, <strong>execute</strong> those actions using tools, and <strong>adapt</strong> based on feedback — all with varying degrees of autonomy.</p>
           <div class="diagram"><pre>Traditional LLM App          vs          Agentic System
-┌──────────────┐                   ┌──────────────────────┐
-│ User Prompt  │                   │ User Goal            │
-│      ↓       │                   │      ↓               │
-│ Single LLM   │                   │ Reasoning Loop       │
-│   Call       │                   │   ↓        ↑         │
-│      ↓       │                   │ Plan → Act → Observe │
-│ Response     │                   │   ↓        ↑         │
-└──────────────┘                   │ Tools / Memory / RAG │
-                                   │      ↓               │
-                                   │ Final Answer         │
-                                   └──────────────────────┘</pre></div>
+<span class="d-l">┌──────────────┐</span>                   <span class="d-l">┌──────────────────────┐</span>
+<span class="d-l">│</span> User Prompt  <span class="d-l">│</span>                   <span class="d-l">│</span> User Goal            <span class="d-l">│</span>
+<span class="d-l">│</span>      <span class="d-a">↓</span>       <span class="d-l">│</span>                   <span class="d-l">│</span>      <span class="d-a">↓</span>               <span class="d-l">│</span>
+<span class="d-l">│</span> Single LLM   <span class="d-l">│</span>                   <span class="d-l">│</span> Reasoning Loop       <span class="d-l">│</span>
+<span class="d-l">│</span>   Call       <span class="d-l">│</span>                   <span class="d-l">│</span>   <span class="d-a">↓</span>        <span class="d-a">↑</span>         <span class="d-l">│</span>
+<span class="d-l">│</span>      <span class="d-a">↓</span>       <span class="d-l">│</span>                   <span class="d-l">│</span> Plan <span class="d-a">→</span> Act <span class="d-a">→</span> Observe <span class="d-l">│</span>
+<span class="d-l">│</span> Response     <span class="d-l">│</span>                   <span class="d-l">│</span>   <span class="d-a">↓</span>        <span class="d-a">↑</span>         <span class="d-l">│</span>
+<span class="d-l">└──────────────┘</span>                   <span class="d-l">│</span> Tools / Memory / RAG <span class="d-l">│</span>
+                                   <span class="d-l">│</span>      <span class="d-a">↓</span>               <span class="d-l">│</span>
+                                   <span class="d-l">│</span> Final Answer         <span class="d-l">│</span>
+                                   <span class="d-l">└──────────────────────┘</span></pre></div>
           <h3>1.2 Agentic Spectrum</h3>
           <p>Not all "agents" are equal. Systems exist on a spectrum of autonomy:</p>
           <div class="tbl-wrap">
@@ -3509,33 +3521,33 @@ Swarm (avg): <span class="num">2000</span>–<span class="num">8000</span> token
           <figure class="viz mermaid">
             <div class="viz-scroll"><svg viewBox="0 0 920 606" role="img" aria-label="diagram"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker></defs><path d="M460 58 V114" fill="none" stroke="var(--fig-recall)" stroke-width="1.7" marker-end="url(#a)"/><path d="M460 164 V220" fill="none" stroke="var(--fig-recall)" stroke-width="1.7" marker-end="url(#a)"/><path d="M460 270 V326" fill="none" stroke="var(--fig-accent)" stroke-width="1.7" marker-end="url(#a)"/><path d="M460 376 V432" fill="none" stroke="var(--fig-warn)" stroke-width="1.7" marker-end="url(#a)"/><path d="M390.5 462 H346.5 V139 H375.5" fill="none" stroke="var(--fig-recall)" stroke-width="1.7" stroke-dasharray="6 4" marker-end="url(#a)"/><rect x="335.268" y="292.5" width="22.464" height="16" rx="5" fill="var(--fig-surface)" stroke="var(--fig-border)"/><text x="346.5" y="304.5" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink-2)">no</text><path d="M460 492 V548" fill="none" stroke="var(--fig-good)" stroke-width="1.7" marker-end="url(#a)"/><rect x="446.152" y="512" width="27.696" height="16" rx="5" fill="var(--fig-surface)" stroke="var(--fig-border)"/><text x="460" y="524" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink-2)">yes</text><rect x="407" y="14" width="106" height="44" rx="22" fill="color-mix(in srgb, var(--fig-crit) 17%, var(--fig-surface))" stroke="var(--fig-crit)" stroke-width="1.6"/><text x="460" y="40" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">User query</text><rect x="375.5" y="114" width="169" height="50" rx="9" fill="color-mix(in srgb, var(--fig-recall) 17%, var(--fig-surface))" stroke="var(--fig-recall)" stroke-width="1.6"/><text x="460" y="135.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">🧠 Thought</text><text x="460" y="150.5" text-anchor="middle" font-size="11.5" font-weight="500" fill="var(--fig-ink)">reason about next step</text><rect x="410" y="220" width="100" height="50" rx="9" fill="color-mix(in srgb, var(--fig-recall) 17%, var(--fig-surface))" stroke="var(--fig-recall)" stroke-width="1.6"/><text x="460" y="241.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">🔧 Action</text><text x="460" y="256.5" text-anchor="middle" font-size="11.5" font-weight="500" fill="var(--fig-ink)">call a tool</text><rect x="381.5" y="326" width="157" height="50" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="460" y="347.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">👁️ Observation</text><text x="460" y="362.5" text-anchor="middle" font-size="11.5" font-weight="500" fill="var(--fig-ink)">tool result fed back</text><path d="M460 432 L529.5 462 L460 492 L390.5 462 z" fill="color-mix(in srgb, var(--fig-warn) 17%, var(--fig-surface))" stroke="var(--fig-warn)" stroke-width="1.6"/><text x="460" y="466" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">Answer ready?</text><rect x="391" y="548" width="138" height="44" rx="22" fill="color-mix(in srgb, var(--fig-good) 17%, var(--fig-surface))" stroke="var(--fig-good)" stroke-width="1.6"/><text x="460" y="574" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">✅ Final answer</text></svg></div>
           </figure>
-          <div class="diagram"><pre>┌──────────────────────────────────────────┐
-│              ReAct Loop                  │
-│                                          │
-│  User Query                              │
-│      ↓                                   │
-│  ┌──────────┐                            │
-│  │ THOUGHT  │ ← "I need to search for X" │
-│  └────┬─────┘                            │
-│       ↓                                  │
-│  ┌──────────┐                            │
-│  │ ACTION   │ ← search("X")              │
-│  └────┬─────┘                            │
-│       ↓                                  │
-│  ┌──────────┐                            │
-│  │OBSERVATION│ ← "Search returned: ..."  │
-│  └────┬─────┘                            │
-│       ↓                                  │
-│  ┌──────────┐                            │
-│  │ THOUGHT  │ ← "Now I need to ..."      │
-│  └────┬─────┘                            │
-│       ↓                                  │
-│  ... (repeat until answer found) ...     │
-│       ↓                                  │
-│  ┌──────────┐                            │
-│  │ ANSWER   │ ← Final response           │
-│  └──────────┘                            │
-└──────────────────────────────────────────┘</pre></div>
+          <div class="diagram"><pre><span class="d-l">┌──────────────────────────────────────────┐</span>
+<span class="d-l">│</span>              ReAct Loop                  <span class="d-l">│</span>
+<span class="d-l">│</span>                                          <span class="d-l">│</span>
+<span class="d-l">│</span>  User Query                              <span class="d-l">│</span>
+<span class="d-l">│</span>      <span class="d-a">↓</span>                                   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────┐</span>                            <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> THOUGHT  <span class="d-l">│</span> <span class="d-a">←</span> "I need to search for X" <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└────┬─────┘</span>                            <span class="d-l">│</span>
+<span class="d-l">│</span>       <span class="d-a">↓</span>                                  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────┐</span>                            <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> ACTION   <span class="d-l">│</span> <span class="d-a">←</span> search("X")              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└────┬─────┘</span>                            <span class="d-l">│</span>
+<span class="d-l">│</span>       <span class="d-a">↓</span>                                  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────┐</span>                            <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>OBSERVATION<span class="d-l">│</span> <span class="d-a">←</span> "Search returned: ..."  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└────┬─────┘</span>                            <span class="d-l">│</span>
+<span class="d-l">│</span>       <span class="d-a">↓</span>                                  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────┐</span>                            <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> THOUGHT  <span class="d-l">│</span> <span class="d-a">←</span> "Now I need to ..."      <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└────┬─────┘</span>                            <span class="d-l">│</span>
+<span class="d-l">│</span>       <span class="d-a">↓</span>                                  <span class="d-l">│</span>
+<span class="d-l">│</span>  ... (repeat until answer found) ...     <span class="d-l">│</span>
+<span class="d-l">│</span>       <span class="d-a">↓</span>                                  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────┐</span>                            <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> ANSWER   <span class="d-l">│</span> <span class="d-a">←</span> Final response           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────────┘</span>                            <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────┘</span></pre></div>
           <pre class="code" data-lang="python"><code><span class="kw">from</span> langchain.agents <span class="kw">import</span> create_react_agent, AgentExecutor
 <span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
 <span class="kw">from</span> langchain.tools <span class="kw">import</span> Tool
@@ -3568,35 +3580,35 @@ result = executor.<span class="fn">invoke</span>({<span class="str">"input"</spa
           <figure class="viz mermaid">
             <div class="viz-scroll"><svg viewBox="0 0 920 506" role="img" aria-label="diagram"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker></defs><path d="M460 58 V114" fill="none" stroke="var(--fig-recall)" stroke-width="1.7" marker-end="url(#a)"/><path d="M460 164 V220" fill="none" stroke="var(--fig-recall)" stroke-width="1.7" marker-end="url(#a)"/><path d="M460 270 V326" fill="none" stroke="var(--fig-warn)" stroke-width="1.7" marker-end="url(#a)"/><path d="M381 359 H349.5 V245 H403.5" fill="none" stroke="var(--fig-recall)" stroke-width="1.7" stroke-dasharray="6 4" marker-end="url(#a)"/><rect x="319.956" y="294" width="59.088" height="16" rx="5" fill="var(--fig-surface)" stroke="var(--fig-border)"/><text x="349.5" y="306" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink-2)">next step</text><path d="M381 359 H336.5 V139 H378.5" fill="none" stroke="var(--fig-recall)" stroke-width="1.7" stroke-dasharray="6 4" marker-end="url(#a)"/><rect x="301.724" y="241" width="69.552" height="16" rx="5" fill="var(--fig-surface)" stroke="var(--fig-border)"/><text x="336.5" y="253" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink-2)">revise plan</text><path d="M460 392 V448" fill="none" stroke="var(--fig-good)" stroke-width="1.7" marker-end="url(#a)"/><rect x="443.536" y="412" width="32.928" height="16" rx="5" fill="var(--fig-surface)" stroke="var(--fig-border)"/><text x="460" y="424" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink-2)">done</text><rect x="408" y="14" width="104" height="44" rx="22" fill="color-mix(in srgb, var(--fig-crit) 17%, var(--fig-surface))" stroke="var(--fig-crit)" stroke-width="1.6"/><text x="460" y="40" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">User goal</text><rect x="378.5" y="114" width="163" height="50" rx="9" fill="color-mix(in srgb, var(--fig-recall) 17%, var(--fig-surface))" stroke="var(--fig-recall)" stroke-width="1.6"/><text x="460" y="135.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">📋 Planner</text><text x="460" y="150.5" text-anchor="middle" font-size="11.5" font-weight="500" fill="var(--fig-ink)">produce ordered steps</text><rect x="403.5" y="220" width="113" height="50" rx="9" fill="color-mix(in srgb, var(--fig-recall) 17%, var(--fig-surface))" stroke="var(--fig-recall)" stroke-width="1.6"/><text x="460" y="241.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">⚙️ Executor</text><text x="460" y="256.5" text-anchor="middle" font-size="11.5" font-weight="500" fill="var(--fig-ink)">run next step</text><path d="M460 326 L539 359 L460 392 L381 359 z" fill="color-mix(in srgb, var(--fig-warn) 17%, var(--fig-surface))" stroke="var(--fig-warn)" stroke-width="1.6"/><text x="460" y="355.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">More steps,</text><text x="460" y="370.5" text-anchor="middle" font-size="11.5" font-weight="500" fill="var(--fig-ink)">replan, or done?</text><rect x="408" y="448" width="104" height="44" rx="22" fill="color-mix(in srgb, var(--fig-good) 17%, var(--fig-surface))" stroke="var(--fig-good)" stroke-width="1.6"/><text x="460" y="474" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">✅ Result</text></svg></div>
           </figure>
-          <div class="diagram"><pre>┌──────────────────────────────────────────────┐
-│           Plan-and-Execute Pattern           │
-│                                              │
-│  User Goal: "Write a market research report" │
-│       ↓                                      │
-│  ┌──────────────────────────┐                │
-│  │     PLANNER (LLM)        │                │
-│  │  1. Identify competitors │                │
-│  │  2. Gather market data   │                │
-│  │  3. Analyze trends       │                │
-│  │  4. Write report         │                │
-│  │  5. Review &amp; polish      │                │
-│  └───────────┬──────────────┘                │
-│              ↓                               │
-│  ┌──────────────────────────┐                │
-│  │   EXECUTOR (Agent/LLM)   │                │
-│  │  Step 1 → execute → ✅    │                │
-│  │  Step 2 → execute → ✅    │                │
-│  │  Step 3 → execute → ❌    │                │
-│  └───────────┬──────────────┘                │
-│              ↓                               │
-│  ┌──────────────────────────┐                │
-│  │   RE-PLANNER (LLM)       │                │
-│  │  "Step 3 failed because  │                │
-│  │   API was down. Revised: │                │
-│  │   3a. Try alternative    │                │
-│  │       data source..."    │                │
-│  └──────────────────────────┘                │
-└──────────────────────────────────────────────┘</pre></div>
+          <div class="diagram"><pre><span class="d-l">┌──────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>           Plan-and-Execute Pattern           <span class="d-l">│</span>
+<span class="d-l">│</span>                                              <span class="d-l">│</span>
+<span class="d-l">│</span>  User Goal: "Write a market research report" <span class="d-l">│</span>
+<span class="d-l">│</span>       <span class="d-a">↓</span>                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────────────────┐</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>     PLANNER (LLM)        <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  1. Identify competitors <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  2. Gather market data   <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  3. Analyze trends       <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  4. Write report         <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  5. Review &amp; polish      <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└───────────┬──────────────┘</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>              <span class="d-a">↓</span>                               <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────────────────┐</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>   EXECUTOR (Agent/LLM)   <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  Step 1 <span class="d-a">→</span> execute <span class="d-a">→</span> √    <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  Step 2 <span class="d-a">→</span> execute <span class="d-a">→</span> √    <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  Step 3 <span class="d-a">→</span> execute <span class="d-a">→</span> ×    <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└───────────┬──────────────┘</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>              <span class="d-a">↓</span>                               <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────────────────┐</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>   RE-PLANNER (LLM)       <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  "Step 3 failed because  <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>   API was down. Revised: <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>   3a. Try alternative    <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>       data source..."    <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────────────────────────┘</span>                <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────────┘</span></pre></div>
           <pre class="code" data-lang="python"><code><span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
 <span class="kw">from</span> langchain.prompts <span class="kw">import</span> ChatPromptTemplate
 
@@ -3669,31 +3681,31 @@ replanner_chain = replanner_prompt | llm
           <div class="note">
             <p>Capped by <code>max_iterations</code>. When the critique is stored as durable lessons reused across full retries, this becomes <strong>Reflexion</strong> — see <a href="javascript:void(0)">Part I → Reflexion</a>.</p>
           </div>
-          <div class="diagram"><pre>┌──────────────────────────────────────┐
-│         Reflection Pattern           │
-│                                      │
-│  Task: "Write a Python function"     │
-│       ↓                              │
-│  ┌────────────┐                      │
-│  │ GENERATOR  │ → Draft code         │
-│  └─────┬──────┘                      │
-│        ↓                             │
-│  ┌────────────┐                      │
-│  │ CRITIC     │ → "Bug on line 5,    │
-│  │            │    missing edge case"│
-│  └─────┬──────┘                      │
-│        ↓                             │
-│  ┌────────────┐                      │
-│  │ GENERATOR  │ → Improved code      │
-│  │ (revision) │                      │
-│  └─────┬──────┘                      │
-│        ↓                             │
-│  ┌────────────┐                      │
-│  │ CRITIC     │ → "Looks good ✅"     │
-│  └─────┬──────┘                      │
-│        ↓                             │
-│  Final Output                        │
-└──────────────────────────────────────┘</pre></div>
+          <div class="diagram"><pre><span class="d-l">┌──────────────────────────────────────┐</span>
+<span class="d-l">│</span>         Reflection Pattern           <span class="d-l">│</span>
+<span class="d-l">│</span>                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  Task: "Write a Python function"     <span class="d-l">│</span>
+<span class="d-l">│</span>       <span class="d-a">↓</span>                              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌────────────┐</span>                      <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> GENERATOR  <span class="d-l">│</span> <span class="d-a">→</span> Draft code         <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└─────┬──────┘</span>                      <span class="d-l">│</span>
+<span class="d-l">│</span>        <span class="d-a">↓</span>                             <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌────────────┐</span>                      <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> CRITIC     <span class="d-l">│</span> <span class="d-a">→</span> "Bug on line 5,    <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>            <span class="d-l">│</span>    missing edge case"<span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└─────┬──────┘</span>                      <span class="d-l">│</span>
+<span class="d-l">│</span>        <span class="d-a">↓</span>                             <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌────────────┐</span>                      <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> GENERATOR  <span class="d-l">│</span> <span class="d-a">→</span> Improved code      <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> (revision) <span class="d-l">│</span>                      <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└─────┬──────┘</span>                      <span class="d-l">│</span>
+<span class="d-l">│</span>        <span class="d-a">↓</span>                             <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌────────────┐</span>                      <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> CRITIC     <span class="d-l">│</span> <span class="d-a">→</span> "Looks good √"     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└─────┬──────┘</span>                      <span class="d-l">│</span>
+<span class="d-l">│</span>        <span class="d-a">↓</span>                             <span class="d-l">│</span>
+<span class="d-l">│</span>  Final Output                        <span class="d-l">│</span>
+   <span class="d-l">└────────────┘</span></pre></div>
           <pre class="code" data-lang="python"><code><span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
 <span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field
 
@@ -3746,17 +3758,17 @@ Produce an improved version:"""</span>
           <figure class="viz mermaid">
             <div class="viz-scroll"><svg viewBox="0 0 920 394" role="img" aria-label="diagram"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker></defs><path d="M460 58 V114" fill="none" stroke="var(--fig-warn)" stroke-width="1.7" marker-end="url(#a)"/><path d="M460 180 V196.8 H229.5 V236" fill="none" stroke="var(--fig-recall)" stroke-width="1.7" marker-end="url(#a)"/><rect x="328.286" y="188.8" width="32.928" height="16" rx="5" fill="var(--fig-surface)" stroke="var(--fig-border)"/><text x="344.75" y="200.8" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink-2)">code</text><path d="M460 180 V204.64 H379 V236" fill="none" stroke="var(--fig-recall)" stroke-width="1.7" marker-end="url(#a)"/><rect x="392.572" y="196.64" width="53.856" height="16" rx="5" fill="var(--fig-surface)" stroke="var(--fig-border)"/><text x="419.5" y="208.64" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink-2)">research</text><path d="M460 180 V212.48 H541 V236" fill="none" stroke="var(--fig-recall)" stroke-width="1.7" marker-end="url(#a)"/><rect x="473.572" y="204.48" width="53.856" height="16" rx="5" fill="var(--fig-surface)" stroke="var(--fig-border)"/><text x="500.5" y="216.48" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink-2)">creative</text><path d="M460 180 V220.32 H690.5 V236" fill="none" stroke="var(--fig-recall)" stroke-width="1.7" marker-end="url(#a)"/><rect x="558.786" y="212.32" width="32.928" height="16" rx="5" fill="var(--fig-surface)" stroke="var(--fig-border)"/><text x="575.25" y="224.32" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink-2)">data</text><path d="M229.5 280 V308 H460 V336" fill="none" stroke="var(--fig-good)" stroke-width="1.7" marker-end="url(#a)"/><path d="M379 280 V308 H460 V336" fill="none" stroke="var(--fig-good)" stroke-width="1.7" marker-end="url(#a)"/><path d="M541 280 V308 H460 V336" fill="none" stroke="var(--fig-good)" stroke-width="1.7" marker-end="url(#a)"/><path d="M690.5 280 V308 H460 V336" fill="none" stroke="var(--fig-good)" stroke-width="1.7" marker-end="url(#a)"/><rect x="397.5" y="14" width="125" height="44" rx="22" fill="color-mix(in srgb, var(--fig-crit) 17%, var(--fig-surface))" stroke="var(--fig-crit)" stroke-width="1.6"/><text x="460" y="40" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">Incoming task</text><path d="M460 114 L536 147 L460 180 L384 147 z" fill="color-mix(in srgb, var(--fig-warn) 17%, var(--fig-surface))" stroke="var(--fig-warn)" stroke-width="1.6"/><text x="460" y="143.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">🧭 Router</text><text x="460" y="158.5" text-anchor="middle" font-size="11.5" font-weight="500" fill="var(--fig-ink)">classify intent</text><rect x="173" y="236" width="113" height="44" rx="9" fill="color-mix(in srgb, var(--fig-recall) 17%, var(--fig-surface))" stroke="var(--fig-recall)" stroke-width="1.6"/><text x="229.5" y="262" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">💻 Code agent</text><rect x="310" y="236" width="138" height="44" rx="9" fill="color-mix(in srgb, var(--fig-recall) 17%, var(--fig-surface))" stroke="var(--fig-recall)" stroke-width="1.6"/><text x="379" y="262" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">🔬 Research agent</text><rect x="472" y="236" width="138" height="44" rx="9" fill="color-mix(in srgb, var(--fig-recall) 17%, var(--fig-surface))" stroke="var(--fig-recall)" stroke-width="1.6"/><text x="541" y="262" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">🎨 Creative agent</text><rect x="634" y="236" width="113" height="44" rx="9" fill="color-mix(in srgb, var(--fig-recall) 17%, var(--fig-surface))" stroke="var(--fig-recall)" stroke-width="1.6"/><text x="690.5" y="262" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">📊 Data agent</text><rect x="408" y="336" width="104" height="44" rx="22" fill="color-mix(in srgb, var(--fig-good) 17%, var(--fig-surface))" stroke="var(--fig-good)" stroke-width="1.6"/><text x="460" y="362" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">Response</text></svg></div>
           </figure>
-          <div class="diagram"><pre>                    ┌──────────────┐
-                    │    ROUTER    │
-                    │   (LLM)      │
-                    └──────┬───────┘
-                                   │
-            ┌──────────────┼───────┐
-            ↓              ↓              ↓
-     ┌────────────┐ ┌────────────┐ ┌────────────┐
-     │ Code Agent │ │ Research   │ │ Creative   │
-     │            │ │ Agent      │ │ Agent      │
-     └────────────┘ └────────────┘ └────────────┘</pre></div>
+          <div class="diagram"><pre>                    <span class="d-l">┌──────────────┐</span>
+                    <span class="d-l">│</span>    ROUTER    <span class="d-l">│</span>
+                    <span class="d-l">│</span>   (LLM)      <span class="d-l">│</span>
+                    <span class="d-l">└──────┬───────┘</span>
+                                   <span class="d-l">│</span>
+            <span class="d-l">┌──────────────┼───────┐</span>
+            <span class="d-a">↓</span>              <span class="d-a">↓</span>              <span class="d-a">↓</span>
+     <span class="d-l">┌────────────┐</span> <span class="d-l">┌────────────┐</span> <span class="d-l">┌────────────┐</span>
+     <span class="d-l">│</span> Code Agent <span class="d-l">│</span> <span class="d-l">│</span> Research   <span class="d-l">│</span> <span class="d-l">│</span> Creative   <span class="d-l">│</span>
+     <span class="d-l">│</span>            <span class="d-l">│</span> <span class="d-l">│</span> Agent      <span class="d-l">│</span> <span class="d-l">│</span> Agent      <span class="d-l">│</span>
+     <span class="d-l">└────────────┘</span> <span class="d-l">└────────────┘</span> <span class="d-l">└────────────┘</span></pre></div>
           <pre class="code" data-lang="python"><code><span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
 <span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field
 <span class="kw">from</span> enum <span class="kw">import</span> Enum
@@ -3799,7 +3811,7 @@ STRATEGY 1: LLM-BASED PLANNING (Most Common)
   sub-agents, their capabilities, and the task. It outputs a structured
   plan with the execution order.
 
-  System prompt → "You have these agents: [Research, Code, Review].
+  System prompt <span class="d-a">→</span> "You have these agents: [Research, Code, Review].
                    Given the query, output the sequence of agents."
   
   User: "Research the latest Python frameworks, write a comparison script,
@@ -3820,27 +3832,27 @@ STRATEGY 2: DEPENDENCY GRAPH ANALYSIS
     visualize_trends DEPENDS ON analyze_data (needs analysis results)
     write_report DEPENDS ON analyze_data AND visualize_trends
   
-  Execution order: analyze_data → visualize_trends → write_report
+  Execution order: analyze_data <span class="d-a">→</span> visualize_trends <span class="d-a">→</span> write_report
   
   This is topological sorting of a dependency DAG.
 
 STRATEGY 3: CLASSIFICATION + RULES
-  Simple classification of query intent → predefined rules:
+  Simple classification of query intent <span class="d-a">→</span> predefined rules:
   
-  IF intent == "code_review":    → [lint_agent, security_agent, style_agent]
-  IF intent == "data_pipeline":  → [ingest_agent, transform_agent, validate_agent]
-  IF intent == "customer_query": → [retrieval_agent, response_agent, tone_agent]
+  IF intent == "code_review":    <span class="d-a">→</span> [lint_agent, security_agent, style_agent]
+  IF intent == "data_pipeline":  <span class="d-a">→</span> [ingest_agent, transform_agent, validate_agent]
+  IF intent == "customer_query": <span class="d-a">→</span> [retrieval_agent, response_agent, tone_agent]
   
   Routes are deterministic based on classified intent.
 
 STRATEGY 4: ITERATIVE (DYNAMIC ROUTING)
   Router calls one agent, evaluates the result, then decides the next:
   
-  Step 1: Router → Research Agent → "Here are the findings"
-  Step 2: Router evaluates → "Research is incomplete, need more data"
-  Step 3: Router → Data Agent → "Here are the numbers"
-  Step 4: Router evaluates → "Now ready for report"
-  Step 5: Router → Writer Agent → Final report
+  Step 1: Router <span class="d-a">→</span> Research Agent <span class="d-a">→</span> "Here are the findings"
+  Step 2: Router evaluates <span class="d-a">→</span> "Research is incomplete, need more data"
+  Step 3: Router <span class="d-a">→</span> Data Agent <span class="d-a">→</span> "Here are the numbers"
+  Step 4: Router evaluates <span class="d-a">→</span> "Now ready for report"
+  Step 5: Router <span class="d-a">→</span> Writer Agent <span class="d-a">→</span> Final report
   
   This is the most flexible but most expensive (multiple LLM calls).
 
@@ -3853,7 +3865,7 @@ STRATEGY 5: CAPABILITY MATCHING (Semantic)
     research_agent: embed("finding information, web search, papers")
     data_agent:     embed("data analysis, statistics, visualization")
   
-  Query: "Plot a histogram of sales" → closest to data_agent</pre></div>
+  Query: "Plot a histogram of sales" <span class="d-a">→</span> closest to data_agent</pre></div>
           <pre class="code" data-lang="python"><code><span class="cmt"># ── COMPLETE ROUTER AGENT WITH MULTI-STEP PLANNING ──────────</span>
 <span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
 <span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field
@@ -4375,20 +4387,20 @@ tools_schema = [
         <div class="q-a" style="margin:0 0 12px">
           <p><strong>Memory systems</strong> give agents the ability to persist and retrieve information across conversation turns and sessions. Short-term memory (conversation buffer) maintains recent context, long-term memory (vector stores, knowledge graphs) stores accumulated knowledge, and episodic memory (past interactions) enables learning from experience — each addressing different temporal scales of information.</p>
           <h3>5.1 Memory Architecture</h3>
-          <div class="diagram"><pre>┌────────────────────────────────────────────────────────┐
-│                  AGENT MEMORY SYSTEM                   │
-├──────────────────┬─────────────────┬───────────────────┤
-│  SHORT-TERM      │  LONG-TERM      │  EPISODIC         │
-│  (Working)       │  (Persistent)   │  (Experience)     │
-├──────────────────┼─────────────────┼───────────────────┤
-│ • Current conv   │ • User prefs    │ • Past successes  │
-│ • Scratchpad     │ • Facts learned │ • Past failures   │
-│ • Tool results   │ • Entity store  │ • Strategies that │
-│ • In-context     │ • Vector DB     │   worked          │
-│                  │ • Knowledge     │ • Feedback recv'd │
-│ Lifetime: 1 turn │ Lifetime: ∞     │ Lifetime: ∞       │
-│ Storage: context │ Storage: DB     │ Storage: DB       │
-└──────────────────┴─────────────────┴───────────────────┘</pre></div>
+          <div class="diagram"><pre><span class="d-l">┌────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                  AGENT MEMORY SYSTEM                   <span class="d-l">│</span>
+<span class="d-l">├──────────────────┬─────────────────┬───────────────────┤</span>
+<span class="d-l">│</span>  SHORT-TERM      <span class="d-l">│</span>  LONG-TERM      <span class="d-l">│</span>  EPISODIC         <span class="d-l">│</span>
+<span class="d-l">│</span>  (Working)       <span class="d-l">│</span>  (Persistent)   <span class="d-l">│</span>  (Experience)     <span class="d-l">│</span>
+<span class="d-l">├──────────────────┼─────────────────┼───────────────────┤</span>
+<span class="d-l">│</span> • Current conv   <span class="d-l">│</span> • User prefs    <span class="d-l">│</span> • Past successes  <span class="d-l">│</span>
+<span class="d-l">│</span> • Scratchpad     <span class="d-l">│</span> • Facts learned <span class="d-l">│</span> • Past failures   <span class="d-l">│</span>
+<span class="d-l">│</span> • Tool results   <span class="d-l">│</span> • Entity store  <span class="d-l">│</span> • Strategies that <span class="d-l">│</span>
+<span class="d-l">│</span> • In-context     <span class="d-l">│</span> • Vector DB     <span class="d-l">│</span>   worked          <span class="d-l">│</span>
+<span class="d-l">│</span>                  <span class="d-l">│</span> • Knowledge     <span class="d-l">│</span> • Feedback recv'd <span class="d-l">│</span>
+<span class="d-l">│</span> Lifetime: 1 turn <span class="d-l">│</span> Lifetime: ∞     <span class="d-l">│</span> Lifetime: ∞       <span class="d-l">│</span>
+<span class="d-l">│</span> Storage: context <span class="d-l">│</span> Storage: DB     <span class="d-l">│</span> Storage: DB       <span class="d-l">│</span>
+<span class="d-l">└──────────────────┴─────────────────┴───────────────────┘</span></pre></div>
           <h3>5.2 Implementation</h3>
           <pre class="code" data-lang="python"><code><span class="kw">from</span> datetime <span class="kw">import</span> datetime
 <span class="kw">from</span> typing <span class="kw">import</span> Optional
@@ -4558,52 +4570,52 @@ tools_schema = [
           <figure class="viz mermaid">
             <div class="viz-scroll"><svg viewBox="0 0 920 1398" role="img" aria-label="diagram"><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1 L9 5 L0 9 z" fill="context-stroke"/></marker></defs><rect x="14" y="14" width="892" height="205" rx="12" fill="var(--fig-surface-2)" stroke="var(--fig-border)"/><text x="30" y="36" font-size="11.5" font-weight="800" letter-spacing=".04em" fill="var(--fig-ink-2)">1 · Hierarchical</text><rect x="14" y="275" width="892" height="105" rx="12" fill="var(--fig-surface-2)" stroke="var(--fig-border)"/><text x="30" y="297" font-size="11.5" font-weight="800" letter-spacing=".04em" fill="var(--fig-ink-2)">2 · Sequential pipeline</text><rect x="14" y="436" width="892" height="305" rx="12" fill="var(--fig-surface-2)" stroke="var(--fig-border)"/><text x="30" y="458" font-size="11.5" font-weight="800" letter-spacing=".04em" fill="var(--fig-ink-2)">3 · Collaborative (peer-to-peer)</text><rect x="14" y="797" width="892" height="405" rx="12" fill="var(--fig-surface-2)" stroke="var(--fig-border)"/><text x="30" y="819" font-size="11.5" font-weight="800" letter-spacing=".04em" fill="var(--fig-ink-2)">4 · Debate / adversarial</text><rect x="14" y="1258" width="892" height="126" rx="12" fill="var(--fig-surface-2)" stroke="var(--fig-border)"/><text x="30" y="1280" font-size="11.5" font-weight="800" letter-spacing=".04em" fill="var(--fig-ink-2)">5 · Swarm (peer handoff — no</text><text x="30" y="1295" font-size="11.5" font-weight="800" letter-spacing=".04em" fill="var(--fig-ink-2)">manager)</text><path d="M460 101 V117.8 H344 V157" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" marker-end="url(#a)"/><path d="M460 101 V157" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" marker-end="url(#a)"/><path d="M460 101 V141.32 H576 V157" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" marker-end="url(#a)"/><path d="M298 179 H283 V79 H413" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" stroke-dasharray="5 4" marker-end="url(#a)"/><rect x="258.688" y="121" width="48.624" height="16" rx="5" fill="var(--fig-surface)" stroke="var(--fig-border)"/><text x="283" y="133" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink-2)">results</text><path d="M414 179 H283 V79 H413" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" stroke-dasharray="5 4" marker-end="url(#a)"/><path d="M622 179 H637 V79 H507" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" stroke-dasharray="5 4" marker-end="url(#a)"/><path d="M130.9 340 H115.9 V340 H330.3" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" stroke-dasharray="6 4" marker-end="url(#a)"/><path d="M330.3 340 H115.9 V340 H510.7" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" stroke-dasharray="6 4" marker-end="url(#a)"/><path d="M610.7 340 H804.1 V340 H789.1" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" stroke-dasharray="6 4" marker-end="url(#a)"/><path d="M460 523 V579" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" marker-end="url(#a)" marker-start="url(#a)"/><path d="M460 523 V679" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" marker-end="url(#a)" marker-start="url(#a)"/><path d="M460 623 V679" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" marker-end="url(#a)" marker-start="url(#a)"/><path d="M460 884 V940" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" marker-end="url(#a)" marker-start="url(#a)"/><path d="M460 884 V1040" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" marker-end="url(#a)"/><path d="M460 984 V1040" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" marker-end="url(#a)"/><path d="M460 1084 V1140" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" marker-end="url(#a)"/><path d="M223.1 1341 H208.1 V1341 H403.5" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" stroke-dasharray="6 4" marker-end="url(#a)"/><rect x="183.788" y="1333" width="48.624" height="16" rx="5" fill="var(--fig-surface)" stroke="var(--fig-border)"/><text x="208.1" y="1345" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink-2)">handoff</text><path d="M403.5 1341 H208.1 V1341 H223.1" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" stroke-dasharray="6 4" marker-end="url(#a)"/><rect x="183.788" y="1333" width="48.624" height="16" rx="5" fill="var(--fig-surface)" stroke="var(--fig-border)"/><text x="208.1" y="1345" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink-2)">handoff</text><path d="M403.5 1341 H208.1 V1341 H583.9" fill="none" stroke="var(--fig-mut)" stroke-width="1.7" stroke-dasharray="6 4" marker-end="url(#a)"/><rect x="183.788" y="1333" width="48.624" height="16" rx="5" fill="var(--fig-surface)" stroke="var(--fig-border)"/><text x="208.1" y="1345" text-anchor="middle" font-size="9.6" font-weight="700" fill="var(--fig-ink-2)">handoff</text><rect x="413" y="57" width="94" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="460" y="83" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">👔 Manager</text><rect x="298" y="157" width="92" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="344" y="183" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">A</text><rect x="414" y="157" width="92" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="460" y="183" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">B</text><rect x="530" y="157" width="92" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="576" y="183" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">C</text><rect x="130.9" y="318" width="113" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="187.4" y="344" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">🔬 Researcher</text><rect x="330.3" y="318" width="94" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="377.3" y="344" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">📊 Analyst</text><rect x="510.7" y="318" width="100" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="560.7" y="344" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">✍️ Writer</text><rect x="697.1" y="318" width="92" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="743.1" y="344" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">🪶 Editor</text><rect x="414" y="479" width="92" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="460" y="505" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">A</text><rect x="414" y="579" width="92" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="460" y="605" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">B</text><rect x="414" y="679" width="92" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="460" y="705" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">C</text><rect x="410" y="840" width="100" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="460" y="866" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">🟢 Proposer</text><rect x="414" y="940" width="92" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="460" y="966" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">🔴 Critic</text><rect x="413" y="1040" width="94" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="460" y="1066" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">⚖️ Judge</text><rect x="408" y="1140" width="104" height="44" rx="22" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="460" y="1166" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">Decision</text><rect x="223.1" y="1316" width="94" height="50" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="270.1" y="1337.5" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">🟦 Support</text><text x="270.1" y="1352.5" text-anchor="middle" font-size="11.5" font-weight="500" fill="var(--fig-ink)">(active)</text><rect x="403.5" y="1319" width="94" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="450.5" y="1345" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">🟩 Refunds</text><rect x="583.9" y="1319" width="113" height="44" rx="9" fill="color-mix(in srgb, var(--fig-accent) 17%, var(--fig-surface))" stroke="var(--fig-accent)" stroke-width="1.6"/><text x="640.4" y="1345" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--fig-ink)">🟨 Escalation</text></svg></div>
           </figure>
-          <div class="diagram"><pre>TOPOLOGY 1: HIERARCHICAL (Manager → Workers)
-┌──────────────┐
-│   MANAGER    │ ← Delegates tasks, aggregates results
-│   AGENT      │
-└──────┬───────┘
-               │
-  ┌────┼───────┐
-  ↓    ↓    ↓
-┌───┐┌───┐┌────┐
-│ A        │           │ B        │           │ C            │ ← Specialist worker agents
-└───┘└───┘└────┘
+          <div class="diagram"><pre>TOPOLOGY 1: HIERARCHICAL (Manager <span class="d-a">→</span> Workers)
+<span class="d-l">┌──────────────┐</span>
+<span class="d-l">│</span>   MANAGER    <span class="d-l">│</span> <span class="d-a">←</span> Delegates tasks, aggregates results
+<span class="d-l">│</span>   AGENT      <span class="d-l">│</span>
+<span class="d-l">└──────┬───────┘</span>
+               <span class="d-l">│</span>
+  <span class="d-l">┌────┼───────┐</span>
+  <span class="d-a">↓</span>    <span class="d-a">↓</span>    <span class="d-a">↓</span>
+<span class="d-l">┌───┐┌───┐┌────┐</span>
+<span class="d-l">│</span> A        <span class="d-l">│</span>           <span class="d-l">│</span> B        <span class="d-l">│</span>           <span class="d-l">│</span> C            <span class="d-l">│</span> <span class="d-a">←</span> Specialist worker agents
+<span class="d-l">└───┘└───┘└────┘</span>
 
 TOPOLOGY 2: SEQUENTIAL (Pipeline)
-┌───┐ → ┌───┐ → ┌───┐ → ┌────┐
-│ A │   │ B │   │ C │   │ D  │
-└───┘   └───┘   └───┘   └────┘
+<span class="d-l">┌───┐</span> <span class="d-a">→</span> <span class="d-l">┌───┐</span> <span class="d-a">→</span> <span class="d-l">┌───┐</span> <span class="d-a">→</span> <span class="d-l">┌────┐</span>
+<span class="d-l">│</span> A <span class="d-l">│</span>   <span class="d-l">│</span> B <span class="d-l">│</span>   <span class="d-l">│</span> C <span class="d-l">│</span>   <span class="d-l">│</span> D  <span class="d-l">│</span>
+<span class="d-l">└───┘</span>   <span class="d-l">└───┘</span>   <span class="d-l">└───┘</span>   <span class="d-l">└────┘</span>
 Researcher  Analyst  Writer  Editor
 
 TOPOLOGY 3: COLLABORATIVE (Peer-to-peer)
-┌───┐ ←→ ┌─────┐
-│ A         │    │ B         │
-└─┬─┘    └─┬─  ┘
-│   ↕          │
-  └─┐ ┌────────┘
-    ↓ ↓
-  ┌────────────┐
-│  C           │
-  └────────────┘
+<span class="d-l">┌───┐</span> <span class="d-a">←→</span> <span class="d-l">┌─────┐</span>
+<span class="d-l">│</span> A         <span class="d-l">│</span>    <span class="d-l">│</span> B         <span class="d-l">│</span>
+<span class="d-l">└─┬─┘</span>    <span class="d-l">└─┬─</span>  <span class="d-l">┘</span>
+<span class="d-l">│</span>   ↕          <span class="d-l">│</span>
+  <span class="d-l">└─┐</span> <span class="d-l">┌────────┘</span>
+    <span class="d-a">↓</span> <span class="d-a">↓</span>
+  <span class="d-l">┌────────────┐</span>
+<span class="d-l">│</span>  C           <span class="d-l">│</span>
+  <span class="d-l">└────────────┘</span>
 
 TOPOLOGY 4: DEBATE / ADVERSARIAL
-┌───────────┐    ┌───────────┐
-│ PROPOSER  │ ←→ │ CRITIC    │
-│ Agent     │    │ Agent     │
-└─────┬─────┘    └─────┬─────┘
-      └──────┬───────────────┘
-             ↓
-      ┌────────┐
-│   JUDGE      │ ← Makes final decision
-│   Agent      │
-      └────────┘
+<span class="d-l">┌───────────┐</span>    <span class="d-l">┌───────────┐</span>
+<span class="d-l">│</span> PROPOSER  <span class="d-l">│</span> <span class="d-a">←→</span> <span class="d-l">│</span> CRITIC    <span class="d-l">│</span>
+<span class="d-l">│</span> Agent     <span class="d-l">│</span>    <span class="d-l">│</span> Agent     <span class="d-l">│</span>
+<span class="d-l">└─────┬─────┘</span>    <span class="d-l">└─────┬─────┘</span>
+      <span class="d-l">└──────┬───────────────┘</span>
+             <span class="d-a">↓</span>
+      <span class="d-l">┌────────┐</span>
+<span class="d-l">│</span>   JUDGE      <span class="d-l">│</span> <span class="d-a">←</span> Makes final decision
+<span class="d-l">│</span>   Agent      <span class="d-l">│</span>
+      <span class="d-l">└────────┘</span>
 
 TOPOLOGY 5: SWARM (peer-to-peer handoff — no manager)
-┌──────────┐  handoff  ┌──────────┐  handoff  ┌──────────────┐
-│ Support  │ ────────► │ Refunds  │ ────────► │ Escalation   │
-│ (active) │ ◄──────── │          │           │              │
-└──────────┘  handoff  └──────────┘           └──────────────┘
+<span class="d-l">┌──────────┐</span>  handoff  <span class="d-l">┌──────────┐</span>  handoff  <span class="d-l">┌──────────────┐</span>
+<span class="d-l">│</span> Support  <span class="d-l">│</span> <span class="d-l">────────</span><span class="d-a">►</span> <span class="d-l">│</span> Refunds  <span class="d-l">│</span> <span class="d-l">────────</span><span class="d-a">►</span> <span class="d-l">│</span> Escalation   <span class="d-l">│</span>
+<span class="d-l">│</span> (active) <span class="d-l">│</span> <span class="d-a">◄</span><span class="d-l">────────</span> <span class="d-l">│</span>          <span class="d-l">│</span>           <span class="d-l">│</span>              <span class="d-l">│</span>
+<span class="d-l">└──────────┘</span>  handoff  <span class="d-l">└──────────┘</span>           <span class="d-l">└──────────────┘</span>
   One agent is "active" at a time; control TRANSFERS via handoff tools.
   State tracks current_agent, so the next turn goes to whoever holds it.</pre></div>
           <div class="note">
@@ -4907,37 +4919,37 @@ result = <span class="kw">await</span> app.<span class="fn">ainvoke</span>(
         <div class="q-a" style="margin:0 0 12px">
           <p><strong>Agentic <abbr title="retrieval-augmented generation">RAG</abbr></strong> goes beyond simple retrieve-then-generate pipelines by giving agents the ability to dynamically decide when to retrieve, what queries to use, which sources to consult, and whether retrieved context is sufficient. Techniques include query routing, adaptive retrieval, multi-step research, and self-reflective RAG that evaluates and refines retrieval results.</p>
           <h3>8.1 Agentic RAG Architecture</h3>
-          <div class="diagram"><pre>┌──────────────────────────────────────────────────────┐
-│                 AGENTIC RAG SYSTEM                   │
-│                                                      │
-│  User Query: "What was our Q4 revenue by region?"    │
-│       ↓                                              │
-│  ┌────────────────┐                                  │
-│  │  QUERY ANALYSIS │ ← Decompose, identify sources   │
-│  │  Agent                             │              │
-│  └────────┬───────┘                                  │
-│           ↓                                          │
-│  ┌────────────────────────────────────┐              │
-│  │  RETRIEVAL ROUTING                 │              │
-│  │  ┌──────┐ ┌────────┐ ┌─────────┐   │              │
-│  │  │Vector│ │SQL DB  │ │Web      │ │                │
-│  │  │Search│ │Query   │ │Search   │ │                │
-│  │  └──┬───┘ └───┬────┘ └────┬────┘   │              │
-│  └─────┼─────────┼───────────┼──────┘                │
-│        ↓         ↓           ↓                       │
-│  ┌────────────────────────────────────┐              │
-│  │  CONTEXT ASSESSMENT                │              │
-│  │  "Is retrieved info sufficient?"   │              │
-│  │  YES → Generate answer             │              │
-│  │  NO  → Refine query &amp; retry        │              │
-│  └────────────────┬───────────────────┘              │
-│                   ↓                                  │
-│  ┌────────────────────────────────────┐              │
-│  │  ANSWER GENERATION + CITATION      │              │
-│  │  + Source attribution              │              │
-│  │  + Confidence scoring              │              │
-│  └────────────────────────────────────┘              │
-└──────────────────────────────────────────────────────┘</pre></div>
+          <div class="diagram"><pre><span class="d-l">┌──────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                 AGENTIC RAG SYSTEM                   <span class="d-l">│</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  User Query: "What was our Q4 revenue by region?"    <span class="d-l">│</span>
+<span class="d-l">│</span>       <span class="d-a">↓</span>                                              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌────────────────┐</span>                                  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  QUERY ANALYSIS <span class="d-l">│</span> <span class="d-a">←</span> Decompose, identify sources   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  Agent                             <span class="d-l">│</span>              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└────────┬───────┘</span>                                  <span class="d-l">│</span>
+<span class="d-l">│</span>           <span class="d-a">↓</span>                                          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌────────────────────────────────────┐</span>              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  RETRIEVAL ROUTING                 <span class="d-l">│</span>              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">┌──────┐</span> <span class="d-l">┌────────┐</span> <span class="d-l">┌─────────┐</span>   <span class="d-l">│</span>              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>Vector<span class="d-l">│</span> <span class="d-l">│</span>SQL DB  <span class="d-l">│</span> <span class="d-l">│</span>Web      <span class="d-l">│</span> <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>Search<span class="d-l">│</span> <span class="d-l">│</span>Query   <span class="d-l">│</span> <span class="d-l">│</span>Search   <span class="d-l">│</span> <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">└──┬───┘</span> <span class="d-l">└───┬────┘</span> <span class="d-l">└────┬────┘</span>   <span class="d-l">│</span>              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└─────┼─────────┼───────────┼──────┘</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>        <span class="d-a">↓</span>         <span class="d-a">↓</span>           <span class="d-a">↓</span>                       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌────────────────────────────────────┐</span>              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  CONTEXT ASSESSMENT                <span class="d-l">│</span>              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  "Is retrieved info sufficient?"   <span class="d-l">│</span>              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  YES <span class="d-a">→</span> Generate answer             <span class="d-l">│</span>              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  NO  <span class="d-a">→</span> Refine query &amp; retry        <span class="d-l">│</span>              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└────────────────┬───────────────────┘</span>              <span class="d-l">│</span>
+<span class="d-l">│</span>                   <span class="d-a">↓</span>                                  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌────────────────────────────────────┐</span>              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  ANSWER GENERATION + CITATION      <span class="d-l">│</span>              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  + Source attribution              <span class="d-l">│</span>              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  + Confidence scoring              <span class="d-l">│</span>              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└────────────────────────────────────┘</span>              <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────────────────┘</span></pre></div>
           <h3>8.2 Self-Correcting RAG Agent</h3>
           <pre class="code" data-lang="python"><code><span class="kw">from</span> langgraph.graph <span class="kw">import</span> StateGraph, START, END
 <span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI, OpenAIEmbeddings
@@ -5052,34 +5064,34 @@ rag_agent = rag_graph.<span class="fn">compile</span>()</code></pre></div>
         <div class="q-a" style="margin:0 0 12px">
           <p><strong><abbr title="checks around a model that block or rewrite unsafe or malformed input and output">Guardrails</abbr> and safety</strong> mechanisms protect agentic systems from harmful outputs, unintended actions, runaway costs, and security vulnerabilities. Layered defenses include input validation, output filtering, action approval gates, budget limits, sandboxed execution, and human-in-the-loop checkpoints — essential for production deployment where agents interact with real-world systems.</p>
           <h3>9.1 Guardrail Layers</h3>
-          <div class="diagram"><pre>┌──────────────────────────────────────────────────────┐
-│                  GUARDRAIL STACK                     │
-├──────────────────────────────────────────────────────┤
-│                                                      │
-│  Layer 1: INPUT GUARDRAILS                           │
-│  ├─ Prompt injection detection                       │
-│  ├─ PII detection &amp; redaction                        │
-│  ├─ Topic filtering (off-limits topics)              │
-│  └─ Rate limiting &amp; abuse prevention                 │
-│                                                      │
-│  Layer 2: EXECUTION GUARDRAILS                       │
-│  ├─ Tool permission scoping (least privilege)        │
-│  ├─ Resource limits (time, tokens, API calls)        │
-│  ├─ Sandboxed code execution                         │
-│  └─ Transaction rollback capability                  │
-│                                                      │
-│  Layer 3: OUTPUT GUARDRAILS                          │
-│  ├─ Hallucination detection (grounding check)        │
-│  ├─ Toxicity / harmful content filtering             │
-│  ├─ Factual consistency verification                 │
-│  └─ PII leakage prevention in responses              │
-│                                                      │
-│  Layer 4: HUMAN-IN-THE-LOOP                          │
-│  ├─ Approval gates for high-risk actions             │
-│  ├─ Confidence-based escalation                      │
-│  └─ Periodic human audit sampling                    │
-│                                                      │
-└──────────────────────────────────────────────────────┘</pre></div>
+          <div class="diagram"><pre><span class="d-l">┌──────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                  GUARDRAIL STACK                     <span class="d-l">│</span>
+<span class="d-l">├──────────────────────────────────────────────────────┤</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  Layer 1: INPUT GUARDRAILS                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">├─</span> Prompt injection detection                       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">├─</span> PII detection &amp; redaction                        <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">├─</span> Topic filtering (off-limits topics)              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└─</span> Rate limiting &amp; abuse prevention                 <span class="d-l">│</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  Layer 2: EXECUTION GUARDRAILS                       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">├─</span> Tool permission scoping (least privilege)        <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">├─</span> Resource limits (time, tokens, API calls)        <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">├─</span> Sandboxed code execution                         <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└─</span> Transaction rollback capability                  <span class="d-l">│</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  Layer 3: OUTPUT GUARDRAILS                          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">├─</span> Hallucination detection (grounding check)        <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">├─</span> Toxicity / harmful content filtering             <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">├─</span> Factual consistency verification                 <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└─</span> PII leakage prevention in responses              <span class="d-l">│</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  Layer 4: HUMAN-IN-THE-LOOP                          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">├─</span> Approval gates for high-risk actions             <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">├─</span> Confidence-based escalation                      <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└─</span> Periodic human audit sampling                    <span class="d-l">│</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────────────────┘</span></pre></div>
           <h3>9.2 Implementation</h3>
           <pre class="code" data-lang="python"><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field
 <span class="kw">from</span> typing <span class="kw">import</span> Optional
@@ -5237,20 +5249,20 @@ Return ONLY the number."""</span>
         <div class="q-a" style="margin:0 0 12px">
           <p><strong>Agent evaluation</strong> assesses both individual components (<abbr title="large language model">LLM</abbr> responses, tool calls, retrieval quality) and end-to-end task completion across multi-step trajectories. Key challenges include non-determinism (same input → different execution paths), evaluating intermediate reasoning steps, and measuring reliability at scale through automated evaluation frameworks.</p>
           <h3>10.1 Agent Evaluation Framework</h3>
-          <div class="diagram"><pre>┌──────────────────────────────────────────────────────┐
-│              AGENT EVALUATION DIMENSIONS             │
-├──────────────────┬───────────────────────────────────┤
-│ DIMENSION        │ METRICS                           │
-├──────────────────┼───────────────────────────────────┤
-│ Task Completion  │ Success rate, goal achievement    │
-│ Correctness      │ Factual accuracy, grounding       │
-│ Efficiency       │ Steps taken, tokens used, latency │
-│ Safety           │ Guardrail violations, PII leaks   │
-│ Robustness       │ Performance on adversarial inputs │
-│ Tool Use         │ Correct tool selection, args      │
-│ Planning         │ Plan quality, adaptability        │
-│ User Experience  │ Helpfulness, clarity, tone        │
-└──────────────────┴───────────────────────────────────┘</pre></div>
+          <div class="diagram"><pre><span class="d-l">┌──────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>              AGENT EVALUATION DIMENSIONS             <span class="d-l">│</span>
+<span class="d-l">├──────────────────┬───────────────────────────────────┤</span>
+<span class="d-l">│</span> DIMENSION        <span class="d-l">│</span> METRICS                           <span class="d-l">│</span>
+<span class="d-l">├──────────────────┼───────────────────────────────────┤</span>
+<span class="d-l">│</span> Task Completion  <span class="d-l">│</span> Success rate, goal achievement    <span class="d-l">│</span>
+<span class="d-l">│</span> Correctness      <span class="d-l">│</span> Factual accuracy, grounding       <span class="d-l">│</span>
+<span class="d-l">│</span> Efficiency       <span class="d-l">│</span> Steps taken, tokens used, latency <span class="d-l">│</span>
+<span class="d-l">│</span> Safety           <span class="d-l">│</span> Guardrail violations, PII leaks   <span class="d-l">│</span>
+<span class="d-l">│</span> Robustness       <span class="d-l">│</span> Performance on adversarial inputs <span class="d-l">│</span>
+<span class="d-l">│</span> Tool Use         <span class="d-l">│</span> Correct tool selection, args      <span class="d-l">│</span>
+<span class="d-l">│</span> Planning         <span class="d-l">│</span> Plan quality, adaptability        <span class="d-l">│</span>
+<span class="d-l">│</span> User Experience  <span class="d-l">│</span> Helpfulness, clarity, tone        <span class="d-l">│</span>
+<span class="d-l">└──────────────────┴───────────────────────────────────┘</span></pre></div>
           <h3>10.2 Evaluation Implementation</h3>
           <pre class="code" data-lang="python"><code><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
 <span class="kw">from</span> typing <span class="kw">import</span> Optional
@@ -5413,27 +5425,27 @@ eval_cases = [
         <div class="q-a" style="margin:0 0 12px">
           <p><strong>Production deployment</strong> of agentic systems requires robust infrastructure for handling non-deterministic, long-running, multi-step workflows. Key concerns include observability (tracing every <abbr title="large language model">LLM</abbr> call, tool invocation, and state transition), cost management (token budgets, caching), fault tolerance (retry strategies, graceful degradation), and scaling patterns (async execution, queue-based orchestration).</p>
           <h3>11.1 Production Architecture</h3>
-          <div class="diagram"><pre>┌─────────────────────────────────────────────────────────────┐
-│                PRODUCTION AGENT SYSTEM                      │
-│                                                             │
-│  ┌──────────┐     ┌──────────────┐     ┌──────────────────┐ │
-│  │ API      │     │ Agent        │     │ LLM Gateway      │ │
-│  │ Gateway  │────▶│ Orchestrator │────▶│ (Load Balancer)  │ │
-│  │ (FastAPI)│     │ (LangGraph)  │     │                  │ │
-│  └──────────┘     └──────┬───────┘     │ ┌──GPT-4──────┐  │ │
-│       ↑                  │             │ ├──Claude──────┤  ││
-│       │                  ↓             │ └──Local LLM───┘  ││
-│  ┌──────────┐     ┌──────────────┐     └──────────────────┘ │
-│  │ Auth &amp;   │     │ Tool         │                          │
-│  │ Rate     │     │ Registry     │     ┌──────────────────┐ │
-│  │ Limiting │     │ (MCP/Native) │     │ Observability    │ │
-│  └──────────┘     └──────────────┘     │ ┌──Traces──────┐ │ │
-│                                        │ ├──Metrics─────┤ │ │
-│  ┌──────────────────────────────┐      │ ├──Logs────────┤ │ │
-│  │ State Store                  │      │ └──Alerts──────┘ │ │
-│  │ (Redis/PostgreSQL)           │      └──────────────────┘ │
-│  └──────────────────────────────┘                           │
-└─────────────────────────────────────────────────────────────┘</pre></div>
+          <div class="diagram"><pre><span class="d-l">┌─────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                PRODUCTION AGENT SYSTEM                      <span class="d-l">│</span>
+<span class="d-l">│</span>                                                             <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────┐</span>     <span class="d-l">┌──────────────┐</span>     <span class="d-l">┌──────────────────┐</span> <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> API      <span class="d-l">│</span>     <span class="d-l">│</span> Agent        <span class="d-l">│</span>     <span class="d-l">│</span> LLM Gateway      <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> Gateway  <span class="d-l">│────</span><span class="d-a">►</span><span class="d-l">│</span> Orchestrator <span class="d-l">│────</span><span class="d-a">►</span><span class="d-l">│</span> (Load Balancer)  <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> (FastAPI)<span class="d-l">│</span>     <span class="d-l">│</span> (LangGraph)  <span class="d-l">│</span>     <span class="d-l">│</span>                  <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────────┘</span>     <span class="d-l">└──────┬───────┘</span>     <span class="d-l">│</span> <span class="d-l">┌──</span>GPT-4<span class="d-l">──────┐</span>  <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>       <span class="d-a">↑</span>                  <span class="d-l">│</span>             <span class="d-l">│</span> <span class="d-l">├──</span>Claude<span class="d-l">──────┤</span>  <span class="d-l">││</span>
+<span class="d-l">│</span>       <span class="d-l">│</span>                  <span class="d-a">↓</span>             <span class="d-l">│</span> <span class="d-l">└──</span>Local LLM<span class="d-l">───┘</span>  <span class="d-l">││</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────┐</span>     <span class="d-l">┌──────────────┐</span>     <span class="d-l">└──────────────────┘</span> <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> Auth &amp;   <span class="d-l">│</span>     <span class="d-l">│</span> Tool         <span class="d-l">│</span>                          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> Rate     <span class="d-l">│</span>     <span class="d-l">│</span> Registry     <span class="d-l">│</span>     <span class="d-l">┌──────────────────┐</span> <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> Limiting <span class="d-l">│</span>     <span class="d-l">│</span> (MCP/Native) <span class="d-l">│</span>     <span class="d-l">│</span> Observability    <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────────┘</span>     <span class="d-l">└──────────────┘</span>     <span class="d-l">│</span> <span class="d-l">┌──</span>Traces<span class="d-l">──────┐</span> <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>                                        <span class="d-l">│</span> <span class="d-l">├──</span>Metrics<span class="d-l">─────┤</span> <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────────────────────┐</span>      <span class="d-l">│</span> <span class="d-l">├──</span>Logs<span class="d-l">────────┤</span> <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> State Store                  <span class="d-l">│</span>      <span class="d-l">│</span> <span class="d-l">└──</span>Alerts<span class="d-l">──────┘</span> <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> (Redis/PostgreSQL)           <span class="d-l">│</span>      <span class="d-l">└──────────────────┘</span> <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────────────────────────────┘</span>                           <span class="d-l">│</span>
+<span class="d-l">└─────────────────────────────────────────────────────────────┘</span></pre></div>
           <h3>11.2 FastAPI Agent Server</h3>
           <pre class="code" data-lang="python"><code><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI, HTTPException, Depends, BackgroundTasks
 <span class="kw">from</span> fastapi.middleware.cors <span class="kw">import</span> CORSMiddleware
@@ -5656,49 +5668,49 @@ logger = logging.<span class="fn">getLogger</span>(<span class="str">"agent"</sp
 - Human escalation for complex issues
 
 ARCHITECTURE:
-┌──────────────────────────────────────────────┐
-│           CUSTOMER SUPPORT AGENT             │
-│                                              │
-│  Customer Message                            │
-│       ↓                                      │
-│  ┌─────────────┐                             │
-│  │  CLASSIFIER │ → Intent + Urgency          │
-│  └──────┬──────┘                             │
-│         ↓                                    │
-│  ┌─────────────┐     ┌───────────────┐       │
-│  │  ROUTER     │────▶│ ORDER AGENT   │       │
-│  │             │     │ (DB access)   │       │
-│  │             │     ├───────────────┤       │
-│  │             │────▶│ BILLING AGENT │       │
-│  │             │     │ (Payment API) │       │
-│  │             │     ├───────────────┤       │
-│  │             │────▶│ RETURNS AGENT │       │
-│  │             │     │ (Policy + DB) │       │
-│  │             │     ├───────────────┤       │
-│  │             │────▶│ GENERAL FAQ   │       │
-│  └─────────────┘     │ (RAG)         │       │
-│                      └───────┬───────┘       │
-│                              ↓               │
-│                      ┌───────────────┐       │
-│                      │ RESPONSE      │       │
-│                      │ FORMATTER     │       │
-│                      │ + Tone check  │       │
-│                      │ + Policy check│       │
-│                      └───────┬───────┘       │
-│                              ↓               │
-│                      ┌───────────────┐       │
-│                      │ ESCALATION    │       │
-│                      │ GATE          │       │
-│                      │ (if needed)   │       │
-│                      └───────────────┘       │
-└──────────────────────────────────────────────┘
+<span class="d-l">┌──────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>           CUSTOMER SUPPORT AGENT             <span class="d-l">│</span>
+<span class="d-l">│</span>                                              <span class="d-l">│</span>
+<span class="d-l">│</span>  Customer Message                            <span class="d-l">│</span>
+<span class="d-l">│</span>       <span class="d-a">↓</span>                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌─────────────┐</span>                             <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  CLASSIFIER <span class="d-l">│</span> <span class="d-a">→</span> Intent + Urgency          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────┬──────┘</span>                             <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">↓</span>                                    <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌─────────────┐</span>     <span class="d-l">┌───────────────┐</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  ROUTER     <span class="d-l">│────</span><span class="d-a">►</span><span class="d-l">│</span> ORDER AGENT   <span class="d-l">│</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>             <span class="d-l">│</span>     <span class="d-l">│</span> (DB access)   <span class="d-l">│</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>             <span class="d-l">│</span>     <span class="d-l">├───────────────┤</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>             <span class="d-l">│────</span><span class="d-a">►</span><span class="d-l">│</span> BILLING AGENT <span class="d-l">│</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>             <span class="d-l">│</span>     <span class="d-l">│</span> (Payment API) <span class="d-l">│</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>             <span class="d-l">│</span>     <span class="d-l">├───────────────┤</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>             <span class="d-l">│────</span><span class="d-a">►</span><span class="d-l">│</span> RETURNS AGENT <span class="d-l">│</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>             <span class="d-l">│</span>     <span class="d-l">│</span> (Policy + DB) <span class="d-l">│</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>             <span class="d-l">│</span>     <span class="d-l">├───────────────┤</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>             <span class="d-l">│────</span><span class="d-a">►</span><span class="d-l">│</span> GENERAL FAQ   <span class="d-l">│</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└─────────────┘</span>     <span class="d-l">│</span> (RAG)         <span class="d-l">│</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>                      <span class="d-l">└───────┬───────┘</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>                              <span class="d-a">↓</span>               <span class="d-l">│</span>
+<span class="d-l">│</span>                      <span class="d-l">┌───────────────┐</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>                      <span class="d-l">│</span> RESPONSE      <span class="d-l">│</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>                      <span class="d-l">│</span> FORMATTER     <span class="d-l">│</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>                      <span class="d-l">│</span> + Tone check  <span class="d-l">│</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>                      <span class="d-l">│</span> + Policy check<span class="d-l">│</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>                      <span class="d-l">└───────┬───────┘</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>                              <span class="d-a">↓</span>               <span class="d-l">│</span>
+<span class="d-l">│</span>                      <span class="d-l">┌───────────────┐</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>                      <span class="d-l">│</span> ESCALATION    <span class="d-l">│</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>                      <span class="d-l">│</span> GATE          <span class="d-l">│</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>                      <span class="d-l">│</span> (if needed)   <span class="d-l">│</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>                      <span class="d-l">└───────────────┘</span>       <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────────┘</span>
 
 TOOLS:
-- query_orders(customer_id) → Order details
-- check_return_eligibility(order_id) → Policy check
-- initiate_return(order_id, reason) → Create return
-- query_knowledge_base(topic) → RAG search
-- escalate_to_human(reason, priority) → Human handoff
+- query_orders(customer_id) <span class="d-a">→</span> Order details
+- check_return_eligibility(order_id) <span class="d-a">→</span> Policy check
+- initiate_return(order_id, reason) <span class="d-a">→</span> Create return
+- query_knowledge_base(topic) <span class="d-a">→</span> RAG search
+- escalate_to_human(reason, priority) <span class="d-a">→</span> Human handoff
 
 GUARDRAILS:
 - Never reveal other customer data
@@ -5707,81 +5719,81 @@ GUARDRAILS:
 - Escalate billing disputes &gt; $500</pre></div>
           <h3>12.2 Case Study: Code Review Agent</h3>
           <div class="diagram"><pre>ARCHITECTURE:
-┌──────────────────────────────────────────────┐
-│            CODE REVIEW AGENT                 │
-│                                              │
-│  PR Webhook                                  │
-│       ↓                                      │
-│  ┌─────────────┐                             │
-│  │  DIFF       │ → Parse changed files       │
-│  │  PARSER                        │          │
-│  └──────┬──────┘                             │
-│         ↓                                    │
-│  ┌─────────────────────────────────┐         │
-│  │  PARALLEL ANALYSIS AGENTS      │          │
-│  │  ┌──────────┐  ┌─────────────┐ │          │
-│  │  │ Security │  │ Performance │ │          │
-│  │  │ Scanner  │  │ Analyzer    │ │          │
-│  │  └──────────┘  └─────────────┘ │          │
-│  │  ┌──────────┐  ┌─────────────┐ │          │
-│  │  │ Style    │  │ Logic       │ │          │
-│  │  │ Checker  │  │ Reviewer    │ │          │
-│  │  └──────────┘  └─────────────┘ │          │
-│  └─────────────┬───────────────────┘         │
-│                ↓                             │
-│  ┌─────────────────────┐                     │
-│  │  AGGREGATOR AGENT              │          │
-│  │  - Deduplicate                 │          │
-│  │  - Prioritize                  │          │
-│  │  - Format review               │          │
-│  └──────────┬──────────┘                     │
-│             ↓                                │
-│  ┌─────────────────────┐                     │
-│  │  POST REVIEW                   │          │
-│  │  (GitHub API)                  │          │
-│  └─────────────────────┘                     │
-└──────────────────────────────────────────────┘</pre></div>
+<span class="d-l">┌──────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>            CODE REVIEW AGENT                 <span class="d-l">│</span>
+<span class="d-l">│</span>                                              <span class="d-l">│</span>
+<span class="d-l">│</span>  PR Webhook                                  <span class="d-l">│</span>
+<span class="d-l">│</span>       <span class="d-a">↓</span>                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌─────────────┐</span>                             <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  DIFF       <span class="d-l">│</span> <span class="d-a">→</span> Parse changed files       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  PARSER                        <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────┬──────┘</span>                             <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">↓</span>                                    <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌─────────────────────────────────┐</span>         <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  PARALLEL ANALYSIS AGENTS      <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">┌──────────┐</span>  <span class="d-l">┌─────────────┐</span> <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> Security <span class="d-l">│</span>  <span class="d-l">│</span> Performance <span class="d-l">│</span> <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> Scanner  <span class="d-l">│</span>  <span class="d-l">│</span> Analyzer    <span class="d-l">│</span> <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">└──────────┘</span>  <span class="d-l">└─────────────┘</span> <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">┌──────────┐</span>  <span class="d-l">┌─────────────┐</span> <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> Style    <span class="d-l">│</span>  <span class="d-l">│</span> Logic       <span class="d-l">│</span> <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> Checker  <span class="d-l">│</span>  <span class="d-l">│</span> Reviewer    <span class="d-l">│</span> <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">└──────────┘</span>  <span class="d-l">└─────────────┘</span> <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└─────────────┬───────────────────┘</span>         <span class="d-l">│</span>
+<span class="d-l">│</span>                <span class="d-a">↓</span>                             <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌─────────────────────┐</span>                     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  AGGREGATOR AGENT              <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  - Deduplicate                 <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  - Prioritize                  <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  - Format review               <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────────┬──────────┘</span>                     <span class="d-l">│</span>
+<span class="d-l">│</span>             <span class="d-a">↓</span>                                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌─────────────────────┐</span>                     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  POST REVIEW                   <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  (GitHub API)                  <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└─────────────────────┘</span>                     <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────────┘</span></pre></div>
           <h3>12.3 Case Study: Research Agent with Deep Search</h3>
           <div class="diagram"><pre>ARCHITECTURE:
-┌──────────────────────────────────────────────────────┐
-│              DEEP RESEARCH AGENT                     │
-│                                                      │
-│  Research Question                                   │
-│       ↓                                              │
-│  ┌──────────────────┐                                │
-│  │  QUERY DECOMPOSER                │ → Sub-questions│
-│  │  "What are the   │ → Q1: "Market size?"           │
-│  │   trends in ...?"│ → Q2: "Key players?"           │
-│  └────────┬─────────┘   Q3: "Technology?"            │
-│           ↓                                          │
-│  ┌──────────────────────────────────┐                │
-│  │  PARALLEL SEARCH (per question)  │                │
-│  │  ┌──────┐ ┌──────┐ ┌──────┐      │                │
-│  │  │Web   │ │Arxiv │ │News  │    │                  │
-│  │  │Search│ │Search│ │Search│    │                  │
-│  │  └──┬───┘ └──┬───┘ └──┬───┘      │                │
-│  └─────┼────────┼────────┼────────┘                  │
-│        ↓        ↓        ↓                           │
-│  ┌──────────────────────────────────┐                │
-│  │  SYNTHESIZER AGENT               │                │
-│  │  - Cross-reference sources       │                │
-│  │  - Identify consensus/conflicts  │                │
-│  │  - Rate source reliability       │                │
-│  └────────┬─────────────────────────┘                │
-│           ↓                                          │
-│  ┌──────────────────────────────────┐                │
-│  │  REFLECTION AGENT                │                │
-│  │  "Are there gaps?"               │                │
-│  │  YES → Generate more queries     │                │
-│  │  NO  → Proceed to writing        │                │
-│  └────────┬─────────────────────────┘                │
-│           ↓                                          │
-│  ┌──────────────────────────────────┐                │
-│  │  REPORT WRITER                   │                │
-│  │  - Structured report with        │                │
-│  │    citations, charts, summary    │                │
-│  └──────────────────────────────────┘                │
-└──────────────────────────────────────────────────────┘</pre></div>
+<span class="d-l">┌──────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>              DEEP RESEARCH AGENT                     <span class="d-l">│</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  Research Question                                   <span class="d-l">│</span>
+<span class="d-l">│</span>       <span class="d-a">↓</span>                                              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────────┐</span>                                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  QUERY DECOMPOSER                <span class="d-l">│</span> <span class="d-a">→</span> Sub-questions<span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  "What are the   <span class="d-l">│</span> <span class="d-a">→</span> Q1: "Market size?"           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>   trends in ...?"<span class="d-l">│</span> <span class="d-a">→</span> Q2: "Key players?"           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└────────┬─────────┘</span>   Q3: "Technology?"            <span class="d-l">│</span>
+<span class="d-l">│</span>           <span class="d-a">↓</span>                                          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────────────────────────┐</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  PARALLEL SEARCH (per question)  <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">┌──────┐</span> <span class="d-l">┌──────┐</span> <span class="d-l">┌──────┐</span>      <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>Web   <span class="d-l">│</span> <span class="d-l">│</span>Arxiv <span class="d-l">│</span> <span class="d-l">│</span>News  <span class="d-l">│</span>    <span class="d-l">│</span>                  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>Search<span class="d-l">│</span> <span class="d-l">│</span>Search<span class="d-l">│</span> <span class="d-l">│</span>Search<span class="d-l">│</span>    <span class="d-l">│</span>                  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">└──┬───┘</span> <span class="d-l">└──┬───┘</span> <span class="d-l">└──┬───┘</span>      <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└─────┼────────┼────────┼────────┘</span>                  <span class="d-l">│</span>
+<span class="d-l">│</span>        <span class="d-a">↓</span>        <span class="d-a">↓</span>        <span class="d-a">↓</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────────────────────────┐</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  SYNTHESIZER AGENT               <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  - Cross-reference sources       <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  - Identify consensus/conflicts  <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  - Rate source reliability       <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└────────┬─────────────────────────┘</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>           <span class="d-a">↓</span>                                          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────────────────────────┐</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  REFLECTION AGENT                <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  "Are there gaps?"               <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  YES <span class="d-a">→</span> Generate more queries     <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  NO  <span class="d-a">→</span> Proceed to writing        <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└────────┬─────────────────────────┘</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>           <span class="d-a">↓</span>                                          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────────────────────────┐</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  REPORT WRITER                   <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  - Structured report with        <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>    citations, charts, summary    <span class="d-l">│</span>                <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────────────────────────────────┘</span>                <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────────────────┘</span></pre></div>
         </div>
         <div class="parthead" id="f11AgenticSyste-p33"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>13. LATS (Language Agent Tree Search)</span><i></i>
         </div>
@@ -5801,11 +5813,11 @@ GUARDRAILS:
 
        [Root: Initial State]
           /       |       \
-     [Action1] [Action2] [Action3]     ← EXPAND
+     [Action1] [Action2] [Action3]     <span class="d-a">←</span> EXPAND
        / \         |         \
-   [A1.1] [A1.2] [A2.1]   [A3.1]     ← EXPAND deeper
-     ✓       ✗      ✗         ✓        ← EVALUATE (LLM scores)
-   (0.9)   (0.2)  (0.3)    (0.7)     ← BACKPROPAGATE values</pre></div>
+   [A1.1] [A1.2] [A2.1]   [A3.1]     <span class="d-a">←</span> EXPAND deeper
+     √       ×      ×         √        <span class="d-a">←</span> EVALUATE (LLM scores)
+   (0.9)   (0.2)  (0.3)    (0.7)     <span class="d-a">←</span> BACKPROPAGATE values</pre></div>
           <h3>Comparison with Other Approaches</h3>
           <div class="tbl-wrap">
             <table class="t4">
@@ -5930,24 +5942,24 @@ GUARDRAILS:
           <p>Client agents discover capabilities by fetching Agent Cards and selecting the right agent for each sub-task.</p>
           <h3>Task Lifecycle</h3>
           <div class="diagram"><pre>  Client Agent                          Remote Agent
-       │                                     │
-       │─── POST /tasks (create) ───────────▶│
-       │                                     │
-       │◀─── status: "submitted" ────────────│
-       │                                     │ (processing...)
-       │◀─── status: "working" ──────────────│
-       │                                     │
-       │◀─── status: "input-required" ────── │ (needs clarification)
-       │─── POST /tasks (respond) ──────────▶│
-       │                                     │
-       │◀─── status: "completed" ──────────  │ + artifacts (results)
-       │                                     │
+       <span class="d-l">│</span>                                     <span class="d-l">│</span>
+       <span class="d-l">│───</span> POST /tasks (create) <span class="d-l">───────────</span><span class="d-a">►</span><span class="d-l">│</span>
+       <span class="d-l">│</span>                                     <span class="d-l">│</span>
+       <span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">───</span> status: "submitted" <span class="d-l">────────────│</span>
+       <span class="d-l">│</span>                                     <span class="d-l">│</span> (processing...)
+       <span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">───</span> status: "working" <span class="d-l">──────────────│</span>
+       <span class="d-l">│</span>                                     <span class="d-l">│</span>
+       <span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">───</span> status: "input-required" <span class="d-l">──────</span> <span class="d-l">│</span> (needs clarification)
+       <span class="d-l">│───</span> POST /tasks (respond) <span class="d-l">──────────</span><span class="d-a">►</span><span class="d-l">│</span>
+       <span class="d-l">│</span>                                     <span class="d-l">│</span>
+       <span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">───</span> status: "completed" <span class="d-l">──────────</span>  <span class="d-l">│</span> + artifacts (results)
+       <span class="d-l">│</span>                                     <span class="d-l">│</span>
 
   Status transitions:
-  submitted → working → completed
-                     → input-required → working → completed
-                     → failed
-                     → canceled</pre></div>
+  submitted <span class="d-a">→</span> working <span class="d-a">→</span> completed
+                     <span class="d-a">→</span> input-required <span class="d-a">→</span> working <span class="d-a">→</span> completed
+                     <span class="d-a">→</span> failed
+                     <span class="d-a">→</span> canceled</pre></div>
           <h3>Streaming with SSE</h3>
           <p>For long-running tasks, A2A supports <strong>Server-Sent Events (SSE)</strong> via <code>POST /tasks/sendSubscribe</code>:
             - Client subscribes to a task and receives real-time status updates and partial results.
@@ -6019,23 +6031,23 @@ GUARDRAILS:
           </div>
           <p><strong>They work together</strong>: An agent uses <strong>MCP</strong> to access tools and data, and <strong>A2A</strong> to collaborate with other agents.</p>
           <h3>Architecture — Multi-Agent System with A2A</h3>
-          <div class="diagram"><pre>┌───────────────────────────────────────────────────────────┐
-│                  Orchestrator Agent                       │
-│          (understands user intent, delegates)             │
-│                                                           │
-│  MCP: accesses tools (DB, search, calendar)               │
-│  A2A: delegates to specialist agents                      │
-└──────┬────────────────┬─────────────────┬─────────────────┘
-       │ A2A              │ A2A              │ A2A
-       ▼                  ▼                  ▼
-┌────────────┐  ┌──────────────┐  ┌───────────────┐
-│ Research    │  │ Code Review  │  │ Data Analysis│
-│ Agent       │  │ Agent        │  │ Agent        │
-│ (Team A)    │  │ (Team B)     │  │ (Vendor X)   │
-│             │  │              │  │              │
-│ MCP: arXiv, │  │ MCP: GitHub, │  │ MCP: SQL,    │
-│ Scholar API │  │ linters      │  │ pandas       │
-└────────────┘  └──────────────┘  └───────────────┘
+          <div class="diagram"><pre><span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                  Orchestrator Agent                       <span class="d-l">│</span>
+<span class="d-l">│</span>          (understands user intent, delegates)             <span class="d-l">│</span>
+<span class="d-l">│</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  MCP: accesses tools (DB, search, calendar)               <span class="d-l">│</span>
+<span class="d-l">│</span>  A2A: delegates to specialist agents                      <span class="d-l">│</span>
+<span class="d-l">└──────┬────────────────┬─────────────────┬─────────────────┘</span>
+       <span class="d-l">│</span> A2A              <span class="d-l">│</span> A2A              <span class="d-l">│</span> A2A
+       <span class="d-a">▼</span>                  <span class="d-a">▼</span>                  <span class="d-a">▼</span>
+<span class="d-l">┌────────────┐</span>  <span class="d-l">┌──────────────┐</span>  <span class="d-l">┌───────────────┐</span>
+<span class="d-l">│</span> Research    <span class="d-l">│</span>  <span class="d-l">│</span> Code Review  <span class="d-l">│</span>  <span class="d-l">│</span> Data Analysis<span class="d-l">│</span>
+<span class="d-l">│</span> Agent       <span class="d-l">│</span>  <span class="d-l">│</span> Agent        <span class="d-l">│</span>  <span class="d-l">│</span> Agent        <span class="d-l">│</span>
+<span class="d-l">│</span> (Team A)    <span class="d-l">│</span>  <span class="d-l">│</span> (Team B)     <span class="d-l">│</span>  <span class="d-l">│</span> (Vendor X)   <span class="d-l">│</span>
+<span class="d-l">│</span>             <span class="d-l">│</span>  <span class="d-l">│</span>              <span class="d-l">│</span>  <span class="d-l">│</span>              <span class="d-l">│</span>
+<span class="d-l">│</span> MCP: arXiv, <span class="d-l">│</span>  <span class="d-l">│</span> MCP: GitHub, <span class="d-l">│</span>  <span class="d-l">│</span> MCP: SQL,    <span class="d-l">│</span>
+<span class="d-l">│</span> Scholar API <span class="d-l">│</span>  <span class="d-l">│</span> linters      <span class="d-l">│</span>  <span class="d-l">│</span> pandas       <span class="d-l">│</span>
+<span class="d-l">└────────────┘</span>  <span class="d-l">└──────────────┘</span>  <span class="d-l">└───────────────┘</span>
 
   Each agent: different team, different framework, different LLM
   A2A enables them to collaborate via standard protocol</pre></div>
@@ -6210,20 +6222,20 @@ seen_actions.<span class="fn">add</span>((tool_name, <span class="fn">str</span>
           <p><strong>The Autonomy-Reliability Curve:</strong>
           </p>
           <div class="diagram"><pre>Reliability
-    ↑
-100%│  ●──── Deterministic chains
-    │    ╲
-    │     ╲── Router + specialized chains
-    │      ╲
- 80%│       ╲── ReAct with guardrails
-    │        ╲
-    │         ╲── Plan-Execute with HITL
- 60%│          ╲
-    │           ╲── Multi-agent with reflection
-    │            ╲
- 40%│             ╲── Fully autonomous agent
-    │
-    └────────────────────────────────────→ Autonomy</pre></div>
+    <span class="d-a">↑</span>
+100%<span class="d-l">│</span>  ●<span class="d-l">────</span> Deterministic chains
+    <span class="d-l">│</span>    <span class="d-l">╲</span>
+    <span class="d-l">│</span>     <span class="d-l">╲──</span> Router + specialized chains
+    <span class="d-l">│</span>      <span class="d-l">╲</span>
+ 80%<span class="d-l">│</span>       <span class="d-l">╲──</span> ReAct with guardrails
+    <span class="d-l">│</span>        <span class="d-l">╲</span>
+    <span class="d-l">│</span>         <span class="d-l">╲──</span> Plan-Execute with HITL
+ 60%<span class="d-l">│</span>          <span class="d-l">╲</span>
+    <span class="d-l">│</span>           <span class="d-l">╲──</span> Multi-agent with reflection
+    <span class="d-l">│</span>            <span class="d-l">╲</span>
+ 40%<span class="d-l">│</span>             <span class="d-l">╲──</span> Fully autonomous agent
+    <span class="d-l">│</span>
+    <span class="d-l">└────────────────────────────────────</span><span class="d-a">→</span> Autonomy</pre></div>
           <p><strong>Strategies to shift the curve up:</strong>
             - Better guardrails and validation at each step
             - Self-reflection and self-correction loops
@@ -6249,38 +6261,38 @@ seen_actions.<span class="fn">add</span>((tool_name, <span class="fn">str</span>
           <div class="diagram"><pre>User: "Analyze our sales data and find growth opportunities"
 
 SYSTEM DESIGN:
-┌──────────────────────────────────────────────┐
-│  1. DATA UNDERSTANDING AGENT                 │
-│     - Connect to data source (SQL/CSV/API)   │
-│     - Schema discovery                       │
-│     - Data profiling (nulls, types, ranges)  │
-│                                              │
-│  2. ANALYSIS PLANNER                         │
-│     - Generate analysis plan based on goal   │
-│     - "Trend analysis → Segmentation →       │
-│       Correlation → Opportunity scoring"     │
-│                                              │
-│  3. ANALYST AGENT (Code Execution)           │
-│     - Write and execute Python/SQL           │
-│     - Sandboxed execution (Docker/E2B)       │
-│     - Generate visualizations                │
-│                                              │
-│  4. INSIGHT SYNTHESIZER                      │
-│     - Interpret results in business context  │
-│     - Rank insights by impact                │
-│     - Generate recommendations               │
-│                                              │
-│  5. REPORT GENERATOR                         │
-│     - Create structured report               │
-│     - Include charts, tables, key findings   │
-│     - Executive summary                      │
-└──────────────────────────────────────────────┘
+<span class="d-l">┌──────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>  1. DATA UNDERSTANDING AGENT                 <span class="d-l">│</span>
+<span class="d-l">│</span>     - Connect to data source (SQL/CSV/API)   <span class="d-l">│</span>
+<span class="d-l">│</span>     - Schema discovery                       <span class="d-l">│</span>
+<span class="d-l">│</span>     - Data profiling (nulls, types, ranges)  <span class="d-l">│</span>
+<span class="d-l">│</span>                                              <span class="d-l">│</span>
+<span class="d-l">│</span>  2. ANALYSIS PLANNER                         <span class="d-l">│</span>
+<span class="d-l">│</span>     - Generate analysis plan based on goal   <span class="d-l">│</span>
+<span class="d-l">│</span>     - "Trend analysis <span class="d-a">→</span> Segmentation <span class="d-a">→</span>       <span class="d-l">│</span>
+<span class="d-l">│</span>       Correlation <span class="d-a">→</span> Opportunity scoring"     <span class="d-l">│</span>
+<span class="d-l">│</span>                                              <span class="d-l">│</span>
+<span class="d-l">│</span>  3. ANALYST AGENT (Code Execution)           <span class="d-l">│</span>
+<span class="d-l">│</span>     - Write and execute Python/SQL           <span class="d-l">│</span>
+<span class="d-l">│</span>     - Sandboxed execution (Docker/E2B)       <span class="d-l">│</span>
+<span class="d-l">│</span>     - Generate visualizations                <span class="d-l">│</span>
+<span class="d-l">│</span>                                              <span class="d-l">│</span>
+<span class="d-l">│</span>  4. INSIGHT SYNTHESIZER                      <span class="d-l">│</span>
+<span class="d-l">│</span>     - Interpret results in business context  <span class="d-l">│</span>
+<span class="d-l">│</span>     - Rank insights by impact                <span class="d-l">│</span>
+<span class="d-l">│</span>     - Generate recommendations               <span class="d-l">│</span>
+<span class="d-l">│</span>                                              <span class="d-l">│</span>
+<span class="d-l">│</span>  5. REPORT GENERATOR                         <span class="d-l">│</span>
+<span class="d-l">│</span>     - Create structured report               <span class="d-l">│</span>
+<span class="d-l">│</span>     - Include charts, tables, key findings   <span class="d-l">│</span>
+<span class="d-l">│</span>     - Executive summary                      <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────────┘</span>
 
 TOOLS:
-- execute_sql(query) → Run SQL on data warehouse
-- execute_python(code) → Sandboxed Python with pandas/matplotlib
-- create_chart(data, chart_type) → Generate visualization
-- save_report(content, format) → Export as PDF/HTML</pre></div>
+- execute_sql(query) <span class="d-a">→</span> Run SQL on data warehouse
+- execute_python(code) <span class="d-a">→</span> Sandboxed Python with pandas/matplotlib
+- create_chart(data, chart_type) <span class="d-a">→</span> Generate visualization
+- save_report(content, format) <span class="d-a">→</span> Export as PDF/HTML</pre></div>
         </div>
         <div class="parthead" id="f11AgenticSyste-p36"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>🎯 Agentic Design Decision Cheat Sheet</span><i></i>
         </div>
@@ -7909,19 +7921,19 @@ agent = graph.<span class="fn">compile</span>(checkpointer=PostgresSaver.<span c
               </p>
             </div>
             <p>The confusion exists because "orchestration" is also the umbrella word for <em>any</em> coordination (the graph itself "orchestrates"), and a supervisor <em>is one way</em> to orchestrate. When an interviewer asks the difference, they want the <strong>two distinct control-flow patterns</strong>:</p>
-            <div class="diagram"><pre>SUPERVISOR (turn-by-turn router)              ORCHESTRATOR-WORKER (plan → fan-out → fan-in)
+            <div class="diagram"><pre>SUPERVISOR (turn-by-turn router)              ORCHESTRATOR-WORKER (plan <span class="d-a">→</span> fan-out <span class="d-a">→</span> fan-in)
 
-        ┌────────────┐                                 ┌─────────┐
-  ┌────▶│ supervisor │─── FINISH ──▶ END               │ planner │  "split goal into N subtasks"
-  │     └─────┬──────┘                                 └────┬────┘
-  │     picks ONE worker                            Send × N subtasks (PARALLEL, one superstep)
-  │     ┌─────┴──────┐                             ┌────────┼────┐
-  │     ▼            ▼                             ▼        ▼        ▼
-  │ [researcher]  [coder]                      [worker] [worker] [worker]
-  │     │            │                             └────────┼────┘
-  └─────┴────────────┘                                      ▼
+        <span class="d-l">┌────────────┐</span>                                 <span class="d-l">┌─────────┐</span>
+  <span class="d-l">┌────</span><span class="d-a">►</span><span class="d-l">│</span> supervisor <span class="d-l">│───</span> FINISH <span class="d-l">──</span><span class="d-a">►</span> END               <span class="d-l">│</span> planner <span class="d-l">│</span>  "split goal into N subtasks"
+  <span class="d-l">│</span>     <span class="d-l">└─────┬──────┘</span>                                 <span class="d-l">└────┬────┘</span>
+  <span class="d-l">│</span>     picks ONE worker                            Send × N subtasks (PARALLEL, one superstep)
+  <span class="d-l">│</span>     <span class="d-l">┌─────┴──────┐</span>                             <span class="d-l">┌────────┼────┐</span>
+  <span class="d-l">│</span>     <span class="d-a">▼</span>            <span class="d-a">▼</span>                             <span class="d-a">▼</span>        <span class="d-a">▼</span>        <span class="d-a">▼</span>
+  <span class="d-l">│</span> [researcher]  [coder]                      [worker] [worker] [worker]
+  <span class="d-l">│</span>     <span class="d-l">│</span>            <span class="d-l">│</span>                             <span class="d-l">└────────┼────┘</span>
+  <span class="d-l">└─────┴────────────┘</span>                                      <span class="d-a">▼</span>
    result returns to supervisor,                      [synthesizer]  merge results
-   which decides the NEXT step                              ▼
+   which decides the NEXT step                              <span class="d-a">▼</span>
                                                            END</pre></div>
             <div class="tbl-wrap">
               <table class="t3">

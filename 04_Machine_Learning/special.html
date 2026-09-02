@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1299,8 +1311,8 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
           <div class="q-a">
             <div class="keyterms"><span class="kt">Key insight</span><span class="kt">and</span>
             </div>
-            <div class="diagram"><pre>High Interpretability ◄──────────────────────► High Accuracy
-Linear Reg → Decision Tree → Random Forest → GBM → Deep Neural Net</pre></div>
+            <div class="diagram"><pre>High Interpretability <span class="d-a">◄</span><span class="d-l">──────────────────────</span><span class="d-a">►</span> High Accuracy
+Linear Reg <span class="d-a">→</span> Decision Tree <span class="d-a">→</span> Random Forest <span class="d-a">→</span> GBM <span class="d-a">→</span> Deep Neural Net</pre></div>
             <div class="note">
               <p><strong>Key insight:</strong> Post-hoc methods let you keep accuracy <strong>and</strong> gain interpretability.</p>
             </div>
@@ -2462,24 +2474,24 @@ redis_client = redis.<span class="fn">Redis</span>()
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Client
-  │
-  ▼
-API Gateway ──► Prediction Service ──► Model
-  │                    │
-  │                    ▼
-  │              Explainer (SHAP)
-  │                    │
-  │                    ▼
-  │              Explanation Cache (Redis)
-  │                    │
-  ▼                    ▼
-Response ◄──── {prediction, explanation}
-  │
-  ▼
+  <span class="d-l">│</span>
+  <span class="d-a">▼</span>
+API Gateway <span class="d-l">──</span><span class="d-a">►</span> Prediction Service <span class="d-l">──</span><span class="d-a">►</span> Model
+  <span class="d-l">│</span>                    <span class="d-l">│</span>
+  <span class="d-l">│</span>                    <span class="d-a">▼</span>
+  <span class="d-l">│</span>              Explainer (SHAP)
+  <span class="d-l">│</span>                    <span class="d-l">│</span>
+  <span class="d-l">│</span>                    <span class="d-a">▼</span>
+  <span class="d-l">│</span>              Explanation Cache (Redis)
+  <span class="d-l">│</span>                    <span class="d-l">│</span>
+  <span class="d-a">▼</span>                    <span class="d-a">▼</span>
+Response <span class="d-a">◄</span><span class="d-l">────</span> {prediction, explanation}
+  <span class="d-l">│</span>
+  <span class="d-a">▼</span>
 Monitoring (Grafana / Prometheus)
-  ├── SHAP drift dashboard
-  ├── Latency metrics
-  └── Feature-rank stability</pre></div>
+  <span class="d-l">├──</span> SHAP drift dashboard
+  <span class="d-l">├──</span> Latency metrics
+  <span class="d-l">└──</span> Feature-rank stability</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="f12ModelInterpr-p11"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>12. Interview Questions</span><i></i>
@@ -2568,7 +2580,7 @@ Monitoring (Grafana / Prometheus)
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <div class="diagram"><pre>METHOD              TYPE              SCOPE      SPEED       USE CASE
-─────────────────────────────────────────────────────────────────────
+<span class="d-l">─────────────────────────────────────────────────────────────────────</span>
 Coefficients        Intrinsic         Global     Instant     Linear models
 Decision rules      Intrinsic         Global     Instant     Trees, rule lists
 Permutation Imp.    Post-hoc/Agnostic Global     Medium      Any model
@@ -2609,7 +2621,7 @@ Attention viz.      Intrinsic         Local      Fast        Transformer inspect
                       (e.g., sequence of network packets forming an attack)
 
 DETECTION PARADIGMS:
-  Supervised:       Labeled anomalies available → binary classification
+  Supervised:       Labeled anomalies available <span class="d-a">→</span> binary classification
                     (rarely practical — anomalies are rare and diverse)
   Semi-supervised:  Train on ONLY normal data, detect deviations
                     (One-Class SVM, autoencoders, robust PCA)
@@ -2624,7 +2636,7 @@ KEY CHALLENGES:
   - Ground truth labels are often unavailable or expensive</pre></div>
             <div class="diagram"><pre>ANOMALY SCORE vs BINARY LABEL:
   Most methods produce a continuous anomaly score
-  Threshold converts score → binary label
+  Threshold converts score <span class="d-a">→</span> binary label
   
   Score advantages:
   - Rank anomalies by severity
@@ -2839,9 +2851,9 @@ LOF LIMITATIONS:
      where c(n) = average path length of unsuccessful BST search
      
   Score interpretation:
-    s → 1:    Anomaly (short path length)
-    s → 0.5:  Normal (average path length)
-    s → 0:    Dense cluster (long path length)</pre></div>
+    s <span class="d-a">→</span> 1:    Anomaly (short path length)
+    s <span class="d-a">→</span> 0.5:  Normal (average path length)
+    s <span class="d-a">→</span> 0:    Dense cluster (long path length)</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> IsolationForest
 
 <span class="cmt"># ── Basic usage ──────────────────────────────────────────</span>
@@ -2930,25 +2942,25 @@ distances = oc_svm.<span class="fn">decision_function</span>(X_test)  <span clas
             <div class="diagram"><pre>ONE-CLASS SVM vs ISOLATION FOREST:
   
   One-Class SVM:
-    ✓ Works well in high-dimensional spaces (kernel trick)
-    ✓ Theoretically grounded (margin maximization)
-    ✓ Good when clean normal data is available (semi-supervised)
-    ✗ O(n²) to O(n³) training — doesn't scale
-    ✗ Sensitive to kernel and γ choice
-    ✗ Requires feature scaling
+    √ Works well in high-dimensional spaces (kernel trick)
+    √ Theoretically grounded (margin maximization)
+    √ Good when clean normal data is available (semi-supervised)
+    × O(n²) to O(n³) training — doesn't scale
+    × Sensitive to kernel and γ choice
+    × Requires feature scaling
     
   Isolation Forest:
-    ✓ O(n log n) — scales to millions of records
-    ✓ No kernel/feature scaling needed
-    ✓ Works unsupervised (no clean training data needed)
-    ✗ Less effective in very high dimensions
-    ✗ Axis-aligned splits can miss patterns
+    √ O(n log n) — scales to millions of records
+    √ No kernel/feature scaling needed
+    √ Works unsupervised (no clean training data needed)
+    × Less effective in very high dimensions
+    × Axis-aligned splits can miss patterns
 
   Rule of thumb:
-    Small data + clean normals → One-Class SVM
-    Large data + no labels → Isolation Forest
-    Varying densities → LOF
-    Very high dimensions → Isolation Forest or autoencoder</pre></div>
+    Small data + clean normals <span class="d-a">→</span> One-Class SVM
+    Large data + no labels <span class="d-a">→</span> Isolation Forest
+    Varying densities <span class="d-a">→</span> LOF
+    Very high dimensions <span class="d-a">→</span> Isolation Forest or autoencoder</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f14AnomalyDetec-54">
@@ -3180,23 +3192,23 @@ best_threshold = thresholds[np.<span class="fn">argmax</span>(f1_scores)]</code>
           <div class="q-a">
             <div class="diagram"><pre>PRODUCTION PIPELINE ARCHITECTURE:
 
-  ┌────────────┐    ┌──────────────┐    ┌─────────────────┐
-  │ Data Source │───→│ Feature Eng  │───→│ Anomaly Model  │
-  │ (Stream/DB) │    │ (Transform)  │    │ (Score + Flag) │
-  └────────────┘    └──────────────┘    └───────┬─────────┘
-                                                          │
-                              ┌───────────────────────────┤
-                              ▼                 ▼
-                    ┌───────────────┐   ┌─────────────────┐
-                    │  Alert System │   │ Dashboard       │
-                    │  (PagerDuty)  │   │ (Grafana)       │
-                    └───────────────┘   └─────────────────┘
-                                    │
-                              ▼
-                    ┌───────────────┐
-                    │ Human Review  │──→ Feedback Loop
-                    │ (Label)       │    (Retrain Model)
-                    └───────────────┘</pre></div>
+  <span class="d-l">┌────────────┐</span>    <span class="d-l">┌──────────────┐</span>    <span class="d-l">┌─────────────────┐</span>
+  <span class="d-l">│</span> Data Source <span class="d-l">│───</span><span class="d-a">→</span><span class="d-l">│</span> Feature Eng  <span class="d-l">│───</span><span class="d-a">→</span><span class="d-l">│</span> Anomaly Model  <span class="d-l">│</span>
+  <span class="d-l">│</span> (Stream/DB) <span class="d-l">│</span>    <span class="d-l">│</span> (Transform)  <span class="d-l">│</span>    <span class="d-l">│</span> (Score + Flag) <span class="d-l">│</span>
+  <span class="d-l">└────────────┘</span>    <span class="d-l">└──────────────┘</span>    <span class="d-l">└───────┬─────────┘</span>
+                                                          <span class="d-l">│</span>
+                              <span class="d-l">┌───────────────────────────┤</span>
+                              <span class="d-a">▼</span>                 <span class="d-a">▼</span>
+                    <span class="d-l">┌───────────────┐</span>   <span class="d-l">┌─────────────────┐</span>
+                    <span class="d-l">│</span>  Alert System <span class="d-l">│</span>   <span class="d-l">│</span> Dashboard       <span class="d-l">│</span>
+                    <span class="d-l">│</span>  (PagerDuty)  <span class="d-l">│</span>   <span class="d-l">│</span> (Grafana)       <span class="d-l">│</span>
+                    <span class="d-l">└───────────────┘</span>   <span class="d-l">└─────────────────┘</span>
+                                    <span class="d-l">│</span>
+                              <span class="d-a">▼</span>
+                    <span class="d-l">┌───────────────┐</span>
+                    <span class="d-l">│</span> Human Review  <span class="d-l">│──</span><span class="d-a">→</span> Feedback Loop
+                    <span class="d-l">│</span> (Label)       <span class="d-l">│</span>    (Retrain Model)
+                    <span class="d-l">└───────────────┘</span></pre></div>
             <pre class="code" data-lang="python"><code><span class="cmt"># ── Production anomaly detection system ──────────────────</span>
 <span class="kw">import</span> pandas <span class="kw">as</span> pd
 <span class="kw">import</span> numpy <span class="kw">as</span> np
@@ -3349,38 +3361,38 @@ tree_size = <span class="num">256</span>
             <div class="diagram"><pre>ALGORITHM SELECTION DECISION TREE:
 
   Is data labeled?
-  ├── Yes → Use supervised classification (XGBoost, etc.)
-  │         with SMOTE/class weights for imbalance
-  └── No
-      │
+  <span class="d-l">├──</span> Yes <span class="d-a">→</span> Use supervised classification (XGBoost, etc.)
+  <span class="d-l">│</span>         with SMOTE/class weights for imbalance
+  <span class="d-l">└──</span> No
+      <span class="d-l">│</span>
       Is clean normal data available?
-      ├── Yes (semi-supervised)
-      │   ├── Low-dimensional (&lt; 50 features) → One-Class SVM
-      │   ├── High-dimensional / images → Autoencoder
-      │   └── Tabular, moderate dims → Isolation Forest
-      └── No (fully unsupervised)
-          ├── Small data (&lt; 10K)
-          │   ├── Varying densities → LOF
-          │   └── Uniform density → Statistical / KNN
-          ├── Large data (&gt; 100K)
-          │   ├── Tabular → Isolation Forest (fast)
-          │   └── Complex patterns → Autoencoder
-          └── Streaming data → Half-Space Trees / RRCF
+      <span class="d-l">├──</span> Yes (semi-supervised)
+      <span class="d-l">│</span>   <span class="d-l">├──</span> Low-dimensional (&lt; 50 features) <span class="d-a">→</span> One-Class SVM
+      <span class="d-l">│</span>   <span class="d-l">├──</span> High-dimensional / images <span class="d-a">→</span> Autoencoder
+      <span class="d-l">│</span>   <span class="d-l">└──</span> Tabular, moderate dims <span class="d-a">→</span> Isolation Forest
+      <span class="d-l">└──</span> No (fully unsupervised)
+          <span class="d-l">├──</span> Small data (&lt; 10K)
+          <span class="d-l">│</span>   <span class="d-l">├──</span> Varying densities <span class="d-a">→</span> LOF
+          <span class="d-l">│</span>   <span class="d-l">└──</span> Uniform density <span class="d-a">→</span> Statistical / KNN
+          <span class="d-l">├──</span> Large data (&gt; 100K)
+          <span class="d-l">│</span>   <span class="d-l">├──</span> Tabular <span class="d-a">→</span> Isolation Forest (fast)
+          <span class="d-l">│</span>   <span class="d-l">└──</span> Complex patterns <span class="d-a">→</span> Autoencoder
+          <span class="d-l">└──</span> Streaming data <span class="d-a">→</span> Half-Space Trees / RRCF
 
 COMPARISON TABLE:
-  ┌───────────────────┬──────────┬──────────┬───────────┬──────────────┐
-  │ Method            │ Speed    │ Scales   │ Handles   │ Interpretable│
-  │                   │          │          │ High-dim  │              │
-  ├───────────────────┼──────────┼──────────┼───────────┼──────────────┤
-  │ Z-Score / IQR     │ O(n)     │ ✓✓✓      │ ✗ (1D)    │ ✓✓✓          │
-  │ Mahalanobis       │ O(n·d²)  │ ✓✓       │ ✓         │ ✓✓           │
-  │ LOF               │ O(n²)    │ ✗        │ ✗         │ ✓            │
-  │ Isolation Forest  │ O(n·logn)│ ✓✓✓      │ ✓✓        │ ✓            │
-  │ One-Class SVM     │ O(n²-n³) │ ✗        │ ✓✓✓       │ ✗            │
-  │ Autoencoder       │ O(epochs)│ ✓✓       │ ✓✓✓       │ ✗            │
-  │ DBSCAN            │ O(n·logn)│ ✓✓       │ ✗         │ ✓✓           │
-  │ COPOD / ECOD      │ O(n·d)   │ ✓✓✓      │ ✓         │ ✓✓✓          │
-  └───────────────────┴──────────┴──────────┴───────────┴──────────────┘</pre></div>
+  <span class="d-l">┌───────────────────┬──────────┬──────────┬───────────┬──────────────┐</span>
+  <span class="d-l">│</span> Method            <span class="d-l">│</span> Speed    <span class="d-l">│</span> Scales   <span class="d-l">│</span> Handles   <span class="d-l">│</span> Interpretable<span class="d-l">│</span>
+  <span class="d-l">│</span>                   <span class="d-l">│</span>          <span class="d-l">│</span>          <span class="d-l">│</span> High-dim  <span class="d-l">│</span>              <span class="d-l">│</span>
+  <span class="d-l">├───────────────────┼──────────┼──────────┼───────────┼──────────────┤</span>
+  <span class="d-l">│</span> Z-Score / IQR     <span class="d-l">│</span> O(n)     <span class="d-l">│</span> √√√      <span class="d-l">│</span> × (1D)    <span class="d-l">│</span> √√√          <span class="d-l">│</span>
+  <span class="d-l">│</span> Mahalanobis       <span class="d-l">│</span> O(n·d²)  <span class="d-l">│</span> √√       <span class="d-l">│</span> √         <span class="d-l">│</span> √√           <span class="d-l">│</span>
+  <span class="d-l">│</span> LOF               <span class="d-l">│</span> O(n²)    <span class="d-l">│</span> ×        <span class="d-l">│</span> ×         <span class="d-l">│</span> √            <span class="d-l">│</span>
+  <span class="d-l">│</span> Isolation Forest  <span class="d-l">│</span> O(n·logn)<span class="d-l">│</span> √√√      <span class="d-l">│</span> √√        <span class="d-l">│</span> √            <span class="d-l">│</span>
+  <span class="d-l">│</span> One-Class SVM     <span class="d-l">│</span> O(n²-n³) <span class="d-l">│</span> ×        <span class="d-l">│</span> √√√       <span class="d-l">│</span> ×            <span class="d-l">│</span>
+  <span class="d-l">│</span> Autoencoder       <span class="d-l">│</span> O(epochs)<span class="d-l">│</span> √√       <span class="d-l">│</span> √√√       <span class="d-l">│</span> ×            <span class="d-l">│</span>
+  <span class="d-l">│</span> DBSCAN            <span class="d-l">│</span> O(n·logn)<span class="d-l">│</span> √√       <span class="d-l">│</span> ×         <span class="d-l">│</span> √√           <span class="d-l">│</span>
+  <span class="d-l">│</span> COPOD / ECOD      <span class="d-l">│</span> O(n·d)   <span class="d-l">│</span> √√√      <span class="d-l">│</span> √         <span class="d-l">│</span> √√√          <span class="d-l">│</span>
+  <span class="d-l">└───────────────────┴──────────┴──────────┴───────────┴──────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f14AnomalyDetec-60">

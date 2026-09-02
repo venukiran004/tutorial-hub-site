@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -2834,7 +2846,7 @@ t = torch.<span class="fn">randn</span>(<span class="num">1000</span>, <span cla
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> The process of computing output from input by passing data through each layer sequentially:</p>
-            <div class="diagram"><pre>Input → Layer 1 (z₁ = W₁x + b₁, a₁ = σ(z₁)) → Layer 2 → ... → Output</pre></div>
+            <div class="diagram"><pre>Input <span class="d-a">→</span> Layer 1 (z₁ = W₁x + b₁, a₁ = σ(z₁)) <span class="d-a">→</span> Layer 2 <span class="d-a">→</span> ... <span class="d-a">→</span> Output</pre></div>
             <p><strong>Explanation:</strong> Each layer applies linear transformation (weights, biases) followed by non-linear activation. The final output gives the prediction, which is compared with true labels via the loss function.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -3622,10 +3634,10 @@ Spatial dropout: entire feature map either kept or dropped</code></pre>
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>L2 regularization: L_total = L + λ||w||²
-→ gradient: g + 2λw      (added to gradient BEFORE adaptive scaling)
+<span class="d-a">→</span> gradient: g + 2λw      (added to gradient BEFORE adaptive scaling)
 
 Weight decay: w = w - η(g + λw)
-→ decay: subtract λw from weights AFTER adaptive scaling</pre></div>
+<span class="d-a">→</span> decay: subtract λw from weights AFTER adaptive scaling</pre></div>
             <p><strong>Difference:</strong> In Adam, adaptive scaling means L2 ≠ weight decay. Infrequently updated parameters get large adaptive learning rate → L2 is scaled too.
               <strong>Solution:</strong> AdamW decouples weight decay from gradient adaptation. Use AdamW, not Adam with L2.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -3907,7 +3919,7 @@ Very deep (100+ layers): Requires ResNet-style architecture</code></pre>
             <p><strong>Answer:</strong> Add noise to various parts of the model during training:</p>
             <div class="diagram"><pre>Input noise: data augmentation (images, audio)
 Weight noise: add Gaussian noise to weights
-Gradient noise: add noise to gradients → SGD with noise
+Gradient noise: add noise to gradients <span class="d-a">→</span> SGD with noise
 Activation noise: dropout (extreme: set to zero)
 Label noise: label smoothing</pre></div>
             <p><strong>Explanation:</strong> Noise prevents model from memorizing exact patterns. Makes model robust to perturbations. Different injection points regularize different aspects.</p>
@@ -3970,8 +3982,8 @@ loss = CE(output1, y) + CE(output2, y) + KL(output1 || output2)</code></pre>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Steps 1 → warmup_steps: LR = step/warmup_steps × peak_LR
-Steps warmup_steps → end: LR follows decay (cosine, linear)</pre></div>
+            <div class="diagram"><pre>Steps 1 <span class="d-a">→</span> warmup_steps: LR = step/warmup_steps × peak_LR
+Steps warmup_steps <span class="d-a">→</span> end: LR follows decay (cosine, linear)</pre></div>
             <p><strong>Why important for large models:</strong>
               1. Random classification head produces large initial gradients
               2. Adam moments are uninitialized (biased early estimates)
@@ -4038,7 +4050,7 @@ Steps warmup_steps → end: LR follows decay (cosine, linear)</pre></div>
             </p>
             <div class="diagram"><pre>Phase 1 (30%): LR increases from LR/25 to max_LR
 Phase 2 (70%): LR decreases from max_LR to LR/25
-Momentum: opposite direction (high→low→high)</pre></div>
+Momentum: opposite direction (high<span class="d-a">→</span>low<span class="d-a">→</span>high)</pre></div>
             <p><strong>Explanation:</strong> Super-convergence — trains faster with higher accuracy. Found by Leslie Smith. Large LR in middle acts as regularizer. fastai implements this. Train for fewer epochs at higher LR.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -4268,10 +4280,10 @@ else:
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Bad init → training fails (vanishing/exploding gradients)
-Xavier/Glorot: Var(W) = 2/(fan_in + fan_out)  → for sigmoid/tanh
-He/Kaiming: Var(W) = 2/fan_in                  → for ReLU
-FixUp: zero-initialize residual branches → deep training without normalization</pre></div>
+            <div class="diagram"><pre>Bad init <span class="d-a">→</span> training fails (vanishing/exploding gradients)
+Xavier/Glorot: Var(W) = 2/(fan_in + fan_out)  <span class="d-a">→</span> for sigmoid/tanh
+He/Kaiming: Var(W) = 2/fan_in                  <span class="d-a">→</span> for ReLU
+FixUp: zero-initialize residual branches <span class="d-a">→</span> deep training without normalization</pre></div>
             <p><strong>Explanation:</strong> Initialization determines: starting point in loss landscape, initial gradient magnitudes, whether training can begin at all. Modern networks are less sensitive due to batch norm, skip connections.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -4300,10 +4312,10 @@ Loss = CE_1 + CE_2 + α × KL(p_1 || p_2)</code></pre>
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Underfitting: train loss high AND val loss high
-→ More capacity, train longer, reduce regularization
+<span class="d-a">→</span> More capacity, train longer, reduce regularization
 
 Overfitting: train loss low BUT val loss high
-→ More data, more regularization, simpler model
+<span class="d-a">→</span> More data, more regularization, simpler model
 
 Good fit: train loss low AND val loss low (gap is small)</pre></div>
             <p><strong>Explanation:</strong> Plot training AND validation curves together. Divergence = <abbr title="a model that fits the training data&#x27;s noise and generalises worse than a simpler one would">overfitting</abbr>. Neither decreasing = <abbr title="a model too simple to capture the real signal in the data">underfitting</abbr>. Use gap between them as guide for <abbr title="penalising model complexity so it generalises better">regularization</abbr> strength.</p>
@@ -4319,7 +4331,7 @@ Good fit: train loss low AND val loss low (gap is small)</pre></div>
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Algorithm:
-1. Copy current slow weights → fast weights
+1. Copy current slow weights <span class="d-a">→</span> fast weights
 2. Run inner optimizer (e.g., Adam) on fast weights for k steps
 3. Update slow weights: slow = slow + α(fast - slow)
 4. Reset fast weights = slow weights
@@ -4399,8 +4411,8 @@ Stochastic: random elements (dropout, data shuffling, augmentation)</code></pre>
 5. Stochastic depth (for deep models)
 6. Early stopping (always)
 
-Avoid doubling up: if strong augmentation → reduce dropout
-Monitor: if reducing regularization improves training loss but hurts val → just right</pre></div>
+Avoid doubling up: if strong augmentation <span class="d-a">→</span> reduce dropout
+Monitor: if reducing regularization improves training loss but hurts val <span class="d-a">→</span> just right</pre></div>
             <p><strong>Explanation:</strong> Regularizers interact. Too much → <abbr title="a model too simple to capture the real signal in the data">underfitting</abbr>. Start with standard amounts, tune based on validation curves. Different regularizers address different aspects.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -4606,9 +4618,9 @@ output = concat([branch_1x1, branch_3x3, branch_5x5, branch_pool])</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Uses 1×1 → 3×3 → 1×1 convolution pattern:</p>
-            <div class="diagram"><pre>1×1 conv (reduce channels: 256 → 64)
+            <div class="diagram"><pre>1×1 conv (reduce channels: 256 <span class="d-a">→</span> 64)
 3×3 conv (expensive operation on 64 channels)
-1×1 conv (restore channels: 64 → 256)</pre></div>
+1×1 conv (restore channels: 64 <span class="d-a">→</span> 256)</pre></div>
             <p><strong>Explanation:</strong> Reduces computation: 3×3 conv on 256 channels is expensive; 3×3 on 64 channels is much cheaper. Same overall transformation with fewer FLOPs. Used in ResNet-50, ResNet-101, ResNet-152.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -4665,8 +4677,8 @@ subject to: α × β² × γ² ≈ 2</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Due to weight sharing — same filter applied at every spatial position. If the input shifts, the output shifts by the same amount.</p>
-            <div class="diagram"><pre>Image of cat at top-left → feature "cat" active at top-left
-Image of cat at bottom-right → feature "cat" active at bottom-right</pre></div>
+            <div class="diagram"><pre>Image of cat at top-left <span class="d-a">→</span> feature "cat" active at top-left
+Image of cat at bottom-right <span class="d-a">→</span> feature "cat" active at bottom-right</pre></div>
             <p><strong>Explanation:</strong> This is equivariance, not invariance. Equivariance: output shifts with input. Invariance (classification): output stays same regardless of position. Pooling adds some translation invariance.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -5357,7 +5369,7 @@ Output: H×W label map (each pixel gets a class)</code></pre>
 1. Atrous (dilated) convolutions: increase receptive field without downsampling
 2. ASPP (Atrous Spatial Pyramid Pooling): multiple dilation rates in parallel
 3. Encoder-decoder structure (DeepLab v3+)
-4. CRF post-processing (v1/v2) → removed in v3+</pre></div>
+4. CRF post-processing (v1/v2) <span class="d-a">→</span> removed in v3+</pre></div>
             <p><strong>ASPP:</strong> Captures multi-scale context by applying dilated convolutions at rates [6, 12, 18] + global pooling.
               <strong>Explanation:</strong> Maintains resolution while capturing large context. State-of-the-art before transformer-based segmentation.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -5479,9 +5491,9 @@ AP_large: &gt; 96×96 pixels</code></pre>
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Approaches:
-1. PointNet: directly process raw points (MLP on each point → global pooling)
-2. Voxelization: convert to 3D grid → 3D convolutions
-3. Pillarization: convert to vertical pillars → 2D convolutions
+1. PointNet: directly process raw points (MLP on each point <span class="d-a">→</span> global pooling)
+2. Voxelization: convert to 3D grid <span class="d-a">→</span> 3D convolutions
+3. Pillarization: convert to vertical pillars <span class="d-a">→</span> 2D convolutions
 4. Point-Voxel fusion: combine both approaches</pre></div>
             <p><strong>Explanation:</strong> Point clouds are unordered, irregular (unlike images). PointNet: permutation invariant. Voxel: standard convolutions but sparse. Pillars (PointPillars): efficient BEV processing.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -5541,7 +5553,7 @@ Matting estimates: α (alpha matte)</code></pre>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Teacher (large model, accurate) → Student (small model, fast)
+            <div class="diagram"><pre>Teacher (large model, accurate) <span class="d-a">→</span> Student (small model, fast)
 Distill:
 1. Classification logits
 2. Feature map representations
@@ -5695,7 +5707,7 @@ Open-vocabulary: detect "purple striped umbrella" (any description)</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Challenges</span><span class="kt">Methods</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Segment and track objects across video frames:</p>
-            <div class="diagram"><pre>Semi-supervised: given mask in first frame → propagate
+            <div class="diagram"><pre>Semi-supervised: given mask in first frame <span class="d-a">→</span> propagate
 Unsupervised: automatically identify and track salient objects</pre></div>
             <p><strong>Challenges:</strong> Occlusion, appearance change, fast motion, re-identification.
               <strong>Methods:</strong> Propagation-based, matching-based (memory networks), online fine-tuning.
@@ -5846,7 +5858,7 @@ merged = <span class="fn">weighted_box_fusion</span>(predictions)</code></pre>
    - Offset (sub-pixel refinement)
    - Width and height
    - Optional: depth, 3D pose, etc.
-3. Extract peaks from heatmap → detections</pre></div>
+3. Extract peaks from heatmap <span class="d-a">→</span> detections</pre></div>
             <p><strong>No anchors, no NMS.</strong> Simple and elegant.
               <strong>Explanation:</strong> Keypoint-based detection. Same architecture can predict 2D boxes, 3D boxes, human pose. Fast and versatile.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -5859,7 +5871,7 @@ merged = <span class="fn">weighted_box_fusion</span>(predictions)</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">vs Mask R-CNN</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Instance segmentation fast enough for real-time applications (&gt;30 fps):</p>
-            <div class="diagram"><pre>YOLACT: prototype masks × per-instance coefficients → instance mask
+            <div class="diagram"><pre>YOLACT: prototype masks × per-instance coefficients <span class="d-a">→</span> instance mask
 SOLOv2: predict per-pixel category + instance kernel</pre></div>
             <p><strong>vs Mask R-CNN:</strong> Accurate but slow (~5 fps). YOLACT/SOLOv2: 30+ fps with good quality.
               <strong>Explanation:</strong> Real-time segmentation needed for robotics, autonomous driving, AR. Trade-off between mask quality and speed.</p>
@@ -5896,7 +5908,7 @@ SOLOv2: predict per-pixel category + instance kernel</pre></div>
             </p>
             <div class="diagram"><pre>Detection: locate objects in single frame (no temporal info)
 Tracking: maintain object identity across frames (temporal continuity)
-Tracking-by-detection: detect per frame → associate detections across frames</pre></div>
+Tracking-by-detection: detect per frame <span class="d-a">→</span> associate detections across frames</pre></div>
             <p><strong>Association methods:</strong> IoU matching, appearance features (ReID), Kalman filter prediction.
               <strong>Explanation:</strong> SORT: simple IoU + Kalman filter. DeepSORT: adds appearance features. ByteTrack: uses low-confidence detections too.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -6079,7 +6091,7 @@ Model refines mask with each interaction</code></pre>
             <div class="diagram"><pre>1. Divide image into S×S grid
 2. Each cell predicts B bounding boxes + confidence scores
 3. Each cell also predicts C class probabilities
-4. Single forward pass → all detections simultaneously
+4. Single forward pass <span class="d-a">→</span> all detections simultaneously
 
 Output tensor: S × S × (B × 5 + C)
 5 = (x, y, w, h, confidence)</pre></div>
@@ -6099,10 +6111,10 @@ Output tensor: S × S × (B × 5 + C)
             </p>
             <div class="diagram"><pre>FPN builds multi-scale feature maps:
 
-Input → [Conv1] → [Conv2] → [Conv3] → [Conv4] → [Conv5]
-                                                      ↓
-             ← Upsample + Lateral ← Upsample ← [P5]
-        [P2] ← [P3] ← [P4] ←</pre></div>
+Input <span class="d-a">→</span> [Conv1] <span class="d-a">→</span> [Conv2] <span class="d-a">→</span> [Conv3] <span class="d-a">→</span> [Conv4] <span class="d-a">→</span> [Conv5]
+                                                      <span class="d-a">↓</span>
+             <span class="d-a">←</span> Upsample + Lateral <span class="d-a">←</span> Upsample <span class="d-a">←</span> [P5]
+        [P2] <span class="d-a">←</span> [P3] <span class="d-a">←</span> [P4] <span class="d-a">←</span></pre></div>
             <p><strong>Why:</strong> Small objects need high-resolution features (early layers). Large objects need semantic features (deep layers). FPN combines both.
               <strong>Explanation:</strong> Without FPN, detectors struggle with multi-scale objects. FPN is now standard in most detection architectures.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -6117,7 +6129,7 @@ Input → [Conv1] → [Conv2] → [Conv3] → [Conv4] → [Conv5]
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>1. Sort all detection boxes by confidence score
-2. Pick highest confidence box → add to final detections
+2. Pick highest confidence box <span class="d-a">→</span> add to final detections
 3. Remove all boxes with IoU &gt; threshold (e.g., 0.5) with picked box
 4. Repeat until no boxes remain
 
@@ -6152,8 +6164,8 @@ Soft-NMS: Instead of removing, reduce confidence of overlapping boxes</pre></div
 2. Decoder: Upsample to original resolution
 3. Output: H × W × C (probability per pixel per class)
 
-Encoder: 224×224 → 112×112 → 56×56 → 28×28 → 14×14 → 7×7
-Decoder: 7×7 → 14×14 → 28×28 → 56×56 → 112×112 → 224×224</pre></div>
+Encoder: 224×224 <span class="d-a">→</span> 112×112 <span class="d-a">→</span> 56×56 <span class="d-a">→</span> 28×28 <span class="d-a">→</span> 14×14 <span class="d-a">→</span> 7×7
+Decoder: 7×7 <span class="d-a">→</span> 14×14 <span class="d-a">→</span> 28×28 <span class="d-a">→</span> 56×56 <span class="d-a">→</span> 112×112 <span class="d-a">→</span> 224×224</pre></div>
             <p><strong>Loss:</strong> Cross-entropy per pixel, often with class weighting for imbalanced classes.
               <strong>Explanation:</strong> FCN replaced fully connected layers with 1×1 convolutions, enabling pixel-level prediction at any resolution.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -6168,9 +6180,9 @@ Decoder: 7×7 → 14×14 → 28×28 → 56×56 → 112×112 → 224×224</pre></
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>U-Net structure:
-Encoder (contracting):  64→128→256→512→1024
-  ↓ skip connections (concatenation) ↓
-Decoder (expanding):    1024→512→256→128→64
+Encoder (contracting):  64<span class="d-a">→</span>128<span class="d-a">→</span>256<span class="d-a">→</span>512<span class="d-a">→</span>1024
+  <span class="d-a">↓</span> skip connections (concatenation) <span class="d-a">↓</span>
+Decoder (expanding):    1024<span class="d-a">→</span>512<span class="d-a">→</span>256<span class="d-a">→</span>128<span class="d-a">→</span>64
 
 Skip connections preserve spatial details lost during downsampling.</pre></div>
             <p><strong>Why popular for medical:</strong>
@@ -6189,8 +6201,8 @@ Skip connections preserve spatial details lost during downsampling.</pre></div>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Forward process: Image → Add noise gradually → Pure noise
-Reverse process: Pure noise → Remove noise gradually → Image
+            <div class="diagram"><pre>Forward process: Image <span class="d-a">→</span> Add noise gradually <span class="d-a">→</span> Pure noise
+Reverse process: Pure noise <span class="d-a">→</span> Remove noise gradually <span class="d-a">→</span> Image
 
 Key innovation (Latent Diffusion):
 1. Encode image to latent space (VAE encoder)
@@ -6226,13 +6238,13 @@ Key innovation (Latent Diffusion):
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>1. Split image into patches (e.g., 16×16 pixels)
-2. Flatten patches → linear projection → patch embeddings
+2. Flatten patches <span class="d-a">→</span> linear projection <span class="d-a">→</span> patch embeddings
 3. Add position embeddings
 4. Prepend [CLS] token
 5. Standard Transformer encoder
-6. [CLS] output → classification head
+6. [CLS] output <span class="d-a">→</span> classification head
 
-Image 224×224, patch 16×16 → 196 patches (like 196 "tokens")</pre></div>
+Image 224×224, patch 16×16 <span class="d-a">→</span> 196 patches (like 196 "tokens")</pre></div>
             <p><strong>Explanation:</strong> ViT showed pure Transformers compete with CNNs on vision tasks when pre-trained on large datasets. Now dominant for vision. CNNs still better for small datasets.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -6286,13 +6298,13 @@ Image 224×224, patch 16×16 → 196 patches (like 196 "tokens")</pre></div>
             </p>
             <div class="diagram"><pre>IoU = Area of Intersection / Area of Union
 
-       ┌──────┐
-       │  A   │
-    ┌──┼──┐   │
-    │  │XX│   │  XX = Intersection
-    │  └──┼───┘
-    │  B      │
-    └─────────┘
+       <span class="d-l">┌──────┐</span>
+       <span class="d-l">│</span>  A   <span class="d-l">│</span>
+    <span class="d-l">┌──┼──┐</span>   <span class="d-l">│</span>
+    <span class="d-l">│</span>  <span class="d-l">│</span>XX<span class="d-l">│</span>   <span class="d-l">│</span>  XX = Intersection
+    <span class="d-l">│</span>  <span class="d-l">└──┼───┘</span>
+    <span class="d-l">│</span>  B      <span class="d-l">│</span>
+       <span class="d-l">└──────┘</span>
 
 IoU = XX / (A + B - XX)
 
@@ -6400,10 +6412,10 @@ Answer: "3"</code></pre>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>2D Conv: Kernel slides over H × W → spatial features
+            <div class="diagram"><pre>2D Conv: Kernel slides over H × W <span class="d-a">→</span> spatial features
    Input: (C, H, W), Kernel: (C, kH, kW)
 
-3D Conv: Kernel slides over H × W × D (or T) → spatiotemporal features
+3D Conv: Kernel slides over H × W × D (or T) <span class="d-a">→</span> spatiotemporal features
    Input: (C, D, H, W), Kernel: (C, kD, kH, kW)</pre></div>
             <p><strong>3D Conv applications:</strong>
               1. Video understanding (temporal dimension)
@@ -6443,10 +6455,10 @@ mAP@[0.5:0.95]: Comprehensive (standard COCO metric)</code></pre>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Image → CNN Encoder → Feature vector → RNN/Transformer Decoder → Caption
+            <div class="diagram"><pre>Image <span class="d-a">→</span> CNN Encoder <span class="d-a">→</span> Feature vector <span class="d-a">→</span> RNN/Transformer Decoder <span class="d-a">→</span> Caption
 
 Modern approach:
-Image → ViT → Cross-attention with text decoder → "A cat sitting on a mat"</pre></div>
+Image <span class="d-a">→</span> ViT <span class="d-a">→</span> Cross-attention with text decoder <span class="d-a">→</span> "A cat sitting on a mat"</pre></div>
             <p><strong>Training:</strong> Paired image-caption datasets (COCO Captions, Flickr30k).
               <strong>Evaluation:</strong> BLEU, METEOR, CIDEr, SPICE metrics.
               <strong>Explanation:</strong> Encoder-decoder architecture. Attention mechanism allows decoder to focus on relevant image regions. GPT-4V/Gemini now do this natively.</p>
@@ -6463,7 +6475,7 @@ Image → ViT → Cross-attention with text decoder → "A cat sitting on a mat"
             </p>
             <div class="diagram"><pre>1. Face Detection: Locate faces in image (MTCNN, RetinaFace)
 2. Face Alignment: Normalize face orientation
-3. Feature Extraction: CNN → 128/512-dim embedding (FaceNet, ArcFace)
+3. Feature Extraction: CNN <span class="d-a">→</span> 128/512-dim embedding (FaceNet, ArcFace)
 4. Matching: Compare embedding similarity
 
 Face Verification: "Is this person A?" (1:1 comparison)
@@ -6497,8 +6509,8 @@ Face Identification: "Who is this?" (1:N comparison)</pre></div>
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>SimCLR:
-1. Augment image twice → two views
-2. Encode both views → embeddings
+1. Augment image twice <span class="d-a">→</span> two views
+2. Encode both views <span class="d-a">→</span> embeddings
 3. Pull same-image embeddings together
 4. Push different-image embeddings apart
 5. No labels needed!
@@ -6556,8 +6568,8 @@ Key components:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>CLIP (Contrastive Language-Image Pre-training):
-1. Image encoder → image embedding
-2. Text encoder → text embedding
+1. Image encoder <span class="d-a">→</span> image embedding
+2. Text encoder <span class="d-a">→</span> text embedding
 3. Contrastive learning: match image-text pairs
 
 Zero-shot classification:
@@ -6578,16 +6590,16 @@ Zero-shot classification:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Max Pooling: Take maximum value in window
-   → Captures strongest activation, translation invariant
+   <span class="d-a">→</span> Captures strongest activation, translation invariant
 
 Average Pooling: Take mean value in window
-   → Smoother, preserves more information
+   <span class="d-a">→</span> Smoother, preserves more information
 
 Global Average Pooling (GAP): Average entire feature map to single value
-   → Replaces FC layers, reduces parameters, prevents overfitting
+   <span class="d-a">→</span> Replaces FC layers, reduces parameters, prevents overfitting
 
 Adaptive Pooling: Auto-adjust pool size for target output size
-   → torch.nn.AdaptiveAvgPool2d((1, 1))</pre></div>
+   <span class="d-a">→</span> torch.nn.AdaptiveAvgPool2d((1, 1))</pre></div>
             <p><strong>Explanation:</strong> GAP is preferred over FC layers for classification — fewer params, better generalization. Strided convolutions are also used instead of explicit pooling.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -6622,9 +6634,9 @@ During inference: use running mean/variance from training</code></pre>
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>SAM (Meta AI):
-1. Image Encoder: ViT → image embeddings (runs once per image)
-2. Prompt Encoder: Point, box, text, or mask → prompt embeddings
-3. Mask Decoder: Combines image + prompt → segmentation mask
+1. Image Encoder: ViT <span class="d-a">→</span> image embeddings (runs once per image)
+2. Prompt Encoder: Point, box, text, or mask <span class="d-a">→</span> prompt embeddings
+3. Mask Decoder: Combines image + prompt <span class="d-a">→</span> segmentation mask
 
 Prompts: click a point, draw a box, or describe in text</pre></div>
             <p><strong>Significance:</strong> Foundation model for segmentation — segment ANY object with simple prompts. Zero-shot to new domains.
@@ -6640,8 +6652,8 @@ Prompts: click a point, draw a box, or describe in text</pre></div>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Without augmentation: Model sees exact same images → memorizes
-With augmentation: Model sees varied versions → learns invariances
+            <div class="diagram"><pre>Without augmentation: Model sees exact same images <span class="d-a">→</span> memorizes
+With augmentation: Model sees varied versions <span class="d-a">→</span> learns invariances
 
 Example training pipeline:
 transforms.Compose([
@@ -6690,7 +6702,7 @@ EfficientNet scales all three simultaneously with fixed ratio:
 depth = α^φ, width = β^φ, resolution = γ^φ
 where α·β²·γ² ≈ 2
 
-B0 → B1 → B2 → ... → B7 (increasing scale)
+B0 <span class="d-a">→</span> B1 <span class="d-a">→</span> B2 <span class="d-a">→</span> ... <span class="d-a">→</span> B7 (increasing scale)
 B0: 5.3M params, 77% ImageNet
 B7: 66M params, 84.3% ImageNet</pre></div>
             <p><strong>Explanation:</strong> Rather than just making models deeper or wider, compound scaling optimizes all dimensions together — more efficient use of parameters.</p>
@@ -6755,12 +6767,12 @@ Standard grid:     Deformable grid:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>ResNet: Skip connection (addition)
-   x → [Conv → BN → ReLU → Conv → BN] → (+x) → ReLU
+   x <span class="d-a">→</span> [Conv <span class="d-a">→</span> BN <span class="d-a">→</span> ReLU <span class="d-a">→</span> Conv <span class="d-a">→</span> BN] <span class="d-a">→</span> (+x) <span class="d-a">→</span> ReLU
    
 DenseNet: Dense connection (concatenation)
-   x₁ → [Conv] → x₂
-   [x₁, x₂] → [Conv] → x₃
-   [x₁, x₂, x₃] → [Conv] → x₄
+   x₁ <span class="d-a">→</span> [Conv] <span class="d-a">→</span> x₂
+   [x₁, x₂] <span class="d-a">→</span> [Conv] <span class="d-a">→</span> x₃
+   [x₁, x₂, x₃] <span class="d-a">→</span> [Conv] <span class="d-a">→</span> x₄
    Each layer receives all previous feature maps</pre></div>
             <p><strong>DenseNet advantages:</strong> Feature reuse, strong gradient flow, fewer parameters.
               <strong>DenseNet disadvantage:</strong> High memory usage (storing all intermediate features).</p>
@@ -6776,8 +6788,8 @@ DenseNet: Dense connection (concatenation)
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Combines semantic + instance segmentation:
-- "Things" (countable objects): Cars, people → instance segmentation
-- "Stuff" (amorphous regions): Sky, road, grass → semantic segmentation
+- "Things" (countable objects): Cars, people <span class="d-a">→</span> instance segmentation
+- "Stuff" (amorphous regions): Sky, road, grass <span class="d-a">→</span> semantic segmentation
 
 Panoptic Quality (PQ) = SQ × RQ
 SQ: Segmentation Quality (average IoU of matched segments)
@@ -6853,7 +6865,7 @@ Stage 4: 7×7, dim=768</code></pre>
               <strong>Pix2Pix:</strong> Paired training data. Input-output image pairs.
               <strong>CycleGAN:</strong> Unpaired training data. Cycle consistency loss.</p>
             <div class="diagram"><pre>CycleGAN loss:
-G: A→B, F: B→A
+G: A<span class="d-a">→</span>B, F: B<span class="d-a">→</span>A
 Cycle: F(G(a)) ≈ a and G(F(b)) ≈ b
 No paired data needed!</pre></div>
             <p><strong>Applications:</strong> Photo → painting, horse → zebra, day → night, sketch → photo.
@@ -7026,10 +7038,10 @@ Output: Color (r,g,b) + density (σ)
 Rendering:
 1. Cast ray through each pixel
 2. Sample points along ray
-3. Query MLP at each point → (color, density)
+3. Query MLP at each point <span class="d-a">→</span> (color, density)
 4. Volume rendering: composite colors weighted by density
 
-Training: Only needs posed 2D images → learns 3D representation</pre></div>
+Training: Only needs posed 2D images <span class="d-a">→</span> learns 3D representation</pre></div>
             <p><strong>Explanation:</strong> NeRF synthesizes novel viewpoints from 2D photos. Applications: virtual tours, AR, movie VFX. 3D Gaussian Splatting is newer, faster alternative.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -7171,11 +7183,11 @@ y_t = W_hy · h_t + b_y</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> <abbr title="long short-term memory">LSTM</abbr> adds a cell state (highway for information flow) and three gates:</p>
-            <div class="diagram"><pre>Forget gate:  f_t = σ(W_f · [h_{t-1}, x_t] + b_f)     → what to forget
-Input gate:   i_t = σ(W_i · [h_{t-1}, x_t] + b_i)      → what to add
-Cell update:  C̃_t = tanh(W_C · [h_{t-1}, x_t] + b_C)   → new candidate
-Cell state:   C_t = f_t ⊙ C_{t-1} + i_t ⊙ C̃_t          → updated cell
-Output gate:  o_t = σ(W_o · [h_{t-1}, x_t] + b_o)       → what to output
+            <div class="diagram"><pre>Forget gate:  f_t = σ(W_f · [h_{t-1}, x_t] + b_f)     <span class="d-a">→</span> what to forget
+Input gate:   i_t = σ(W_i · [h_{t-1}, x_t] + b_i)      <span class="d-a">→</span> what to add
+Cell update:  C̃_t = tanh(W_C · [h_{t-1}, x_t] + b_C)   <span class="d-a">→</span> new candidate
+Cell state:   C_t = f_t ⊙ C_{t-1} + i_t ⊙ C̃_t          <span class="d-a">→</span> updated cell
+Output gate:  o_t = σ(W_o · [h_{t-1}, x_t] + b_o)       <span class="d-a">→</span> what to output
 Hidden state: h_t = o_t ⊙ tanh(C_t)</pre></div>
             <p><strong>Explanation:</strong> Cell state provides unimpeded gradient flow (additive, not multiplicative). Gates are sigmoid (0-1) → control what information passes. Can learn 100+ time steps.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -7188,8 +7200,8 @@ Hidden state: h_t = o_t ⊙ tanh(C_t)</pre></div>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">vs LSTM</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> <abbr title="gated recurrent unit">GRU</abbr> simplifies <abbr title="long short-term memory">LSTM</abbr> with two gates (instead of three):</p>
-            <div class="diagram"><pre>Reset gate:  r_t = σ(W_r · [h_{t-1}, x_t])     → how much past to forget
-Update gate: z_t = σ(W_z · [h_{t-1}, x_t])      → how much to update
+            <div class="diagram"><pre>Reset gate:  r_t = σ(W_r · [h_{t-1}, x_t])     <span class="d-a">→</span> how much past to forget
+Update gate: z_t = σ(W_z · [h_{t-1}, x_t])      <span class="d-a">→</span> how much to update
 Candidate:   h̃_t = tanh(W · [r_t ⊙ h_{t-1}, x_t])
 Hidden:      h_t = (1-z_t) ⊙ h_{t-1} + z_t ⊙ h̃_t</pre></div>
             <p><strong>vs LSTM:</strong>
@@ -7302,7 +7314,7 @@ output = f(context, decoder_h_t)</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Problem</span><span class="kt">Solution</span>
             </div>
             <p><strong>Answer:</strong> Unroll the <abbr title="recurrent neural network">RNN</abbr> through time steps and apply standard backpropagation:</p>
-            <div class="diagram"><pre>Unrolled: x₁→h₁→x₂→h₂→...→x_T→h_T→Loss
+            <div class="diagram"><pre>Unrolled: x₁<span class="d-a">→</span>h₁<span class="d-a">→</span>x₂<span class="d-a">→</span>h₂<span class="d-a">→</span>...<span class="d-a">→</span>x_T<span class="d-a">→</span>h_T<span class="d-a">→</span>Loss
 Gradients flow from Loss back through all time steps</pre></div>
             <p><strong>Problem:</strong> For long sequences, many multiplications → vanishing/exploding gradients.
               <strong>Solution:</strong> Truncated BPTT — only backpropagate through last k time steps. Lose long-range gradients but practically stable.</p>
@@ -7724,8 +7736,8 @@ Segment 2: attend to segment 2 + cached states from segment 1</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Final layer that models dependencies between output labels:</p>
-            <div class="diagram"><pre>Without CRF: each label predicted independently → "B-PER I-ORG" is possible (invalid)
-With CRF: transition matrix penalizes invalid label sequences → "B-PER I-PER" preferred</pre></div>
+            <div class="diagram"><pre>Without CRF: each label predicted independently <span class="d-a">→</span> "B-PER I-ORG" is possible (invalid)
+With CRF: transition matrix penalizes invalid label sequences <span class="d-a">→</span> "B-PER I-PER" preferred</pre></div>
             <p><strong>Explanation:</strong> CRF adds transition scores between adjacent labels. During prediction, uses Viterbi algorithm for optimal sequence. BiLSTM-CRF was long the standard for <abbr title="named entity recognition">NER</abbr> before Transformers.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -8055,7 +8067,7 @@ Target: "The cat sat on the mat"
 
 Process:
 1. Randomly mask 15% of tokens
-2. Of masked: 80% → [MASK], 10% → random token, 10% → unchanged
+2. Of masked: 80% <span class="d-a">→</span> [MASK], 10% <span class="d-a">→</span> random token, 10% <span class="d-a">→</span> unchanged
 3. Model predicts original token at masked positions</pre></div>
             <p><strong>Explanation:</strong> Model learns bidirectional context — uses both left and right context to predict masked word. The 80/10/10 split prevents model from relying on [MASK] token since it never appears in downstream data.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -8122,9 +8134,9 @@ Step 3: Keep top beam_width sequences by total probability
 Repeat until EOS or max length
 
 Example (beam_width=2):
-"The" → "The cat" (0.3), "The dog" (0.25)
-"The cat" → "The cat sat" (0.15), "The cat ran" (0.12)
-"The dog" → "The dog barked" (0.10), "The dog slept" (0.08)
+"The" <span class="d-a">→</span> "The cat" (0.3), "The dog" (0.25)
+"The cat" <span class="d-a">→</span> "The cat sat" (0.15), "The cat ran" (0.12)
+"The dog" <span class="d-a">→</span> "The dog barked" (0.10), "The dog slept" (0.08)
 Keep top 2: "The cat sat", "The cat ran"</pre></div>
             <p><strong>Explanation:</strong> Beam search finds approximately most likely sequence. Larger beam = better but slower. Greedy (beam=1) often produces repetitive text.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -8366,11 +8378,11 @@ O(32768²) = 1 billion attention scores per head!</code></pre>
             <div class="diagram"><pre>BPE Algorithm:
 1. Start with character-level vocabulary: {a, b, c, ..., z}
 2. Count all adjacent character pairs in corpus
-3. Merge most frequent pair: ("e","s") → "es"
+3. Merge most frequent pair: ("e","s") <span class="d-a">→</span> "es"
 4. Repeat until desired vocabulary size reached
 
 Example evolution:
-"lowest" → ["l","o","w","e","s","t"]
+"lowest" <span class="d-a">→</span> ["l","o","w","e","s","t"]
 After merges: ["low","est"] or ["lo","w","est"]</pre></div>
             <p><strong>Explanation:</strong> BPE learns data-driven subword vocabulary. Common words stay whole. Rare words split into subwords. Handles any word (no OOV). GPT uses BPE, BERT uses WordPiece (similar principle).</p>
           </div><button class="reveal">Reveal answer</button>
@@ -8384,7 +8396,7 @@ After merges: ["low","est"] or ["lo","w","est"]</pre></div>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Query → Retriever → Relevant Documents → Generator (LLM) → Answer
+            <div class="diagram"><pre>Query <span class="d-a">→</span> Retriever <span class="d-a">→</span> Relevant Documents <span class="d-a">→</span> Generator (LLM) <span class="d-a">→</span> Answer
 
 Components:
 1. Document store: Vector database (Pinecone, FAISS, Chroma)
@@ -8426,7 +8438,7 @@ LoRA: W + ΔW = W + BA where B ∈ R^(d×r), A ∈ R^(r×d)
 
 r &lt;&lt; d (rank, typically 8-64)
 Parameters: 2×d×r instead of d×d
-Savings: d=4096, r=16 → 131K vs 16.7M parameters per layer</pre></div>
+Savings: d=4096, r=16 <span class="d-a">→</span> 131K vs 16.7M parameters per layer</pre></div>
             <p><strong>Freeze original weights, only train A and B matrices.</strong>
               <strong>Explanation:</strong> <abbr title="low-rank adaptation">LoRA</abbr> achieves near full fine-tuning quality with <span class="mag">&lt;1%</span> trainable parameters. No inference overhead (merge BA into W). Standard for <abbr title="large language model">LLM</abbr> adaptation.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -8524,10 +8536,10 @@ Savings: d=4096, r=16 → 131K vs 16.7M parameters per layer</pre></div>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Cast ALL <abbr title="natural language processing">NLP</abbr> tasks as text-to-text:</p>
-            <div class="diagram"><pre>Classification: "sentiment: This movie is great" → "positive"
-Translation: "translate English to French: Hello" → "Bonjour"
-Summarization: "summarize: [long text]" → "[summary]"
-QA: "question: What is AI? context: [text]" → "Artificial Intelligence"</pre></div>
+            <div class="diagram"><pre>Classification: "sentiment: This movie is great" <span class="d-a">→</span> "positive"
+Translation: "translate English to French: Hello" <span class="d-a">→</span> "Bonjour"
+Summarization: "summarize: [long text]" <span class="d-a">→</span> "[summary]"
+QA: "question: What is AI? context: [text]" <span class="d-a">→</span> "Artificial Intelligence"</pre></div>
             <p><strong>Explanation:</strong> Unified framework — same model, same loss, same architecture for every task. Simplifies multi-task learning. Only difference is the prefix/instruction.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -8651,10 +8663,10 @@ Chat: &lt;|user|&gt; question &lt;|assistant|&gt; answer &lt;|end|&gt;</code></p
             </div>
             <p><strong>Answer:</strong>
               <strong><abbr title="recurrent neural network">RNN</abbr> problem:</strong> Information from early tokens fades as sequence grows:</p>
-            <div class="diagram"><pre>Token 1 → RNN → ... → RNN (100 steps) → Token 100
-Gradient must flow through 100 multiplications → vanishes/explodes</pre></div>
+            <div class="diagram"><pre>Token 1 <span class="d-a">→</span> RNN <span class="d-a">→</span> ... <span class="d-a">→</span> RNN (100 steps) <span class="d-a">→</span> Token 100
+Gradient must flow through 100 multiplications <span class="d-a">→</span> vanishes/explodes</pre></div>
             <p><strong>Attention solution:</strong> Direct connection from any token to any other:</p>
-            <div class="diagram"><pre>Token 1 ←→ Token 100 (direct attention, no chain)
+            <div class="diagram"><pre>Token 1 <span class="d-a">←→</span> Token 100 (direct attention, no chain)
 Gradient path length: O(1) regardless of sequence distance</pre></div>
             <p><strong>Explanation:</strong> <abbr title="long short-term memory">LSTM</abbr>/<abbr title="gated recurrent unit">GRU</abbr> partially solved this with gates. Attention fully solved it — every token-pair has a direct path for gradient flow.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -8750,10 +8762,10 @@ result = <span class="fn">classifier</span>(
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Standard: "What is 23 × 17?" → "391" (direct)
+            <div class="diagram"><pre>Standard: "What is 23 × 17?" <span class="d-a">→</span> "391" (direct)
 
 CoT: "What is 23 × 17? Think step by step."
-→ "23 × 17 = 23 × 10 + 23 × 7 = 230 + 161 = 391"</pre></div>
+<span class="d-a">→</span> "23 × 17 = 23 × 10 + 23 × 7 = 230 + 161 = 391"</pre></div>
             <p><strong>Variants:</strong>
               1. Zero-shot <abbr title="chain of thought">CoT</abbr>: "Let's think step by step"
               2. Few-shot CoT: Provide examples with reasoning
@@ -8906,17 +8918,17 @@ model = AutoModelForMaskedLM.<span class="fn">from_pretrained</span>(<span class
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Pre-training: Train on massive text data (self-supervised)
-   → General language understanding
-   → Expensive (weeks on many GPUs)
+   <span class="d-a">→</span> General language understanding
+   <span class="d-a">→</span> Expensive (weeks on many GPUs)
 
 Fine-tuning: Continue training on labeled task data
-   → Task-specific performance
-   → Moderate cost (hours on single GPU)
+   <span class="d-a">→</span> Task-specific performance
+   <span class="d-a">→</span> Moderate cost (hours on single GPU)
 
 In-context learning: Provide examples in prompt, no training
-   → Flexible, instant adaptation
-   → Free (no GPU training needed)
-   → Quality depends on model size and examples</pre></div>
+   <span class="d-a">→</span> Flexible, instant adaptation
+   <span class="d-a">→</span> Free (no GPU training needed)
+   <span class="d-a">→</span> Quality depends on model size and examples</pre></div>
             <p><strong>Explanation:</strong> Foundation model evolution: pre-train once, fine-tune or prompt for many tasks.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -8951,8 +8963,8 @@ FFN(x) = GELU(xW₁ + b₁)W₂ + b₂
 
 Typical dimensions:
 x: d_model = 768
-W₁: 768 → 3072 (expand 4×)
-W₂: 3072 → 768 (project back)</pre></div>
+W₁: 768 <span class="d-a">→</span> 3072 (expand 4×)
+W₂: 3072 <span class="d-a">→</span> 768 (project back)</pre></div>
             <p><strong>Explanation:</strong> <abbr title="feed-forward network">FFN</abbr> provides non-linearity and increased capacity. Recent research suggests FFN acts as key-value memory — stores factual knowledge. Attention routes information, FFN processes it.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -9013,7 +9025,7 @@ L(D) = (Dc/D)^(αD)  — dataset size
 L(C) = (Cc/C)^(αC)  — compute
 
 Chinchilla optimal: Tokens ≈ 20 × Parameters
-For 70B params → need ~1.4T tokens</pre></div>
+For 70B params <span class="d-a">→</span> need ~1.4T tokens</pre></div>
             <p><strong>Explanation:</strong> Predictable relationship between compute/data/params and loss. Enables planning training runs. Chinchilla showed previous models (GPT-3) were undertrained relative to size.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -9289,9 +9301,9 @@ where μ, σ computed across features for each token independently</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Frames every <abbr title="natural language processing">NLP</abbr> task as text-to-text:</p>
-            <div class="diagram"><pre>Classification: "classify: This movie is great" → "positive"
-Translation: "translate English to French: Hello" → "Bonjour"
-Summarization: "summarize: [long text]" → "[summary]"</pre></div>
+            <div class="diagram"><pre>Classification: "classify: This movie is great" <span class="d-a">→</span> "positive"
+Translation: "translate English to French: Hello" <span class="d-a">→</span> "Bonjour"
+Summarization: "summarize: [long text]" <span class="d-a">→</span> "[summary]"</pre></div>
             <p><strong>Explanation:</strong> Unified framework — same model, same training procedure for all tasks. Encoder-decoder architecture. Showed that text-to-text is a powerful universal interface. Inspired the prompting paradigm.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -9557,8 +9569,8 @@ Stage 4: 7×7, 768 channels</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Zero-shot classification</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Jointly trains image and text encoders to align visual and textual representations:</p>
-            <div class="diagram"><pre>Image encoder: image → image_embedding
-Text encoder: "a photo of a cat" → text_embedding
+            <div class="diagram"><pre>Image encoder: image <span class="d-a">→</span> image_embedding
+Text encoder: "a photo of a cat" <span class="d-a">→</span> text_embedding
 Training: maximize cosine similarity for matching pairs, minimize for non-matching</pre></div>
             <p><strong>Zero-shot classification:</strong> Compute similarity between image <abbr title="a dense numeric vector representing text so that similar meanings sit close together">embedding</abbr> and text embeddings of all class names.
               <strong>Explanation:</strong> 400M image-text pairs. Learns open-vocabulary visual concepts. Foundation for text-to-image models (Stable Diffusion), visual search, zero-shot classification.</p>
@@ -9842,13 +9854,13 @@ Sample from these k tokens</code></pre>
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Encoder:
-[1, 1, 1, 1]   ← each position sees all positions
+[1, 1, 1, 1]   <span class="d-a">←</span> each position sees all positions
 [1, 1, 1, 1]
 [1, 1, 1, 1]
 [1, 1, 1, 1]
 
 Decoder (causal):
-[1, 0, 0, 0]   ← each position sees only previous
+[1, 0, 0, 0]   <span class="d-a">←</span> each position sees only previous
 [1, 1, 0, 0]
 [1, 1, 1, 0]
 [1, 1, 1, 1]</pre></div>
@@ -9863,9 +9875,9 @@ Decoder (causal):
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Methods</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Reduce numerical precision of weights/activations:</p>
-            <div class="diagram"><pre>FP32 → FP16: 2× smaller, minimal quality loss
-FP16 → INT8: 2× smaller again, slight quality loss
-INT8 → INT4: 2× smaller, noticeable quality impact</pre></div>
+            <div class="diagram"><pre>FP32 <span class="d-a">→</span> FP16: 2× smaller, minimal quality loss
+FP16 <span class="d-a">→</span> INT8: 2× smaller again, slight quality loss
+INT8 <span class="d-a">→</span> INT4: 2× smaller, noticeable quality impact</pre></div>
             <p><strong>Methods:</strong> Post-training <abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">quantization</abbr> (PTQ), quantization-aware training (QAT), GPTQ, AWQ.
               <strong>Explanation:</strong> 70B model in FP16 = <span class="mag">140GB</span>. In INT4 = <span class="mag">35GB</span> (fits on single GPU). Quality degradation manageable. Essential for deployment. <abbr title="quantized low-rank adaptation">QLoRA</abbr> = quantized base + <abbr title="low-rank adaptation">LoRA</abbr> adapters.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -9908,8 +9920,8 @@ INT8 → INT4: 2× smaller, noticeable quality impact</pre></div>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Include reasoning steps in the prompt to elicit step-by-step reasoning:</p>
-            <div class="diagram"><pre>Standard: "What is 15% of 80?" → "12"
-CoT: "What is 15% of 80? Let's think step by step." → "15% = 0.15. 0.15 × 80 = 12"</pre></div>
+            <div class="diagram"><pre>Standard: "What is 15% of 80?" <span class="d-a">→</span> "12"
+CoT: "What is 15% of 80? Let's think step by step." <span class="d-a">→</span> "15% = 0.15. 0.15 × 80 = 12"</pre></div>
             <p><strong>Explanation:</strong> Dramatically improves performance on reasoning tasks (math, logic, multi-step). Works best with large models (&gt;100B). Zero-shot <abbr title="chain of thought">CoT</abbr>: "Let's think step by step." Few-shot CoT: provide examples with reasoning.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -9946,8 +9958,8 @@ CoT: "What is 15% of 80? Let's think step by step." → "15% = 0.15. 0.15 × 80 
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Loss</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Two networks trained adversarially:</p>
-            <div class="diagram"><pre>Generator G: Random noise z → fake data G(z)
-Discriminator D: Data → P(real)
+            <div class="diagram"><pre>Generator G: Random noise z <span class="d-a">→</span> fake data G(z)
+Discriminator D: Data <span class="d-a">→</span> P(real)
 Training: G tries to fool D. D tries to distinguish real from fake.</pre></div>
             <p><strong>Loss:</strong> <code>min_G max_D E[log D(x)] + E[log(1 - D(G(z)))]</code>
               <strong>Explanation:</strong> Generator learns to produce realistic data. Discriminator learns to detect fakes. Equilibrium: generator produces data indistinguishable from real. Nash equilibrium of a minimax game.</p>
@@ -10027,7 +10039,7 @@ Loss = cGAN_loss + λ × L1_loss</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">No paired data needed</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Unpaired image-to-image translation using cycle consistency:</p>
-            <div class="diagram"><pre>G_AB: domain A → domain B       G_BA: domain B → domain A
+            <div class="diagram"><pre>G_AB: domain A <span class="d-a">→</span> domain B       G_BA: domain B <span class="d-a">→</span> domain A
 Cycle consistency: G_BA(G_AB(a)) ≈ a   and   G_AB(G_BA(b)) ≈ b</pre></div>
             <p><strong>No paired data needed.</strong> Learn mapping from unpaired images of horses and zebras.
               <strong>Explanation:</strong> Cycle consistency prevents mode collapse and ensures content is preserved. Two generators + two discriminators. Applications: style transfer, domain adaptation, photo enhancement.</p>
@@ -10058,8 +10070,8 @@ Cycle consistency: G_BA(G_AB(a)) ≈ a   and   G_AB(G_BA(b)) ≈ b</pre></div>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Generates high-quality images with style control at different levels:</p>
-            <div class="diagram"><pre>Mapping network: z → w (intermediate latent space)
-Synthesis network: constant → image, with w injected at each layer via AdaIN</pre></div>
+            <div class="diagram"><pre>Mapping network: z <span class="d-a">→</span> w (intermediate latent space)
+Synthesis network: constant <span class="d-a">→</span> image, with w injected at each layer via AdaIN</pre></div>
             <p><strong>Style injection at different layers:</strong>
               - Coarse (4×4-8×8): pose, face shape
               - Middle (16×16-32×32): facial features, hairstyle
@@ -10103,8 +10115,8 @@ Synthesis network: constant → image, with w injected at each layer via AdaIN</
             </div>
             <p><strong>Answer:</strong> Start training with low resolution, progressively add higher-resolution layers:</p>
             <div class="diagram"><pre>Phase 1: 4×4 resolution
-Phase 2: 4×4 → 8×8
-Phase 3: 8×8 → 16×16
+Phase 2: 4×4 <span class="d-a">→</span> 8×8
+Phase 3: 8×8 <span class="d-a">→</span> 16×16
 ... until 1024×1024</pre></div>
             <p><strong>Explanation:</strong> Each phase trains on an easier problem. New layers faded in gradually (interpolation with existing output). First to generate 1024×1024 faces. Basis for StyleGAN.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -10268,7 +10280,7 @@ Loss: adversarial + reconstruction (L1 on visible pixels) + perceptual</code></p
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Generator: Low-res image → High-res image (using residual blocks)
+            <div class="diagram"><pre>Generator: Low-res image <span class="d-a">→</span> High-res image (using residual blocks)
 Discriminator: Distinguish real high-res from generated high-res
 Loss = adversarial + content/perceptual loss</pre></div>
             <p><strong>Perceptual loss:</strong> Compare VGG features of generated vs real high-res (not pixel-level).
@@ -10430,8 +10442,8 @@ Fake label: 0 (keep at 0, don't smooth)</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Key question</span>
             </div>
             <p><strong>Answer:</strong> Transform images from one domain to another:</p>
-            <div class="diagram"><pre>Paired: Sketch → Photo (Pix2Pix)
-Unpaired: Horse → Zebra (CycleGAN)
+            <div class="diagram"><pre>Paired: Sketch <span class="d-a">→</span> Photo (Pix2Pix)
+Unpaired: Horse <span class="d-a">→</span> Zebra (CycleGAN)
 Multi-domain: Young ↔ Old ↔ Male ↔ Female (StarGAN)</pre></div>
             <p><strong>Key question:</strong> Is paired data available? Paired → Pix2Pix (simpler, better quality). Unpaired → CycleGAN (cycle consistency constraint).</p>
           </div><button class="reveal">Reveal answer</button>
@@ -10444,7 +10456,7 @@ Multi-domain: Young ↔ Old ↔ Male ↔ Female (StarGAN)</pre></div>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">vs CycleGAN</span><span class="kt">StarGAN</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Multi-domain image-to-image translation with single model:</p>
-            <div class="diagram"><pre>G(x, c) → image x in domain c
+            <div class="diagram"><pre>G(x, c) <span class="d-a">→</span> image x in domain c
 One generator handles ALL domain translations</pre></div>
             <p><strong>vs CycleGAN:</strong> Need 2 generators per domain pair. For n domains: n(n-1) generators.
               <strong>StarGAN:</strong> 1 generator for ALL pairs.
@@ -10461,8 +10473,8 @@ One generator handles ALL domain translations</pre></div>
             <p><strong>Answer:</strong>
               <strong>Original (Gatys et al.):</strong> Optimization-based — slow. Not <abbr title="generative adversarial network">GAN</abbr>.
               <strong>Fast neural style:</strong> Train feedforward network (takes ~1 second):</p>
-            <div class="diagram"><pre>Style image → compute style features (Gram matrices)
-Content image → generator → stylized image
+            <div class="diagram"><pre>Style image <span class="d-a">→</span> compute style features (Gram matrices)
+Content image <span class="d-a">→</span> generator <span class="d-a">→</span> stylized image
 Loss = content_loss (feature match) + style_loss (Gram match)</pre></div>
             <p><strong>AdaIN:</strong> Adaptive Instance Normalization — real-time arbitrary style transfer.
               <strong>Explanation:</strong> GAN-based: add discriminator to encourage realistic stylized outputs. Perceptual loss from VGG features measures content and style similarity.</p>
@@ -10477,8 +10489,8 @@ Loss = content_loss (feature match) + style_loss (Gram match)</pre></div>
             </div>
             <p><strong>Answer:</strong> The input noise space z from which generator creates data:</p>
             <div class="diagram"><pre>Properties of good latent space:
-1. Continuous: small change in z → small change in output
-2. Smooth: interpolation between z₁ and z₂ → meaningful transition
+1. Continuous: small change in z <span class="d-a">→</span> small change in output
+2. Smooth: interpolation between z₁ and z₂ <span class="d-a">→</span> meaningful transition
 3. Complete: every z maps to realistic output</pre></div>
             <p><strong>Latent space manipulation:</strong> Find direction for "smiling" → add to any face's z → face starts smiling.
               <strong>Explanation:</strong> GANs often have entangled latent spaces. StyleGAN's W space is more disentangled. Latent space exploration enables controlled editing.</p>
@@ -10607,8 +10619,8 @@ z = torch.<span class="fn">clamp</span>(z, -truncation, truncation)  <span class
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Learn domain-invariant features using adversarial loss:</p>
-            <div class="diagram"><pre>Feature extractor → task classifier (predict labels)
-                  → domain classifier (predict source/target domain)
+            <div class="diagram"><pre>Feature extractor <span class="d-a">→</span> task classifier (predict labels)
+                  <span class="d-a">→</span> domain classifier (predict source/target domain)
 Adversarial: feature extractor trained to FOOL domain classifier</pre></div>
             <p><strong>Explanation:</strong> Gradient reversal layer negates domain classifier gradient. Features become domain-invariant → model transfers from labeled source to unlabeled target domain.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -10783,8 +10795,8 @@ loss_D = <span class="fn">D</span>(real_aug) - <span class="fn">D</span>(fake_au
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Neural network trained to reconstruct its input through a bottleneck:</p>
-            <div class="diagram"><pre>Encoder: input x → latent code z (compressed representation)
-Decoder: z → reconstructed x̂
+            <div class="diagram"><pre>Encoder: input x <span class="d-a">→</span> latent code z (compressed representation)
+Decoder: z <span class="d-a">→</span> reconstructed x̂
 Loss: L = ||x - x̂||²  (reconstruction error)</pre></div>
             <p><strong>Explanation:</strong> Bottleneck forces model to learn efficient representation. z has lower dimensionality than x. Learns data compression. Not used for generation directly — latent space is not structured.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -10797,9 +10809,9 @@ Loss: L = ||x - x̂||²  (reconstruction error)</pre></div>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Autoencoder with probabilistic latent space:</p>
-            <div class="diagram"><pre>Encoder: x → q(z|x) = N(μ, σ²)   (outputs mean and variance)
+            <div class="diagram"><pre>Encoder: x <span class="d-a">→</span> q(z|x) = N(μ, σ²)   (outputs mean and variance)
 z ~ N(μ, σ²)                       (sample from distribution)
-Decoder: z → p(x|z)                (reconstruct from sample)
+Decoder: z <span class="d-a">→</span> p(x|z)                (reconstruct from sample)
 Loss = Reconstruction + KL(q(z|x) || p(z))</pre></div>
             <p><strong>Explanation:</strong> KL term regularizes latent space to be close to N(0,1). Enables generation: sample z ~ N(0,1) → <abbr title="generating output tokens one at a time after prefill">decode</abbr> → new data. Smooth, continuous latent space allows interpolation.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -10915,7 +10927,7 @@ or KL divergence between desired and actual sparsity</code></pre>
             <p><strong>Answer:</strong> Decoder ignores latent code z and generates output purely from its own capacity:</p>
             <div class="diagram"><pre>q(z|x) collapses to p(z) = N(0,1) for all x
 KL becomes 0 (encoder gives no useful information)
-Decoder generates equally from any z → poor latent representation</pre></div>
+Decoder generates equally from any z <span class="d-a">→</span> poor latent representation</pre></div>
             <p><strong>Causes:</strong> Powerful decoder (autoregressive), too much KL weight.
               <strong>Solutions:</strong> KL annealing (start with low KL weight), free bits (minimum KL per dimension), weaker decoder, VQ-VAE.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -10928,8 +10940,8 @@ Decoder generates equally from any z → poor latent representation</pre></div>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Gradually increase KL weight during training:</p>
-            <div class="diagram"><pre>Epoch 1-10: β = 0 → 0.1    (focus on reconstruction)
-Epoch 10-50: β = 0.1 → 1.0 (gradually add KL)
+            <div class="diagram"><pre>Epoch 1-10: β = 0 <span class="d-a">→</span> 0.1    (focus on reconstruction)
+Epoch 10-50: β = 0.1 <span class="d-a">→</span> 1.0 (gradually add KL)
 After 50: β = 1.0           (standard VAE)</pre></div>
             <p><strong>Explanation:</strong> Prevents posterior collapse by first letting encoder/decoder learn useful representations, then gradually regularizing latent space. Cyclical annealing (reset β periodically) can also help.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -11374,9 +11386,9 @@ Stage 2: Autoregressive Transformer generates image tokens conditioned on text t
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Autoencoders are one form of self-supervised learning (learning from data itself):</p>
-            <div class="diagram"><pre>AE: reconstruct input → learns representations as byproduct
-Contrastive: learn similar/different → learns representations
-Masked prediction: predict masked parts → learns representations</pre></div>
+            <div class="diagram"><pre>AE: reconstruct input <span class="d-a">→</span> learns representations as byproduct
+Contrastive: learn similar/different <span class="d-a">→</span> learns representations
+Masked prediction: predict masked parts <span class="d-a">→</span> learns representations</pre></div>
             <p><strong>Explanation:</strong> Modern self-supervised learning (SimCLR, BYOL, DINO, MAE) has largely replaced traditional autoencoders for representation learning. But autoencoder principle (encode-decode) remains foundational.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -11405,9 +11417,9 @@ loss = ((x_reconstructed - x) * mask).<span class="fn">pow</span>(<span class="n
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Example</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Use Transformer architecture as encoder and decoder:</p>
-            <div class="diagram"><pre>Encoder: Self-attention on input sequence → latent representation
+            <div class="diagram"><pre>Encoder: Self-attention on input sequence <span class="d-a">→</span> latent representation
 Bottleneck: Compress to fixed-size or reduced sequence
-Decoder: Cross-attention to latent + self-attention → reconstruction</pre></div>
+Decoder: Cross-attention to latent + self-attention <span class="d-a">→</span> reconstruction</pre></div>
             <p><strong>Example:</strong> BERT is essentially a masked autoencoder with Transformer.
               <strong>Explanation:</strong> Transformer AEs handle sequential data well. Used for text representation, music generation, molecular design.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -11433,7 +11445,7 @@ Decoder: Cross-attention to latent + self-attention → reconstruction</pre></di
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Example</span><span class="kt">Benefit</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Multiple levels of latent variables:</p>
-            <div class="diagram"><pre>z_L → z_{L-1} → ... → z_1 → x
+            <div class="diagram"><pre>z_L <span class="d-a">→</span> z_{L-1} <span class="d-a">→</span> ... <span class="d-a">→</span> z_1 <span class="d-a">→</span> x
 p(z_l | z_{l+1}) at each level</pre></div>
             <p><strong>Example:</strong> NVAE — deep hierarchical <abbr title="variational autoencoder">VAE</abbr> with residual blocks at each level.
               <strong>Benefit:</strong> Captures data at multiple scales/abstraction levels. Top levels: global structure. Bottom levels: fine details.
@@ -11465,8 +11477,8 @@ p(z_l | z_{l+1}) at each level</pre></div>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">vs VAE</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Replace KL divergence with adversarial training to match posterior to prior:</p>
-            <div class="diagram"><pre>Encoder: x → z (deterministic or stochastic)
-Decoder: z → x̂
+            <div class="diagram"><pre>Encoder: x <span class="d-a">→</span> z (deterministic or stochastic)
+Decoder: z <span class="d-a">→</span> x̂
 Discriminator: distinguish samples from q(z) vs p(z)</pre></div>
             <p><strong>vs <abbr title="variational autoencoder">VAE</abbr>:</strong> KL divergence requires specific distributional form. Adversarial matching works with any prior distribution.
               <strong>Explanation:</strong> Can impose arbitrary prior (mixture of Gaussians, uniform, Swiss roll). More flexible than VAE's KL constraint. Combines autoencoder and <abbr title="generative adversarial network">GAN</abbr> principles.</p>
@@ -11539,8 +11551,8 @@ Recurrence: h_t = f(h_{t-1}, x_t, z_t)</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Problem</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Regions in latent space that don't correspond to valid data:</p>
-            <div class="diagram"><pre>Standard AE: training data maps to sparse points → most of space is "holes"
-VAE: KL regularization fills space → fewer holes</pre></div>
+            <div class="diagram"><pre>Standard AE: training data maps to sparse points <span class="d-a">→</span> most of space is "holes"
+VAE: KL regularization fills space <span class="d-a">→</span> fewer holes</pre></div>
             <p><strong>Problem:</strong> Sampling from holes → garbage output.
               <strong>Explanation:</strong> Why <abbr title="variational autoencoder">VAE</abbr>'s KL loss is important: forces encoder to spread representations across space. But too much smoothing → blurry outputs (all data maps to similar region).</p>
           </div><button class="reveal">Reveal answer</button>
@@ -11567,7 +11579,7 @@ where g ~ Gumbel(0,1), τ = temperature</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">For anomaly detection</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Add external memory module to autoencoder:</p>
-            <div class="diagram"><pre>Encoder → query memory → combine with encoding → Decoder
+            <div class="diagram"><pre>Encoder <span class="d-a">→</span> query memory <span class="d-a">→</span> combine with encoding <span class="d-a">→</span> Decoder
 Memory: set of learned prototypical patterns</pre></div>
             <p><strong>For anomaly detection:</strong> Normal patterns stored in memory. Abnormal data can't find matching memory → high reconstruction error.
               <strong>Explanation:</strong> Memory constrains reconstruction to only normal patterns. Prevents autoencoder from being too good (reconstructing anomalies too).</p>
@@ -11665,8 +11677,8 @@ reconstructed_text = decoder_text(z)</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> A generative model that learns to reverse a gradual noising process:</p>
-            <div class="diagram"><pre>Forward process: x₀ → x₁ → ... → x_T (gradually add Gaussian noise)
-Reverse process: x_T → x_{T-1} → ... → x₀ (learned denoising)
+            <div class="diagram"><pre>Forward process: x₀ <span class="d-a">→</span> x₁ <span class="d-a">→</span> ... <span class="d-a">→</span> x_T (gradually add Gaussian noise)
+Reverse process: x_T <span class="d-a">→</span> x_{T-1} <span class="d-a">→</span> ... <span class="d-a">→</span> x₀ (learned denoising)
 
 Forward: x_t = √(ᾱ_t)x₀ + √(1-ᾱ_t)ε,  ε ~ N(0,I)
 Reverse: neural network predicts noise ε given x_t, t</pre></div>
@@ -11748,12 +11760,12 @@ w = 0: unconditional generation</code></pre>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Encoder: Conv → Downsample → Conv → Downsample → Bottleneck
-Decoder: Conv → Upsample → Skip connection → Conv → Upsample → Skip
+            <div class="diagram"><pre>Encoder: Conv <span class="d-a">→</span> Downsample <span class="d-a">→</span> Conv <span class="d-a">→</span> Downsample <span class="d-a">→</span> Bottleneck
+Decoder: Conv <span class="d-a">→</span> Upsample <span class="d-a">→</span> Skip connection <span class="d-a">→</span> Conv <span class="d-a">→</span> Upsample <span class="d-a">→</span> Skip
 Plus:
 - Self-attention at certain resolutions
 - Cross-attention for conditioning (text)
-- Time embedding (sinusoidal → MLP → add to features)</pre></div>
+- Time embedding (sinusoidal <span class="d-a">→</span> MLP <span class="d-a">→</span> add to features)</pre></div>
             <p><strong>Explanation:</strong> Skip connections preserve fine details. Attention enables global context and conditioning. Time <abbr title="a dense numeric vector representing text so that similar meanings sit close together">embedding</abbr> tells model the noise level. ResNet blocks with group norm.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -11767,11 +11779,11 @@ Plus:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Architecture:
-1. CLIP text encoder: text → text embedding
-2. Prior: text embedding → CLIP image embedding
-3. Decoder: CLIP image embedding → image (diffusion in pixel space)
+1. CLIP text encoder: text <span class="d-a">→</span> text embedding
+2. Prior: text embedding <span class="d-a">→</span> CLIP image embedding
+3. Decoder: CLIP image embedding <span class="d-a">→</span> image (diffusion in pixel space)
 
-Text → CLIP text → Prior → CLIP image → Decoder → Image</pre></div>
+Text <span class="d-a">→</span> CLIP text <span class="d-a">→</span> Prior <span class="d-a">→</span> CLIP image <span class="d-a">→</span> Decoder <span class="d-a">→</span> Image</pre></div>
             <p><strong>Explanation:</strong> Uses CLIP's learned text-image alignment. Prior maps between text and image <abbr title="a dense numeric vector representing text so that similar meanings sit close together">embedding</abbr> spaces. Decoder generates image from image embedding. Unifies understanding (CLIP) and generation (diffusion).</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -11803,8 +11815,8 @@ Text → CLIP text → Prior → CLIP image → Decoder → Image</pre></div>
             <p><strong>Answer:</strong> Add spatial conditioning to pre-trained diffusion models:</p>
             <div class="diagram"><pre>Input: text prompt + spatial control (edge map, pose, depth map)
 ControlNet: zero-initialized copy of U-Net encoder
-    → processes spatial condition
-    → adds to main U-Net via zero convolutions</pre></div>
+    <span class="d-a">→</span> processes spatial condition
+    <span class="d-a">→</span> adds to main U-Net via zero convolutions</pre></div>
             <p><strong>Examples:</strong> Canny edges → image, pose skeleton → image, depth map → image.
               <strong>Explanation:</strong> Preserves pre-trained model's generation capability. Zero initialization means ControlNet starts by doing nothing → gradually learns to add control. Very successful for guided generation.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -11848,8 +11860,8 @@ Cosine: more gradual at beginning and end
             <p><strong>Answer:</strong> Start diffusion from a partially noised existing image instead of pure noise:</p>
             <div class="diagram"><pre>1. Encode existing image: z₀ = encode(image)
 2. Add noise to step t (not T): z_t = noise(z₀, t)
-3. Denoise from step t → 0 with text conditioning
-Strength = t/T (higher → more change from original)</pre></div>
+3. Denoise from step t <span class="d-a">→</span> 0 with text conditioning
+Strength = t/T (higher <span class="d-a">→</span> more change from original)</pre></div>
             <p><strong>Explanation:</strong> Lower strength → more similar to original. Higher strength → more creative freedom. Enables style transfer, editing, variations of existing images.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -12045,7 +12057,7 @@ Use: "a [V] dog on the beach" (unique identifier)</code></pre>
             </div>
             <p><strong>Answer:</strong> Image prompt adapter for diffusion models:</p>
             <div class="diagram"><pre>Input: reference image + text prompt
-IP-Adapter: extract image features → inject via cross-attention
+IP-Adapter: extract image features <span class="d-a">→</span> inject via cross-attention
 Output: generated image combining text description + reference image style/content</pre></div>
             <p><strong>Explanation:</strong> Decoupled cross-attention: separate attention for text and image prompts. No fine-tuning needed (adapter trained once). Enables: style transfer, character consistency, image variation.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -12074,8 +12086,8 @@ Classifier-free guidance: combine conditional and unconditional during sampling<
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Encoder: 512×512×3 → 64×64×4 (compress to latent space)
-Decoder: 64×64×4 → 512×512×3 (reconstruct to pixel space)
+            <div class="diagram"><pre>Encoder: 512×512×3 <span class="d-a">→</span> 64×64×4 (compress to latent space)
+Decoder: 64×64×4 <span class="d-a">→</span> 512×512×3 (reconstruct to pixel space)
 Training: reconstruction loss + perceptual loss + adversarial loss + small KL</pre></div>
             <p><strong>Details:</strong> KL weight very small (0.00001) → latent space is nearly deterministic. Perceptual loss from VGG. Adversarial loss from PatchGAN discriminator.
               <strong>Explanation:</strong> <abbr title="variational autoencoder">VAE</abbr> quality determines final image quality. VAE is trained separately from diffusion model. Different VAEs exist (e.g., SDXL uses improved VAE with better fine details).</p>
@@ -12090,8 +12102,8 @@ Training: reconstruction loss + perceptual loss + adversarial loss + small KL</p
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Text → tokenize → CLIP text encoder → text embeddings
-Text embeddings → cross-attention in U-Net
+            <div class="diagram"><pre>Text <span class="d-a">→</span> tokenize <span class="d-a">→</span> CLIP text encoder <span class="d-a">→</span> text embeddings
+Text embeddings <span class="d-a">→</span> cross-attention in U-Net
 
 Cross-attention: Q from image features, K,V from text embeddings
 This allows each spatial location in image to attend to relevant text tokens</pre></div>
@@ -12180,7 +12192,7 @@ Optimal transport: straight paths are most efficient</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Why</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Replace U-Net with Transformer in diffusion model:</p>
-            <div class="diagram"><pre>Image → patchify → Transformer blocks (self-attention + FFN) → predict noise
+            <div class="diagram"><pre>Image <span class="d-a">→</span> patchify <span class="d-a">→</span> Transformer blocks (self-attention + FFN) <span class="d-a">→</span> predict noise
 Conditioning: adaptive layer norm (adaLN-Zero)</pre></div>
             <p><strong>Why:</strong> Transformers scale better than U-Nets with more compute. Follow language model scaling recipe.
               <strong>Explanation:</strong> Sora uses DiT architecture. Better scaling properties → can train larger models effectively. Shift from U-Net to Transformer for next-gen diffusion models.</p>
@@ -12196,8 +12208,8 @@ Conditioning: adaptive layer norm (adaLN-Zero)</pre></div>
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Approaches:
-1. DreamFusion: Text → 2D diffusion supervision → optimize 3D representation (NeRF)
-2. Zero-1-to-3: Single image → multi-view diffusion → 3D reconstruction  
+1. DreamFusion: Text <span class="d-a">→</span> 2D diffusion supervision <span class="d-a">→</span> optimize 3D representation (NeRF)
+2. Zero-1-to-3: Single image <span class="d-a">→</span> multi-view diffusion <span class="d-a">→</span> 3D reconstruction  
 3. Direct 3D diffusion: diffusion on point clouds, meshes, or triplane features</pre></div>
             <p><strong>Score <abbr title="training a smaller model to reproduce a larger model&#x27;s behaviour">Distillation</abbr> Sampling (SDS):</strong> Use 2D diffusion model as critic for 3D generation.
               <strong>Explanation:</strong> 3D training data is scarce. Leverage 2D diffusion models trained on billions of images to guide 3D generation. Quality improving rapidly.</p>
@@ -12335,8 +12347,8 @@ Model: 4+1+4 = 9 input channels (instead of standard 4)</code></pre>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Text-to-image: noise → image (full generation)
-Image editing: existing image → modified image (preserve + edit)
+            <div class="diagram"><pre>Text-to-image: noise <span class="d-a">→</span> image (full generation)
+Image editing: existing image <span class="d-a">→</span> modified image (preserve + edit)
 
 Editing methods:
 1. img2img: add noise, denoise with new prompt
@@ -12384,13 +12396,13 @@ f = model prediction (noise/score/velocity)</code></pre>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>1. Run diffusion with original prompt → store cross-attention maps
-2. Run diffusion with new prompt → inject stored attention maps
+            <div class="diagram"><pre>1. Run diffusion with original prompt <span class="d-a">→</span> store cross-attention maps
+2. Run diffusion with new prompt <span class="d-a">→</span> inject stored attention maps
 Result: same layout, different content
 
 Prompt-to-Prompt:
 "a cat sitting" (attention maps stored)
-"a dog sitting" (inject cat's spatial attention → dog in same position)</pre></div>
+"a dog sitting" (inject cat's spatial attention <span class="d-a">→</span> dog in same position)</pre></div>
             <p><strong>Explanation:</strong> Cross-attention maps control WHERE objects appear. Swapping/blending maps enables spatial control without retraining. Enables: object replacement, attribute editing, attention-based editing.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -12409,7 +12421,7 @@ Student: learns to match teacher in fewer steps
 Progressive distillation:
 1. Student learns 2-step ≈ teacher 2-step
 2. Halve student to 1-step (from teacher's 2-step)
-3. Repeat: 50 → 25 → 12 → 6 → 3 → 1 steps</pre></div>
+3. Repeat: 50 <span class="d-a">→</span> 25 <span class="d-a">→</span> 12 <span class="d-a">→</span> 6 <span class="d-a">→</span> 3 <span class="d-a">→</span> 1 steps</pre></div>
             <p><strong>Explanation:</strong> Each <abbr title="training a smaller model to reproduce a larger model&#x27;s behaviour">distillation</abbr> halves the steps. Final model generates in 1-4 steps. Quality-speed trade-off. LCM-LoRA achieves 4-8 step generation with good quality.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>

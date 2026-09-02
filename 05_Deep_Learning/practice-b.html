@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1142,7 +1154,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p><strong>Answer:</strong> Leveraging knowledge from one task/domain to improve performance on another:</p>
             <div class="diagram"><pre>Source task: Large dataset, general domain (ImageNet, Wikipedia)
 Target task: Smaller dataset, specific domain (medical images, legal text)
-Transfer: Pre-trained features → adapt to target</pre></div>
+Transfer: Pre-trained features <span class="d-a">→</span> adapt to target</pre></div>
             <p><strong>Explanation:</strong> Low-level features (edges, textures, basic syntax) are universal. High-level features are task-specific. Transfer saves training time and data requirements.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1332,7 +1344,7 @@ Query set: {new example to classify}</code></pre>
             <div class="diagram"><pre>Training classes: cat, dog, horse
 Test class: zebra (never seen)
 Bridge: class attributes or text descriptions
-"zebra" has attributes: striped, hooved, equine → relate to horse</pre></div>
+"zebra" has attributes: striped, hooved, equine <span class="d-a">→</span> relate to horse</pre></div>
             <p><strong>Modern approach:</strong> CLIP — align image and text embeddings. Classify by text description.
               <strong>Explanation:</strong> Requires semantic relationship between known and unknown classes. CLIP enables zero-shot classification via language descriptions.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -1521,9 +1533,9 @@ where p1...pk are learned continuous vectors</code></pre>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Contrastive: SimCLR, MoCo — different augmentations of same image → similar embeddings
+            <div class="diagram"><pre>Contrastive: SimCLR, MoCo — different augmentations of same image <span class="d-a">→</span> similar embeddings
 DINO/DINOv2: self-distillation — student matches teacher (EMA of student)
-MAE: mask patches → reconstruct masked patches
+MAE: mask patches <span class="d-a">→</span> reconstruct masked patches
 BEiT: predict visual tokens of masked patches</pre></div>
             <p><strong>Explanation:</strong> No labels needed! Learn from data structure. Self-supervised ViT (DINOv2) matches/beats supervised ImageNet pre-training for transfer. Data-efficient and scalable.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -1767,7 +1779,7 @@ Steps 500+: LR follows decay schedule (cosine, linear)</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Why it works</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Transfer model from one language to another:</p>
-            <div class="diagram"><pre>Train on English (abundant data) → apply to Hindi (limited data)
+            <div class="diagram"><pre>Train on English (abundant data) <span class="d-a">→</span> apply to Hindi (limited data)
 Multilingual models: mBERT, XLM-R trained on 100+ languages</pre></div>
             <p><strong>Why it works:</strong> Languages share syntactic/semantic structures. Multilingual models learn language-universal representations.
               <strong>Explanation:</strong> XLM-R: competitive on low-resource languages despite never seeing task-specific data. Cross-lingual zero-shot: train on English task data → evaluate on other languages.</p>
@@ -1910,7 +1922,7 @@ Fine-tuning: Linear probe on CLIP features with labeled data</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Benefit</span><span class="kt">Example</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Continue pre-training on domain-specific data before fine-tuning:</p>
-            <div class="diagram"><pre>General LM → continue pre-training on medical texts → fine-tune on medical QA</pre></div>
+            <div class="diagram"><pre>General LM <span class="d-a">→</span> continue pre-training on medical texts <span class="d-a">→</span> fine-tune on medical QA</pre></div>
             <p><strong>Benefit:</strong> Adapts vocabulary and representations to target domain.
               <strong>Example:</strong> BiomedCLIP (continue CLIP on biomedical data), CodeLLaMA (continue LLaMA on code).
               <strong>Explanation:</strong> Bridges domain gap between general pre-training and specific fine-tuning. Use the target domain's unlabeled data for continued pre-training.</p>
@@ -2042,7 +2054,7 @@ L = -log[exp(sim(z_i, z_j)/τ) / Σ_k exp(sim(z_i, z_k)/τ)]</code></pre>
             </div>
             <p><strong>Answer:</strong> Contrastive learning with momentum-updated encoder:</p>
             <div class="diagram"><pre>Query encoder: f_q(x) — updated by gradient descent
-Key encoder: f_k(x) — momentum update: θ_k ← m×θ_k + (1-m)×θ_q
+Key encoder: f_k(x) — momentum update: θ_k <span class="d-a">←</span> m×θ_k + (1-m)×θ_q
 
 Queue of keys: stores recent key representations (large negative set)</pre></div>
             <p><strong>Advantage over SimCLR:</strong> Doesn't need enormous batch sizes. Queue provides large negative set efficiently.
@@ -2057,8 +2069,8 @@ Queue of keys: stores recent key representations (large negative set)</pre></div
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Key insight</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Self-supervised learning WITHOUT negative pairs:</p>
-            <div class="diagram"><pre>Online network: encoder → projector → predictor → q
-Target network: encoder → projector → z  (momentum updated)
+            <div class="diagram"><pre>Online network: encoder <span class="d-a">→</span> projector <span class="d-a">→</span> predictor <span class="d-a">→</span> q
+Target network: encoder <span class="d-a">→</span> projector <span class="d-a">→</span> z  (momentum updated)
 Loss: ||q - z||²  (predict target from online)</pre></div>
             <p><strong>Key insight:</strong> No negatives needed. Momentum target prevents collapse.
               <strong>Explanation:</strong> Challenged assumption that negatives are essential. Simpler than contrastive methods. Performance comparable to SimCLR/MoCo. The predictor head + momentum combination prevents trivial (collapsed) solutions.</p>
@@ -2123,8 +2135,8 @@ Loss: cross-entropy between student and teacher outputs</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Zero-shot classification</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Learn joint vision-language representations:</p>
-            <div class="diagram"><pre>Image encoder: f(image) → image_embedding
-Text encoder: g(text) → text_embedding
+            <div class="diagram"><pre>Image encoder: f(image) <span class="d-a">→</span> image_embedding
+Text encoder: g(text) <span class="d-a">→</span> text_embedding
 Training: align matching image-text pairs, separate non-matching
 
 Contrastive loss on N×N similarity matrix:
@@ -2235,8 +2247,8 @@ Text pretext tasks:
             </div>
             <p><strong>Answer:</strong> Network maps all inputs to same representation:</p>
             <div class="diagram"><pre>Trivial solution: f(x) = constant for all x
-→ Loss is zero (all representations identical)
-→ Representation is useless</pre></div>
+<span class="d-a">→</span> Loss is zero (all representations identical)
+<span class="d-a">→</span> Representation is useless</pre></div>
             <p><strong>Prevention methods:</strong>
               1. Negative pairs (contrastive learning)
               2. Momentum encoder (BYOL, DINO)
@@ -2307,8 +2319,8 @@ P(xₜ | x₁, x₂, ..., x_{t-1}) — autoregressive</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Unified self-supervised framework for text, speech, and vision:</p>
-            <div class="diagram"><pre>Teacher (EMA): encode full input → get target representations
-Student: encode masked input → predict teacher representations
+            <div class="diagram"><pre>Teacher (EMA): encode full input <span class="d-a">→</span> get target representations
+Student: encode masked input <span class="d-a">→</span> predict teacher representations
 Loss: MSE between student output and teacher targets
 
 Same framework works for:
@@ -2327,8 +2339,8 @@ Same framework works for:
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Strong augmentations → better representations
-Weak augmentations → poor representations
+            <div class="diagram"><pre>Strong augmentations <span class="d-a">→</span> better representations
+Weak augmentations <span class="d-a">→</span> poor representations
 
 Common image augmentations (SimCLR):
 - Random resized crop (MOST important)
@@ -2361,7 +2373,7 @@ Common image augmentations (SimCLR):
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Key insight</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Simple Siamese network without negatives, momentum, or large batches:</p>
-            <div class="diagram"><pre>Two augmented views → shared encoder → projector
+            <div class="diagram"><pre>Two augmented views <span class="d-a">→</span> shared encoder <span class="d-a">→</span> projector
 One branch has predictor head (asymmetry)
 Stop-gradient on one branch (prevents collapse)
 Loss: cosine similarity between branches</pre></div>
@@ -2381,7 +2393,7 @@ Loss: cosine similarity between branches</pre></div>
 C_ij = correlation between dimension i and j
 
 Loss: make C close to identity matrix
-- Diagonal = 1 (invariance: same input → same feature)
+- Diagonal = 1 (invariance: same input <span class="d-a">→</span> same feature)
 - Off-diagonal = 0 (reduce redundancy between features)</pre></div>
             <p><strong>Explanation:</strong> Inspired by neuroscience (Barlow's redundancy reduction). No negatives needed. Each feature captures unique information. Simple and effective.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -2401,7 +2413,7 @@ With self-supervised pretraining: need ~10-100 labels for same performance
 Pipeline:
 1. Pretrain on millions of unlabeled images (self-supervised)
 2. Fine-tune on 10-100 labeled examples
-→ Strong performance despite few labels</pre></div>
+<span class="d-a">→</span> Strong performance despite few labels</pre></div>
             <p><strong>Explanation:</strong> Self-supervised learning captures general features (edges, textures, objects). These transfer to downstream tasks. Like human perception — learn visual understanding from experience, then quickly learn new concepts.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -2417,8 +2429,8 @@ Pipeline:
             <div class="diagram"><pre>Teacher: provides target representations (EMA updated or frozen)
 Student: learns to match teacher representations for masked/augmented inputs
 
-Teacher update: θ_T ← m×θ_T + (1-m)×θ_S  (momentum)
-Student update: θ_S ← θ_S - lr×∇L  (gradient descent)</pre></div>
+Teacher update: θ_T <span class="d-a">←</span> m×θ_T + (1-m)×θ_S  (momentum)
+Student update: θ_S <span class="d-a">←</span> θ_S - lr×∇L  (gradient descent)</pre></div>
             <p><strong>Used in:</strong> BYOL, DINO, data2vec, EMA-based methods.
               <strong>Explanation:</strong> Teacher provides stable targets. Student tries to match. Asymmetry between teacher and student is key to preventing collapse. Teacher is typically "better" than student due to averaging.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -2465,9 +2477,9 @@ Video-Text: VideoCLIP (align videos and descriptions)</code></pre>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>More data → better representations (log-linear improvement)
-Larger models → better representations
-More compute → better representations
+            <div class="diagram"><pre>More data <span class="d-a">→</span> better representations (log-linear improvement)
+Larger models <span class="d-a">→</span> better representations
+More compute <span class="d-a">→</span> better representations
 
 Scaling behaviors:
 - GPT: loss follows power law with compute, data, parameters
@@ -2553,7 +2565,7 @@ Challenge: false negatives — randomly sampled "negative" may actually be same 
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Self-supervised pretraining → transfer to downstream tasks
+            <div class="diagram"><pre>Self-supervised pretraining <span class="d-a">→</span> transfer to downstream tasks
 
 Step 1: Pretrain on large unlabeled dataset (ImageNet, internet text)
 Step 2: Fine-tune on small labeled dataset (medical images, legal text)</pre></div>
@@ -2588,7 +2600,7 @@ Step 2: Fine-tune on small labeled dataset (medical images, legal text)</pre></d
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Encoder → representation h → Projection head → z
+            <div class="diagram"><pre>Encoder <span class="d-a">→</span> representation h <span class="d-a">→</span> Projection head <span class="d-a">→</span> z
 Contrastive loss applied to z
 Downstream tasks use h (discard projection head)
 
@@ -2734,10 +2746,10 @@ Stage 2: Fine-tuning (supervised, small data, cheap)
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Properties not explicitly trained but emerge:
-1. DINO attention → unsupervised object segmentation
-2. GPT → in-context learning, chain-of-thought reasoning
-3. CLIP → zero-shot classification, image-text retrieval
-4. Large models → few-shot learning capability</pre></div>
+1. DINO attention <span class="d-a">→</span> unsupervised object segmentation
+2. GPT <span class="d-a">→</span> in-context learning, chain-of-thought reasoning
+3. CLIP <span class="d-a">→</span> zero-shot classification, image-text retrieval
+4. Large models <span class="d-a">→</span> few-shot learning capability</pre></div>
             <p><strong>Explanation:</strong> Simple training objective + scale → complex capabilities. Masked prediction → understanding. Contrastive alignment → zero-shot transfer. Not fully understood why emergence happens.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -2792,9 +2804,9 @@ Why it works so well:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Vector Quantized VAE: learn discrete codebook for data
-1. Encoder: x → z_e (continuous)
+1. Encoder: x <span class="d-a">→</span> z_e (continuous)
 2. Quantize: z_q = nearest codebook vector
-3. Decoder: z_q → x̂
+3. Decoder: z_q <span class="d-a">→</span> x̂
 
 Codebook provides discrete visual "tokens"
 Used in: BEiT (visual tokenizer), DALL-E (image tokens for generation)</pre></div>
@@ -2828,7 +2840,7 @@ Masked LM: better for understanding/encoding</code></pre>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>BERT: mask tokens → predict original
+            <div class="diagram"><pre>BERT: mask tokens <span class="d-a">→</span> predict original
 ELECTRA: 
 1. Small generator: fills in masked tokens
 2. Discriminator: for EACH token, predict if original or replaced</pre></div>
@@ -2846,7 +2858,7 @@ ELECTRA:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Video-specific pretext tasks:
-1. Frame order prediction (shuffle frames → predict order)
+1. Frame order prediction (shuffle frames <span class="d-a">→</span> predict order)
 2. Temporal contrastive (same video clip = positive pair)
 3. Speed prediction (1x vs 2x vs 4x playback)
 4. Future frame prediction
@@ -2904,7 +2916,7 @@ Self-supervised learning naturally creates information bottleneck:
             <div class="diagram"><pre>Trends:
 1. Unification: single SSL method for all modalities (data2vec direction)
 2. Joint-embedding predictive: predict in latent space (I-JEPA, V-JEPA)
-3. Scaling: larger models, more data → emergent capabilities
+3. Scaling: larger models, more data <span class="d-a">→</span> emergent capabilities
 4. Efficiency: better sample/compute efficiency
 5. Multi-modal: integrate more modalities (text, image, audio, video)
 6. World models: SSL for learning physics/causality
@@ -2920,9 +2932,9 @@ Self-supervised learning naturally creates information bottleneck:
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Benefits</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Training a single model to perform multiple related tasks simultaneously.</p>
-            <div class="diagram"><pre>Shared Backbone → Task 1 Head (classification)
-                → Task 2 Head (segmentation)
-                → Task 3 Head (depth estimation)</pre></div>
+            <div class="diagram"><pre>Shared Backbone <span class="d-a">→</span> Task 1 Head (classification)
+                <span class="d-a">→</span> Task 2 Head (segmentation)
+                <span class="d-a">→</span> Task 3 Head (depth estimation)</pre></div>
             <p><strong>Benefits:</strong>
               1. Shared features reduce total parameters
               2. Inductive bias from related tasks improves generalization
@@ -3207,16 +3219,16 @@ Episode format:
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Transfer Learning: Train on task A → Apply to task B
-   Pre-train ImageNet → Fine-tune on X-rays
+            <div class="diagram"><pre>Transfer Learning: Train on task A <span class="d-a">→</span> Apply to task B
+   Pre-train ImageNet <span class="d-a">→</span> Fine-tune on X-rays
    Sequential: A then B
 
 Multi-Task Learning: Train on tasks A, B, C simultaneously
    Single model, multiple heads, joint training
    Concurrent: A, B, C together
 
-Meta-Learning: Train on tasks T1...TN → Adapt quickly to new task T_new
-   Learn to learn from many tasks → rapid adaptation
+Meta-Learning: Train on tasks T1...TN <span class="d-a">→</span> Adapt quickly to new task T_new
+   Learn to learn from many tasks <span class="d-a">→</span> rapid adaptation
    Learn to adapt: train on many, test on new</pre></div>
             <p><strong>Explanation:</strong> Transfer: source→target. MTL: simultaneous tasks. Meta: learn adaptation mechanism itself.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -3280,7 +3292,7 @@ Meta-Learning: Train on tasks T1...TN → Adapt quickly to new task T_new
 Modalities: Video frames + Audio + Subtitles
 Tasks: Action recognition + Captioning + Speaker identification + Emotion detection
 
-Shared encoder → modality fusion → task-specific decoders</pre></div>
+Shared encoder <span class="d-a">→</span> modality fusion <span class="d-a">→</span> task-specific decoders</pre></div>
             <p><strong>Explanation:</strong> Real-world problems are inherently multi-modal and multi-task. Humans naturally combine modalities for understanding.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -3293,13 +3305,13 @@ Shared encoder → modality fusion → task-specific decoders</pre></div>
             </div>
             <p><strong>Answer:</strong> Set of solutions where improving one task necessarily worsens another.</p>
             <div class="diagram"><pre>                 Task B Loss
-                   ↑
+                   <span class="d-a">↑</span>
                    |  × (bad at both)
                    | ×
-                   |× ← Pareto front
+                   |× <span class="d-a">←</span> Pareto front
                    |  ×
                    |    ×
-                   +--------→ Task A Loss</pre></div>
+                   +--------<span class="d-a">→</span> Task A Loss</pre></div>
             <p><strong>Multi-objective optimization:</strong> Find the best trade-off between tasks.
               <strong>MGDA:</strong> Multiple Gradient Descent Algorithm — finds Pareto-optimal update direction.
               <strong>Explanation:</strong> Stakeholders choose point on Pareto front based on task priorities.</p>
@@ -3314,10 +3326,10 @@ Shared encoder → modality fusion → task-specific decoders</pre></div>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Frozen backbone → Adapter (small trainable module) → Task output
+            <div class="diagram"><pre>Frozen backbone <span class="d-a">→</span> Adapter (small trainable module) <span class="d-a">→</span> Task output
 
 Adapter module:
-x → LayerNorm → Down-project (d→r) → Activation → Up-project (r→d) → + x
+x <span class="d-a">→</span> LayerNorm <span class="d-a">→</span> Down-project (d<span class="d-a">→</span>r) <span class="d-a">→</span> Activation <span class="d-a">→</span> Up-project (r<span class="d-a">→</span>d) <span class="d-a">→</span> + x
 
 Parameters: 2 × d × r (r &lt;&lt; d)</pre></div>
             <p><strong>Benefits:</strong> Share backbone across tasks, only train lightweight adapters (<span class="mag">~2-5%</span> of parameters).
@@ -3401,12 +3413,12 @@ Example (robotic grasping):
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Input → Expert 1 → e₁
-      → Expert 2 → e₂
-      → Expert 3 → e₃
+            <div class="diagram"><pre>Input <span class="d-a">→</span> Expert 1 <span class="d-a">→</span> e₁
+      <span class="d-a">→</span> Expert 2 <span class="d-a">→</span> e₂
+      <span class="d-a">→</span> Expert 3 <span class="d-a">→</span> e₃
 
-Task A gate: g_A = softmax(W_A × input) → weighted sum of experts for task A
-Task B gate: g_B = softmax(W_B × input) → weighted sum of experts for task B
+Task A gate: g_A = softmax(W_A × input) <span class="d-a">→</span> weighted sum of experts for task A
+Task B gate: g_B = softmax(W_B × input) <span class="d-a">→</span> weighted sum of experts for task B
 
 Output_A = Σ g_A_i × e_i
 Output_B = Σ g_B_i × e_i</pre></div>
@@ -3436,7 +3448,7 @@ Output_B = Σ g_B_i × e_i</pre></div>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Task A features → Cross-task attention → Enriched Task B features
+            <div class="diagram"><pre>Task A features <span class="d-a">→</span> Cross-task attention <span class="d-a">→</span> Enriched Task B features
 
 Cross-task attention:
 Q = Task B features
@@ -3513,7 +3525,7 @@ Task B uses relevant information from Task A's representation.</pre></div>
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Neural Process:
-1. Encode context (support) points: (x_i, y_i) → r_i
+1. Encode context (support) points: (x_i, y_i) <span class="d-a">→</span> r_i
 2. Aggregate: r = aggregate(r_1, ..., r_K) (mean, attention)
 3. Decode: Given r and new x*, predict y*
 
@@ -3555,8 +3567,8 @@ Layer 3 (partially shared): High-level features — task-dependent
 Layer 4 (task-specific): Task heads — separate
 
 "Split point" determines where sharing ends.
-Too much sharing → negative transfer (task interference)
-Too little sharing → reduced benefit (no knowledge transfer)</pre></div>
+Too much sharing <span class="d-a">→</span> negative transfer (task interference)
+Too little sharing <span class="d-a">→</span> reduced benefit (no knowledge transfer)</pre></div>
             <p><strong>Explanation:</strong> The optimal split point is task/dataset dependent. Deeper sharing works for closely related tasks. Shallow sharing for loosely related tasks.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -3601,10 +3613,10 @@ Too little sharing → reduced benefit (no knowledge transfer)</pre></div>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> LLMs perform meta-learning via in-context examples (no weight updates).</p>
-            <div class="diagram"><pre>Prompt: "cat → chat, dog → chien, house → ?"
+            <div class="diagram"><pre>Prompt: "cat <span class="d-a">→</span> chat, dog <span class="d-a">→</span> chien, house <span class="d-a">→</span> ?"
 LLM output: "maison"
 
-The LLM "learned" English→French translation from 2 examples in context.</pre></div>
+The LLM "learned" English<span class="d-a">→</span>French translation from 2 examples in context.</pre></div>
             <p><strong>Explanation:</strong> Transformer attention mechanism can implement gradient descent-like updates internally. In-context learning is implicit meta-learning — the model learned to learn from examples during pre-training.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -3616,8 +3628,8 @@ The LLM "learned" English→French translation from 2 examples in context.</pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Solutions</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Meta-learner must adapt to new task distributions without forgetting how to adapt to old ones.</p>
-            <div class="diagram"><pre>Phase 1: Meta-train on image tasks → good at adapting to image tasks
-Phase 2: Meta-train on text tasks → good at text but forgets how to adapt to images</pre></div>
+            <div class="diagram"><pre>Phase 1: Meta-train on image tasks <span class="d-a">→</span> good at adapting to image tasks
+Phase 2: Meta-train on text tasks <span class="d-a">→</span> good at text but forgets how to adapt to images</pre></div>
             <p><strong>Solutions:</strong>
               1. Replay meta-episodes from old task distributions
               2. Regularize meta-parameters toward old values
@@ -3675,8 +3687,8 @@ Algorithm:
             <p><strong>Answer:</strong> Instead of sharing a backbone, distill knowledge between task-specific models.</p>
             <div class="diagram"><pre>Step 1: Train separate models for each task
 Step 2: Use each model as teacher for others
-   Task A teacher → helps Task B student (cross-task distillation)
-   Task B teacher → helps Task A student</pre></div>
+   Task A teacher <span class="d-a">→</span> helps Task B student (cross-task distillation)
+   Task B teacher <span class="d-a">→</span> helps Task A student</pre></div>
             <p><strong>Explanation:</strong> Avoids negative transfer from shared parameters. Each model benefits from other tasks' knowledge without parameter interference. More expensive but often better when tasks conflict.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -3770,12 +3782,12 @@ Inner optimization (task-level):
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Single backbone (shared perception):
-├── Object Detection (cars, pedestrians, cyclists)
-├── Lane Detection (lane lines, road boundaries)
-├── Semantic Segmentation (road, sidewalk, buildings)
-├── Depth Estimation (distance to objects)
-├── Traffic Sign Recognition
-└── Free Space Detection
+<span class="d-l">├──</span> Object Detection (cars, pedestrians, cyclists)
+<span class="d-l">├──</span> Lane Detection (lane lines, road boundaries)
+<span class="d-l">├──</span> Semantic Segmentation (road, sidewalk, buildings)
+<span class="d-l">├──</span> Depth Estimation (distance to objects)
+<span class="d-l">├──</span> Traffic Sign Recognition
+<span class="d-l">└──</span> Free Space Detection
 
 All tasks from single camera input in one forward pass.</pre></div>
             <p><strong>Explanation:</strong> MTL is essential for autonomous driving — multiple perception tasks share visual features. Single model is more efficient than N separate models for real-time processing.</p>
@@ -3889,10 +3901,10 @@ Common benchmarks:
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Architecture changes based on the task at hand.</p>
-            <div class="diagram"><pre>Input → Router (predicts task) → Select path through network
-   Path A: Conv3×3 → Conv3×3 → FC (for texture tasks)
-   Path B: Conv5×5 → Conv7×7 → FC (for shape tasks)
-   Path C: Dilated Conv → FC (for global context tasks)
+            <div class="diagram"><pre>Input <span class="d-a">→</span> Router (predicts task) <span class="d-a">→</span> Select path through network
+   Path A: Conv3×3 <span class="d-a">→</span> Conv3×3 <span class="d-a">→</span> FC (for texture tasks)
+   Path B: Conv5×5 <span class="d-a">→</span> Conv7×7 <span class="d-a">→</span> FC (for shape tasks)
+   Path C: Dilated Conv <span class="d-a">→</span> FC (for global context tasks)
 
 DyNet: TaskRouter selects which modules to activate</pre></div>
             <p><strong>Explanation:</strong> Different tasks require different computational paths. Dynamic routing avoids negative transfer while maintaining single model. Similar to <abbr title="only a subset of expert sub-networks activates per token, giving a large parameter count at lower per-token compute">Mixture of Experts</abbr>.</p>
@@ -3936,7 +3948,7 @@ DyNet: TaskRouter selects which modules to activate</pre></div>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Key elements</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Agent learns to make decisions by interacting with an environment to maximize cumulative reward:</p>
-            <div class="diagram"><pre>Agent → Action → Environment → (State, Reward) → Agent → ...
+            <div class="diagram"><pre>Agent <span class="d-a">→</span> Action <span class="d-a">→</span> Environment <span class="d-a">→</span> (State, Reward) <span class="d-a">→</span> Agent <span class="d-a">→</span> ...
 Goal: learn policy π(a|s) that maximizes E[Σ γᵗrₜ]</pre></div>
             <p><strong>Key elements:</strong> State (s), Action (a), Reward (r), Policy (π), Discount factor (γ).
               <strong>Explanation:</strong> Unlike supervised learning (labeled data) or unsupervised (no labels), <abbr title="reinforcement learning">RL</abbr> learns from interaction and delayed rewards. Trial and error. Credit assignment: which action caused the reward?</p>
@@ -3977,7 +3989,7 @@ Goal: learn policy π(a|s) that maximizes E[Σ γᵗrₜ]</pre></div>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Optimal policy</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Learn action-value function Q(s,a) — expected return from taking action a in state s:</p>
-            <div class="diagram"><pre>Q(s,a) ← Q(s,a) + α × [r + γ × max_a' Q(s',a') - Q(s,a)]</pre></div>
+            <div class="diagram"><pre>Q(s,a) <span class="d-a">←</span> Q(s,a) + α × [r + γ × max_a' Q(s',a') - Q(s,a)]</pre></div>
             <p><strong>Optimal policy:</strong> π<em>(s) = argmax_a Q(s,a)
             </em><em>Explanation:</em>* Off-policy (can learn from any experience). Tabular Q-learning for small state spaces. Deep Q-Networks (DQN) for large/continuous states.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -4179,10 +4191,10 @@ Then: train agent using learned reward</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Problem with BC</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Learn policy directly from expert demonstrations:</p>
-            <div class="diagram"><pre>Behavioral cloning: supervised learning, (state → action)
+            <div class="diagram"><pre>Behavioral cloning: supervised learning, (state <span class="d-a">→</span> action)
     L = Σ ||π(sᵢ) - aᵢ*||²
 DAgger: iteratively collect expert corrections
-    Train → deploy → ask expert for corrections → retrain</pre></div>
+    Train <span class="d-a">→</span> deploy <span class="d-a">→</span> ask expert for corrections <span class="d-a">→</span> retrain</pre></div>
             <p><strong>Problem with BC:</strong> Distribution shift — agent encounters states not in training data.
               <strong>Explanation:</strong> Simpler than <abbr title="reinforcement learning">RL</abbr> (no reward needed). But requires expert demonstrations. DAgger addresses distribution shift by iteratively expanding training distribution.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -4258,8 +4270,8 @@ Phase 3: full difficulty</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Examples</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Agent trains by playing against itself:</p>
-            <div class="diagram"><pre>Agent v1 → plays against Agent v1 → Agent v2
-Agent v2 → plays against Agent v2 → Agent v3
+            <div class="diagram"><pre>Agent v1 <span class="d-a">→</span> plays against Agent v1 <span class="d-a">→</span> Agent v2
+Agent v2 <span class="d-a">→</span> plays against Agent v2 <span class="d-a">→</span> Agent v3
 ...</pre></div>
             <p><strong>Examples:</strong> AlphaGo, AlphaZero, OpenAI Five.
               <strong>Explanation:</strong> No human data needed. Agent discovers novel strategies. Auto-curriculum: opponent difficulty scales with agent's skill. Can discover superhuman strategies. Risk: can converge to niche strategies (solved by population-based training).</p>
@@ -4288,7 +4300,7 @@ Low-level policy: execute primitive actions to achieve subtask</code></pre>
             </div>
             <p><strong>Answer:</strong> Clip rewards to fixed range [-1, 1]:</p>
             <div class="diagram"><pre>Standard: games give 0-1000s points
-Clipped: all non-zero rewards → {-1, 0, +1}</pre></div>
+Clipped: all non-zero rewards <span class="d-a">→</span> {-1, 0, +1}</pre></div>
             <p><strong>Why:</strong> Stabilizes learning across different environments. Prevents one high-reward event from dominating.
               <strong>Trade-off:</strong> Loses reward magnitude information. A 1000-point reward becomes same as 1-point reward.
               <strong>Explanation:</strong> Used in Atari DQN. Alternative: reward normalization (running mean/std).</p>
@@ -4318,7 +4330,7 @@ Clipped: all non-zero rewards → {-1, 0, +1}</pre></div>
             </div>
             <p><strong>Answer:</strong> Off-policy actor-critic with entropy <abbr title="penalising model complexity so it generalises better">regularization</abbr>:</p>
             <div class="diagram"><pre>Objective: maximize E[Σ r + α × H(π(·|s))]
-H = entropy of policy → encourages exploration</pre></div>
+H = entropy of policy <span class="d-a">→</span> encourages exploration</pre></div>
             <p><strong>Benefits:</strong> Off-policy (reuses data), continuous actions, automatic entropy tuning.
               <strong>Explanation:</strong> Entropy bonus prevents premature convergence. Temperature α adjusts exploration-exploitation balance. State-of-the-art for continuous control (robotics). More sample-efficient than PPO.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -4348,7 +4360,7 @@ H = entropy of policy → encourages exploration</pre></div>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Learn a neural network that predicts human-like reward:</p>
-            <div class="diagram"><pre>Training data: human compares pairs (x, y_a, y_b) → y_a preferred
+            <div class="diagram"><pre>Training data: human compares pairs (x, y_a, y_b) <span class="d-a">→</span> y_a preferred
 Loss: Bradley-Terry model
 R(x, y_a) &gt; R(x, y_b) for preferred responses</pre></div>
             <p><strong>Explanation:</strong> Humans can compare but can't assign numerical rewards easily. Reward model learns from comparisons. Used in <abbr title="reinforcement learning from human feedback">RLHF</abbr> pipeline. Overoptimization risk: agent finds inputs that score high on RM but are actually bad.</p>
@@ -4443,7 +4455,7 @@ Reward: r = -||s - g||  or r = 1 if s ≈ g
 
 Hindsight Experience Replay (HER):
 Failed trajectory: didn't reach goal g
-Relabel: pretend the reached state was the goal → still useful training</pre></div>
+Relabel: pretend the reached state was the goal <span class="d-a">→</span> still useful training</pre></div>
             <p><strong>Explanation:</strong> HER dramatically improves sample efficiency for sparse rewards. Agent learns from failures by reframing them as successes for different goals.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -4596,7 +4608,7 @@ Subject to: E[Σ c_t] ≤ d    (constraint on cost function c)</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Solutions</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Determining which past actions were responsible for current reward:</p>
-            <div class="diagram"><pre>Agent makes 100 actions → gets reward at step 100
+            <div class="diagram"><pre>Agent makes 100 actions <span class="d-a">→</span> gets reward at step 100
 Which of the 100 actions contributed?</pre></div>
             <p><strong>Solutions:</strong> Temporal difference learning (bootstrapping), attention over action history, causal reasoning. <strong>Explanation:</strong> Fundamental <abbr title="reinforcement learning">RL</abbr> challenge. Sparse rewards make it harder. Denser reward signals help but risk reward hacking.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -4653,7 +4665,7 @@ r_intrinsic = ||f_{predicted}(s_{t+1}) - f_{actual}(s_{t+1})||²</code></pre>
             <div class="keyterms"><span class="kt">Answer</span><span class="kt">Dreamer</span><span class="kt">Explanation</span>
             </div>
             <p><strong>Answer:</strong> Learn a model of the environment's dynamics:</p>
-            <div class="diagram"><pre>World model: (s_t, a_t) → (s_{t+1}, r_t)
+            <div class="diagram"><pre>World model: (s_t, a_t) <span class="d-a">→</span> (s_{t+1}, r_t)
 Agent plans by "imagining" trajectories in the world model</pre></div>
             <p><strong>Dreamer:</strong> Learn world model → train policy entirely in imagination.
               <strong>Explanation:</strong> Data-efficient (one real interaction generates many imagined ones). World models can generalize to new situations. Foundation for model-based <abbr title="reinforcement learning">RL</abbr>. Connects to <abbr title="large language model">LLM</abbr> world understanding.</p>
@@ -6166,7 +6178,7 @@ times = []
               - <strong>During training (gradual pruning):</strong> Progressively increase sparsity during training</p>
             <div class="diagram"><pre>Sparsity schedule:
 Epoch 0-10: 0% sparse (warmup)
-Epoch 10-40: 0% → 90% (gradual pruning)
+Epoch 10-40: 0% <span class="d-a">→</span> 90% (gradual pruning)
 Epoch 40-50: 90% (fine-tune)</pre></div>
             <p><strong>Explanation:</strong> Gradual pruning allows model to adapt to increasing sparsity. Generally better accuracy than one-shot post-training pruning at same sparsity level.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -6294,7 +6306,7 @@ model_quantized = torch.quantization.<span class="fn">quantize_dynamic</span>(
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Model Size → Memory Bandwidth → Latency
+            <div class="diagram"><pre>Model Size <span class="d-a">→</span> Memory Bandwidth <span class="d-a">→</span> Latency
 100M params × 4 bytes = 400MB (FP32)
 100M params × 2 bytes = 200MB (FP16)
 100M params × 1 byte  = 100MB (INT8)
@@ -6688,7 +6700,7 @@ Total: 20× compression</code></pre>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Standard NAS: Discrete choice of operations → not differentiable
+            <div class="diagram"><pre>Standard NAS: Discrete choice of operations <span class="d-a">→</span> not differentiable
 DARTS: Continuous relaxation
 
 Instead of choosing ONE operation per edge:
@@ -6722,7 +6734,7 @@ Two cell types:
 2. Reduction cell: reduces spatial resolution (stride 2)
 
 Network architecture:
-[Normal] → [Normal] → [Reduction] → [Normal] → [Normal] → [Reduction] → ...
+[Normal] <span class="d-a">→</span> [Normal] <span class="d-a">→</span> [Reduction] <span class="d-a">→</span> [Normal] <span class="d-a">→</span> [Normal] <span class="d-a">→</span> [Reduction] <span class="d-a">→</span> ...
 
 Search: Find optimal cell structure (operations + connections)
 Benefit: Search space is much smaller than full network search</pre></div>
@@ -6744,8 +6756,8 @@ Benefit: Search space is much smaller than full network search</pre></div>
 4. Select best sub-network based on evaluation
 
 Key insight: Sub-networks share weights with supernet
-   → No need to train each architecture from scratch
-   → Evaluate thousands of architectures quickly</pre></div>
+   <span class="d-a">→</span> No need to train each architecture from scratch
+   <span class="d-a">→</span> Evaluate thousands of architectures quickly</pre></div>
             <p><strong>Models:</strong> Once-for-All (OFA), BigNAS, FairNAS.
               <strong>Explanation:</strong> Supernet training: randomly activate different paths each iteration. At evaluation: inherit weights from supernet. Major speedup vs training each candidate.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -6952,7 +6964,7 @@ Tools: AutoGluon, Auto-sklearn, H2O AutoML, Google AutoML</code></pre>
 3. Compute acquisition function:
    - Expected Improvement (EI): Balance exploit vs explore
    - Upper Confidence Bound (UCB): More exploration
-4. Maximize acquisition function → next config to try
+4. Maximize acquisition function <span class="d-a">→</span> next config to try
 5. Evaluate f(x_next), update surrogate
 6. Repeat
 
@@ -6979,11 +6991,11 @@ Successive Halving:
 4. Repeat until 1 survivor trained fully
 
 Example (η=3):
-Round 1: 81 configs × 1 epoch    → keep top 27
-Round 2: 27 configs × 3 epochs   → keep top 9
-Round 3: 9 configs × 9 epochs    → keep top 3
-Round 4: 3 configs × 27 epochs   → keep top 1
-Round 5: 1 config × 81 epochs    → final result</pre></div>
+Round 1: 81 configs × 1 epoch    <span class="d-a">→</span> keep top 27
+Round 2: 27 configs × 3 epochs   <span class="d-a">→</span> keep top 9
+Round 3: 9 configs × 9 epochs    <span class="d-a">→</span> keep top 3
+Round 4: 3 configs × 27 epochs   <span class="d-a">→</span> keep top 1
+Round 5: 1 config × 81 epochs    <span class="d-a">→</span> final result</pre></div>
             <p><strong>Explanation:</strong> Hyperband explores MORE configs by giving less budget to poor performers. Efficient when good configs are identifiable early.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -7032,7 +7044,7 @@ Search:
    - No training needed!
    - Find architecture in seconds via predictor
 
-Result: One training → deploy on any device (phone, GPU, edge)</pre></div>
+Result: One training <span class="d-a">→</span> deploy on any device (phone, GPU, edge)</pre></div>
             <p><strong>Explanation:</strong> OFA decouples training and search. Train once → deploy everywhere. Achieves ImageNet accuracy within <span class="mag">1%</span> of EfficientNet at 1/1300th of NAS search cost.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -7048,7 +7060,7 @@ Result: One training → deploy on any device (phone, GPU, edge)</pre></div>
             <div class="diagram"><pre>Problem:
 - Layer A is shared between sub-net 1 and sub-net 2
 - Optimal weight for sub-net 1 ≠ optimal weight for sub-net 2
-- Shared weight is compromise → neither is optimal
+- Shared weight is compromise <span class="d-a">→</span> neither is optimal
 
 Solutions:
 1. Progressive shrinking (OFA): Gradually reduce supernet
@@ -7117,10 +7129,10 @@ Tools: Featuretools (automated), tsfresh (time series), AutoFeat</code></pre>
               <strong>The search space determines NAS quality more than the search algorithm.</strong>
             </p>
             <div class="diagram"><pre>Bad search space: {Linear, Conv3×3}
-   → Can't find attention-based models
+   <span class="d-a">→</span> Can't find attention-based models
 
 Good search space: {Conv3×3, Conv5×5, DilatedConv, Attention, Skip}
-   → More expressive but harder to search
+   <span class="d-a">→</span> More expressive but harder to search
 
 Design principles:
 1. Include diverse operations
@@ -7165,11 +7177,11 @@ Result: Discovers HP schedules (not just fixed HPs)</code></pre>
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Objectives (often conflicting):
-1. Accuracy ↑
-2. Latency ↓ (or FLOPs)
-3. Model size ↓
-4. Energy consumption ↓
-5. Fairness ↑
+1. Accuracy <span class="d-a">↑</span>
+2. Latency <span class="d-a">↓</span> (or FLOPs)
+3. Model size <span class="d-a">↓</span>
+4. Energy consumption <span class="d-a">↓</span>
+5. Fairness <span class="d-a">↑</span>
 
 Pareto front = set of architectures where improving one objective 
                requires worsening another
@@ -7339,7 +7351,7 @@ NAS-Bench-201: 15,625 architectures on CIFAR-10/100, ImageNet-16
 NAS-Bench-301: Surrogate benchmark for DARTS search space
 
 Usage: Evaluate NAS algorithms by looking up results instead of training
-   → Fair comparison, reproducible, fast</pre></div>
+   <span class="d-a">→</span> Fair comparison, reproducible, fast</pre></div>
             <p><strong>Explanation:</strong> Without benchmarks, comparing NAS algorithms was impossible — different search spaces, budgets, hardware. NAS-Bench enables apples-to-apples comparison.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -7381,7 +7393,7 @@ Like breadth-first search through architecture space.</code></pre>
 3. NAS is essentially searching for winning tickets in architecture space
 
 Implications:
-- Overparameterized supernet → better sub-networks found
+- Overparameterized supernet <span class="d-a">→</span> better sub-networks found
 - Random pruning of supernet can work surprisingly well
 - The search space itself is more important than search algorithm</pre></div>
             <p><strong>Explanation:</strong> Just as pruning finds good subnetworks in weight space, NAS finds good subnetworks in architecture space. Both suggest overparameterization is key to finding good solutions.</p>
@@ -7403,7 +7415,7 @@ Implications:
 4. Auto Batching: Find optimal batch size for latency/throughput
 
 Pipeline:
-Trained model → Auto quantize → Auto prune → Auto compile → Deploy
+Trained model <span class="d-a">→</span> Auto quantize <span class="d-a">→</span> Auto prune <span class="d-a">→</span> Auto compile <span class="d-a">→</span> Deploy
 
 Tools: TVM AutoTuning, ONNX Runtime auto-optimization</pre></div>
             <p><strong>Explanation:</strong> Deployment optimization is as important as model design. Different hardware needs different optimization strategies — automate this selection.</p>
@@ -7619,13 +7631,13 @@ Tools:
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>NAS: Start from nothing → build architecture (additive)
-Pruning: Start from large model → remove parts (subtractive)
+            <div class="diagram"><pre>NAS: Start from nothing <span class="d-a">→</span> build architecture (additive)
+Pruning: Start from large model <span class="d-a">→</span> remove parts (subtractive)
 
 Both find efficient architectures!
 
-Dense model (pruning target) ←→ Supernet (NAS search space)
-Pruned model ←→ Selected sub-network
+Dense model (pruning target) <span class="d-a">←→</span> Supernet (NAS search space)
+Pruned model <span class="d-a">←→</span> Selected sub-network
 
 Connection: Pruning is NAS within the subspace of a pre-trained model
 NAS generalizes pruning to arbitrary starting points</pre></div>
@@ -7660,7 +7672,7 @@ NAS generalizes pruning to arbitrary starting points</pre></div>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Architecture → Encoding → Predictor → Predicted accuracy
+            <div class="diagram"><pre>Architecture <span class="d-a">→</span> Encoding <span class="d-a">→</span> Predictor <span class="d-a">→</span> Predicted accuracy
 
 Encoding methods:
 1. Adjacency matrix + operation vector
@@ -7677,7 +7689,7 @@ Active learning:
 1. Train predictor on 100 evaluated architectures
 2. Use predictor to find promising candidates
 3. Evaluate top candidates
-4. Update predictor → repeat</pre></div>
+4. Update predictor <span class="d-a">→</span> repeat</pre></div>
             <p><strong>Explanation:</strong> Predictors enable evaluating millions of architectures cheaply. Active learning strategy focuses expensive evaluations on the most informative architectures.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -7747,7 +7759,7 @@ Methods:
 3. NASWOT: Score based on linear regions at initialization
 4. Zen-Score: Expressivity score from Gaussian complexity
 
-Process: Score architecture → rank → select top → train only top candidates
+Process: Score architecture <span class="d-a">→</span> rank <span class="d-a">→</span> select top <span class="d-a">→</span> train only top candidates
 
 Result: NAS in seconds-minutes instead of GPU-days</pre></div>
             <p><strong>Explanation:</strong> Training-free proxies correlate with trained accuracy (Kendall τ ~0.5-0.8). Not perfect, but excellent for pruning search space. Train only top <span class="mag">1%</span> of candidates.</p>
@@ -7786,10 +7798,10 @@ Search space includes:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Pre-foundation model era:
-   NAS per task → optimal architecture per task
+   NAS per task <span class="d-a">→</span> optimal architecture per task
 
 Foundation model era:
-   One architecture for everything → scaling + pre-training dominates
+   One architecture for everything <span class="d-a">→</span> scaling + pre-training dominates
 
 NAS role shifts:
 1. Design efficient variants of foundation architectures
@@ -8000,7 +8012,7 @@ Tools:
 - Neptune: Team collaboration
 - DVC: Data and model versioning
 
-Reproducibility: Given experiment ID → recreate exact results</pre></div>
+Reproducibility: Given experiment ID <span class="d-a">→</span> recreate exact results</pre></div>
             <p><strong>Explanation:</strong> Without tracking, you can't reproduce results or debug production issues. "Which model version is deployed?" must always be answerable.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -8085,9 +8097,9 @@ Tools: Evidently AI, Arize, WhyLabs, Prometheus + Grafana</code></pre>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Traffic → Production Model → Response to User
-         ↓ (copy)
-         Shadow Model → Log predictions (not served to user)
+            <div class="diagram"><pre>Traffic <span class="d-a">→</span> Production Model <span class="d-a">→</span> Response to User
+         <span class="d-a">↓</span> (copy)
+         Shadow Model <span class="d-a">→</span> Log predictions (not served to user)
 
 Compare:
 - Production predictions vs Shadow predictions
@@ -8107,16 +8119,16 @@ Graduate shadow to production when validated.</pre></div>
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Phase 1: 1% traffic → new model, 99% → old model
+            <div class="diagram"><pre>Phase 1: 1% traffic <span class="d-a">→</span> new model, 99% <span class="d-a">→</span> old model
    Monitor for errors, latency, business metrics
    
-Phase 2: 10% → new model (if Phase 1 ok)
+Phase 2: 10% <span class="d-a">→</span> new model (if Phase 1 ok)
    More statistical power for comparison
 
-Phase 3: 50% → new model
+Phase 3: 50% <span class="d-a">→</span> new model
    A/B test for significance
 
-Phase 4: 100% → new model
+Phase 4: 100% <span class="d-a">→</span> new model
    Full rollout
 
 Rollback: Any phase, instant switch back to old model</pre></div>
@@ -8184,15 +8196,15 @@ Pitfalls:
             <div class="diagram"><pre>Architecture patterns:
 
 1. Synchronous (REST/gRPC):
-   Client → API Gateway → Model Server → Response
+   Client <span class="d-a">→</span> API Gateway <span class="d-a">→</span> Model Server <span class="d-a">→</span> Response
    Best for: Real-time predictions, low latency
 
 2. Asynchronous (Message Queue):
-   Client → Queue → Worker → Result Store → Client polls
+   Client <span class="d-a">→</span> Queue <span class="d-a">→</span> Worker <span class="d-a">→</span> Result Store <span class="d-a">→</span> Client polls
    Best for: Batch predictions, high throughput
 
 3. Streaming:
-   Kafka → Stream Processor → Model → Output Topic
+   Kafka <span class="d-a">→</span> Stream Processor <span class="d-a">→</span> Model <span class="d-a">→</span> Output Topic
    Best for: Real-time data streams, event processing
 
 4. Edge:
@@ -8218,7 +8230,7 @@ Pitfalls:
    Metrics: avg_latency, p99_latency, error_rate, prediction_distribution
 
 3. Traces: How did it happen (execution path)
-   Trace: preprocess(5ms) → tokenize(2ms) → model(50ms) → postprocess(3ms)
+   Trace: preprocess(5ms) <span class="d-a">→</span> tokenize(2ms) <span class="d-a">→</span> model(50ms) <span class="d-a">→</span> postprocess(3ms)
 
 Tools: OpenTelemetry, Datadog, New Relic + ML-specific: Arize, WhyLabs</pre></div>
             <p><strong>Explanation:</strong> When a model makes a bad prediction in production, you need to reconstruct exactly what happened — what input, what features, what model version, what code path.</p>
@@ -8501,7 +8513,7 @@ Regulatory:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Streaming architecture:
-Kafka/Kinesis → Model Worker Pool → Output Topic → Consumer
+Kafka/Kinesis <span class="d-a">→</span> Model Worker Pool <span class="d-a">→</span> Output Topic <span class="d-a">→</span> Consumer
 
 Characteristics:
 - Process events as they arrive (not request-response)
@@ -8510,8 +8522,8 @@ Characteristics:
 - State management for windowed features
 
 Example: Fraud detection
-Transaction event → Feature enrichment → Model prediction →
-   → Alert if fraud score &gt; threshold
+Transaction event <span class="d-a">→</span> Feature enrichment <span class="d-a">→</span> Model prediction <span class="d-a">→</span>
+   <span class="d-a">→</span> Alert if fraud score &gt; threshold
 
 Feature enrichment from stream:
 - Rolling 1-hour transaction count
@@ -8562,18 +8574,18 @@ Feature enrichment from stream:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Patterns:
-1. Ensemble: Multiple models → aggregate predictions
-   [Model A, Model B, Model C] → Average/Vote → Final prediction
+1. Ensemble: Multiple models <span class="d-a">→</span> aggregate predictions
+   [Model A, Model B, Model C] <span class="d-a">→</span> Average/Vote <span class="d-a">→</span> Final prediction
 
 2. Cascade: Sequential models with early exit
-   Simple model → if uncertain → Complex model → if still uncertain → Human
+   Simple model <span class="d-a">→</span> if uncertain <span class="d-a">→</span> Complex model <span class="d-a">→</span> if still uncertain <span class="d-a">→</span> Human
 
 3. Routing: Input-dependent model selection
-   Input → Router → Model A (for category 1)
-                   → Model B (for category 2)
+   Input <span class="d-a">→</span> Router <span class="d-a">→</span> Model A (for category 1)
+                   <span class="d-a">→</span> Model B (for category 2)
 
 4. Pipeline: Chained models
-   OCR → NER → Classification → Action</pre></div>
+   OCR <span class="d-a">→</span> NER <span class="d-a">→</span> Classification <span class="d-a">→</span> Action</pre></div>
             <p><strong>Explanation:</strong> Real production systems often use multiple models. Cascade saves compute (simple model handles easy cases). Routing specializes per segment.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -8596,7 +8608,7 @@ Feature enrichment from stream:
 Cost optimization:
 - Right-size instances (don't over-provision)
 - Spot/preemptible instances for non-critical workloads
-- Model optimization (INT8 → 4× fewer GPUs needed)
+- Model optimization (INT8 <span class="d-a">→</span> 4× fewer GPUs needed)
 - Auto-scaling (scale down during low traffic)
 - Batch predictions when possible (cheaper than real-time)</pre></div>
             <p><strong>Explanation:</strong> End-to-end ML cost is often <span class="mag">10-100×</span> the training cost. Serving costs grow with traffic. Optimize early and continuously.</p>
@@ -8618,8 +8630,8 @@ Cost optimization:
    - Model forward pass: assert output.shape == expected
 
 2. Integration tests: Components together
-   - Pipeline: data → preprocess → model → postprocess
-   - API: request → response format correct
+   - Pipeline: data <span class="d-a">→</span> preprocess <span class="d-a">→</span> model <span class="d-a">→</span> postprocess
+   - API: request <span class="d-a">→</span> response format correct
 
 3. Model quality tests: Accuracy thresholds
    - assert accuracy &gt;= 0.95
@@ -8631,8 +8643,8 @@ Cost optimization:
    - Throughput: handle burst traffic
    
 5. Chaos tests: Failure scenarios
-   - GPU fails → fallback works
-   - Data pipeline delayed → stale features handled</pre></div>
+   - GPU fails <span class="d-a">→</span> fallback works
+   - Data pipeline delayed <span class="d-a">→</span> stale features handled</pre></div>
             <p><strong>Explanation:</strong> ML testing must validate BOTH code correctness AND model quality. Traditional software testing misses model-specific failure modes.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -8648,7 +8660,7 @@ Cost optimization:
             <div class="diagram"><pre>Requirements by context:
 1. Debugging: SHAP feature importance to find bugs
 2. Compliance: LIME explanations for regulated decisions
-3. User trust: "Why was my loan rejected?" → top reasons
+3. User trust: "Why was my loan rejected?" <span class="d-a">→</span> top reasons
 4. Monitoring: Track feature attribution changes over time
 
 Production-grade explainability:
@@ -8669,16 +8681,16 @@ Production-grade explainability:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Virtuous cycle:
-1. Deploy model → serves predictions
+1. Deploy model <span class="d-a">→</span> serves predictions
 2. Collect user feedback (clicks, corrections, outcomes)
 3. Label feedback as new training data
 4. Retrain model with augmented data
-5. Deploy improved model → repeat
+5. Deploy improved model <span class="d-a">→</span> repeat
 
 Example (search):
-Deploy ranking model → Users click on results →
-Clicks = implicit labels → Retrain on click data →
-Better ranking → More users → More click data → ...
+Deploy ranking model <span class="d-a">→</span> Users click on results <span class="d-a">→</span>
+Clicks = implicit labels <span class="d-a">→</span> Retrain on click data <span class="d-a">→</span>
+Better ranking <span class="d-a">→</span> More users <span class="d-a">→</span> More click data <span class="d-a">→</span> ...
 
 Key: Design for data collection from day 1</pre></div>
             <p><strong>Explanation:</strong> The data flywheel creates a competitive moat — more users → more data → better model → more users. Companies that operationalize this have a lasting advantage.</p>
@@ -8842,7 +8854,7 @@ Model metadata:
   "deployed_at": "2024-01-15T10:30:00Z"
 }
 
-Transitions: None → Staging → Production → Archived
+Transitions: None <span class="d-a">→</span> Staging <span class="d-a">→</span> Production <span class="d-a">→</span> Archived
 Each transition requires approval and validation.
 
 Tools: MLflow Model Registry, Vertex AI Model Registry, SageMaker</pre></div>
@@ -8859,11 +8871,11 @@ Tools: MLflow Model Registry, Vertex AI Model Registry, SageMaker</pre></div>
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Cache strategies:
-1. Exact match: Cache (input_hash → prediction)
+1. Exact match: Cache (input_hash <span class="d-a">→</span> prediction)
    Hit rate depends on input repetition
 
 2. Semantic cache: Cache similar inputs (embedding proximity)
-   Search nearby embeddings → reuse prediction if close enough
+   Search nearby embeddings <span class="d-a">→</span> reuse prediction if close enough
 
 3. TTL-based: Cache invalidation after time period
    prediction = cache.get(key, ttl=3600)  # 1 hour
@@ -8874,7 +8886,7 @@ Tools: MLflow Model Registry, Vertex AI Model Registry, SageMaker</pre></div>
 5. Result set caching: Cache entire result page
    search_cache[query_hash] = top_10_results
 
-Trade-off: Cache hit rate ↑ → latency ↓ but stale predictions risk ↑</pre></div>
+Trade-off: Cache hit rate <span class="d-a">↑</span> <span class="d-a">→</span> latency <span class="d-a">↓</span> but stale predictions risk <span class="d-a">↑</span></pre></div>
             <p><strong>Explanation:</strong> Caching reduces compute cost and latency. Especially effective for repeated queries (search, recommendations). Choose <abbr title="time to live">TTL</abbr> based on how fast data changes.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -9015,7 +9027,7 @@ Auto-scaling configuration:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Pipeline stages:
-Data Ingestion → Validation → Preprocessing → Training → Evaluation → Registration → Deployment
+Data Ingestion <span class="d-a">→</span> Validation <span class="d-a">→</span> Preprocessing <span class="d-a">→</span> Training <span class="d-a">→</span> Evaluation <span class="d-a">→</span> Registration <span class="d-a">→</span> Deployment
 
 Orchestration tools:
 - Airflow: General-purpose, widely used
@@ -9043,8 +9055,8 @@ Key features:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Model size impacts:
-1. Memory: Larger model → more RAM/VRAM → bigger instance
-2. Latency: More parameters → more computation → slower inference
+1. Memory: Larger model <span class="d-a">→</span> more RAM/VRAM <span class="d-a">→</span> bigger instance
+2. Latency: More parameters <span class="d-a">→</span> more computation <span class="d-a">→</span> slower inference
 3. Cost: GPU instances priced by size
 
 Example (classification task):
@@ -9052,7 +9064,7 @@ MobileNetV3-S: 2.5M params, 3ms, CPU: $50/month
 ResNet-50: 25M params, 15ms, GPU: $500/month
 ViT-Large: 300M params, 50ms, GPU: $2000/month
 
-Accuracy: MobileNetV3 (72%) → ResNet (76%) → ViT (82%)
+Accuracy: MobileNetV3 (72%) <span class="d-a">→</span> ResNet (76%) <span class="d-a">→</span> ViT (82%)
 
 Question: Is 10% accuracy worth 40× cost?</pre></div>
             <p><strong>Explanation:</strong> Every production decision is a cost-benefit analysis. Small accuracy gains may not justify the infrastructure cost. Profile and decide based on business impact.</p>
@@ -9071,17 +9083,17 @@ Question: Is 10% accuracy worth 40× cost?</pre></div>
 
 1. Request features (real-time): Computed from current request
    Time of day, device type, request text length
-   → Compute on-the-fly (milliseconds)
+   <span class="d-a">→</span> Compute on-the-fly (milliseconds)
 
 2. User features (near-real-time): Updated frequently
    Last 5 page views, session duration
-   → Pre-compute, store in online cache (Redis)
+   <span class="d-a">→</span> Pre-compute, store in online cache (Redis)
 
 3. Historical features (batch): Aggregated over time
    Average purchase amount last 30 days
-   → Pre-compute in batch job, store in feature store
+   <span class="d-a">→</span> Pre-compute in batch job, store in feature store
 
-Strategy: Precompute as much as possible → fast serving</pre></div>
+Strategy: Precompute as much as possible <span class="d-a">→</span> fast serving</pre></div>
             <p><strong>Explanation:</strong> Real-time feature computation is the latency bottleneck, not model inference. Design feature pipeline to minimize online computation.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -9097,12 +9109,12 @@ Strategy: Precompute as much as possible → fast serving</pre></div>
             <div class="diagram"><pre>When model makes a bad prediction:
 
 1. Capture: Log input, features, prediction, confidence, model version
-2. Reproduce: Feed same input to same model version → same output?
-   YES → model learned wrong pattern
-   NO → environment/pipeline issue
+2. Reproduce: Feed same input to same model version <span class="d-a">→</span> same output?
+   YES <span class="d-a">→</span> model learned wrong pattern
+   NO <span class="d-a">→</span> environment/pipeline issue
 
 3. Analyze:
-   - SHAP/LIME on failing example → which features caused it?
+   - SHAP/LIME on failing example <span class="d-a">→</span> which features caused it?
    - Compare to similar correct predictions
    - Check if input is out-of-distribution
    
@@ -9127,11 +9139,11 @@ Strategy: Precompute as much as possible → fast serving</pre></div>
             <div class="diagram"><pre>Complex serving: Multiple models + business logic
 
 Example: Content moderation pipeline
-Input text → Language Detection Model → |
-             → Toxicity Model → |
-             → PII Detection Model → |
-             → Topic Classification → |
-             → Business Rules Engine → Final Decision
+Input text <span class="d-a">→</span> Language Detection Model <span class="d-a">→</span> |
+             <span class="d-a">→</span> Toxicity Model <span class="d-a">→</span> |
+             <span class="d-a">→</span> PII Detection Model <span class="d-a">→</span> |
+             <span class="d-a">→</span> Topic Classification <span class="d-a">→</span> |
+             <span class="d-a">→</span> Business Rules Engine <span class="d-a">→</span> Final Decision
 
 Inference graph tools:
 - Triton Ensemble: Define DAG of models
@@ -9291,7 +9303,7 @@ Optimization:
    assert no_feature_null_rate &gt; 0.05
    assert feature_distribution_stable (KS test)
 
-Any failure → block deployment, alert team</pre></div>
+Any failure <span class="d-a">→</span> block deployment, alert team</pre></div>
             <p><strong>Explanation:</strong> Automated validation prevents deploying bad models. Define gates based on business requirements. No manual approval needed if all gates pass.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -9471,23 +9483,23 @@ dy/dx = dF/dx + 1  (gradient is at least 1)</code></pre>
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>LR too small: 
-  → Very slow convergence
-  → Can get stuck in bad local minima
+  <span class="d-a">→</span> Very slow convergence
+  <span class="d-a">→</span> Can get stuck in bad local minima
   
 LR too large:
-  → Loss oscillates or diverges
-  → Overshoots good minima
-  → May cause NaN (numerical overflow)
+  <span class="d-a">→</span> Loss oscillates or diverges
+  <span class="d-a">→</span> Overshoots good minima
+  <span class="d-a">→</span> May cause NaN (numerical overflow)
 
 LR sweet spot:
-  → Fast convergence
-  → Good generalization
+  <span class="d-a">→</span> Fast convergence
+  <span class="d-a">→</span> Good generalization
 
 LR schedules:
-1. Warmup: Start small, increase → prevents instability
-2. Cosine decay: Gradual decrease → better final convergence
+1. Warmup: Start small, increase <span class="d-a">→</span> prevents instability
+2. Cosine decay: Gradual decrease <span class="d-a">→</span> better final convergence
 3. Step decay: Reduce by factor at milestones
-4. One-cycle: Warmup → high → cooldown → excellent results</pre></div>
+4. One-cycle: Warmup <span class="d-a">→</span> high <span class="d-a">→</span> cooldown <span class="d-a">→</span> excellent results</pre></div>
             <p><strong>Explanation:</strong> Learning rate is THE most important hyperparameter. LR finder (Smith 2017): sweep LR, plot loss vs LR, use value just before loss starts increasing.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -9533,8 +9545,8 @@ He (Kaiming): Var(w) = 2 / fan_in
    Best for: ReLU (accounts for half of neurons being dead)
 
 Wrong initialization:
-   Xavier + ReLU → variance shrinks with depth → vanishing activations
-   He + tanh → variance may explode (too large init)</pre></div>
+   Xavier + ReLU <span class="d-a">→</span> variance shrinks with depth <span class="d-a">→</span> vanishing activations
+   He + tanh <span class="d-a">→</span> variance may explode (too large init)</pre></div>
             <p><strong>Explanation:</strong> Initialization maintains activation variance across layers. Wrong init → either vanishing or exploding activations from the very first forward pass.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -9644,17 +9656,17 @@ torch.nn.utils.<span class="fn">clip_grad_value_</span>(model.<span class="fn">p
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Weight decay: L2 penalty on weights → pushes toward zero
+            <div class="diagram"><pre>Weight decay: L2 penalty on weights <span class="d-a">→</span> pushes toward zero
 
 Apply to:
-✓ Conv weights, Linear weights
-✗ BatchNorm parameters (γ, β)
-✗ Bias terms
-✗ Embedding layers (sometimes)
+√ Conv weights, Linear weights
+× BatchNorm parameters (γ, β)
+× Bias terms
+× Embedding layers (sometimes)
 
 Why not BN/bias:
-- BN affine parameters compensate for normalization → decay harms
-- Bias decay biases predictions toward zero → undesirable
+- BN affine parameters compensate for normalization <span class="d-a">→</span> decay harms
+- Bias decay biases predictions toward zero <span class="d-a">→</span> undesirable
 
 PyTorch implementation:
 params_decay = [p for n, p in model.named_parameters()
@@ -9678,20 +9690,20 @@ optimizer = Adam([
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Classical: Error decreases, then increases (overfitting) with model size
-   ↑ Error
+   <span class="d-a">↑</span> Error
    |    ___
-   |   /   \    (U-shaped: underfitting → optimal → overfitting)
+   |   /   \    (U-shaped: underfitting <span class="d-a">→</span> optimal <span class="d-a">→</span> overfitting)
    |  /     \___
-   +--------→ Model size
+   +--------<span class="d-a">→</span> Model size
 
 Double descent: Error decreases, increases, then decreases AGAIN
-   ↑ Error
+   <span class="d-a">↑</span> Error
    |    ___
    |   /   \
    |  /     \    _______________
    |           \/               (second descent)
-   +--------→ Model size
-                ↑ interpolation threshold</pre></div>
+   +--------<span class="d-a">→</span> Model size
+                <span class="d-a">↑</span> interpolation threshold</pre></div>
             <p><strong>Explanation:</strong> At the interpolation threshold (model just fits training data), test error peaks. Beyond it (overparameterized), error decreases again. This explains why huge models generalize well despite <abbr title="a model that fits the training data&#x27;s noise and generalises worse than a simpler one would">overfitting</abbr> theory.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -9704,7 +9716,7 @@ Double descent: Error decreases, increases, then decreases AGAIN
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>Dense network → Train → Prune 90% → Reset to INITIAL weights → Retrain
+            <div class="diagram"><pre>Dense network <span class="d-a">→</span> Train <span class="d-a">→</span> Prune 90% <span class="d-a">→</span> Reset to INITIAL weights <span class="d-a">→</span> Retrain
 Result: Pruned network matches full network performance!
 
 Key findings:
@@ -9730,19 +9742,19 @@ Practical implication:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Common mismatches:
-1. MSE for classification → Treats classes as ordinal → bad
+1. MSE for classification <span class="d-a">→</span> Treats classes as ordinal <span class="d-a">→</span> bad
    Use: CrossEntropy
 
-2. CrossEntropy for regression → Discretizes continuous output → bad
+2. CrossEntropy for regression <span class="d-a">→</span> Discretizes continuous output <span class="d-a">→</span> bad
    Use: MSE, L1, Huber
 
-3. BCE without sigmoid → Model already applies sigmoid → double sigmoid → bad
+3. BCE without sigmoid <span class="d-a">→</span> Model already applies sigmoid <span class="d-a">→</span> double sigmoid <span class="d-a">→</span> bad
    Use: BCEWithLogitsLoss (includes sigmoid) or BCE after sigmoid
 
-4. CrossEntropy with soft labels → CE expects hard labels → warnings
+4. CrossEntropy with soft labels <span class="d-a">→</span> CE expects hard labels <span class="d-a">→</span> warnings
    Use: KLDivLoss for soft targets
 
-5. L2 loss for image generation → Blurry images → bad
+5. L2 loss for image generation <span class="d-a">→</span> Blurry images <span class="d-a">→</span> bad
    Use: Perceptual loss + adversarial loss</pre></div>
             <p><strong>Explanation:</strong> Loss function must match: task type, output activation, label format. Mismatches can silently produce bad results.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -9790,9 +9802,9 @@ Huber loss: L1 if |error| &gt; δ, L2 otherwise
    - Best of both: smooth near zero, robust far from zero
 
 For images:
-   L2 → blurry (averages multiple possibilities)
-   L1 → slightly sharper
-   Perceptual loss → sharpest (uses VGG features)</pre></div>
+   L2 <span class="d-a">→</span> blurry (averages multiple possibilities)
+   L1 <span class="d-a">→</span> slightly sharper
+   Perceptual loss <span class="d-a">→</span> sharpest (uses VGG features)</pre></div>
             <p><strong>Explanation:</strong> Choose based on outlier sensitivity and what distribution statistic you want (mean vs median).</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -9805,7 +9817,7 @@ For images:
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>After input layer: Feature noise → data augmentation effect
+            <div class="diagram"><pre>After input layer: Feature noise <span class="d-a">→</span> data augmentation effect
 Between hidden layers: Ensemble regularization
 After attention: Prevents attention from being too focused
 Before final layer: Strongest regularization (most parameters here)
@@ -9830,7 +9842,7 @@ Practical tips:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Training curve:
-Phase 1 (fast): Model memorizes training data → 100% train accuracy
+Phase 1 (fast): Model memorizes training data <span class="d-a">→</span> 100% train accuracy
 Phase 2 (plateau): Validation accuracy stays at random (50%)
 Phase 3 (grokking): Suddenly, validation accuracy jumps to 100%!
    This can happen LONG after training accuracy is perfect
@@ -9839,7 +9851,7 @@ Phase 3 (grokking): Suddenly, validation accuracy jumps to 100%!
 When observed:
 - Small algorithmic datasets (modular arithmetic, group operations)
 - Weight decay appears to help trigger grokking
-- Larger datasets → grokking happens faster</pre></div>
+- Larger datasets <span class="d-a">→</span> grokking happens faster</pre></div>
             <p><strong>Explanation:</strong> The model memorizes first, then eventually learns the generalizable algorithm. Shows that training much longer (even after apparent convergence) can suddenly improve generalization.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -9853,9 +9865,9 @@ When observed:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Bad ordering effects:
-1. All class A samples first, then class B → catastrophic forgetting
+1. All class A samples first, then class B <span class="d-a">→</span> catastrophic forgetting
 2. Easy samples first = curriculum learning (can be good)
-3. Same mini-batch composition every epoch → memorization patterns
+3. Same mini-batch composition every epoch <span class="d-a">→</span> memorization patterns
 
 Best practices:
 1. Shuffle data every epoch
@@ -9864,10 +9876,10 @@ Best practices:
 4. For multi-task: mix tasks within batches
 
 Example (bad):
-   Epoch 1 batch 1 always = samples 1-32 → model overfits to this combination
+   Epoch 1 batch 1 always = samples 1-32 <span class="d-a">→</span> model overfits to this combination
    
 Fix:
-   DataLoader(shuffle=True) → different batch composition each epoch</pre></div>
+   DataLoader(shuffle=True) <span class="d-a">→</span> different batch composition each epoch</pre></div>
             <p><strong>Explanation:</strong> Shuffling prevents the model from learning batch-specific patterns. Stratified sampling ensures each batch is representative.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -9913,7 +9925,7 @@ Example (stride=2, kernel=3):
 Position: 0 1 2 3 4  (output)
 Covered:  2 1 2 1 2  (how many kernel elements contribute)
 
-Non-uniform coverage → different positions have different magnitude → checkerboard
+Non-uniform coverage <span class="d-a">→</span> different positions have different magnitude <span class="d-a">→</span> checkerboard
 
 Solutions:
 1. Resize + Conv: Upsample (bilinear) then convolve (no overlap issues)
@@ -9937,7 +9949,7 @@ Spectral norm: σ(W) = largest singular value of W
 Spectral normalization: W_SN = W / σ(W)
 
 Effect: Each layer has Lipschitz constant ≤ 1
-   → Bounded gradient → stable training
+   <span class="d-a">→</span> Bounded gradient <span class="d-a">→</span> stable training
 
 Used in:
 1. GAN discriminator: Prevents mode collapse
@@ -9987,14 +9999,14 @@ Prevention:
 FP16 (16-bit): Faster, less memory. Range: ±65504
 BF16 (brain float): Same range as FP32, less precision
    BF16 has 8 exp bits (like FP32) vs FP16's 5 exp bits
-   → BF16 handles large values better
+   <span class="d-a">→</span> BF16 handles large values better
 
 Common issues:
-1. FP16 overflow: values &gt; 65504 → inf → NaN
+1. FP16 overflow: values &gt; 65504 <span class="d-a">→</span> inf <span class="d-a">→</span> NaN
    Fix: Loss scaling (multiply loss by 1024, divide gradients by 1024)
-2. FP16 underflow: small gradients → 0 → no learning
+2. FP16 underflow: small gradients <span class="d-a">→</span> 0 <span class="d-a">→</span> no learning
    Fix: Loss scaling (amplify small gradients above FP16 minimum)
-3. BF16: Less precision → slight accuracy loss on some tasks
+3. BF16: Less precision <span class="d-a">→</span> slight accuracy loss on some tasks
    But: More robust than FP16 (no overflow for most models)</pre></div>
             <p><strong>Explanation:</strong> BF16 is increasingly preferred over FP16 — same dynamic range as FP32 avoids overflow issues. Modern GPUs (A100, H100) support BF16 natively.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -10009,18 +10021,18 @@ Common issues:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Teacher forcing (training):
-   Input: "translate: Hello" → "Bonjour" (use ground truth for each step)
-   Step 1: &lt;BOS&gt; → predict "Bon" (correct!)
-   Step 2: "Bon" (ground truth) → predict "jour" (correct!)
+   Input: "translate: Hello" <span class="d-a">→</span> "Bonjour" (use ground truth for each step)
+   Step 1: &lt;BOS&gt; <span class="d-a">→</span> predict "Bon" (correct!)
+   Step 2: "Bon" (ground truth) <span class="d-a">→</span> predict "jour" (correct!)
 
 Problem: Exposure bias — model never sees its own mistakes during training
-   At inference, one wrong token → cascade of errors
+   At inference, one wrong token <span class="d-a">→</span> cascade of errors
 
 Scheduled sampling:
    With probability p, use ground truth. With (1-p), use model's own prediction.
    p starts at 1.0, gradually decreases to 0.0 during training.
    
-   → Model learns to recover from its own mistakes</pre></div>
+   <span class="d-a">→</span> Model learns to recover from its own mistakes</pre></div>
             <p><strong>Explanation:</strong> Teacher forcing trains faster but creates train-test discrepancy. Scheduled sampling bridges the gap. Modern autoregressive models mostly use teacher forcing + careful decoding strategies.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -10033,17 +10045,17 @@ Scheduled sampling:
             </div>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>1. Valid (no padding): Output shrinks → lose border information
-   Input: 32×32, kernel: 3×3 → Output: 30×30
+            <div class="diagram"><pre>1. Valid (no padding): Output shrinks <span class="d-a">→</span> lose border information
+   Input: 32×32, kernel: 3×3 <span class="d-a">→</span> Output: 30×30
 
-2. Same (zero padding): Output same size → border has artificial zeros
-   Input: 32×32, kernel: 3×3, pad: 1 → Output: 32×32
+2. Same (zero padding): Output same size <span class="d-a">→</span> border has artificial zeros
+   Input: 32×32, kernel: 3×3, pad: 1 <span class="d-a">→</span> Output: 32×32
 
-3. Reflect padding: Mirror border pixels → more natural borders
-   [1,2,3] with pad=2 → [3,2,1,2,3,2,1]
+3. Reflect padding: Mirror border pixels <span class="d-a">→</span> more natural borders
+   [1,2,3] with pad=2 <span class="d-a">→</span> [3,2,1,2,3,2,1]
 
-4. Circular padding: Wrap around → for periodic signals
-   [1,2,3] with pad=2 → [2,3,1,2,3,1,2]
+4. Circular padding: Wrap around <span class="d-a">→</span> for periodic signals
+   [1,2,3] with pad=2 <span class="d-a">→</span> [2,3,1,2,3,1,2]
 
 Impact: Border effects matter for dense prediction (segmentation)
    Use reflect padding for better border quality in image processing</pre></div>
@@ -10063,13 +10075,13 @@ Impact: Border effects matter for dense prediction (segmentation)
    soft_labels = softmax(logits / T)
 
 T = 1: Standard softmax (sharp, high confidence)
-   [0.01, 0.01, 0.97, 0.01] → hard to learn from
+   [0.01, 0.01, 0.97, 0.01] <span class="d-a">→</span> hard to learn from
 
 T = 5: Softer distribution
-   [0.15, 0.10, 0.55, 0.20] → reveals inter-class relationships
+   [0.15, 0.10, 0.55, 0.20] <span class="d-a">→</span> reveals inter-class relationships
 
 T = 20: Very soft
-   [0.22, 0.21, 0.35, 0.22] → almost uniform, too soft
+   [0.22, 0.21, 0.35, 0.22] <span class="d-a">→</span> almost uniform, too soft
 
 Optimal T: Typically 3-10
    Balance between:
@@ -10089,18 +10101,18 @@ Optimal T: Typically 3-10
             </p>
             <div class="diagram"><pre>Gradient descent doesn't just minimize loss — it has preferences:
 
-1. SGD → favors solutions with small norm (implicit L2 regularization)
-2. Flat minima → preferred over sharp minima by SGD with noise
-3. Linear networks → GD finds minimum nuclear norm solution
-4. Deep networks → GD favors simpler solutions (lower complexity)
+1. SGD <span class="d-a">→</span> favors solutions with small norm (implicit L2 regularization)
+2. Flat minima <span class="d-a">→</span> preferred over sharp minima by SGD with noise
+3. Linear networks <span class="d-a">→</span> GD finds minimum nuclear norm solution
+4. Deep networks <span class="d-a">→</span> GD favors simpler solutions (lower complexity)
 
 Why it matters:
    Overparameterized models should overfit (more params than data)
    But they generalize well because GD is biased toward simple solutions!
 
 Connection to generalization:
-   Max-margin → SVM finds simplest separator
-   SGD on overparameterized NNs → finds simplest interpolating function</pre></div>
+   Max-margin <span class="d-a">→</span> SVM finds simplest separator
+   SGD on overparameterized NNs <span class="d-a">→</span> finds simplest interpolating function</pre></div>
             <p><strong>Explanation:</strong> This is why large neural networks generalize — gradient descent's implicit bias acts as <abbr title="penalising model complexity so it generalises better">regularization</abbr>, preferring simpler solutions among many that fit the data.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -10142,19 +10154,19 @@ Implication:
             </p>
             <div class="diagram"><pre>Plain deep network:
    ∂L/∂w₁ = ∏ᵢ (∂fᵢ/∂fᵢ₋₁) × ∂L/∂output
-   If each factor &lt; 1 → vanishing. If &gt; 1 → exploding.
+   If each factor &lt; 1 <span class="d-a">→</span> vanishing. If &gt; 1 <span class="d-a">→</span> exploding.
 
 ResNet:
    ∂L/∂w₁ = ∂L/∂output × (1 + ∂F/∂x)
-   The "1" ensures gradient is at least 1 → no vanishing
+   The "1" ensures gradient is at least 1 <span class="d-a">→</span> no vanishing
 
 DenseNet:
-   All previous gradients flow directly → strongest gradient flow
+   All previous gradients flow directly <span class="d-a">→</span> strongest gradient flow
    But: memory expensive (store all previous features)
 
 Transformer:
    Multi-head attention: Direct path from any token to any other
-   Each layer has residual → gradient flows through all paths
+   Each layer has residual <span class="d-a">→</span> gradient flows through all paths
    
 Gradient flow quality: DenseNet &gt; ResNet &gt; VGG/Plain</pre></div>
             <p><strong>Explanation:</strong> Architecture design is largely about ensuring healthy gradient flow. Residual connections are the single most important architectural innovation after backpropagation.</p>
@@ -10198,16 +10210,16 @@ For training with batch=1: GroupNorm or LayerNorm are safe choices.</code></pre>
             <div class="diagram"><pre>Without normalization:
    Feature 1: range [0, 1]
    Feature 2: range [0, 1000000]
-   → Feature 2 dominates gradients → oscillating, slow training
+   <span class="d-a">→</span> Feature 2 dominates gradients <span class="d-a">→</span> oscillating, slow training
 
 With normalization (zero mean, unit variance):
    Feature 1: range [-2, 2]
    Feature 2: range [-2, 2]
-   → Equal contribution → smooth optimization
+   <span class="d-a">→</span> Equal contribution <span class="d-a">→</span> smooth optimization
 
 For images:
-   Raw pixels [0, 255] → divid by 255 → [0, 1]
-   → subtract mean, divide by std (ImageNet stats)
+   Raw pixels [0, 255] <span class="d-a">→</span> divid by 255 <span class="d-a">→</span> [0, 1]
+   <span class="d-a">→</span> subtract mean, divide by std (ImageNet stats)
    
 For text (embeddings):
    LayerNorm handles this internally
@@ -10261,12 +10273,12 @@ Why light? Heavy augmentation can:
 3. Slow convergence (constantly different inputs)
 
 Recommended for fine-tuning:
-✓ Random crop, horizontal flip (mild)
-✗ Strong color distortion, rotation (may hurt)
-✗ CutMix, Mixup (can confuse fine-grained differences)
+√ Random crop, horizontal flip (mild)
+× Strong color distortion, rotation (may hurt)
+× CutMix, Mixup (can confuse fine-grained differences)
 
 Exception: When target dataset is tiny (&lt; 1000 samples)
-   → Use more augmentation to prevent overfitting</pre></div>
+   <span class="d-a">→</span> Use more augmentation to prevent overfitting</pre></div>
             <p><strong>Explanation:</strong> Augmentation policy should match dataset size and domain. What works for pre-training may not work for fine-tuning.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -10280,7 +10292,7 @@ Exception: When target dataset is tiny (&lt; 1000 samples)
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Early stopping: Save model at best validation metric, stop training
-   → One model, risk of early termination
+   <span class="d-a">→</span> One model, risk of early termination
 
 Model averaging: Average weights from multiple checkpoints
    Stochastic Weight Averaging (SWA):
@@ -10309,19 +10321,19 @@ EMA advantages:
             <div class="diagram"><pre>Augmentation = Explicit regularization encoding prior knowledge:
 
 Random crop: Model should be invariant to position
-   → Learns position-invariant features
+   <span class="d-a">→</span> Learns position-invariant features
 
 Random flip: Model should treat left/right equally
-   → Learns symmetric features (DON'T use for text or asymmetric tasks!)
+   <span class="d-a">→</span> Learns symmetric features (DON'T use for text or asymmetric tasks!)
 
 Color jitter: Model should be invariant to lighting
-   → Learns shape-based features over color-based
+   <span class="d-a">→</span> Learns shape-based features over color-based
 
 Mixup: Decision boundary should be smooth
-   → Linear interpolation between classes → smoother boundaries
+   <span class="d-a">→</span> Linear interpolation between classes <span class="d-a">→</span> smoother boundaries
 
 Each augmentation = a constraint on what the model should learn
-Bad augmentation = wrong constraint → worse performance</pre></div>
+Bad augmentation = wrong constraint <span class="d-a">→</span> worse performance</pre></div>
             <p><strong>Explanation:</strong> Choose augmentations based on what invariances your task ACTUALLY has. Medical imaging: don't flip left-right (organs are asymmetric). Rotation: only if useful for your task.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -10337,8 +10349,8 @@ Bad augmentation = wrong constraint → worse performance</pre></div>
             <div class="diagram"><pre>Stability: Retain old knowledge (don't forget)
 Plasticity: Adapt to new information (keep learning)
 
-Too stable → Can't learn new tasks (frozen)
-Too plastic → Forgets old tasks (catastrophic forgetting)
+Too stable <span class="d-a">→</span> Can't learn new tasks (frozen)
+Too plastic <span class="d-a">→</span> Forgets old tasks (catastrophic forgetting)
 
 Biological analogy:
    Children: High plasticity, low stability (learn fast, forget easily)
@@ -10364,14 +10376,14 @@ Trade-off: Controlled by regularization strength, learning rate, replay ratio</p
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Co-adaptation: Neurons that always fire together lose independence
-   → Each neuron only works in combination with specific others
-   → If one neuron fails, all dependent neurons fail
-   → Model is fragile, doesn't generalize
+   <span class="d-a">→</span> Each neuron only works in combination with specific others
+   <span class="d-a">→</span> If one neuron fails, all dependent neurons fail
+   <span class="d-a">→</span> Model is fragile, doesn't generalize
 
 Dropout addresses this directly:
-   Random neuron removal → each neuron must be useful independently
-   → Breaks co-adaptation
-   → Each neuron learns more robust features
+   Random neuron removal <span class="d-a">→</span> each neuron must be useful independently
+   <span class="d-a">→</span> Breaks co-adaptation
+   <span class="d-a">→</span> Each neuron learns more robust features
 
 Other methods:
 1. Decorrelation loss: Penalize correlation between features
@@ -10422,17 +10434,17 @@ Cost: Deterministic mode can be 10-30% slower</code></pre>
             <div class="diagram"><pre>Key insight: Infinitely wide neural networks are equivalent to kernel methods!
 
 Neural Tangent Kernel (NTK):
-   K(x, x') = ⟨∇_θ f(x, θ₀), ∇_θ f(x', θ₀)⟩
+   K(x, x') = &lt;∇_θ f(x, θ₀), ∇_θ f(x', θ₀)&gt;
 
-As width → ∞:
+As width <span class="d-a">→</span> ∞:
    1. Kernel K stays constant during training
    2. Training dynamics become linear
    3. Model converges to global minimum
    4. Equivalent to kernel regression with NTK
 
 Practical implications:
-   Wide networks → easier to train (closer to convex optimization)
-   Finite width → richer learning dynamics (can learn features)
+   Wide networks <span class="d-a">→</span> easier to train (closer to convex optimization)
+   Finite width <span class="d-a">→</span> richer learning dynamics (can learn features)
    Real networks: somewhere in between</pre></div>
             <p><strong>Explanation:</strong> NTK theory explains why overparameterized networks converge — they behave like convex optimization. But feature learning (finite width) is what makes DL powerful.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -10456,9 +10468,9 @@ Practical implications:
 Beyond gradient flow:
    Skip connections create an implicit ensemble of shallow networks:
    
-   ResNet with n blocks → 2ⁿ paths through network
+   ResNet with n blocks <span class="d-a">→</span> 2ⁿ paths through network
    Most gradient flows through SHORTER paths
-   → ResNet is actually an ensemble of many shallow networks</pre></div>
+   <span class="d-a">→</span> ResNet is actually an ensemble of many shallow networks</pre></div>
             <p><strong>Explanation:</strong> Veit et al. showed ResNets behave as exponential ensembles of shallow networks. This explains their robustness — removing a few layers doesn't catastrophically hurt performance.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -10472,7 +10484,7 @@ Beyond gradient flow:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Information Bottleneck:
-   Input X → Hidden Z → Output Y
+   Input X <span class="d-a">→</span> Hidden Z <span class="d-a">→</span> Output Y
 
 Optimal Z minimizes:
    I(X; Z) - β × I(Z; Y)
@@ -10481,8 +10493,8 @@ Optimal Z minimizes:
    Preserve: Maximize I(Z; Y) (keep info relevant to output)
 
 Observation in DNNs:
-   Phase 1 (fitting): Both I(X;Z) and I(Z;Y) increase → learning
-   Phase 2 (compression): I(X;Z) decreases, I(Z;Y) stays → generalization
+   Phase 1 (fitting): Both I(X;Z) and I(Z;Y) increase <span class="d-a">→</span> learning
+   Phase 2 (compression): I(X;Z) decreases, I(Z;Y) stays <span class="d-a">→</span> generalization
 
 Controversial: Some argue compression isn't universal
    (depends on activation function and how info is measured)</pre></div>
@@ -10508,8 +10520,8 @@ Kaplan scaling (GPT-3 era):
 
 Chinchilla scaling (DeepMind):
    Optimal: D ≈ 20 × N  (tokens ≈ 20× parameters)
-   GPT-3 (175B, 300B tokens) → undertrained
-   Chinchilla (70B, 1.4T tokens) → better performance at 4× less compute
+   GPT-3 (175B, 300B tokens) <span class="d-a">→</span> undertrained
+   Chinchilla (70B, 1.4T tokens) <span class="d-a">→</span> better performance at 4× less compute
 
 Implications:
    1. Can predict performance before training
@@ -10558,7 +10570,7 @@ Practical implication: Structured pruning of attention heads
             </p>
             <div class="diagram"><pre>Accurate but miscalibrated:
    Model says "95% confidence it's a cat" but it's only right 70% of the time
-   → Overconfident predictions
+   <span class="d-a">→</span> Overconfident predictions
 
 Well-calibrated:
    When model says P=0.8, it's correct 80% of the time
@@ -10587,22 +10599,22 @@ Why it matters: Medical diagnosis with 95% confidence should be right 95% of the
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>Too small init:
-   Activations → 0 with depth → vanishing gradients → learning stops
+   Activations <span class="d-a">→</span> 0 with depth <span class="d-a">→</span> vanishing gradients <span class="d-a">→</span> learning stops
 
 Too large init:
-   Activations → ±∞ with depth → exploding gradients → NaN
+   Activations <span class="d-a">→</span> ±∞ with depth <span class="d-a">→</span> exploding gradients <span class="d-a">→</span> NaN
 
 Just right (He init for ReLU):
-   Var(h_l) ≈ Var(h_{l-1}) for all layers → stable activations
+   Var(h_l) ≈ Var(h_{l-1}) for all layers <span class="d-a">→</span> stable activations
 
 Experiment:
    Layer 1 output std: 1.0
    ...
    Layer 50 output std: ???
 
-   Too small (0.01): 1.0 → 0.0 (layer 50)
-   Too large (1.0): 1.0 → inf (layer 50)
-   He init: 1.0 → 1.0 (layer 50) ← stable!
+   Too small (0.01): 1.0 <span class="d-a">→</span> 0.0 (layer 50)
+   Too large (1.0): 1.0 <span class="d-a">→</span> inf (layer 50)
+   He init: 1.0 <span class="d-a">→</span> 1.0 (layer 50) <span class="d-a">←</span> stable!
 
 Modern practice:
    Most frameworks use correct initialization by default
@@ -10635,7 +10647,7 @@ Random Feature Attention:
    Approximates softmax kernel with random features
 
 Implication: Attention = soft, learnable, non-parametric kernel
-   → Explaining why Transformers are so flexible</pre></div>
+   <span class="d-a">→</span> Explaining why Transformers are so flexible</pre></div>
             <p><strong>Explanation:</strong> The kernel interpretation explains linear attention alternatives and connects Transformers to classical kernel theory, providing theoretical <abbr title="tying a generated answer to retrieved evidence rather than model memory">grounding</abbr> for their success.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -10651,28 +10663,28 @@ Implication: Attention = soft, learnable, non-parametric kernel
             <div class="diagram"><pre>Top mistakes (in order of frequency):
 
 1. Not having a baseline: Can't tell if your model is actually good
-   Always start with: simple model → random baseline → state-of-the-art
+   Always start with: simple model <span class="d-a">→</span> random baseline <span class="d-a">→</span> state-of-the-art
 
 2. Data leakage: Information from test set leaks into training
-   → Inflated metrics, model fails in production
+   <span class="d-a">→</span> Inflated metrics, model fails in production
 
 3. Not shuffling data: Ordering biases present in data
-   → Model learns order, not patterns
+   <span class="d-a">→</span> Model learns order, not patterns
 
 4. Wrong evaluation metric: Accuracy on imbalanced data
-   → 99% accuracy with 99% class 0 is useless
+   <span class="d-a">→</span> 99% accuracy with 99% class 0 is useless
 
 5. Not checking data quality: Garbage in, garbage out
-   → Always visualize data before training
+   <span class="d-a">→</span> Always visualize data before training
 
 6. Overcomplicating: Using BERT for simple text classification
-   → Start simple, add complexity only when justified
+   <span class="d-a">→</span> Start simple, add complexity only when justified
 
 7. Training too long: Overfitting to training set
-   → Always use validation set and early stopping
+   <span class="d-a">→</span> Always use validation set and early stopping
 
 8. Not reproducible: Can't recreate results
-   → Set seeds, version everything, log everything</pre></div>
+   <span class="d-a">→</span> Set seeds, version everything, log everything</pre></div>
             <p><strong>Explanation:</strong> Most DL failures are engineering failures, not modeling failures. Get the basics right before optimizing.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -10720,8 +10732,8 @@ Implication: Attention = soft, learnable, non-parametric kernel
               <p><strong>One-sentence idea:</strong> Training a deep net is a long numerical balancing act — multiply enough numbers together through enough layers and they tend to <strong>blow up to infinity</strong> or <strong>shrink to zero</strong>. When they do, your loss becomes <code>NaN</code>, your gradients vanish, and hours of GPU time produce a dead model.</p>
             </div>
             <p>Unlike a serving bug, training instability often shows <strong>no exception</strong> until it's too late — the loss quietly diverges, or silently flat-lines, and you discover it from a useless final checkpoint. The fixes are mostly about <strong>keeping numbers in a sane range</strong> at every layer and every step.</p>
-            <div class="diagram"><pre>Healthy training:   loss ↓ smoothly,  grad-norm steady,  no NaNs
-Unstable training:  loss → NaN  |  loss spikes then diverges  |  loss flat (learns nothing)</pre></div>
+            <div class="diagram"><pre>Healthy training:   loss <span class="d-a">↓</span> smoothly,  grad-norm steady,  no NaNs
+Unstable training:  loss <span class="d-a">→</span> NaN  |  loss spikes then diverges  |  loss flat (learns nothing)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f30DLTrainingIn-451">
@@ -10808,8 +10820,8 @@ Unstable training:  loss → NaN  |  loss spikes then diverges  |  loss flat (le
           </div>
           <div class="q-a">
             <p>A forward pass is a long chain of multiplications: <code>x → W₁x → activation → W₂(...) → ...</code>. Backprop multiplies gradients through the <strong>same chain in reverse</strong>.</p>
-            <div class="diagram"><pre>If each layer multiplies the signal by ~1.5:   1.5^50  ≈ 6 × 10⁸   → EXPLODES
-If each layer multiplies the signal by ~0.7:   0.7^50  ≈ 2 × 10⁻⁸  → VANISHES
+            <div class="diagram"><pre>If each layer multiplies the signal by ~1.5:   1.5^50  ≈ 6 × 10⁸   <span class="d-a">→</span> EXPLODES
+If each layer multiplies the signal by ~0.7:   0.7^50  ≈ 2 × 10⁻⁸  <span class="d-a">→</span> VANISHES
 Only signals near ×1.0 per layer stay stable across depth.</pre></div>
             <p>That's the whole problem in one line: <strong>deep = many multiplications = numbers drift exponentially</strong> unless you actively keep them near 1. Everything below (normalization, careful init, residual connections, clipping) exists to hold that balance.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -10956,8 +10968,8 @@ Only signals near ×1.0 per layer stay stable across depth.</pre></div>
             <div class="diagram"><pre>step 1000: loss 2.1
 step 1100: loss 1.8
 step 1150: loss 1.7
-step 1160: loss 9.4   ← spike
-step 1170: loss NaN   ← diverged</pre></div>
+step 1160: loss 9.4   <span class="d-a">←</span> spike
+step 1170: loss NaN   <span class="d-a">←</span> diverged</pre></div>
             <p><strong>Causes &amp; fixes:</strong>
               - <strong>LR too high for the current region</strong> → add <strong>warmup</strong> + a <strong>decay schedule</strong> (cosine/linear).
               - <strong>A pathological batch</strong> (outliers, a corrupt sample) → <strong>gradient clipping</strong> bounds its damage; consider data cleaning.
@@ -11125,23 +11137,23 @@ scaler = <span class="fn">GradScaler</span>()                       <span class=
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Training broke / not learning?
-   │
-   ├─ Loss is NaN/Inf?
-   │     ├─ from step ~1   → LR too high OR bad data (log0/div0/unnormalized) → lower LR, check inputs
-   │     ├─ only with AMP  → FP16 overflow → loss scaling / switch to BF16
-   │     └─ after a while  → exploding grads → gradient clipping + warmup; rollback to last good ckpt
-   │
-   ├─ Loss flat / not decreasing?
-   │     └─ vanishing grads / dead ReLUs / LR too low → better init, normalization, residuals, LeakyReLU, raise LR
-   │
-   ├─ Loss spikes then diverges?
-   │     └─ add LR warmup + decay, gradient clipping; checkpoint to roll back
-   │
-   └─ Multi-GPU?
-         ├─ hangs            → NCCL: same collectives on every rank, set timeout, NCCL_DEBUG=INFO
-         ├─ slow/uneven      → straggler: per-rank step-time monitor, balance shards
-         ├─ OOM / can't save → sharded checkpoint API, atomic save, test reload
-         └─ GPUs &lt;50% util   → dataloader bottleneck: more workers, prefetch, pin_memory, faster I/O</pre></div>
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Loss is NaN/Inf?
+   <span class="d-l">│</span>     <span class="d-l">├─</span> from step ~1   <span class="d-a">→</span> LR too high OR bad data (log0/div0/unnormalized) <span class="d-a">→</span> lower LR, check inputs
+   <span class="d-l">│</span>     <span class="d-l">├─</span> only with AMP  <span class="d-a">→</span> FP16 overflow <span class="d-a">→</span> loss scaling / switch to BF16
+   <span class="d-l">│</span>     <span class="d-l">└─</span> after a while  <span class="d-a">→</span> exploding grads <span class="d-a">→</span> gradient clipping + warmup; rollback to last good ckpt
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Loss flat / not decreasing?
+   <span class="d-l">│</span>     <span class="d-l">└─</span> vanishing grads / dead ReLUs / LR too low <span class="d-a">→</span> better init, normalization, residuals, LeakyReLU, raise LR
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Loss spikes then diverges?
+   <span class="d-l">│</span>     <span class="d-l">└─</span> add LR warmup + decay, gradient clipping; checkpoint to roll back
+   <span class="d-l">│</span>
+   <span class="d-l">└─</span> Multi-GPU?
+         <span class="d-l">├─</span> hangs            <span class="d-a">→</span> NCCL: same collectives on every rank, set timeout, NCCL_DEBUG=INFO
+         <span class="d-l">├─</span> slow/uneven      <span class="d-a">→</span> straggler: per-rank step-time monitor, balance shards
+         <span class="d-l">├─</span> OOM / can't save <span class="d-a">→</span> sharded checkpoint API, atomic save, test reload
+         <span class="d-l">└─</span> GPUs &lt;50% util   <span class="d-a">→</span> dataloader bottleneck: more workers, prefetch, pin_memory, faster I/O</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f30DLTrainingIn-462">

@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -5358,11 +5370,11 @@ h = [<span class="num">1</span>, <span class="str">"two"</span>, <span class="nu
           <div class="q-a">
             <p>Internally a Python list is a <strong>contiguous array of pointers</strong> (references) to Python objects — not the objects themselves. This is why lists can hold heterogeneous types.</p>
             <div class="diagram"><pre>list object
-┌──────────┐
-│ ob_item ──┼──► [ ptr0 | ptr1 | ptr2 | ptr3 | ... | ptrN | __ | __ ]
-│ ob_size   │       │       │       │       │               ↑
-│ allocated │       ▼       ▼       ▼       ▼          over-allocated
-└──────────┘     obj_0   obj_1   obj_2   obj_3          (unused slots)</pre></div>
+<span class="d-l">┌──────────┐</span>
+<span class="d-l">│</span> ob_item <span class="d-l">──┼──</span><span class="d-a">►</span> [ ptr0 | ptr1 | ptr2 | ptr3 | ... | ptrN | __ | __ ]
+<span class="d-l">│</span> ob_size   <span class="d-l">│</span>       <span class="d-l">│</span>       <span class="d-l">│</span>       <span class="d-l">│</span>       <span class="d-l">│</span>               <span class="d-a">↑</span>
+<span class="d-l">│</span> allocated <span class="d-l">│</span>       <span class="d-a">▼</span>       <span class="d-a">▼</span>       <span class="d-a">▼</span>       <span class="d-a">▼</span>          over-allocated
+<span class="d-l">└──────────┘</span>     obj_0   obj_1   obj_2   obj_3          (unused slots)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="fListsmd-p1"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>2. List Operations</span><i></i>
@@ -6717,23 +6729,23 @@ deep = copy.<span class="fn">deepcopy</span>(original)
 deep[<span class="num">0</span>][<span class="num">0</span>] = <span class="num">99</span>
 <span class="fn">print</span>(original)  <span class="cmt"># [[1, 2, 3], [4, 5, 6]]   ← NOT affected</span></code></pre>
             <div class="diagram"><pre>Shallow copy:
-original ──► [ ptr_A, ptr_B ]
-                 │       │
-shallow  ──► [ ptr_A, ptr_B ]   ← same inner lists
-                 │       │
-                 ▼       ▼
+original <span class="d-l">──</span><span class="d-a">►</span> [ ptr_A, ptr_B ]
+                 <span class="d-l">│</span>       <span class="d-l">│</span>
+shallow  <span class="d-l">──</span><span class="d-a">►</span> [ ptr_A, ptr_B ]   <span class="d-a">←</span> same inner lists
+                 <span class="d-l">│</span>       <span class="d-l">│</span>
+                 <span class="d-a">▼</span>       <span class="d-a">▼</span>
               [1,2,3] [4,5,6]
 
 Deep copy:
-original ──► [ ptr_A, ptr_B ]
-                 │       │
-                 ▼       ▼
+original <span class="d-l">──</span><span class="d-a">►</span> [ ptr_A, ptr_B ]
+                 <span class="d-l">│</span>       <span class="d-l">│</span>
+                 <span class="d-a">▼</span>       <span class="d-a">▼</span>
               [1,2,3] [4,5,6]
 
-deep     ──► [ ptr_C, ptr_D ]   ← different inner lists
-                 │       │
-                 ▼       ▼
-              [1,2,3] [4,5,6]   ← independent copies</pre></div>
+deep     <span class="d-l">──</span><span class="d-a">►</span> [ ptr_C, ptr_D ]   <span class="d-a">←</span> different inner lists
+                 <span class="d-l">│</span>       <span class="d-l">│</span>
+                 <span class="d-a">▼</span>       <span class="d-a">▼</span>
+              [1,2,3] [4,5,6]   <span class="d-a">←</span> independent copies</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fListsmd-228">
@@ -9563,23 +9575,23 @@ grouped = <span class="fn">defaultdict</span>(list)
             <div class="keyterms"><span class="kt">hash table</span><span class="kt">Compact dict (Python 3.6+)</span><span class="kt">index table</span><span class="kt">entries array</span>
             </div>
             <p>Python's <code>dict</code> is implemented as a <strong>hash table</strong> (hash map).</p>
-            <div class="diagram"><pre>┌──────────────────────────────────────────────────────────┐
-│                    dict object                           │
-│  ┌──────────┐    ┌──────────────────────────────────┐    │
-│  │ Hash     │    │ Compact entries array             │   │
-│  │ Index    │    │ ┌──────┬──────┬───────┐           │   │
-│  │ Table    │    │ │ hash │ key  │ value │ entry 0   │   │
-│  │ ┌─────┐  │    │ ├──────┼──────┼───────┤           │   │
-│  │ │  1  │──│────│►│ hash │ key  │ value │ entry 1   │   │
-│  │ ├─────┤  │    │ ├──────┼──────┼───────┤           │   │
-│  │ │  0  │──│────│►│ hash │ key  │ value │ entry 2   │   │
-│  │ ├─────┤  │    │ └──────┴──────┴───────┘           │   │
-│  │ │ -1  │  │    │                                    │  │
-│  │ ├─────┤  │    └──────────────────────────────────┘    │
-│  │ │  2  │──│────►                                       │
-│  │ └─────┘  │                                            │
-│  └──────────┘                                            │
-└──────────────────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌──────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                    dict object                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────┐</span>    <span class="d-l">┌──────────────────────────────────┐</span>    <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> Hash     <span class="d-l">│</span>    <span class="d-l">│</span> Compact entries array             <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> Index    <span class="d-l">│</span>    <span class="d-l">│</span> <span class="d-l">┌──────┬──────┬───────┐</span>           <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> Table    <span class="d-l">│</span>    <span class="d-l">│</span> <span class="d-l">│</span> hash <span class="d-l">│</span> key  <span class="d-l">│</span> value <span class="d-l">│</span> entry 0   <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> <span class="d-l">┌─────┐</span>  <span class="d-l">│</span>    <span class="d-l">│</span> <span class="d-l">├──────┼──────┼───────┤</span>           <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> <span class="d-l">│</span>  1  <span class="d-l">│──│────│</span><span class="d-a">►</span><span class="d-l">│</span> hash <span class="d-l">│</span> key  <span class="d-l">│</span> value <span class="d-l">│</span> entry 1   <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> <span class="d-l">├─────┤</span>  <span class="d-l">│</span>    <span class="d-l">│</span> <span class="d-l">├──────┼──────┼───────┤</span>           <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> <span class="d-l">│</span>  0  <span class="d-l">│──│────│</span><span class="d-a">►</span><span class="d-l">│</span> hash <span class="d-l">│</span> key  <span class="d-l">│</span> value <span class="d-l">│</span> entry 2   <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> <span class="d-l">├─────┤</span>  <span class="d-l">│</span>    <span class="d-l">│</span> <span class="d-l">└──────┴──────┴───────┘</span>           <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> <span class="d-l">│</span> -1  <span class="d-l">│</span>  <span class="d-l">│</span>    <span class="d-l">│</span>                                    <span class="d-l">│</span>  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> <span class="d-l">├─────┤</span>  <span class="d-l">│</span>    <span class="d-l">└──────────────────────────────────┘</span>    <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> <span class="d-l">│</span>  2  <span class="d-l">│──│────</span><span class="d-a">►</span>                                       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> <span class="d-l">└─────┘</span>  <span class="d-l">│</span>                                            <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────────┘</span>                                            <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────────────────────┘</span></pre></div>
             <p><strong>Compact dict (Python 3.6+):</strong>
               - A sparse <strong>index table</strong> (small integers) maps hash slots → entry index.
               - A dense <strong>entries array</strong> stores <code>(hash, key, value)</code> in insertion order.
@@ -13365,18 +13377,18 @@ config = {<span class="str">"x"</span>: <span class="num">10</span>, <span class
             <div style="display:flex;flex-wrap:wrap;align-items:center"><span class="st">B</span><span class="ar">&rarr;</span><span class="st">Built-in</span><span class="fl" style="margin:0 0 0 10px">Python&#x27;s builtins module: print, len, range, etc.</span>
             </div>
           </div>
-          <div class="diagram"><pre>┌───────────────────────────────────────────────┐
-│ Built-in Scope   (print, len, int, range ...) │
-│  ┌─────────────────────────────────────────┐  │
-│  │ Global Scope   (module-level variables) │  │
-│  │  ┌──────────────────────────────────┐   │  │
-│  │  │ Enclosing Scope (outer function) │   │  │
-│  │  │  ┌───────────────────────────┐   │   │  │
-│  │  │  │ Local Scope (inner func)  │   │   │  │
-│  │  │  └───────────────────────────┘   │   │  │
-│  │  └──────────────────────────────────┘   │  │
-│  └─────────────────────────────────────────┘  │
-└───────────────────────────────────────────────┘</pre></div>
+          <div class="diagram"><pre><span class="d-l">┌───────────────────────────────────────────────┐</span>
+<span class="d-l">│</span> Built-in Scope   (print, len, int, range ...) <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌─────────────────────────────────────────┐</span>  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> Global Scope   (module-level variables) <span class="d-l">│</span>  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">┌──────────────────────────────────┐</span>   <span class="d-l">│</span>  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> Enclosing Scope (outer function) <span class="d-l">│</span>   <span class="d-l">│</span>  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">┌───────────────────────────┐</span>   <span class="d-l">│</span>   <span class="d-l">│</span>  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> Local Scope (inner func)  <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">└───────────────────────────┘</span>   <span class="d-l">│</span>   <span class="d-l">│</span>  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">└──────────────────────────────────┘</span>   <span class="d-l">│</span>  <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└─────────────────────────────────────────┘</span>  <span class="d-l">│</span>
+<span class="d-l">└───────────────────────────────────────────────┘</span></pre></div>
         </div>
         <article class="q" id="fFunctionsandSc-497">
           <div class="q-h"><span class="q-n">&bull;</span>
@@ -17073,32 +17085,32 @@ falsy = <span class="fn">list</span>(<span class="fn">filterfalse</span>(<span c
         <div class="parthead" id="fLambdaMapFilte-p8"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-book"/></svg>Quick Reference Cheat Sheet</span><i></i>
         </div>
         <div class="q-a" style="margin:0 0 12px">
-          <div class="diagram"><pre>┌─────────────────────────────────────────────────────────────────┐
-│                    FUNCTIONAL TOOLS CHEAT SHEET                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  lambda x: expr          Anonymous function (single expression) │
-│                                                                 │
-│  map(func, iter)         Apply func to each item → iterator     │
-│  map(func, it1, it2)     Parallel apply → iterator              │
-│                                                                 │
-│  filter(func, iter)      Keep items where func(item) is True    │
-│  filter(None, iter)      Remove falsy values                    │
-│                                                                 │
-│  reduce(func, iter)      Cumulative left fold → single value    │
-│  reduce(func, iter, init) With starting value                   │
-│                                                                 │
-│  operator.add/mul/...    Function versions of operators         │
-│  operator.itemgetter(k)  Get item by key/index                  │
-│  operator.attrgetter(a)  Get attribute by name                  │
-│  operator.methodcaller(m) Call method by name                   │
-│                                                                 │
-│  partial(func, *args)    Pre-fill function arguments            │
-│  filterfalse(func, iter) Keep items where func(item) is False   │
-│  accumulate(iter, func)  Running reduction (yields each step)   │
-│  starmap(func, iter)     map() but unpacks tuple arguments      │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘</pre></div>
+          <div class="diagram"><pre><span class="d-l">┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                    FUNCTIONAL TOOLS CHEAT SHEET                 <span class="d-l">│</span>
+<span class="d-l">├─────────────────────────────────────────────────────────────────┤</span>
+<span class="d-l">│</span>                                                                 <span class="d-l">│</span>
+<span class="d-l">│</span>  lambda x: expr          Anonymous function (single expression) <span class="d-l">│</span>
+<span class="d-l">│</span>                                                                 <span class="d-l">│</span>
+<span class="d-l">│</span>  map(func, iter)         Apply func to each item <span class="d-a">→</span> iterator     <span class="d-l">│</span>
+<span class="d-l">│</span>  map(func, it1, it2)     Parallel apply <span class="d-a">→</span> iterator              <span class="d-l">│</span>
+<span class="d-l">│</span>                                                                 <span class="d-l">│</span>
+<span class="d-l">│</span>  filter(func, iter)      Keep items where func(item) is True    <span class="d-l">│</span>
+<span class="d-l">│</span>  filter(None, iter)      Remove falsy values                    <span class="d-l">│</span>
+<span class="d-l">│</span>                                                                 <span class="d-l">│</span>
+<span class="d-l">│</span>  reduce(func, iter)      Cumulative left fold <span class="d-a">→</span> single value    <span class="d-l">│</span>
+<span class="d-l">│</span>  reduce(func, iter, init) With starting value                   <span class="d-l">│</span>
+<span class="d-l">│</span>                                                                 <span class="d-l">│</span>
+<span class="d-l">│</span>  operator.add/mul/...    Function versions of operators         <span class="d-l">│</span>
+<span class="d-l">│</span>  operator.itemgetter(k)  Get item by key/index                  <span class="d-l">│</span>
+<span class="d-l">│</span>  operator.attrgetter(a)  Get attribute by name                  <span class="d-l">│</span>
+<span class="d-l">│</span>  operator.methodcaller(m) Call method by name                   <span class="d-l">│</span>
+<span class="d-l">│</span>                                                                 <span class="d-l">│</span>
+<span class="d-l">│</span>  partial(func, *args)    Pre-fill function arguments            <span class="d-l">│</span>
+<span class="d-l">│</span>  filterfalse(func, iter) Keep items where func(item) is False   <span class="d-l">│</span>
+<span class="d-l">│</span>  accumulate(iter, func)  Running reduction (yields each step)   <span class="d-l">│</span>
+<span class="d-l">│</span>  starmap(func, iter)     map() but unpacks tuple arguments      <span class="d-l">│</span>
+<span class="d-l">│</span>                                                                 <span class="d-l">│</span>
+<span class="d-l">└─────────────────────────────────────────────────────────────────┘</span></pre></div>
         </div>
       </section>
       <nav class="pnav"><a class="prev" href="index.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrowl"/></svg><span class="pnav-t"><span>Previous</span><b>Home</b></span></a><a class="next" href="advanced.html"><span class="pnav-t"><span>Next</span><b>Advanced</b></span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg></a>

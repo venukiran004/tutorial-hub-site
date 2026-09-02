@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1226,23 +1238,23 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <div class="diagram"><pre>Without principles:                  With principles:
-─────────────────                    ────────────────
+<span class="d-l">─────────────────</span>                    <span class="d-l">────────────────</span>
 Spaghetti code                      Clean, readable code
 "It works, don't touch it"          Easy to modify &amp; extend
-Bug fix → 3 new bugs                Bug fix → just that fix
+Bug fix <span class="d-a">→</span> 3 new bugs                Bug fix <span class="d-a">→</span> just that fix
 Onboarding takes months             New devs productive in days
 Rewrite every 2 years               Evolves over decades</pre></div>
           <h3>The Cost of Bad Design</h3>
           <div class="diagram"><pre>                    Cost to Fix
-                    ↑
-                    │                          ★ Production
-                    │                     ★
-                    │                ★
-                    │           ★
-                    │      ★
-                    │  ★
-                    │★
-                    └──────────────────────→ Time
+                    <span class="d-a">↑</span>
+                    <span class="d-l">│</span>                          ● Production
+                    <span class="d-l">│</span>                     ●
+                    <span class="d-l">│</span>                ●
+                    <span class="d-l">│</span>           ●
+                    <span class="d-l">│</span>      ●
+                    <span class="d-l">│</span>  ●
+                    <span class="d-l">│</span>●
+                    <span class="d-l">└──────────────────────</span><span class="d-a">→</span> Time
                     Design  Code  Test  Deploy  Production
 
                     1x      5x    10x   50x     100x</pre></div>
@@ -1714,7 +1726,7 @@ result = checker.<span class="fn">check</span>(<span class="num">42</span>)</cod
     <span class="cmt"># not when you imagine they might be needed</span></code></pre>
           <h3>YAGNI vs Planning Ahead</h3>
           <div class="diagram"><pre>YAGNI says:              Planning says:
-──────────               ──────────────
+<span class="d-l">──────────</span>               <span class="d-l">──────────────</span>
 Don't build features     DO design for extensibility
 you don't need yet       (OCP, DIP)
 
@@ -1733,19 +1745,19 @@ prematurely              data structures</pre></div>
           </div>
           <h3>SoC in practice</h3>
           <h4>Web Application Example</h4>
-          <div class="diagram"><pre>┌──────────────────────────────────────────────────────────┐
-│                     PRESENTATION                         │
-│  (HTML, CSS, JavaScript, Templates)                      │
-│  Concern: How things LOOK                                │
-├──────────────────────────────────────────────────────────┤
-│                     BUSINESS LOGIC                       │
-│  (Services, Use Cases, Domain Models)                    │
-│  Concern: WHAT the app does                              │
-├──────────────────────────────────────────────────────────┤
-│                     DATA ACCESS                          │
-│  (Repositories, ORM, SQL)                                │
-│  Concern: WHERE/HOW data is stored                       │
-└──────────────────────────────────────────────────────────┘</pre></div>
+          <div class="diagram"><pre><span class="d-l">┌──────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                     PRESENTATION                         <span class="d-l">│</span>
+<span class="d-l">│</span>  (HTML, CSS, JavaScript, Templates)                      <span class="d-l">│</span>
+<span class="d-l">│</span>  Concern: How things LOOK                                <span class="d-l">│</span>
+<span class="d-l">├──────────────────────────────────────────────────────────┤</span>
+<span class="d-l">│</span>                     BUSINESS LOGIC                       <span class="d-l">│</span>
+<span class="d-l">│</span>  (Services, Use Cases, Domain Models)                    <span class="d-l">│</span>
+<span class="d-l">│</span>  Concern: WHAT the app does                              <span class="d-l">│</span>
+<span class="d-l">├──────────────────────────────────────────────────────────┤</span>
+<span class="d-l">│</span>                     DATA ACCESS                          <span class="d-l">│</span>
+<span class="d-l">│</span>  (Repositories, ORM, SQL)                                <span class="d-l">│</span>
+<span class="d-l">│</span>  Concern: WHERE/HOW data is stored                       <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────────────────────┘</span></pre></div>
           <h4>Bad Example ❌</h4>
           <pre class="code" data-lang="python"><code>@app.<span class="fn">post</span>(<span class="str">"/register"</span>)
 <span class="kw">def</span> <span class="fn">register</span>(request):
@@ -1847,7 +1859,7 @@ rubber.squeaking.<span class="fn">squeak</span>()  <span class="cmt"># Squeak!</
 <span class="cmt"># rubber.flying → AttributeError (correct behavior!)</span></code></pre>
           <h3>When to Use Inheritance vs Composition</h3>
           <div class="diagram"><pre>Use INHERITANCE when:              Use COMPOSITION when:
-─────────────────────              ──────────────────────
+<span class="d-l">─────────────────────</span>              <span class="d-l">──────────────────────</span>
 True "is-a" relationship           "has-a" relationship
 Dog IS an Animal                   Car HAS an Engine
 Shared behavior won't diverge      Behaviors vary independently
@@ -1938,14 +1950,14 @@ account.<span class="fn">withdraw</span>(<span class="num">200</span>)
           <h3>Coupling (Low is better)</h3>
           <p><strong>Coupling</strong> = degree of interdependence between modules.</p>
           <div class="diagram"><pre>Tight Coupling (Bad):              Loose Coupling (Good):
-─────────────────────              ──────────────────────
-Module A ←──────→ Module B         Module A ←→ Interface ←→ Module B
-Change A → must change B           Change A → B unaffected
+<span class="d-l">─────────────────────</span>              <span class="d-l">──────────────────────</span>
+Module A <span class="d-a">←</span><span class="d-l">──────</span><span class="d-a">→</span> Module B         Module A <span class="d-a">←→</span> Interface <span class="d-a">←→</span> Module B
+Change A <span class="d-a">→</span> must change B           Change A <span class="d-a">→</span> B unaffected
 Hard to test in isolation          Easy to mock and test</pre></div>
           <h3>Cohesion (High is better)</h3>
           <p><strong>Cohesion</strong> = degree to which elements within a module belong together.</p>
           <div class="diagram"><pre>Low Cohesion (Bad):                High Cohesion (Good):
-───────────────────                ────────────────────
+<span class="d-l">───────────────────</span>                <span class="d-l">────────────────────</span>
 class Utils:                       class FileHandler:
     send_email()                       read_file()
     parse_json()                       write_file()
@@ -2027,19 +2039,19 @@ service = <span class="fn">OrderService</span>(<span class="fn">MockDatabase</sp
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <div class="diagram"><pre>                    Design Patterns
-                    ───────────────
-        ┌──────────────┼──────────────┐
+                    <span class="d-l">───────────────</span>
+        <span class="d-l">┌──────────────┼──────────────┐</span>
    CREATIONAL      STRUCTURAL     BEHAVIORAL
    (Object         (Object         (Object
     creation)       composition)    communication)
-        │               │               │
-   ├─ Singleton    ├─ Adapter      ├─ Strategy
-   ├─ Factory      ├─ Decorator    ├─ Observer
-   ├─ Builder      ├─ Facade       ├─ Command
-   ├─ Prototype    ├─ Proxy        ├─ State
-   └─ Abstract     ├─ Bridge       ├─ Template Method
-      Factory      └─ Composite    ├─ Iterator
-                                   └─ Chain of Resp.</pre></div>
+        <span class="d-l">│</span>               <span class="d-l">│</span>               <span class="d-l">│</span>
+   <span class="d-l">├─</span> Singleton    <span class="d-l">├─</span> Adapter      <span class="d-l">├─</span> Strategy
+   <span class="d-l">├─</span> Factory      <span class="d-l">├─</span> Decorator    <span class="d-l">├─</span> Observer
+   <span class="d-l">├─</span> Builder      <span class="d-l">├─</span> Facade       <span class="d-l">├─</span> Command
+   <span class="d-l">├─</span> Prototype    <span class="d-l">├─</span> Proxy        <span class="d-l">├─</span> State
+   <span class="d-l">└─</span> Abstract     <span class="d-l">├─</span> Bridge       <span class="d-l">├─</span> Template Method
+      Factory      <span class="d-l">└─</span> Composite    <span class="d-l">├─</span> Iterator
+                                   <span class="d-l">└─</span> Chain of Resp.</pre></div>
         </div>
         <div class="parthead" id="f02DesignPrinci-p16"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>16. Creational Patterns</span><i></i>
         </div>
@@ -2354,33 +2366,33 @@ result = auth.<span class="fn">handle</span>({<span class="str">"token"</span>: 
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <h3>19.1 Layered Architecture</h3>
-          <div class="diagram"><pre>┌─────────────────────────┐
-│   Presentation Layer    │  ← Controllers, Views, API endpoints
-├─────────────────────────┤
-│   Application Layer     │  ← Use cases, orchestration
-├─────────────────────────┤
-│   Domain Layer          │  ← Business logic, entities
-├─────────────────────────┤
-│   Infrastructure Layer  │  ← DB, external APIs, file system
-└─────────────────────────┘
+          <div class="diagram"><pre><span class="d-l">┌─────────────────────────┐</span>
+<span class="d-l">│</span>   Presentation Layer    <span class="d-l">│</span>  <span class="d-a">←</span> Controllers, Views, API endpoints
+<span class="d-l">├─────────────────────────┤</span>
+<span class="d-l">│</span>   Application Layer     <span class="d-l">│</span>  <span class="d-a">←</span> Use cases, orchestration
+<span class="d-l">├─────────────────────────┤</span>
+<span class="d-l">│</span>   Domain Layer          <span class="d-l">│</span>  <span class="d-a">←</span> Business logic, entities
+<span class="d-l">├─────────────────────────┤</span>
+<span class="d-l">│</span>   Infrastructure Layer  <span class="d-l">│</span>  <span class="d-a">←</span> DB, external APIs, file system
+<span class="d-l">└─────────────────────────┘</span>
 
 Rule: Each layer only depends on the layer BELOW it.</pre></div>
           <h3>19.2 Clean Architecture</h3>
-          <div class="diagram"><pre>                    ┌─────────────────────┐
-                    │   Frameworks &amp;      │  ← Web, DB, UI
-                    │   Drivers           │
-                    │  ┌───────────────┐  │
-                    │  │  Interface    │  │  ← Controllers, Gateways
-                    │  │  Adapters     │  │
-                    │  │  ┌─────────┐  │  │
-                    │  │  │ Use     │  │  │  ← Application logic
-                    │  │  │ Cases   │  │  │
-                    │  │  │ ┌─────┐ │  │  │
-                    │  │  │ │ E   │ │  │  │  ← Entities (core domain)
-                    │  │  │ └─────┘ │  │  │
-                    │  │  └─────────┘  │  │
-                    │  └───────────────┘  │
-                    └─────────────────────┘
+          <div class="diagram"><pre>                    <span class="d-l">┌─────────────────────┐</span>
+                    <span class="d-l">│</span>   Frameworks &amp;      <span class="d-l">│</span>  <span class="d-a">←</span> Web, DB, UI
+                    <span class="d-l">│</span>   Drivers           <span class="d-l">│</span>
+                    <span class="d-l">│</span>  <span class="d-l">┌───────────────┐</span>  <span class="d-l">│</span>
+                    <span class="d-l">│</span>  <span class="d-l">│</span>  Interface    <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-a">←</span> Controllers, Gateways
+                    <span class="d-l">│</span>  <span class="d-l">│</span>  Adapters     <span class="d-l">│</span>  <span class="d-l">│</span>
+                    <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">┌─────────┐</span>  <span class="d-l">│</span>  <span class="d-l">│</span>
+                    <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> Use     <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-a">←</span> Application logic
+                    <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> Cases   <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>
+                    <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> <span class="d-l">┌─────┐</span> <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>
+                    <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> <span class="d-l">│</span> E   <span class="d-l">│</span> <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-a">←</span> Entities (core domain)
+                    <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> <span class="d-l">└─────┘</span> <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>
+                    <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">└─────────┘</span>  <span class="d-l">│</span>  <span class="d-l">│</span>
+                    <span class="d-l">│</span>  <span class="d-l">└───────────────┘</span>  <span class="d-l">│</span>
+                    <span class="d-l">└─────────────────────┘</span>
 
 Dependencies point INWARD. Inner layers know nothing about outer layers.</pre></div>
           <h3>19.3 Microservices Principles</h3>
@@ -2972,16 +2984,16 @@ HORIZONTAL SCALING (Scale Out):
   Cons: Distributed systems complexity, data consistency
   
   SCALING DIMENSIONS:
-  ┌─────────────────────────────────────────────┐
-  │  Stateless services: Scale horizontally     │
-  │  (API servers, web servers)                 │
-  ├─────────────────────────────────────────────┤
-  │  Databases: Replicas (read) + Sharding      │
-  ├─────────────────────────────────────────────┤
-  │  Caching: Redis cluster, CDN                │
-  ├─────────────────────────────────────────────┤
-  │  Async work: Message queues + workers       │
-  └─────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌─────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span>  Stateless services: Scale horizontally     <span class="d-l">│</span>
+  <span class="d-l">│</span>  (API servers, web servers)                 <span class="d-l">│</span>
+  <span class="d-l">├─────────────────────────────────────────────┤</span>
+  <span class="d-l">│</span>  Databases: Replicas (read) + Sharding      <span class="d-l">│</span>
+  <span class="d-l">├─────────────────────────────────────────────┤</span>
+  <span class="d-l">│</span>  Caching: Redis cluster, CDN                <span class="d-l">│</span>
+  <span class="d-l">├─────────────────────────────────────────────┤</span>
+  <span class="d-l">│</span>  Async work: Message queues + workers       <span class="d-l">│</span>
+  <span class="d-l">└─────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f03SystemDesign-23">
@@ -2994,7 +3006,7 @@ HORIZONTAL SCALING (Scale Out):
   Round Robin:       Equal distribution (default)
   Weighted RR:       Based on server capacity
   Least Connections: Route to server with fewest active connections
-  IP Hash:           Sticky sessions (same client → same server)
+  IP Hash:           Sticky sessions (same client <span class="d-a">→</span> same server)
   
 LAYERS:
   L4 (Transport):  TCP/UDP level, fast, no content inspection
@@ -3007,7 +3019,7 @@ HEALTH CHECKS:
   Active: LB pings /health endpoint periodically
   Passive: LB detects failures from actual traffic
   
-  Unhealthy server → removed from pool → health check recovers → added back</pre></div>
+  Unhealthy server <span class="d-a">→</span> removed from pool <span class="d-a">→</span> health check recovers <span class="d-a">→</span> added back</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f03SystemDesign-24">
@@ -3017,9 +3029,9 @@ HEALTH CHECKS:
           <div class="q-a">
             <p>Caching stores frequently accessed data in a fast-access layer (such as memory) to reduce latency and backend load. Selecting the right caching strategy and eviction policy is crucial for maintaining data consistency while maximizing performance gains.</p>
             <div class="diagram"><pre>CACHE STRATEGIES:
-  Cache-Aside (Lazy):     App checks cache → miss → read DB → write cache
+  Cache-Aside (Lazy):     App checks cache <span class="d-a">→</span> miss <span class="d-a">→</span> read DB <span class="d-a">→</span> write cache
   Write-Through:          App writes cache + DB simultaneously
-  Write-Behind:           App writes cache → async write to DB (risky)
+  Write-Behind:           App writes cache <span class="d-a">→</span> async write to DB (risky)
   Read-Through:           Cache transparently fetches from DB on miss
 
 CACHE EVICTION:
@@ -3028,7 +3040,7 @@ CACHE EVICTION:
   TTL (Time-To-Live): Expire after duration
 
 CACHING LAYERS:
-  Browser cache → CDN → API gateway cache → App cache (Redis) → DB cache
+  Browser cache <span class="d-a">→</span> CDN <span class="d-a">→</span> API gateway cache <span class="d-a">→</span> App cache (Redis) <span class="d-a">→</span> DB cache
 
 REDIS PATTERNS:
   Strings:      Simple key-value, counters
@@ -3039,11 +3051,11 @@ REDIS PATTERNS:
   
 CACHE PROBLEMS:
   Thundering herd: Many requests hit DB when cache expires
-    → Solution: Lock + single-flight (one request populates cache)
+    <span class="d-a">→</span> Solution: Lock + single-flight (one request populates cache)
   Cache penetration: Query for non-existent data always misses
-    → Solution: Cache null values, Bloom filter
+    <span class="d-a">→</span> Solution: Cache null values, Bloom filter
   Cache avalanche: Many keys expire simultaneously
-    → Solution: Random TTL jitter</pre></div>
+    <span class="d-a">→</span> Solution: Random TTL jitter</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f03SystemDesign-25">
@@ -3079,16 +3091,16 @@ INDEXING:
           <div class="q-a">
             <p>Database scaling extends a single database's capacity through read replicas, <abbr title="splitting one dataset across machines by a partition key">sharding</abbr>, or vertical partitioning to handle growing data volumes and query loads. Each strategy introduces trade-offs between consistency, query complexity, and operational overhead.</p>
             <div class="diagram"><pre>READ REPLICAS:
-  Primary (writes) → Replica 1 (reads)
-                   → Replica 2 (reads)
+  Primary (writes) <span class="d-a">→</span> Replica 1 (reads)
+                   <span class="d-a">→</span> Replica 2 (reads)
   Replication lag: Eventual consistency (0.1-1s)
 
 SHARDING (Horizontal Partitioning):
   Split data across multiple DB instances by a shard key
   
-  Range-based:  user_id 1-1M → Shard 1, 1M-2M → Shard 2
+  Range-based:  user_id 1-1M <span class="d-a">→</span> Shard 1, 1M-2M <span class="d-a">→</span> Shard 2
     Pros: Range queries easy  Cons: Hotspots
-  Hash-based:   hash(user_id) % N → Shard N
+  Hash-based:   hash(user_id) % N <span class="d-a">→</span> Shard N
     Pros: Even distribution  Cons: Range queries across shards
   
   CHALLENGES:
@@ -3097,7 +3109,7 @@ SHARDING (Horizontal Partitioning):
   - Auto-increment IDs (use UUIDs or Snowflake IDs)
 
 VERTICAL PARTITIONING:
-  Split columns: users table → users_core + users_profile
+  Split columns: users table <span class="d-a">→</span> users_core + users_profile
   Useful when some columns queried much more than others</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -3113,7 +3125,7 @@ VERTICAL PARTITIONING:
   Availability:   Every request gets a response
   Partition Tolerance: System works despite network failures
   
-  In real systems, P is unavoidable → choose CP or AP
+  In real systems, P is unavoidable <span class="d-a">→</span> choose CP or AP
   CP: PostgreSQL, MongoDB (strong consistency, may reject requests)
   AP: Cassandra, DynamoDB (always available, eventual consistency)
 
@@ -3135,18 +3147,18 @@ BASE (NoSQL trade-off):
           </div>
           <div class="q-a">
             <p>Consistent hashing is a technique that distributes data across a dynamic set of servers while minimizing key redistribution when nodes are added or removed. It is widely used in distributed caches, databases, and CDNs to achieve even load distribution.</p>
-            <div class="diagram"><pre>PROBLEM: hash(key) % N → Adding/removing a server reshuffles ALL keys
+            <div class="diagram"><pre>PROBLEM: hash(key) % N <span class="d-a">→</span> Adding/removing a server reshuffles ALL keys
 
 CONSISTENT HASHING:
   Place servers on a hash ring (0 to 2³²)
-  hash("server1") → position on ring
-  hash(key) → find next server clockwise
+  hash("server1") <span class="d-a">→</span> position on ring
+  hash(key) <span class="d-a">→</span> find next server clockwise
   
   Adding server: Only keys between new server and its predecessor move
   Removing server: Only that server's keys move to the next server
   
   VIRTUAL NODES: Each physical server gets multiple positions on ring
-    → More even distribution, smoother rebalancing
+    <span class="d-a">→</span> More even distribution, smoother rebalancing
   
   USED BY: DynamoDB, Cassandra, Redis Cluster, CDN routing</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -3158,25 +3170,25 @@ CONSISTENT HASHING:
           <div class="q-a">
             <p>Message queues decouple producers from consumers by buffering messages asynchronously, enabling resilient and scalable inter-service communication. They are essential for handling burst traffic, event-driven architectures, and maintaining system reliability under load.</p>
             <div class="diagram"><pre>PATTERNS:
-  Point-to-Point: 1 producer → Queue → 1 consumer (task queue)
-  Pub/Sub: 1 producer → Topic → Multiple consumers (event streaming)
+  Point-to-Point: 1 producer <span class="d-a">→</span> Queue <span class="d-a">→</span> 1 consumer (task queue)
+  Pub/Sub: 1 producer <span class="d-a">→</span> Topic <span class="d-a">→</span> Multiple consumers (event streaming)
 
 COMPARISON:
-  Queue         │ Type    │ Ordering │ Persistence │ Throughput
-  ──────────────┼─────────┼──────────┼─────────────┼──────────
-  Kafka         │ Log     │ Per-part │ Disk (days) │ Very High
-  RabbitMQ      │ Queue   │ FIFO     │ Optional    │ Medium
-  Redis Streams │ Log     │ Per-key  │ Memory+disk │ High
-  SQS           │ Queue   │ Best-eff │ 14 days     │ High
+  Queue         <span class="d-l">│</span> Type    <span class="d-l">│</span> Ordering <span class="d-l">│</span> Persistence <span class="d-l">│</span> Throughput
+  <span class="d-l">──────────────┼─────────┼──────────┼─────────────┼──────────</span>
+  Kafka         <span class="d-l">│</span> Log     <span class="d-l">│</span> Per-part <span class="d-l">│</span> Disk (days) <span class="d-l">│</span> Very High
+  RabbitMQ      <span class="d-l">│</span> Queue   <span class="d-l">│</span> FIFO     <span class="d-l">│</span> Optional    <span class="d-l">│</span> Medium
+  Redis Streams <span class="d-l">│</span> Log     <span class="d-l">│</span> Per-key  <span class="d-l">│</span> Memory+disk <span class="d-l">│</span> High
+  SQS           <span class="d-l">│</span> Queue   <span class="d-l">│</span> Best-eff <span class="d-l">│</span> 14 days     <span class="d-l">│</span> High
   
   Kafka: Event streaming, high throughput, replay capability
   RabbitMQ: Task queues, routing, lower latency
   SQS: Serverless, managed, simple queue
 
 USE CASES:
-  Decoupling:     Service A → Queue → Service B (async)
-  Load leveling:  Burst traffic → Queue → Steady processing
-  Event sourcing: All events in Kafka → replay to rebuild state</pre></div>
+  Decoupling:     Service A <span class="d-a">→</span> Queue <span class="d-a">→</span> Service B (async)
+  Load leveling:  Burst traffic <span class="d-a">→</span> Queue <span class="d-a">→</span> Steady processing
+  Event sourcing: All events in Kafka <span class="d-a">→</span> replay to rebuild state</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f03SystemDesign-30">
@@ -3186,11 +3198,11 @@ USE CASES:
           <div class="q-a">
             <p>API design defines the contract between clients and servers, determining how data is requested, structured, and transmitted. Choosing between REST, GraphQL, and <abbr title="Google Remote Procedure Call">gRPC</abbr> involves trade-offs in flexibility, performance, and developer experience.</p>
             <div class="diagram"><pre>REST:
-  GET /users/123         → Read user 123
-  POST /users            → Create user
-  PUT /users/123         → Update user 123 (full)
-  PATCH /users/123       → Update user 123 (partial)
-  DELETE /users/123      → Delete user 123
+  GET /users/123         <span class="d-a">→</span> Read user 123
+  POST /users            <span class="d-a">→</span> Create user
+  PUT /users/123         <span class="d-a">→</span> Update user 123 (full)
+  PATCH /users/123       <span class="d-a">→</span> Update user 123 (partial)
+  DELETE /users/123      <span class="d-a">→</span> Delete user 123
   
   Pagination: GET /users?page=2&amp;limit=20
   Filtering:  GET /users?status=active&amp;role=admin
@@ -3224,7 +3236,7 @@ gRPC:
     Pros: Independent scaling, deployment, technology choice
     Cons: Distributed complexity, eventual consistency, debugging
     
-  RULE: Start monolith → extract microservices when needed
+  RULE: Start monolith <span class="d-a">→</span> extract microservices when needed
   
 SERVICE COMMUNICATION:
   Synchronous:  REST, gRPC (request-response)
@@ -3259,7 +3271,7 @@ IMPLEMENTATION:
     X-RateLimit-Remaining: 42
     X-RateLimit-Reset: 1640995200
     
-  Exceeded → HTTP 429 Too Many Requests</pre></div>
+  Exceeded <span class="d-a">→</span> HTTP 429 Too Many Requests</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f03SystemDesign-33">
@@ -3269,10 +3281,10 @@ IMPLEMENTATION:
           <div class="q-a">
             <p>Distributed patterns are reusable architectural solutions—such as circuit breakers, event sourcing, <abbr title="command query responsibility segregation">CQRS</abbr>, and sagas—that address common challenges in distributed systems. These patterns help manage failures, maintain data consistency, and coordinate transactions across services.</p>
             <div class="diagram"><pre>CIRCUIT BREAKER:
-  Closed (normal) → calls succeed
-  → Failures exceed threshold → Open (all calls fail fast)
-  → After timeout → Half-Open (allow one test call)
-  → Success → Closed  |  Failure → Open
+  Closed (normal) <span class="d-a">→</span> calls succeed
+  <span class="d-a">→</span> Failures exceed threshold <span class="d-a">→</span> Open (all calls fail fast)
+  <span class="d-a">→</span> After timeout <span class="d-a">→</span> Half-Open (allow one test call)
+  <span class="d-a">→</span> Success <span class="d-a">→</span> Closed  |  Failure <span class="d-a">→</span> Open
   
   Prevents cascading failures when downstream service is down
 
@@ -3284,16 +3296,16 @@ EVENT SOURCING:
 
 CQRS (Command Query Responsibility Segregation):
   Separate write model (commands) from read model (queries)
-  Write → normalized DB | Read → denormalized/materialized views
+  Write <span class="d-a">→</span> normalized DB | Read <span class="d-a">→</span> denormalized/materialized views
   Often combined with Event Sourcing
 
 SAGA PATTERN (Distributed Transactions):
-  Choreography: Each service publishes events → next service reacts
+  Choreography: Each service publishes events <span class="d-a">→</span> next service reacts
   Orchestration: Central coordinator manages the transaction steps
-  Compensation: If step 3 fails → undo steps 2 and 1
+  Compensation: If step 3 fails <span class="d-a">→</span> undo steps 2 and 1
 
 IDEMPOTENCY:
-  Same request sent multiple times → same result
+  Same request sent multiple times <span class="d-a">→</span> same result
   Use idempotency key (client-generated UUID)
   Critical for: payment processing, order creation, retries</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -3313,11 +3325,11 @@ IDEMPOTENCY:
              Tools: Jaeger, Zipkin, OpenTelemetry
 
 TRACING:
-  Request → Service A (trace_id: abc, span: 1)
-         → Service B (trace_id: abc, span: 2)
-         → Service C (trace_id: abc, span: 3)
+  Request <span class="d-a">→</span> Service A (trace_id: abc, span: 1)
+         <span class="d-a">→</span> Service B (trace_id: abc, span: 2)
+         <span class="d-a">→</span> Service C (trace_id: abc, span: 3)
   
-  Trace ID propagated through all services → end-to-end visibility</pre></div>
+  Trace ID propagated through all services <span class="d-a">→</span> end-to-end visibility</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f03SystemDesign-35">
@@ -3327,7 +3339,7 @@ TRACING:
           <div class="q-a">
             <p>Common design problems are frequently asked system design interview scenarios—such as URL shorteners, chat systems, and news feeds—that test a candidate's ability to apply fundamental concepts under constraints. Mastering estimation shortcuts and standard solution patterns accelerates both interview performance and real-world architecture work.</p>
             <div class="diagram"><pre>DESIGN PATTERNS FOR COMMON SYSTEMS:
-  URL Shortener:     Hash → base62 encode → redirect
+  URL Shortener:     Hash <span class="d-a">→</span> base62 encode <span class="d-a">→</span> redirect
   Rate Limiter:      Token bucket + Redis
   Chat System:       WebSockets + message queue + fan-out
   News Feed:         Fan-out on write (push) vs fan-out on read (pull)

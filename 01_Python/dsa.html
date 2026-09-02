@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -3987,14 +3999,14 @@ RULES:
             <div class="diagram"><pre>MASTER THEOREM (for divide-and-conquer recurrences):
   T(n) = aT(n/b) + O(nᵈ)
   
-  Case 1: d &lt; log_b(a)  → T(n) = O(n^(log_b(a)))  — work at leaves dominates
-  Case 2: d = log_b(a)  → T(n) = O(nᵈ log n)      — work balanced
-  Case 3: d &gt; log_b(a)  → T(n) = O(nᵈ)             — work at root dominates
+  Case 1: d &lt; log_b(a)  <span class="d-a">→</span> T(n) = O(n^(log_b(a)))  — work at leaves dominates
+  Case 2: d = log_b(a)  <span class="d-a">→</span> T(n) = O(nᵈ log n)      — work balanced
+  Case 3: d &gt; log_b(a)  <span class="d-a">→</span> T(n) = O(nᵈ)             — work at root dominates
   
   Examples:
-    Binary Search:    T(n) = T(n/2) + O(1)  → a=1, b=2, d=0 → Case 2 → O(log n)
-    Merge Sort:       T(n) = 2T(n/2) + O(n) → a=2, b=2, d=1 → Case 2 → O(n log n)
-    Karatsuba Mult:   T(n) = 3T(n/2) + O(n) → a=3, b=2, d=1 → Case 1 → O(n^1.585)</pre></div>
+    Binary Search:    T(n) = T(n/2) + O(1)  <span class="d-a">→</span> a=1, b=2, d=0 <span class="d-a">→</span> Case 2 <span class="d-a">→</span> O(log n)
+    Merge Sort:       T(n) = 2T(n/2) + O(n) <span class="d-a">→</span> a=2, b=2, d=1 <span class="d-a">→</span> Case 2 <span class="d-a">→</span> O(n log n)
+    Karatsuba Mult:   T(n) = 3T(n/2) + O(n) <span class="d-a">→</span> a=3, b=2, d=1 <span class="d-a">→</span> Case 1 <span class="d-a">→</span> O(n^1.585)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fDSASummarymd-26">
@@ -4180,7 +4192,7 @@ freq = <span class="fn">Counter</span>(<span class="str">"banana"</span>)  <span
     <span class="kw">return</span> matches</code></pre>
             <div class="diagram"><pre>STRING COMPLEXITY CHEAT SHEET:
   Operation          Python       Notes
-  ─────────          ──────       ─────
+  <span class="d-l">─────────</span>          <span class="d-l">──────</span>       <span class="d-l">─────</span>
   s[i]               O(1)         Direct indexing
   s + t              O(n+m)       Creates new string (immutable!)
   ''.join(list)      O(n)         Preferred for concatenation
@@ -4830,10 +4842,10 @@ graph = <span class="fn">defaultdict</span>(list)
     <span class="kw">return</span> dist</code></pre>
             <div class="diagram"><pre>SHORTEST PATH ALGORITHM COMPARISON:
   Algorithm       Time        Space    Negative    All-Pairs
-  ──────────      ────        ─────    ────────    ─────────
-  Dijkstra        O(E log V)  O(V)     ❌ No       ❌ No
-  Bellman-Ford    O(VE)       O(V)     ✅ Yes      ❌ No
-  Floyd-Warshall  O(V³)       O(V²)    ✅ Yes      ✅ Yes
+  <span class="d-l">──────────</span>      <span class="d-l">────</span>        <span class="d-l">─────</span>    <span class="d-l">────────</span>    <span class="d-l">─────────</span>
+  Dijkstra        O(E log V)  O(V)     × No       × No
+  Bellman-Ford    O(VE)       O(V)     √ Yes      × No
+  Floyd-Warshall  O(V³)       O(V²)    √ Yes      √ Yes
   
   USE WHEN:
   Dijkstra:       Non-negative weights, single source (most common)
@@ -5029,7 +5041,7 @@ graph = <span class="fn">defaultdict</span>(list)
     <span class="kw">return</span> mst</code></pre>
             <div class="diagram"><pre>MST COMPARISON:
   Algorithm   Time         Best For
-  ─────────   ────         ────────
+  <span class="d-l">─────────</span>   <span class="d-l">────</span>         <span class="d-l">────────</span>
   Kruskal's   O(E log E)   Sparse graphs, edge list input
   Prim's      O(E log V)   Dense graphs, adjacency list input
   
@@ -5080,13 +5092,13 @@ graph = <span class="fn">defaultdict</span>(list)
 <span class="cmt"># Both are O(n log n) worst case, stable, very efficient for real data</span></code></pre>
             <div class="diagram"><pre>SORTING COMPARISON:
   Algorithm     | Best    | Average   | Worst    | Space  | Stable
-  ──────────────┼─────────┼───────────┼──────────┼────────┼───────
-  Merge Sort    | O(nlogn)| O(nlogn)  | O(nlogn) | O(n)   | Yes ✅
+  <span class="d-l">──────────────┼─────────┼───────────┼──────────┼────────┼───────</span>
+  Merge Sort    | O(nlogn)| O(nlogn)  | O(nlogn) | O(n)   | Yes √
   Quick Sort    | O(nlogn)| O(nlogn)  | O(n²)    | O(logn)| No
   Heap Sort     | O(nlogn)| O(nlogn)  | O(nlogn) | O(1)   | No
-  Timsort       | O(n)    | O(nlogn)  | O(nlogn) | O(n)   | Yes ✅
-  Counting Sort | O(n+k)  | O(n+k)    | O(n+k)   | O(k)   | Yes ✅
-  Bucket Sort   | O(n+k)  | O(n+k)    | O(n²)    | O(n)   | Yes ✅
+  Timsort       | O(n)    | O(nlogn)  | O(nlogn) | O(n)   | Yes √
+  Counting Sort | O(n+k)  | O(n+k)    | O(n+k)   | O(k)   | Yes √
+  Bucket Sort   | O(n+k)  | O(n+k)    | O(n²)    | O(n)   | Yes √
   
   Python uses Timsort. In interviews, know merge sort and quick sort.</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -5447,7 +5459,7 @@ n ^ <span class="num">0</span>          <span class="cmt"># n (XOR with 0)</span
             <p>A quick-reference table of <strong>time complexities</strong> for common data structure operations and Python built-in methods. Use this to make instant decisions about which data structure to choose during interviews and system design.</p>
             <div class="diagram"><pre>DATA STRUCTURE OPERATIONS:
   Structure    | Access | Search | Insert | Delete | Notes
-  ─────────────┼────────┼────────┼────────┼────────┼─────────────────
+  <span class="d-l">─────────────┼────────┼────────┼────────┼────────┼─────────────────</span>
   Array/List   | O(1)   | O(n)   | O(n)   | O(n)   | O(1) append amortized
   Stack        | O(n)   | O(n)   | O(1)   | O(1)   | LIFO, top only
   Queue        | O(n)   | O(n)   | O(1)   | O(1)   | FIFO, use deque
@@ -5457,17 +5469,17 @@ n ^ <span class="num">0</span>          <span class="cmt"># n (XOR with 0)</span
   Trie         | —      | O(m)   | O(m)   | O(m)   | m = key length
 
 PYTHON-SPECIFIC:
-  list.append()     → O(1) amortized
-  list.pop()        → O(1)
-  list.pop(0)       → O(n) ← use deque.popleft()
-  list[i]           → O(1)
-  x in list         → O(n)
-  x in set/dict     → O(1)
-  sorted()          → O(n log n)
-  heapq.heappush()  → O(log n)
-  heapq.heapify()   → O(n)
-  deque.appendleft()→ O(1)
-  deque.popleft()   → O(1)</pre></div>
+  list.append()     <span class="d-a">→</span> O(1) amortized
+  list.pop()        <span class="d-a">→</span> O(1)
+  list.pop(0)       <span class="d-a">→</span> O(n) <span class="d-a">←</span> use deque.popleft()
+  list[i]           <span class="d-a">→</span> O(1)
+  x in list         <span class="d-a">→</span> O(n)
+  x in set/dict     <span class="d-a">→</span> O(1)
+  sorted()          <span class="d-a">→</span> O(n log n)
+  heapq.heappush()  <span class="d-a">→</span> O(log n)
+  heapq.heapify()   <span class="d-a">→</span> O(n)
+  deque.appendleft()<span class="d-a">→</span> O(1)
+  deque.popleft()   <span class="d-a">→</span> O(1)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fDSASummarymd-48">

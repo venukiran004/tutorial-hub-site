@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1267,14 +1279,14 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p>The mental model that solves most cases:</p>
             <div class="diagram"><pre>Memory grows and never comes back
-        │
-        ▼
-Is the object still REACHABLE from a root?   ← 90% of cases: YES
+        <span class="d-l">│</span>
+        <span class="d-a">▼</span>
+Is the object still REACHABLE from a root?   <span class="d-a">←</span> 90% of cases: YES
    (a global list, a cache, a closure, a registry, an open session)
-        │
-        ├─ YES → it's not garbage. Find the reference chain and cut it.
-        │
-        └─ NO  → it's a cycle (rare) or native memory (C extension).</pre></div>
+        <span class="d-l">│</span>
+        <span class="d-l">├─</span> YES <span class="d-a">→</span> it's not garbage. Find the reference chain and cut it.
+        <span class="d-l">│</span>
+        <span class="d-l">└─</span> NO  <span class="d-a">→</span> it's a cycle (rare) or native memory (C extension).</pre></div>
             <div class="note">
               <p><strong>The key reframe:</strong> you are not looking for "memory the GC forgot." You are looking for <strong>a reference you forgot.</strong> Steps 2–4 below are all about finding that reference.</p>
             </div>
@@ -1323,10 +1335,10 @@ baseline = <span class="fn">rss_mb</span>()
             <p>Read the output like this:</p>
             <div class="diagram"><pre>iter 0: 120.4 MB  (+8.1)
 iter 1: 128.7 MB  (+16.4)
-iter 2: 137.0 MB  (+24.7)     ← steadily climbing, never plateaus → REAL leak
+iter 2: 137.0 MB  (+24.7)     <span class="d-a">←</span> steadily climbing, never plateaus <span class="d-a">→</span> REAL leak
 ...</pre></div>
             <p>vs. a <strong>healthy</strong> process, which rises then <strong>plateaus</strong> (caches warm up, then stop growing):</p>
-            <div class="diagram"><pre>iter 0: 120 MB   iter 5: 180 MB   iter 9: 182 MB   ← flat tail = fine, not a leak</pre></div>
+            <div class="diagram"><pre>iter 0: 120 MB   iter 5: 180 MB   iter 9: 182 MB   <span class="d-a">←</span> flat tail = fine, not a leak</pre></div>
             <div class="note n-crit">
               <p><strong>Gotcha:</strong> RSS <em>not</em> dropping after <code>del</code> is normal — CPython's <code>pymalloc</code> keeps freed pools/arenas around to reuse, so the OS often doesn't get the memory back immediately. Judge by the <strong>trend across many iterations</strong>, not one before/after pair. See <code>Memory_and_PVM.md §5</code> for the arena/pool model.</p>
             </div>
@@ -1409,7 +1421,7 @@ growth = {t: after[t] - before.<span class="fn">get</span>(t, <span class="num">
     <span class="kw">if</span> delta:
         <span class="fn">print</span>(f<span class="str">"{delta:+8d}  {t}"</span>)</code></pre>
             <div class="diagram"><pre>  +120000  dict
-  +120000  MyRequest        ← we're accumulating MyRequest instances
+  +120000  MyRequest        <span class="d-a">←</span> we're accumulating MyRequest instances
     +240   list</pre></div>
             <h3><code>objgraph</code> — the same idea, plus pictures (<code>pip install objgraph</code>)</h3>
             <pre class="code" data-lang="python"><code><span class="kw">import</span> objgraph
@@ -1441,11 +1453,11 @@ objgraph.<span class="fn">show_backrefs</span>(
 )</code></pre>
             <p>The graph reveals the smoking gun, e.g.:</p>
             <div class="diagram"><pre>  module '__main__'
-        │  (holds global)
-        ▼
-  list  CACHE            ←  there it is: a module-level list nobody clears
-        │
-        ▼
+        <span class="d-l">│</span>  (holds global)
+        <span class="d-a">▼</span>
+  list  CACHE            <span class="d-a">←</span>  there it is: a module-level list nobody clears
+        <span class="d-l">│</span>
+        <span class="d-a">▼</span>
   MyRequest  &lt;the object that "leaked"&gt;</pre></div>
             <p>No graphviz installed? Get the chain as text/dot instead:</p>
             <pre class="code" data-lang="python"><code>objgraph.<span class="fn">show_chain</span>(
@@ -1745,21 +1757,21 @@ y = <span class="num">20</span>
 result = <span class="fn">add</span>(x, y)
 <span class="fn">print</span>(result)   <span class="cmt"># 30</span></code></pre>
             <div class="diagram"><pre>python hello.py
-   │
-   ▼
+   <span class="d-l">│</span>
+   <span class="d-a">▼</span>
 STEP 1: SOURCE CODE (.py)          Python reads hello.py as plain text
-   │
-   ▼
+   <span class="d-l">│</span>
+   <span class="d-a">▼</span>
 STEP 2: LEXICAL ANALYSIS           Tokenizer breaks source into tokens:
-   │                               DEF, NAME('add'), LPAR, NAME('a'), ...
-   ▼
-STEP 3: PARSING (AST)              Tokens → Abstract Syntax Tree (grammar)
-   │                               Module → FunctionDef → Return(BinOp(a+b))
-   ▼
-STEP 4: COMPILATION                AST → bytecode (code objects).
-   │                               THIS is the COMPILER step inside CPython.
-   │                               Cached in __pycache__/hello.cpython-3XX.pyc
-   ▼
+   <span class="d-l">│</span>                               DEF, NAME('add'), LPAR, NAME('a'), ...
+   <span class="d-a">▼</span>
+STEP 3: PARSING (AST)              Tokens <span class="d-a">→</span> Abstract Syntax Tree (grammar)
+   <span class="d-l">│</span>                               Module <span class="d-a">→</span> FunctionDef <span class="d-a">→</span> Return(BinOp(a+b))
+   <span class="d-a">▼</span>
+STEP 4: COMPILATION                AST <span class="d-a">→</span> bytecode (code objects).
+   <span class="d-l">│</span>                               THIS is the COMPILER step inside CPython.
+   <span class="d-l">│</span>                               Cached in __pycache__/hello.cpython-3XX.pyc
+   <span class="d-a">▼</span>
 STEP 5: PYTHON VIRTUAL MACHINE     Bytecode executed instruction-by-instruction.
                                    PVM is a STACK-BASED interpreter (ceval.c).
                                    THIS is the INTERPRETER step.</pre></div>
@@ -1874,7 +1886,7 @@ tree = ast.<span class="fn">parse</span>(<span class="str">"result = add(x, y)\n
               </table>
             </div>
             <h3>Is Python compiled or interpreted? — Both.</h3>
-            <div class="diagram"><pre>.py  ──[COMPILER]──►  bytecode (.pyc)  ──[PVM / INTERPRETER]──►  output</pre></div>
+            <div class="diagram"><pre>.py  <span class="d-l">──</span>[COMPILER]<span class="d-l">──</span><span class="d-a">►</span>  bytecode (.pyc)  <span class="d-l">──</span>[PVM / INTERPRETER]<span class="d-l">──</span><span class="d-a">►</span>  output</pre></div>
             <ul>
               <li><strong>Compiler?</strong> Yes — CPython compiles <code>.py</code> → bytecode (not native machine code).</li>
               <li><strong>Interpreter?</strong> Yes — the PVM interprets the bytecode instruction by instruction.</li>
@@ -1887,10 +1899,10 @@ py_compile.<span class="fn">compile</span>(<span class="str">"hello.py"</span>) 
 <span class="kw">import</span> compileall
 compileall.<span class="fn">compile_dir</span>(<span class="str">"my_project/"</span>) <span class="cmt"># compile a whole tree</span></code></pre>
             <div class="diagram"><pre>.pyc file structure
-├── Magic number (4 bytes)   ← Python version identifier
-├── Bit field / flags
-├── Timestamp + source size  ← invalidation check vs the .py
-└── Marshalled code object    ← the actual bytecode</pre></div>
+<span class="d-l">├──</span> Magic number (4 bytes)   <span class="d-a">←</span> Python version identifier
+<span class="d-l">├──</span> Bit field / flags
+<span class="d-l">├──</span> Timestamp + source size  <span class="d-a">←</span> invalidation check vs the .py
+<span class="d-l">└──</span> Marshalled code object    <span class="d-a">←</span> the actual bytecode</pre></div>
             <p>On re-import, if the <code>.py</code> is unchanged (timestamp + size match), Python loads the
               <code>.pyc</code> directly and <strong>skips compilation</strong> for faster startup.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -2011,16 +2023,16 @@ code = add.__code__
             <p>The <abbr title="Python virtual machine">PVM</abbr> is the <strong>runtime engine</strong> of CPython: a <strong>stack-based</strong> virtual machine
               (implemented in C, in <code>ceval.c</code>) that reads and executes bytecode.</p>
             <div class="diagram"><pre>PVM components
-├── Bytecode stream      the compiled instructions
-├── Evaluation loop      the big switch over opcodes (ceval.c)
-├── Value stack          operand stack the opcodes push/pop
-├── Fast locals          array of local variables (LOAD_FAST)
-├── Globals / builtins   namespace dicts (LOAD_GLOBAL)
-├── Block stack          loops / try blocks
-└── Call stack           chain of frame objects</pre></div>
+<span class="d-l">├──</span> Bytecode stream      the compiled instructions
+<span class="d-l">├──</span> Evaluation loop      the big switch over opcodes (ceval.c)
+<span class="d-l">├──</span> Value stack          operand stack the opcodes push/pop
+<span class="d-l">├──</span> Fast locals          array of local variables (LOAD_FAST)
+<span class="d-l">├──</span> Globals / builtins   namespace dicts (LOAD_GLOBAL)
+<span class="d-l">├──</span> Block stack          loops / try blocks
+<span class="d-l">└──</span> Call stack           chain of frame objects</pre></div>
             <h3>Executing <code>x = 10; y = 20; result = x + y</code>
             </h3>
-            <div class="diagram"><pre>Instruction          Stack (top→)   Variables
+            <div class="diagram"><pre>Instruction          Stack (top<span class="d-a">→</span>)   Variables
 LOAD_CONST 10        [10]           {}
 STORE_NAME x         []             {x: 10}
 LOAD_CONST 20        [20]           {x: 10}
@@ -2047,13 +2059,13 @@ STORE_NAME result    []             {x: 10, y: 20, result: 30}</pre></div>
 
 <span class="fn">outer</span>()</code></pre>
             <div class="diagram"><pre>CALL STACK during inner():
-┌─────────────────────┐
-│ Frame: inner()      │  ← top (current)
-├─────────────────────┤
-│ Frame: outer()      │  f_locals: {x: 42}
-├─────────────────────┤
-│ Frame: &lt;module&gt;     │  ← bottom (global)
-└─────────────────────┘</pre></div>
+<span class="d-l">┌─────────────────────┐</span>
+<span class="d-l">│</span> Frame: inner()      <span class="d-l">│</span>  <span class="d-a">←</span> top (current)
+<span class="d-l">├─────────────────────┤</span>
+<span class="d-l">│</span> Frame: outer()      <span class="d-l">│</span>  f_locals: {x: 42}
+<span class="d-l">├─────────────────────┤</span>
+<span class="d-l">│</span> Frame: &lt;module&gt;     <span class="d-l">│</span>  <span class="d-a">←</span> bottom (global)
+<span class="d-l">└─────────────────────┘</span></pre></div>
             <h3>The <abbr title="global interpreter lock">GIL</abbr> (one-line context)</h3>
             <p>CPython protects its memory model — especially reference counts — with the
               <strong>Global Interpreter Lock (GIL)</strong>: only one thread executes Python bytecode at a
@@ -2072,11 +2084,11 @@ STORE_NAME result    []             {x: 10, y: 20, result: 30}</pre></div>
             <p>Python objects below 512 bytes are served by <strong>pymalloc</strong>, a custom allocator
               layered on top of the OS allocator to reduce fragmentation and syscalls.</p>
             <div class="diagram"><pre>OS Memory (RAM)
-└── Python Memory Manager (pymalloc)
-    └── Object-specific allocators (int, list, dict, ...)
-        └── Arena (256 KB, from the OS via mmap/malloc)
-            └── Pool (4 KB = 1 page, one size class)
-                └── Block (8–512 B, one object slot)</pre></div>
+<span class="d-l">└──</span> Python Memory Manager (pymalloc)
+    <span class="d-l">└──</span> Object-specific allocators (int, list, dict, ...)
+        <span class="d-l">└──</span> Arena (256 KB, from the OS via mmap/malloc)
+            <span class="d-l">└──</span> Pool (4 KB = 1 page, one size class)
+                <span class="d-l">└──</span> Block (8–512 B, one object slot)</pre></div>
             <div class="tbl-wrap">
               <table class="t2 t-def">
                 <thead>
@@ -2217,11 +2229,11 @@ b.ref = a   <span class="cmt"># B → A</span>
 <span class="kw">del</span> b       <span class="cmt"># Node("B") refcount still 1 (a.ref points to it)</span>
 <span class="cmt"># Neither reaches 0 via refcount alone → leak without the GC</span></code></pre>
             <h3>Generations</h3>
-            <div class="diagram"><pre>Gen 0 (young)   ← new objects; collected MOST often (threshold ~700 allocations)
-   │ survivors promoted
-Gen 1 (middle)  ← collected less often
-   │ survivors promoted
-Gen 2 (old)     ← long-lived objects; collected LEAST often</pre></div>
+            <div class="diagram"><pre>Gen 0 (young)   <span class="d-a">←</span> new objects; collected MOST often (threshold ~700 allocations)
+   <span class="d-l">│</span> survivors promoted
+Gen 1 (middle)  <span class="d-a">←</span> collected less often
+   <span class="d-l">│</span> survivors promoted
+Gen 2 (old)     <span class="d-a">←</span> long-lived objects; collected LEAST often</pre></div>
             <p>The design rests on the <strong>generational hypothesis</strong>: <em>most objects die young</em>, so
               concentrating collection effort on Gen 0 is cheap and catches the bulk of garbage.</p>
             <h3>Cycle-detection algorithm (sketch)</h3>
@@ -2643,15 +2655,15 @@ rows = <span class="fn">sorted</span>([(<span class="num">3</span>, <span class=
 <span class="kw">from</span> itertools <span class="kw">import</span> chain
 flat = <span class="fn">list</span>(chain.<span class="fn">from_iterable</span>([[<span class="num">1</span>, <span class="num">2</span>], [<span class="num">3</span>, <span class="num">4</span>]]))</code></pre>
             <h3>Performance checklist</h3>
-            <div class="diagram"><pre>✅ Profile before optimizing (timeit → cProfile → line_profiler)
-✅ Prefer built-ins and C-level helpers (sum, map, operator.*, Counter)
-✅ Comprehensions / generators over manual append loops
-✅ Generators &amp; chunking for large data (bounded memory)
-✅ set/dict for membership; deque for queue ends
-✅ ''.join() not += ; bind hot globals/builtins to locals
-✅ functools.lru_cache for repeated pure calls
-✅ __slots__ / array / NumPy to cut memory; del big temporaries
-❌ Don't micro-optimize cold code or guess bottlenecks</pre></div>
+            <div class="diagram"><pre>√ Profile before optimizing (timeit <span class="d-a">→</span> cProfile <span class="d-a">→</span> line_profiler)
+√ Prefer built-ins and C-level helpers (sum, map, operator.*, Counter)
+√ Comprehensions / generators over manual append loops
+√ Generators &amp; chunking for large data (bounded memory)
+√ set/dict for membership; deque for queue ends
+√ ''.join() not += ; bind hot globals/builtins to locals
+√ functools.lru_cache for repeated pure calls
+√ __slots__ / array / NumPy to cut memory; del big temporaries
+× Don't micro-optimize cold code or guess bottlenecks</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fMemoryandPVMmd-27">
@@ -2994,61 +3006,61 @@ result = <span class="fn">add</span>(x, y)
             <h3>Step-by-Step Execution Flow</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPVMandGarbageC-31"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>┌──────────────────────────────────────────────────────────────────┐
-│                  python hello.py                                 │
-└──────────┬───────────────────────────────────────────────────────┘
-           │
-           ▼
-┌──────────────────────────────────────────────────────────────────┐
-│  STEP 1: SOURCE CODE (.py)                                       │
-│  Python reads hello.py as plain text                             │
-└──────────┬───────────────────────────────────────────────────────┘
-           │
-           ▼
-┌──────────────────────────────────────────────────────────────────┐
-│  STEP 2: LEXICAL ANALYSIS (Tokenizer / Lexer)                    │
-│  Breaks source into tokens:                                      │
-│    DEF, NAME('add'), LPAR, NAME('a'), COMMA, NAME('b'), RPAR,    │
-│    COLON, NEWLINE, INDENT, RETURN, NAME('a'), PLUS, NAME('b'),   │
-│    NEWLINE, DEDENT, ...                                          │
-└──────────┬───────────────────────────────────────────────────────┘
-           │
-           ▼
-┌──────────────────────────────────────────────────────────────────┐
-│  STEP 3: PARSING (AST — Abstract Syntax Tree)                    │
-│  Tokens → tree structure following Python grammar                │
-│                                                                  │
-│    Module                                                        │
-│    ├── FunctionDef(name='add')                                   │
-│    │   └── Return(BinOp(a + b))                                  │
-│    ├── Assign(x = 10)                                            │
-│    ├── Assign(y = 20)                                            │
-│    ├── Assign(result = Call(add, [x, y]))                        │
-│    └── Expr(Call(print, [result]))                               │
-└──────────┬───────────────────────────────────────────────────────┘
-           │
-           ▼
-┌──────────────────────────────────────────────────────────────────┐
-│  STEP 4: COMPILATION (Compiler)                                  │
-│  AST → Bytecode (.pyc)                                           │
-│  This is the COMPILER step inside CPython!                       │
-│  Output is stored in __pycache__/hello.cpython-312.pyc           │
-└──────────┬───────────────────────────────────────────────────────┘
-           │
-           ▼
-┌──────────────────────────────────────────────────────────────────┐
-│  STEP 5: PYTHON VIRTUAL MACHINE (PVM)                            │
-│  Bytecode is executed instruction-by-instruction                 │
-│  PVM is a STACK-BASED interpreter                                │
-│  This is the INTERPRETER step!                                   │
-│                                                                  │
-│    LOAD_CONST 10  → push 10 onto stack                           │
-│    STORE_NAME x   → pop &amp; bind to 'x'                            │
-│    LOAD_CONST 20  → push 20 onto stack                           │
-│    STORE_NAME y   → pop &amp; bind to 'y'                            │
-│    ... CALL add   → execute function, push result                │
-│    ... CALL print → output: 30                                   │
-└──────────────────────────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌──────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                  python hello.py                                 <span class="d-l">│</span>
+<span class="d-l">└──────────┬───────────────────────────────────────────────────────┘</span>
+           <span class="d-l">│</span>
+           <span class="d-a">▼</span>
+<span class="d-l">┌──────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>  STEP 1: SOURCE CODE (.py)                                       <span class="d-l">│</span>
+<span class="d-l">│</span>  Python reads hello.py as plain text                             <span class="d-l">│</span>
+<span class="d-l">└──────────┬───────────────────────────────────────────────────────┘</span>
+           <span class="d-l">│</span>
+           <span class="d-a">▼</span>
+<span class="d-l">┌──────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>  STEP 2: LEXICAL ANALYSIS (Tokenizer / Lexer)                    <span class="d-l">│</span>
+<span class="d-l">│</span>  Breaks source into tokens:                                      <span class="d-l">│</span>
+<span class="d-l">│</span>    DEF, NAME('add'), LPAR, NAME('a'), COMMA, NAME('b'), RPAR,    <span class="d-l">│</span>
+<span class="d-l">│</span>    COLON, NEWLINE, INDENT, RETURN, NAME('a'), PLUS, NAME('b'),   <span class="d-l">│</span>
+<span class="d-l">│</span>    NEWLINE, DEDENT, ...                                          <span class="d-l">│</span>
+<span class="d-l">└──────────┬───────────────────────────────────────────────────────┘</span>
+           <span class="d-l">│</span>
+           <span class="d-a">▼</span>
+<span class="d-l">┌──────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>  STEP 3: PARSING (AST — Abstract Syntax Tree)                    <span class="d-l">│</span>
+<span class="d-l">│</span>  Tokens <span class="d-a">→</span> tree structure following Python grammar                <span class="d-l">│</span>
+<span class="d-l">│</span>                                                                  <span class="d-l">│</span>
+<span class="d-l">│</span>    Module                                                        <span class="d-l">│</span>
+<span class="d-l">│</span>    <span class="d-l">├──</span> FunctionDef(name='add')                                   <span class="d-l">│</span>
+<span class="d-l">│</span>    <span class="d-l">│</span>   <span class="d-l">└──</span> Return(BinOp(a + b))                                  <span class="d-l">│</span>
+<span class="d-l">│</span>    <span class="d-l">├──</span> Assign(x = 10)                                            <span class="d-l">│</span>
+<span class="d-l">│</span>    <span class="d-l">├──</span> Assign(y = 20)                                            <span class="d-l">│</span>
+<span class="d-l">│</span>    <span class="d-l">├──</span> Assign(result = Call(add, [x, y]))                        <span class="d-l">│</span>
+<span class="d-l">│</span>    <span class="d-l">└──</span> Expr(Call(print, [result]))                               <span class="d-l">│</span>
+<span class="d-l">└──────────┬───────────────────────────────────────────────────────┘</span>
+           <span class="d-l">│</span>
+           <span class="d-a">▼</span>
+<span class="d-l">┌──────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>  STEP 4: COMPILATION (Compiler)                                  <span class="d-l">│</span>
+<span class="d-l">│</span>  AST <span class="d-a">→</span> Bytecode (.pyc)                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  This is the COMPILER step inside CPython!                       <span class="d-l">│</span>
+<span class="d-l">│</span>  Output is stored in __pycache__/hello.cpython-312.pyc           <span class="d-l">│</span>
+<span class="d-l">└──────────┬───────────────────────────────────────────────────────┘</span>
+           <span class="d-l">│</span>
+           <span class="d-a">▼</span>
+<span class="d-l">┌──────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>  STEP 5: PYTHON VIRTUAL MACHINE (PVM)                            <span class="d-l">│</span>
+<span class="d-l">│</span>  Bytecode is executed instruction-by-instruction                 <span class="d-l">│</span>
+<span class="d-l">│</span>  PVM is a STACK-BASED interpreter                                <span class="d-l">│</span>
+<span class="d-l">│</span>  This is the INTERPRETER step!                                   <span class="d-l">│</span>
+<span class="d-l">│</span>                                                                  <span class="d-l">│</span>
+<span class="d-l">│</span>    LOAD_CONST 10  <span class="d-a">→</span> push 10 onto stack                           <span class="d-l">│</span>
+<span class="d-l">│</span>    STORE_NAME x   <span class="d-a">→</span> pop &amp; bind to 'x'                            <span class="d-l">│</span>
+<span class="d-l">│</span>    LOAD_CONST 20  <span class="d-a">→</span> push 20 onto stack                           <span class="d-l">│</span>
+<span class="d-l">│</span>    STORE_NAME y   <span class="d-a">→</span> pop &amp; bind to 'y'                            <span class="d-l">│</span>
+<span class="d-l">│</span>    ... CALL add   <span class="d-a">→</span> execute function, push result                <span class="d-l">│</span>
+<span class="d-l">│</span>    ... CALL print <span class="d-a">→</span> output: 30                                   <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fPVMandGarbageC-32">
@@ -3100,27 +3112,27 @@ tree = ast.<span class="fn">parse</span>(code)
         <div class="parthead" id="fPVMandGarbageC-p1"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>2. Compiler vs Interpreter — Concepts</span><i></i>
         </div>
         <div class="q-a" style="margin:0 0 12px">
-          <div class="diagram"><pre>┌─────────────────────────────┬──────────────────────────────────────┐
-│         COMPILER            │           INTERPRETER                │
-├─────────────────────────────┼──────────────────────────────────────┤
-│ Translates ENTIRE source    │ Translates &amp; executes LINE-BY-LINE   │
-│ code to machine code        │ (or instruction-by-instruction)      │
-│ BEFORE execution            │                                      │
-├─────────────────────────────┼──────────────────────────────────────┤
-│ Produces a standalone       │ No standalone executable;            │
-│ executable (.exe, .out)     │ needs the interpreter to run         │
-├─────────────────────────────┼──────────────────────────────────────┤
-│ Errors caught at compile    │ Errors found at runtime              │
-│ time (syntax, type errors)  │ (line-by-line)                       │
-├─────────────────────────────┼──────────────────────────────────────┤
-│ Faster execution            │ Slower execution                     │
-│ (already machine code)      │ (overhead of interpretation)         │
-├─────────────────────────────┼──────────────────────────────────────┤
-│ Examples: C, C++, Rust, Go  │ Examples: Python, Ruby, JavaScript   │
-├─────────────────────────────┼──────────────────────────────────────┤
-│ Compilation takes time      │ No separate compilation step         │
-│ upfront                     │ for the user                         │
-└─────────────────────────────┴──────────────────────────────────────┘</pre></div>
+          <div class="diagram"><pre><span class="d-l">┌─────────────────────────────┬──────────────────────────────────────┐</span>
+<span class="d-l">│</span>         COMPILER            <span class="d-l">│</span>           INTERPRETER                <span class="d-l">│</span>
+<span class="d-l">├─────────────────────────────┼──────────────────────────────────────┤</span>
+<span class="d-l">│</span> Translates ENTIRE source    <span class="d-l">│</span> Translates &amp; executes LINE-BY-LINE   <span class="d-l">│</span>
+<span class="d-l">│</span> code to machine code        <span class="d-l">│</span> (or instruction-by-instruction)      <span class="d-l">│</span>
+<span class="d-l">│</span> BEFORE execution            <span class="d-l">│</span>                                      <span class="d-l">│</span>
+<span class="d-l">├─────────────────────────────┼──────────────────────────────────────┤</span>
+<span class="d-l">│</span> Produces a standalone       <span class="d-l">│</span> No standalone executable;            <span class="d-l">│</span>
+<span class="d-l">│</span> executable (.exe, .out)     <span class="d-l">│</span> needs the interpreter to run         <span class="d-l">│</span>
+<span class="d-l">├─────────────────────────────┼──────────────────────────────────────┤</span>
+<span class="d-l">│</span> Errors caught at compile    <span class="d-l">│</span> Errors found at runtime              <span class="d-l">│</span>
+<span class="d-l">│</span> time (syntax, type errors)  <span class="d-l">│</span> (line-by-line)                       <span class="d-l">│</span>
+<span class="d-l">├─────────────────────────────┼──────────────────────────────────────┤</span>
+<span class="d-l">│</span> Faster execution            <span class="d-l">│</span> Slower execution                     <span class="d-l">│</span>
+<span class="d-l">│</span> (already machine code)      <span class="d-l">│</span> (overhead of interpretation)         <span class="d-l">│</span>
+<span class="d-l">├─────────────────────────────┼──────────────────────────────────────┤</span>
+<span class="d-l">│</span> Examples: C, C++, Rust, Go  <span class="d-l">│</span> Examples: Python, Ruby, JavaScript   <span class="d-l">│</span>
+<span class="d-l">├─────────────────────────────┼──────────────────────────────────────┤</span>
+<span class="d-l">│</span> Compilation takes time      <span class="d-l">│</span> No separate compilation step         <span class="d-l">│</span>
+<span class="d-l">│</span> upfront                     <span class="d-l">│</span> for the user                         <span class="d-l">│</span>
+<span class="d-l">└─────────────────────────────┴──────────────────────────────────────┘</span></pre></div>
         </div>
         <article class="q" id="fPVMandGarbageC-34">
           <div class="q-h"><span class="q-n">&bull;</span>
@@ -3173,11 +3185,11 @@ tree = ast.<span class="fn">parse</span>(code)
             <div class="keyterms"><span class="kt">Compiler?</span><span class="kt">What kind?</span><span class="kt">Produces?</span><span class="kt">Bytecode</span><span class="kt">Interpreter?</span><span class="kt">Why called interpreted?</span>
             </div>
             <p>This is one of the most common misconceptions. People say "Python is interpreted." The full truth:</p>
-            <div class="diagram"><pre>┌────────────────────────────────────────────────────────────────────────┐
-│  Python = Compiler (hidden) + Interpreter (PVM)                        │
-│                                                                        │
-│  .py  ──[COMPILER]──►  bytecode (.pyc)  ──[PVM/INTERPRETER]──► output  │
-└────────────────────────────────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌────────────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>  Python = Compiler (hidden) + Interpreter (PVM)                        <span class="d-l">│</span>
+<span class="d-l">│</span>                                                                        <span class="d-l">│</span>
+<span class="d-l">│</span>  .py  <span class="d-l">──</span>[COMPILER]<span class="d-l">──</span><span class="d-a">►</span>  bytecode (.pyc)  <span class="d-l">──</span>[PVM/INTERPRETER]<span class="d-l">──</span><span class="d-a">►</span> output  <span class="d-l">│</span>
+<span class="d-l">└────────────────────────────────────────────────────────────────────────┘</span></pre></div>
             <div class="tbl-wrap">
               <table class="t2">
                 <thead>
@@ -3241,15 +3253,15 @@ compileall.<span class="fn">compile_dir</span>(<span class="str">'my_project/'</
             <h3>What happens inside the <code>.pyc</code> file?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPVMandGarbageC-37"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>┌───────────────────────────────────────────┐
-│  .pyc file structure                      │
-├───────────────────────────────────────────┤
-│  Magic Number (4 bytes)                   │  ← Python version identifier
-│  Flags (4 bytes)                          │
-│  Timestamp (4 bytes)                      │  ← modification time of .py
-│  Source Size (4 bytes)                    │  ← size of .py file
-│  Marshalled Code Object                   │  ← the actual bytecode
-└───────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌───────────────────────────────────────────┐</span>
+<span class="d-l">│</span>  .pyc file structure                      <span class="d-l">│</span>
+<span class="d-l">├───────────────────────────────────────────┤</span>
+<span class="d-l">│</span>  Magic Number (4 bytes)                   <span class="d-l">│</span>  <span class="d-a">←</span> Python version identifier
+<span class="d-l">│</span>  Flags (4 bytes)                          <span class="d-l">│</span>
+<span class="d-l">│</span>  Timestamp (4 bytes)                      <span class="d-l">│</span>  <span class="d-a">←</span> modification time of .py
+<span class="d-l">│</span>  Source Size (4 bytes)                    <span class="d-l">│</span>  <span class="d-a">←</span> size of .py file
+<span class="d-l">│</span>  Marshalled Code Object                   <span class="d-l">│</span>  <span class="d-a">←</span> the actual bytecode
+<span class="d-l">└───────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="fPVMandGarbageC-p3"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-star"/></svg>4. Python Bytecode Deep Dive</span><i></i>
@@ -3397,38 +3409,38 @@ code = add.__code__
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <p>The <abbr title="Python virtual machine">PVM</abbr> is the <strong>runtime engine</strong> of CPython. It is a <strong>stack-based virtual machine</strong> that reads and executes bytecode.</p>
-          <div class="diagram"><pre>┌─────────────────────────────────────────────────────┐
-│                 PVM Architecture                    │
-├─────────────────────────────────────────────────────┤
-│                                                     │
-│   ┌──────────────┐     ┌──────────────┐             │
-│   │  Bytecode    │     │  Evaluation  │             │
-│   │  Stream      │────►│  Loop        │             │
-│   │  (.pyc)      │     │  (ceval.c)   │             │
-│   └──────────────┘     └──────┬───────┘             │
-│                               │                     │
-│                    ┌──────────▼──────────┐          │
-│                    │   Value Stack      │           │
-│                    │   (operand stack)  │           │
-│                    │   ┌───┬───┬───┐    │           │
-│                    │   │30 │   │   │    │           │
-│                    │   ├───┼───┼───┤    │           │
-│                    │   │20 │   │   │    │           │
-│                    │   ├───┼───┼───┤    │           │
-│                    │   │10 │   │   │    │           │
-│                    │   └───┴───┴───┘    │           │
-│                    └────────────────────┘           │
-│                                                     │
-│   ┌──────────────┐     ┌──────────────┐             │
-│   │  Local Vars  │     │  Global Vars │             │
-│   │  (fast)      │     │  (namespace) │             │
-│   └──────────────┘     └──────────────┘             │
-│                                                     │
-│   ┌──────────────┐     ┌──────────────┐             │
-│   │  Block Stack │     │  Call Stack  │             │
-│   │  (loops/try) │     │  (frames)    │             │
-│   └──────────────┘     └──────────────┘             │
-└─────────────────────────────────────────────────────┘</pre></div>
+          <div class="diagram"><pre><span class="d-l">┌─────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                 PVM Architecture                    <span class="d-l">│</span>
+<span class="d-l">├─────────────────────────────────────────────────────┤</span>
+<span class="d-l">│</span>                                                     <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">┌──────────────┐</span>     <span class="d-l">┌──────────────┐</span>             <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>  Bytecode    <span class="d-l">│</span>     <span class="d-l">│</span>  Evaluation  <span class="d-l">│</span>             <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>  Stream      <span class="d-l">│────</span><span class="d-a">►</span><span class="d-l">│</span>  Loop        <span class="d-l">│</span>             <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>  (.pyc)      <span class="d-l">│</span>     <span class="d-l">│</span>  (ceval.c)   <span class="d-l">│</span>             <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">└──────────────┘</span>     <span class="d-l">└──────┬───────┘</span>             <span class="d-l">│</span>
+<span class="d-l">│</span>                               <span class="d-l">│</span>                     <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">┌──────────</span><span class="d-a">▼</span><span class="d-l">──────────┐</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span>   Value Stack      <span class="d-l">│</span>           <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span>   (operand stack)  <span class="d-l">│</span>           <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span>   <span class="d-l">┌───┬───┬───┐</span>    <span class="d-l">│</span>           <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span>   <span class="d-l">│</span>30 <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>    <span class="d-l">│</span>           <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span>   <span class="d-l">├───┼───┼───┤</span>    <span class="d-l">│</span>           <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span>   <span class="d-l">│</span>20 <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>    <span class="d-l">│</span>           <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span>   <span class="d-l">├───┼───┼───┤</span>    <span class="d-l">│</span>           <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span>   <span class="d-l">│</span>10 <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>    <span class="d-l">│</span>           <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span>   <span class="d-l">└───┴───┴───┘</span>    <span class="d-l">│</span>           <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">└────────────────────┘</span>           <span class="d-l">│</span>
+<span class="d-l">│</span>                                                     <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">┌──────────────┐</span>     <span class="d-l">┌──────────────┐</span>             <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>  Local Vars  <span class="d-l">│</span>     <span class="d-l">│</span>  Global Vars <span class="d-l">│</span>             <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>  (fast)      <span class="d-l">│</span>     <span class="d-l">│</span>  (namespace) <span class="d-l">│</span>             <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">└──────────────┘</span>     <span class="d-l">└──────────────┘</span>             <span class="d-l">│</span>
+<span class="d-l">│</span>                                                     <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">┌──────────────┐</span>     <span class="d-l">┌──────────────┐</span>             <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>  Block Stack <span class="d-l">│</span>     <span class="d-l">│</span>  Call Stack  <span class="d-l">│</span>             <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>  (loops/try) <span class="d-l">│</span>     <span class="d-l">│</span>  (frames)    <span class="d-l">│</span>             <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">└──────────────┘</span>     <span class="d-l">└──────────────┘</span>             <span class="d-l">│</span>
+<span class="d-l">└─────────────────────────────────────────────────────┘</span></pre></div>
         </div>
         <article class="q" id="fPVMandGarbageC-42">
           <div class="q-h"><span class="q-n">&bull;</span>
@@ -3436,8 +3448,8 @@ code = add.__code__
             </h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPVMandGarbageC-42"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Instruction          Stack (top→)       Variables
-─────────────        ────────────       ─────────
+            <div class="diagram"><pre>Instruction          Stack (top<span class="d-a">→</span>)       Variables
+<span class="d-l">─────────────</span>        <span class="d-l">────────────</span>       <span class="d-l">─────────</span>
 LOAD_CONST 10        [10]               {}
 STORE_NAME x         []                 {x: 10}
 LOAD_CONST 20        [20]               {x: 10}
@@ -3469,45 +3481,45 @@ STORE_NAME result    []                 {x: 10, y: 20, result: 30}</pre></div>
 
 <span class="fn">outer</span>()</code></pre>
             <div class="diagram"><pre>CALL STACK during inner():
-┌─────────────────────┐
-│ Frame: inner()      │  ← top (current)
-│  f_locals: {}       │
-├─────────────────────┤
-│ Frame: outer()      │
-│  f_locals: {x: 42}  │
-├─────────────────────┤
-│ Frame: &lt;module&gt;     │  ← bottom (global)
-│  f_globals: {...}   │
-└─────────────────────┘</pre></div>
+<span class="d-l">┌─────────────────────┐</span>
+<span class="d-l">│</span> Frame: inner()      <span class="d-l">│</span>  <span class="d-a">←</span> top (current)
+<span class="d-l">│</span>  f_locals: {}       <span class="d-l">│</span>
+<span class="d-l">├─────────────────────┤</span>
+<span class="d-l">│</span> Frame: outer()      <span class="d-l">│</span>
+<span class="d-l">│</span>  f_locals: {x: 42}  <span class="d-l">│</span>
+<span class="d-l">├─────────────────────┤</span>
+<span class="d-l">│</span> Frame: &lt;module&gt;     <span class="d-l">│</span>  <span class="d-a">←</span> bottom (global)
+<span class="d-l">│</span>  f_globals: {...}   <span class="d-l">│</span>
+<span class="d-l">└─────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="fPVMandGarbageC-p5"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cpu"/></svg>6. Memory Management in Python</span><i></i>
         </div>
         <div class="q-a" style="margin:0 0 12px">
-          <div class="diagram"><pre>┌──────────────────────────────────────────────────────────────┐
-│                Python Memory Architecture                    │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌─────────────────────────────────────────────────────┐     │
-│  │  OS Memory (RAM)                                    │     │
-│  │  ┌──────────────────────────────────────────────┐   │     │
-│  │  │  Python Memory Manager (pymalloc)            │   │     │
-│  │  │  ┌───────────────────────────────────────┐   │   │     │
-│  │  │  │  Object-Specific Allocator            │   │   │     │
-│  │  │  │  (int, list, dict, etc.)              │   │   │     │
-│  │  │  │  ┌────────────────────────────────┐   │   │   │     │
-│  │  │  │  │  Arena (256 KB)                │   │   │   │     │
-│  │  │  │  │  ┌─────────────────────────┐   │   │   │   │     │
-│  │  │  │  │  │  Pool (4 KB)            │   │   │   │   │     │
-│  │  │  │  │  │  ┌──────────────────┐   │   │   │   │   │     │
-│  │  │  │  │  │  │  Block (8-512 B) │   │   │   │   │   │     │
-│  │  │  │  │  │  └──────────────────┘   │   │   │   │   │     │
-│  │  │  │  │  └─────────────────────────┘   │   │   │   │     │
-│  │  │  │  └────────────────────────────────┘   │   │   │     │
-│  │  │  └───────────────────────────────────────┘   │   │     │
-│  │  └──────────────────────────────────────────────┘   │     │
-│  └─────────────────────────────────────────────────────┘     │
-└──────────────────────────────────────────────────────────────┘</pre></div>
+          <div class="diagram"><pre><span class="d-l">┌──────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                Python Memory Architecture                    <span class="d-l">│</span>
+<span class="d-l">├──────────────────────────────────────────────────────────────┤</span>
+<span class="d-l">│</span>                                                              <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌─────────────────────────────────────────────────────┐</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  OS Memory (RAM)                                    <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">┌──────────────────────────────────────────────┐</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  Python Memory Manager (pymalloc)            <span class="d-l">│</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">┌───────────────────────────────────────┐</span>   <span class="d-l">│</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  Object-Specific Allocator            <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  (int, list, dict, etc.)              <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">┌────────────────────────────────┐</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  Arena (256 KB)                <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">┌─────────────────────────┐</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  Pool (4 KB)            <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">┌──────────────────┐</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  Block (8-512 B) <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">└──────────────────┘</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">└─────────────────────────┘</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">└────────────────────────────────┘</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">└───────────────────────────────────────┘</span>   <span class="d-l">│</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">└──────────────────────────────────────────────┘</span>   <span class="d-l">│</span>     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└─────────────────────────────────────────────────────┘</span>     <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────────────────────────┘</span></pre></div>
           <div class="tbl-wrap">
             <table class="t2 t-def">
               <thead>
@@ -3593,7 +3605,7 @@ c = <span class="kw">None</span>               <span class="cmt"># refcount = 1<
           </div>
           <div class="q-a">
             <div class="diagram"><pre>INCREASES refcount:                      DECREASES refcount:
-─────────────────────                    ─────────────────────
+<span class="d-l">─────────────────────</span>                    <span class="d-l">─────────────────────</span>
 x = obj         (assignment)             del x           (delete reference)
 y = x           (aliasing)               x = None        (reassignment)
 list.append(x)  (add to container)       x = other_obj   (reassignment)
@@ -3653,35 +3665,35 @@ b.ref = a   <span class="cmt"># B → A</span>
             <h3>Generational GC — How It Works</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fPVMandGarbageC-48"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>┌───────────────────────────────────────────────────────────────┐
-│              Generational Garbage Collection                  │
-├───────────────────────────────────────────────────────────────┤
-│                                                               │
-│  Generation 0 (Young)     ← NEW objects go here               │
-│  ┌──────────────────────────────────────────────────┐         │
-│  │  obj1  obj2  obj3  obj4  obj5 ...               │          │
-│  │  Collected MOST FREQUENTLY (threshold: 700)     │          │
-│  └────────────────────┬─────────────────────────────┘         │
-│                       │ survivors promoted                    │
-│                       ▼                                       │
-│  Generation 1 (Middle)                                        │
-│  ┌──────────────────────────────────────────────────┐         │
-│  │  obj_a  obj_b  obj_c ...                        │          │
-│  │  Collected LESS frequently (threshold: 10)      │          │
-│  └────────────────────┬─────────────────────────────┘         │
-│                       │ survivors promoted                    │
-│                       ▼                                       │
-│  Generation 2 (Old)                                           │
-│  ┌──────────────────────────────────────────────────┐         │
-│  │  obj_x  obj_y ...                               │          │
-│  │  Collected LEAST frequently (threshold: 10)     │          │
-│  │  Long-lived objects live here                   │          │
-│  └──────────────────────────────────────────────────┘         │
-│                                                               │
-└───────────────────────────────────────────────────────────────┘
+            <div class="diagram"><pre><span class="d-l">┌───────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>              Generational Garbage Collection                  <span class="d-l">│</span>
+<span class="d-l">├───────────────────────────────────────────────────────────────┤</span>
+<span class="d-l">│</span>                                                               <span class="d-l">│</span>
+<span class="d-l">│</span>  Generation 0 (Young)     <span class="d-a">←</span> NEW objects go here               <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────────────────────────────────────────┐</span>         <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  obj1  obj2  obj3  obj4  obj5 ...               <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  Collected MOST FREQUENTLY (threshold: 700)     <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└────────────────────┬─────────────────────────────┘</span>         <span class="d-l">│</span>
+<span class="d-l">│</span>                       <span class="d-l">│</span> survivors promoted                    <span class="d-l">│</span>
+<span class="d-l">│</span>                       <span class="d-a">▼</span>                                       <span class="d-l">│</span>
+<span class="d-l">│</span>  Generation 1 (Middle)                                        <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────────────────────────────────────────┐</span>         <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  obj_a  obj_b  obj_c ...                        <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  Collected LESS frequently (threshold: 10)      <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└────────────────────┬─────────────────────────────┘</span>         <span class="d-l">│</span>
+<span class="d-l">│</span>                       <span class="d-l">│</span> survivors promoted                    <span class="d-l">│</span>
+<span class="d-l">│</span>                       <span class="d-a">▼</span>                                       <span class="d-l">│</span>
+<span class="d-l">│</span>  Generation 2 (Old)                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────────────────────────────────────────┐</span>         <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  obj_x  obj_y ...                               <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  Collected LEAST frequently (threshold: 10)     <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  Long-lived objects live here                   <span class="d-l">│</span>          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────────────────────────────────────────────────┘</span>         <span class="d-l">│</span>
+<span class="d-l">│</span>                                                               <span class="d-l">│</span>
+<span class="d-l">└───────────────────────────────────────────────────────────────┘</span>
 
 HYPOTHESIS: Most objects die young ("generational hypothesis")
-→ Focus collection effort on youngest generation = efficient</pre></div>
+<span class="d-a">→</span> Focus collection effort on youngest generation = efficient</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fPVMandGarbageC-49">
@@ -4559,18 +4571,18 @@ logger = logging.<span class="fn">getLogger</span>(__name__)
           </div>
           <div class="q-a">
             <div class="diagram"><pre>my-project/
-├── pyproject.toml          # metadata + tool config (single source of truth)
-├── README.md  LICENSE  .gitignore  .env(.example)
-├── src/
-│   └── my_package/
-│       ├── __init__.py     # clean public API
-│       ├── main.py         # entry point
-│       ├── config.py       # configuration
-│       ├── models/  services/  api/  utils/
-├── tests/
-│   ├── conftest.py         # shared pytest fixtures
-│   └── test_*.py
-├── scripts/  docs/  data/  notebooks/</pre></div>
+<span class="d-l">├──</span> pyproject.toml          # metadata + tool config (single source of truth)
+<span class="d-l">├──</span> README.md  LICENSE  .gitignore  .env(.example)
+<span class="d-l">├──</span> src/
+<span class="d-l">│</span>   <span class="d-l">└──</span> my_package/
+<span class="d-l">│</span>       <span class="d-l">├──</span> __init__.py     # clean public API
+<span class="d-l">│</span>       <span class="d-l">├──</span> main.py         # entry point
+<span class="d-l">│</span>       <span class="d-l">├──</span> config.py       # configuration
+<span class="d-l">│</span>       <span class="d-l">├──</span> models/  services/  api/  utils/
+<span class="d-l">├──</span> tests/
+<span class="d-l">│</span>   <span class="d-l">├──</span> conftest.py         # shared pytest fixtures
+<span class="d-l">│</span>   <span class="d-l">└──</span> test_*.py
+<span class="d-l">├──</span> scripts/  docs/  data/  notebooks/</pre></div>
             <p>The <strong>src layout</strong> prevents accidental imports of the in-tree package and makes
               packaging predictable.</p>
             <pre class="code" data-lang="python"><code><span class="cmt"># src/my_package/__init__.py — curate the public surface</span>
@@ -5918,7 +5930,7 @@ _cache = {}              <span class="cmt"># Not exported by 'from module import
 <span class="cmt"># ❌ Single-letter names (except: i/j/k for loops, x/y for math)</span></code></pre>
             <div class="diagram"><pre>NAMING CHEAT SHEET:
   Type               Convention          Example
-  ─────────────────────────────────────────────────
+  <span class="d-l">─────────────────────────────────────────────────</span>
   Variable           snake_case          user_count
   Function           snake_case          calculate_loss()
   Class              PascalCase          DataLoader
@@ -6497,37 +6509,37 @@ logger = logging.<span class="fn">getLogger</span>(__name__)
             <p><strong>Project structure</strong> determines how easy code is to navigate, test, and deploy. A well-organized Python project separates source code from tests, configuration from logic, and uses packages to group related modules. Standard layouts like the <code>src</code> layout prevent import confusion and make packaging straightforward.</p>
             <div class="diagram"><pre>RECOMMENDED PROJECT STRUCTURE:
 my-project/
-├── pyproject.toml          # Project metadata &amp; dependencies
-├── README.md               # Project documentation
-├── LICENSE
-├── .gitignore
-├── .env                    # Environment variables (not committed)
-├── src/
-│   └── my_package/
-│       ├── __init__.py     # Package initialization
-│       ├── main.py         # Entry point
-│       ├── config.py       # Configuration management
-│       ├── models/         # Data models / ML models
-│       │   ├── __init__.py
-│       │   └── user.py
-│       ├── services/       # Business logic
-│       │   ├── __init__.py
-│       │   └── auth.py
-│       ├── api/            # API routes/endpoints
-│       │   ├── __init__.py
-│       │   └── routes.py
-│       └── utils/          # Shared utilities
-│           ├── __init__.py
-│           └── helpers.py
-├── tests/
-│   ├── __init__.py
-│   ├── conftest.py         # Shared pytest fixtures
-│   ├── test_models.py
-│   └── test_services.py
-├── scripts/                # One-off scripts, migrations
-├── docs/                   # Documentation
-├── data/                   # Data files (gitignored if large)
-└── notebooks/              # Jupyter notebooks</pre></div>
+<span class="d-l">├──</span> pyproject.toml          # Project metadata &amp; dependencies
+<span class="d-l">├──</span> README.md               # Project documentation
+<span class="d-l">├──</span> LICENSE
+<span class="d-l">├──</span> .gitignore
+<span class="d-l">├──</span> .env                    # Environment variables (not committed)
+<span class="d-l">├──</span> src/
+<span class="d-l">│</span>   <span class="d-l">└──</span> my_package/
+<span class="d-l">│</span>       <span class="d-l">├──</span> __init__.py     # Package initialization
+<span class="d-l">│</span>       <span class="d-l">├──</span> main.py         # Entry point
+<span class="d-l">│</span>       <span class="d-l">├──</span> config.py       # Configuration management
+<span class="d-l">│</span>       <span class="d-l">├──</span> models/         # Data models / ML models
+<span class="d-l">│</span>       <span class="d-l">│</span>   <span class="d-l">├──</span> __init__.py
+<span class="d-l">│</span>       <span class="d-l">│</span>   <span class="d-l">└──</span> user.py
+<span class="d-l">│</span>       <span class="d-l">├──</span> services/       # Business logic
+<span class="d-l">│</span>       <span class="d-l">│</span>   <span class="d-l">├──</span> __init__.py
+<span class="d-l">│</span>       <span class="d-l">│</span>   <span class="d-l">└──</span> auth.py
+<span class="d-l">│</span>       <span class="d-l">├──</span> api/            # API routes/endpoints
+<span class="d-l">│</span>       <span class="d-l">│</span>   <span class="d-l">├──</span> __init__.py
+<span class="d-l">│</span>       <span class="d-l">│</span>   <span class="d-l">└──</span> routes.py
+<span class="d-l">│</span>       <span class="d-l">└──</span> utils/          # Shared utilities
+<span class="d-l">│</span>           <span class="d-l">├──</span> __init__.py
+<span class="d-l">│</span>           <span class="d-l">└──</span> helpers.py
+<span class="d-l">├──</span> tests/
+<span class="d-l">│</span>   <span class="d-l">├──</span> __init__.py
+<span class="d-l">│</span>   <span class="d-l">├──</span> conftest.py         # Shared pytest fixtures
+<span class="d-l">│</span>   <span class="d-l">├──</span> test_models.py
+<span class="d-l">│</span>   <span class="d-l">└──</span> test_services.py
+<span class="d-l">├──</span> scripts/                # One-off scripts, migrations
+<span class="d-l">├──</span> docs/                   # Documentation
+<span class="d-l">├──</span> data/                   # Data files (gitignored if large)
+<span class="d-l">└──</span> notebooks/              # Jupyter notebooks</pre></div>
             <pre class="code" data-lang="python"><code><span class="cmt"># ── __init__.py — Clean public API ───────────────────────</span>
 <span class="cmt"># src/my_package/__init__.py</span>
 <span class="kw">from</span> .models.user <span class="kw">import</span> User
@@ -6577,7 +6589,7 @@ config = Config.<span class="fn">from_env</span>()
             <p><strong>Linting</strong> tools analyze code for errors, style violations, and potential bugs without running it. <strong>Formatting</strong> tools automatically rewrite code to conform to style standards. Using these tools ensures consistency across a team and catches issues early. The modern Python ecosystem has converged on <strong>Ruff</strong> (all-in-one linter + formatter) and <strong>Black</strong> (opinionated formatter) as the dominant tools.</p>
             <div class="diagram"><pre>TOOL COMPARISON:
   Tool       Type         Speed    PEP 8   Config File
-  ─────────────────────────────────────────────────────
+  <span class="d-l">─────────────────────────────────────────────────────</span>
   Ruff       Lint+Format  Fastest  Yes     pyproject.toml
   Black      Formatter    Fast     Yes     pyproject.toml
   flake8     Linter       Medium   Yes     .flake8
@@ -12587,13 +12599,13 @@ agent = <span class="fn">SupportAgent</span>(model=<span class="fn">OpenAIChat</
             <div class="keyterms"><span class="kt">localise change</span><span class="kt">DIP</span><span class="kt">OCP</span><span class="kt">LSP</span><span class="kt">ISP</span><span class="kt">SRP</span>
             </div>
             <p>They're not five isolated rules; they reinforce each other around one goal — <strong>localise change</strong>:</p>
-            <div class="diagram"><pre>        SRP  — one reason to change  ──┐  (split responsibilities so a change
-        ISP  — one reason per contract ┤   touches one small place)
-                                        │
-        OCP  — extend without editing  ─┤  (add the new behaviour beside the old,
-        DIP  — depend on abstractions  ─┘   plugged in through an abstraction)
-                                        │
-        LSP  — substitutes don't lie   ──── (so the plug-ins are actually safe
+            <div class="diagram"><pre>        SRP  — one reason to change  <span class="d-l">──┐</span>  (split responsibilities so a change
+        ISP  — one reason per contract <span class="d-l">┤</span>   touches one small place)
+                                        <span class="d-l">│</span>
+        OCP  — extend without editing  <span class="d-l">─┤</span>  (add the new behaviour beside the old,
+        DIP  — depend on abstractions  <span class="d-l">─┘</span>   plugged in through an abstraction)
+                                        <span class="d-l">│</span>
+        LSP  — substitutes don't lie   <span class="d-l">────</span> (so the plug-ins are actually safe
                                              to swap behind that abstraction)</pre></div>
             <p>A worked chain: <strong>DIP</strong> says depend on a <code>ChatModel</code> abstraction. <strong>OCP</strong> says a new provider should plug in without editing the agent — which the abstraction enables. <strong>LSP</strong> says every provider you plug in must honour <code>ChatModel</code>'s contract (no surprise exceptions), or the swap isn't safe. <strong>ISP</strong> says <code>ChatModel</code> should stay narrow so providers don't fake methods. <strong>SRP</strong> says the agent orchestrates and the provider talks to the API — separate reasons to change. Pull one thread and the others follow.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -13438,12 +13450,12 @@ structlog.<span class="fn">configure</span>(
             <h3>3.4 Log Aggregation Patterns</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fDebuggingandSe-243"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Application  →  structlog (JSON)  →  stdout/file
-    ↓
+            <div class="diagram"><pre>Application  <span class="d-a">→</span>  structlog (JSON)  <span class="d-a">→</span>  stdout/file
+    <span class="d-a">↓</span>
 Collector (Filebeat / Fluentd / CloudWatch Agent)
-    ↓
+    <span class="d-a">↓</span>
 Aggregator (Elasticsearch / CloudWatch Logs / Datadog)
-    ↓
+    <span class="d-a">↓</span>
 Dashboard (Kibana / Grafana / CloudWatch Insights)
 
 # CloudWatch Insights query example:
@@ -13494,13 +13506,13 @@ log = structlog.<span class="fn">get_logger</span>()
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Source Code (.py)
-    ↓  tokenizer (Lib/tokenize.py)
+    <span class="d-a">↓</span>  tokenizer (Lib/tokenize.py)
 Tokens
-    ↓  parser (Grammar/python.gram → PEG parser)
+    <span class="d-a">↓</span>  parser (Grammar/python.gram <span class="d-a">→</span> PEG parser)
 AST (Abstract Syntax Tree)
-    ↓  compiler (Python/compile.c)
+    <span class="d-a">↓</span>  compiler (Python/compile.c)
 Bytecode (Code Object)
-    ↓  VM execution (Python/ceval.c)
+    <span class="d-a">↓</span>  VM execution (Python/ceval.c)
 Result
 
 # Inspect each stage:
@@ -13627,11 +13639,11 @@ sys.<span class="fn">setprofile</span>(profiler)</code></pre></div><button class
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Every Python object (PyObject):
-┌──────────────┐
-│ ob_refcnt    │  ← reference count (Py_ssize_t)
-│ ob_type      │  ← pointer to type object
-│ ...data...   │  ← object-specific data
-└──────────────┘
+<span class="d-l">┌──────────────┐</span>
+<span class="d-l">│</span> ob_refcnt    <span class="d-l">│</span>  <span class="d-a">←</span> reference count (Py_ssize_t)
+<span class="d-l">│</span> ob_type      <span class="d-l">│</span>  <span class="d-a">←</span> pointer to type object
+<span class="d-l">│</span> ...data...   <span class="d-l">│</span>  <span class="d-a">←</span> object-specific data
+<span class="d-l">└──────────────┘</span>
 
 # Check with sys
 import sys

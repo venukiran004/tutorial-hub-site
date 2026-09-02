@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1224,9 +1236,9 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <span class="mth mth-block"><i>y</i> <span class="mth-op">=</span> <span class="mth-gr">σ</span><span class="mth-d">(</span><span class="mth-lim"><span class="mth-top"><i>n</i></span><span class="mth-op-b"><span class="mth-bigop">∑</span></span><span class="mth-bot"><i>i</i><span class="mth-op">=</span>1</span></span> <i>w</i><sub><i>i</i></sub> <i>x</i><sub><i>i</i></sub> <span class="mth-op">+</span> <i>b</i><span class="mth-d">)</span> <span class="mth-op">=</span> <span class="mth-gr">σ</span>(<b><i>w</i></b><sup><i>T</i></sup> <b><i>x</i></b> <span class="mth-op">+</span> <i>b</i>)</span>
             <div class="diagram"><pre>PERCEPTRON = weighted sum + activation
 
-  x₁ ──w₁──┐
-  x₂ ──w₂──┼──→ Σ(wᵢxᵢ + b) ──→ σ(z) ──→ y
-  x₃ ──w₃──┘
+  x₁ <span class="d-l">──</span>w₁<span class="d-l">──┐</span>
+  x₂ <span class="d-l">──</span>w₂<span class="d-l">──┼──</span><span class="d-a">→</span> Σ(wᵢxᵢ + b) <span class="d-l">──</span><span class="d-a">→</span> σ(z) <span class="d-l">──</span><span class="d-a">→</span> y
+  x₃ <span class="d-l">──</span>w₃<span class="d-l">──┘</span>
              bias (b)
 
   Limitation: Can only learn LINEARLY SEPARABLE functions.
@@ -1235,10 +1247,10 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <div class="diagram"><pre>INPUT LAYER      HIDDEN LAYER(S)      OUTPUT LAYER
   (features)      (learned repr.)      (predictions)
   
-  x₁ ─────┐     ┌── h₁ ──┐          
-  x₂ ─────┼─────┼── h₂ ──┼──────── ŷ₁
-  x₃ ─────┼─────┼── h₃ ──┼──────── ŷ₂
-  x₄ ─────┘     └── h₄ ──┘
+  x₁ <span class="d-l">─────┐</span>     <span class="d-l">┌──</span> h₁ <span class="d-l">──┐</span>          
+  x₂ <span class="d-l">─────┼─────┼──</span> h₂ <span class="d-l">──┼────────</span> ŷ₁
+  x₃ <span class="d-l">─────┼─────┼──</span> h₃ <span class="d-l">──┼────────</span> ŷ₂
+  x₄ <span class="d-l">─────┘</span>     <span class="d-l">└──</span> h₄ <span class="d-l">──┘</span>
 
   FULLY CONNECTED: Every neuron connects to every neuron in next layer
   
@@ -1432,15 +1444,15 @@ OUTPUT LAYER:
   Regression (positive):   ReLU or Softplus</code></pre>
             <h3>Dead Neuron Problem</h3>
             <div class="diagram"><pre>DEAD ReLU: If weights cause z &lt; 0 for ALL inputs, the neuron
-outputs 0 forever. Gradient = 0 → weights never update → neuron is DEAD.
+outputs 0 forever. Gradient = 0 <span class="d-a">→</span> weights never update <span class="d-a">→</span> neuron is DEAD.
 
 Causes:
-  • Large learning rate → weights overshoot into negative region
-  • Poor initialization → too many negative pre-activations
+  • Large learning rate <span class="d-a">→</span> weights overshoot into negative region
+  • Poor initialization <span class="d-a">→</span> too many negative pre-activations
 
 Detection:
   • Monitor % of zero activations per layer
-  • If &gt; 50% zeros consistently → dead neuron problem
+  • If &gt; 50% zeros consistently <span class="d-a">→</span> dead neuron problem
 
 Fixes:
   • Lower learning rate
@@ -1461,10 +1473,10 @@ Fixes:
             <div class="diagram"><pre>For a network with L layers:
 
   Input:  A⁰ = X                              (n_features × m_samples)
-  Layer 1: Z¹ = W¹A⁰ + b¹ → A¹ = g¹(Z¹)     (n₁ × m)
-  Layer 2: Z² = W²A¹ + b² → A² = g²(Z²)      (n₂ × m)
+  Layer 1: Z¹ = W¹A⁰ + b¹ <span class="d-a">→</span> A¹ = g¹(Z¹)     (n₁ × m)
+  Layer 2: Z² = W²A¹ + b² <span class="d-a">→</span> A² = g²(Z²)      (n₂ × m)
   ...
-  Layer L: Zᴸ = WᴸAᴸ⁻¹ + bᴸ → Aᴸ = gᴸ(Zᴸ)  (output_dim × m)
+  Layer L: Zᴸ = WᴸAᴸ⁻¹ + bᴸ <span class="d-a">→</span> Aᴸ = gᴸ(Zᴸ)  (output_dim × m)
 
   Where:
     W^[l]:  (n_l × n_{l-1}) weight matrix
@@ -1472,7 +1484,7 @@ Fixes:
     g^[l]:  activation function for layer l
     m:      batch size</pre></div>
             <h3>Numerical Example</h3>
-            <div class="diagram"><pre>Network: 2 inputs → 2 hidden (ReLU) → 1 output (sigmoid)
+            <div class="diagram"><pre>Network: 2 inputs <span class="d-a">→</span> 2 hidden (ReLU) <span class="d-a">→</span> 1 output (sigmoid)
 
 Weights:           Input:
   W¹ = [[0.5, -0.3],   x = [1.0, 2.0]
@@ -1489,7 +1501,7 @@ Forward:
   z² = W²a¹ + b² = 0.4×0.0 + (-0.7)×1.8 + 0.3 = -0.96
   ŷ = σ(z²) = σ(-0.96) = 1/(1+e^0.96) = 0.277
 
-  Prediction: P(y=1) = 0.277 → predict class 0</pre></div>
+  Prediction: P(y=1) = 0.277 <span class="d-a">→</span> predict class 0</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01NeuralNetwor-4">
@@ -1517,7 +1529,7 @@ Forward:
             <h3>Focal Loss</h3>
             <span class="mth mth-block"><i>F</i><i>L</i>(<i>p</i><sub><i>t</i></sub>) <span class="mth-op">=</span> <span class="mth-op">−</span><span class="mth-gr">α</span><sub><i>t</i></sub> (1<span class="mth-op">−</span><i>p</i><sub><i>t</i></sub>)<sup><span class="mth-gr">γ</span></sup> <span class="mth-fn">log</span>(<i>p</i><sub><i>t</i></sub>)</span>
             <div class="diagram"><pre>Addresses class imbalance by down-weighting easy examples.
-When an example is well-classified (p_t → 1), the (1-p_t)^γ factor
+When an example is well-classified (p_t <span class="d-a">→</span> 1), the (1-p_t)^γ factor
 reduces its contribution to the loss.
 γ=2, α=0.25 typical. Used in RetinaNet for object detection.</pre></div>
             <h3>Hinge Loss</h3>
@@ -1526,16 +1538,16 @@ reduces its contribution to the loss.
 the wrong side of the margin (y·ŷ &lt; 1). Not differentiable at y·ŷ = 1.
 Encourages confident predictions (ŷ &gt; 1 from correct class).</code></pre>
             <div class="diagram"><pre>LOSS FUNCTION SELECTION:
-  Binary classification → Binary Cross-Entropy + Sigmoid
-  Multi-class (exclusive) → Categorical Cross-Entropy + Softmax
-  Multi-label → Binary Cross-Entropy per class + Sigmoid per class
-  Regression → MSE (default), MAE (robust), Huber (compromise)
-  Regression with outliers → Huber or MAE
+  Binary classification <span class="d-a">→</span> Binary Cross-Entropy + Sigmoid
+  Multi-class (exclusive) <span class="d-a">→</span> Categorical Cross-Entropy + Softmax
+  Multi-label <span class="d-a">→</span> Binary Cross-Entropy per class + Sigmoid per class
+  Regression <span class="d-a">→</span> MSE (default), MAE (robust), Huber (compromise)
+  Regression with outliers <span class="d-a">→</span> Huber or MAE
   
 CONNECTION TO MLE:
   Cross-entropy = negative log-likelihood of Bernoulli/Categorical model
   MSE = negative log-likelihood of Gaussian model
-  → Minimizing loss = maximizing likelihood!</pre></div>
+  <span class="d-a">→</span> Minimizing loss = maximizing likelihood!</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01NeuralNetwor-5">
@@ -1547,7 +1559,7 @@ CONNECTION TO MLE:
             <h3>The Chain Rule</h3>
             <span class="mth mth-block"><span class="mth-frac"><span class="mth-num">∂ <span class="mth-cal">ℒ</span></span><span class="mth-den">∂ <i>w</i></span></span> <span class="mth-op">=</span> <span class="mth-frac"><span class="mth-num">∂ <span class="mth-cal">ℒ</span></span><span class="mth-den">∂ <i>ŷ</i></span></span> · <span class="mth-frac"><span class="mth-num">∂ <i>ŷ</i></span><span class="mth-den">∂ <i>z</i></span></span> · <span class="mth-frac"><span class="mth-num">∂ <i>z</i></span><span class="mth-den">∂ <i>w</i></span></span></span>
             <h3>For a 2-Layer Network (complete derivation)</h3>
-            <div class="diagram"><pre>Network: x → [W¹, b¹, ReLU] → [W², b², sigmoid] → ŷ
+            <div class="diagram"><pre>Network: x <span class="d-a">→</span> [W¹, b¹, ReLU] <span class="d-a">→</span> [W², b², sigmoid] <span class="d-a">→</span> ŷ
 Loss: L = -[y log(ŷ) + (1-y) log(1-ŷ)]
 
 STEP 1: Output layer gradients
@@ -1555,7 +1567,7 @@ STEP 1: Output layer gradients
   
   dŷ/dz² = σ(z²)(1 - σ(z²)) = ŷ(1-ŷ)
   
-  dL/dz² = dL/dŷ × dŷ/dz² = ŷ - y    ← Clean result!
+  dL/dz² = dL/dŷ × dŷ/dz² = ŷ - y    <span class="d-a">←</span> Clean result!
   
   δ² = ŷ - y                            (output error signal)
 
@@ -1582,8 +1594,8 @@ GENERAL RULE (layer l):
   The error signal δ flows BACKWARD through the network,
   multiplied by the transpose of the weight matrix at each layer.</pre></div>
             <h3>Computational Graph Perspective</h3>
-            <div class="diagram"><pre>x → [×W¹] → [+b¹] → [ReLU] → [×W²] → [+b²] → [σ] → [Loss]
-     ↑         ↑        ↑        ↑        ↑       ↑      ↓
+            <div class="diagram"><pre>x <span class="d-a">→</span> [×W¹] <span class="d-a">→</span> [+b¹] <span class="d-a">→</span> [ReLU] <span class="d-a">→</span> [×W²] <span class="d-a">→</span> [+b²] <span class="d-a">→</span> [σ] <span class="d-a">→</span> [Loss]
+     <span class="d-a">↑</span>         <span class="d-a">↑</span>        <span class="d-a">↑</span>        <span class="d-a">↑</span>        <span class="d-a">↑</span>       <span class="d-a">↑</span>      <span class="d-a">↓</span>
    dW¹=δ¹xᵀ  db¹=δ¹  δ¹=..   dW²=δ²a¹ᵀ db²=δ²  δ²    dL/dŷ
 
 AUTOGRAD (PyTorch/TF):
@@ -1621,11 +1633,11 @@ Typically β=0.9, η=0.001, ε=1e-8.</code></pre>
             <span class="mth mth-block"><span class="mth-gr">θ</span><sub><i>t</i><span class="mth-op">+</span>1</sub> <span class="mth-op">=</span> <span class="mth-gr">θ</span><sub><i>t</i></sub> <span class="mth-op">−</span> <i>v</i><sub><i>t</i></sub></span>
             <div class="diagram"><pre>"Look-ahead" momentum: computes gradient at the ANTICIPATED future
 position (θ - γv) instead of the current position.
-→ Converges faster by "correcting" the momentum direction early.
+<span class="d-a">→</span> Converges faster by "correcting" the momentum direction early.
 Used when SGD+momentum oscillates too much.</pre></div>
             <div class="diagram"><pre>KEY DIFFERENCE: Adam + L2 ≠ AdamW!
-  Adam + L2: Regularization term is inside adaptive learning rate → less effective
-  AdamW: Decouples weight decay from gradient update → proper regularization
+  Adam + L2: Regularization term is inside adaptive learning rate <span class="d-a">→</span> less effective
+  AdamW: Decouples weight decay from gradient update <span class="d-a">→</span> proper regularization
 
 OPTIMIZER SELECTION:
   Baseline:     Adam (lr=1e-3, betas=(0.9, 0.999))
@@ -1648,11 +1660,11 @@ DEFAULT HYPERPARAMETERS:
             </div>
             <p><strong>Weight initialization</strong> sets the starting values of network parameters before training begins. Proper initialization prevents vanishing or exploding activations in the forward pass, which directly impacts gradient flow during backpropagation. Xavier/Glorot initialization works well with sigmoid/tanh, while He/Kaiming initialization is designed for ReLU networks.</p>
             <h3>Why It Matters</h3>
-            <div class="diagram"><pre>ALL ZEROS: All neurons compute same gradient → symmetry problem.
+            <div class="diagram"><pre>ALL ZEROS: All neurons compute same gradient <span class="d-a">→</span> symmetry problem.
            Network can't learn different features.
 
-TOO LARGE: Activations saturate (σ→0 or 1) → vanishing gradients.
-TOO SMALL: Activations → 0 → signal dies through layers.
+TOO LARGE: Activations saturate (σ<span class="d-a">→</span>0 or 1) <span class="d-a">→</span> vanishing gradients.
+TOO SMALL: Activations <span class="d-a">→</span> 0 <span class="d-a">→</span> signal dies through layers.
 
 GOAL: Maintain activation variance ≈ 1 across layers.</pre></div>
             <h3>Methods</h3>
@@ -1705,12 +1717,12 @@ nn.init.<span class="fn">xavier_uniform_</span>(layer.weight)                   
             <span class="mth mth-block"><span class="mth-cal">ℒ</span><sub><i>r</i><i>e</i><i>g</i></sub> <span class="mth-op">=</span> <span class="mth-cal">ℒ</span><sub><i>d</i><i>a</i><i>t</i><i>a</i></sub> <span class="mth-op">+</span> <span class="mth-frac"><span class="mth-num"><span class="mth-gr">λ</span></span><span class="mth-den">2</span></span><span class="mth-lim"><span class="mth-op-b"><span class="mth-bigop">∑</span></span><span class="mth-bot"><i>l</i></span></span> <span class="mth-rm">|</span><b><i>W</i></b><sup>[<i>l</i>]</sup><span class="mth-rm">|</span><sub><i>F</i></sub><sup>2</sup></span>
             <h3>Dropout</h3>
             <div class="diagram"><pre>TRAINING: Randomly set fraction p of neurons to 0.
-  → Forces network to learn redundant representations.
-  → Each forward pass uses a different "sub-network."
-  → Effectively trains an ensemble of 2^n networks.
+  <span class="d-a">→</span> Forces network to learn redundant representations.
+  <span class="d-a">→</span> Each forward pass uses a different "sub-network."
+  <span class="d-a">→</span> Effectively trains an ensemble of 2^n networks.
 
 INFERENCE: Use all neurons, but SCALE by (1-p):
-  → Inverted Dropout (scale during training by 1/(1-p)) 
+  <span class="d-a">→</span> Inverted Dropout (scale during training by 1/(1-p)) 
      is standard — no change needed at inference.
 
 TYPICAL VALUES:
@@ -1740,9 +1752,9 @@ TYPICAL VALUES:
 <span class="cmt"># IMPORTANT: model.train() enables dropout, model.eval() disables it</span></code></pre>
             <h3>MC (Monte Carlo) Dropout</h3>
             <div class="diagram"><pre>Keep dropout ON during inference by using model.train() mode.
-Run N forward passes → collect predictions → compute mean + std.
-→ Approximates Bayesian inference and gives UNCERTAINTY ESTIMATES.
-High std = model is uncertain → flag for human review.</pre></div>
+Run N forward passes <span class="d-a">→</span> collect predictions <span class="d-a">→</span> compute mean + std.
+<span class="d-a">→</span> Approximates Bayesian inference and gives UNCERTAINTY ESTIMATES.
+High std = model is uncertain <span class="d-a">→</span> flag for human review.</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">import</span> torch
 <span class="kw">import</span> numpy <span class="kw">as</span> np
 
@@ -1794,13 +1806,13 @@ model.<span class="fn">load_state_dict</span>(torch.<span class="fn">load</span>
             <span class="mth mth-block"><i>x̂</i><sub><i>i</i></sub> <span class="mth-op">=</span> <span class="mth-frac"><span class="mth-num"><i>x</i><sub><i>i</i></sub> <span class="mth-op">−</span> <span class="mth-gr">μ</span><sub><i>B</i></sub></span><span class="mth-den"><span class="mth-sqrt">√<span class="mth-rad"><span class="mth-gr">σ</span><sub><i>B</i></sub><sup>2</sup> <span class="mth-op">+</span> <span class="mth-gr">ε</span></span></span></span></span></span>
             <span class="mth mth-block"><i>y</i><sub><i>i</i></sub> <span class="mth-op">=</span> <span class="mth-gr">γ</span> <i>x̂</i><sub><i>i</i></sub> <span class="mth-op">+</span> <span class="mth-gr">β</span></span>
             <div class="diagram"><pre>WHERE TO APPLY: After linear transformation, BEFORE activation
-  z = Wx + b → BN(z) → ReLU(BN(z))
+  z = Wx + b <span class="d-a">→</span> BN(z) <span class="d-a">→</span> ReLU(BN(z))
 
 TRAINING: Compute μ and σ² over the current mini-batch
 INFERENCE: Use running averages of μ and σ² (exponential moving avg)
 
 WHY IT WORKS:
-  1. Normalizes internal representations → allows higher learning rates
+  1. Normalizes internal representations <span class="d-a">→</span> allows higher learning rates
   2. Acts as regularization (mini-batch noise)
   3. Reduces sensitivity to initialization
   4. Smooths the loss landscape
@@ -1818,10 +1830,10 @@ BatchNorm:  Normalize per-feature across samples in batch
 LayerNorm:  Normalize per-sample across features
 
 WHERE USED:
-  BatchNorm → CNNs, MLPs (standard)
-  LayerNorm → Transformers, RNNs (batch-size independent)
-  GroupNorm → CNNs with small batch sizes
-  InstanceNorm → Style transfer</pre></div>
+  BatchNorm <span class="d-a">→</span> CNNs, MLPs (standard)
+  LayerNorm <span class="d-a">→</span> Transformers, RNNs (batch-size independent)
+  GroupNorm <span class="d-a">→</span> CNNs with small batch sizes
+  InstanceNorm <span class="d-a">→</span> Style transfer</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01NeuralNetwor-10">
@@ -1832,16 +1844,16 @@ WHERE USED:
             <p><strong>Vanishing and exploding gradients</strong> are fundamental training instabilities in deep networks where gradients become exponentially small or large as they propagate through many layers during backpropagation. This was the primary obstacle to training deep networks before solutions like ReLU activations, residual connections, proper initialization, and normalization layers were developed.</p>
             <h3>The Problem</h3>
             <span class="mth mth-block"><span class="mth-frac"><span class="mth-num">∂ <span class="mth-cal">ℒ</span></span><span class="mth-den">∂ <i>W</i><sup>[1]</sup></span></span> <span class="mth-op">=</span> <span class="mth-lim"><span class="mth-top"><i>L</i></span><span class="mth-op-b"><span class="mth-bigop">∏</span></span><span class="mth-bot"><i>l</i><span class="mth-op">=</span>2</span></span> <span class="mth-frac"><span class="mth-num">∂ <i>a</i><sup>[<i>l</i>]</sup></span><span class="mth-den">∂ <i>z</i><sup>[<i>l</i>]</sup></span></span> · <i>W</i><sup>[<i>l</i>]</sup> · <span class="mth-frac"><span class="mth-num">∂ <span class="mth-cal">ℒ</span></span><span class="mth-den">∂ <i>a</i><sup>[<i>L</i>]</sup></span></span></span>
-            <div class="diagram"><pre>If all |∂a/∂z × W| &lt; 1 → gradient shrinks exponentially → VANISHING
-If all |∂a/∂z × W| &gt; 1 → gradient grows exponentially → EXPLODING
+            <div class="diagram"><pre>If all |∂a/∂z × W| &lt; 1 <span class="d-a">→</span> gradient shrinks exponentially <span class="d-a">→</span> VANISHING
+If all |∂a/∂z × W| &gt; 1 <span class="d-a">→</span> gradient grows exponentially <span class="d-a">→</span> EXPLODING
 
 VANISHING (more common):
   • Early layers learn very slowly or not at all
-  • Sigmoid/Tanh: max gradient = 0.25 → 0.25^L vanishes fast
+  • Sigmoid/Tanh: max gradient = 0.25 <span class="d-a">→</span> 0.25^L vanishes fast
   • Signs: loss plateaus, early layers don't change
   
 EXPLODING (easier to detect):
-  • Gradients → NaN, loss → infinity
+  • Gradients <span class="d-a">→</span> NaN, loss <span class="d-a">→</span> infinity
   • Weight updates are huge, model diverges
   • Signs: NaN loss, weights overflow
 
@@ -1880,12 +1892,12 @@ scheduler = <span class="fn">ReduceLROnPlateau</span>(optimizer, mode=<span clas
 <span class="cmt"># Warm restarts: cosine with periodic resets</span>
 scheduler = <span class="fn">CosineAnnealingWarmRestarts</span>(optimizer, T_0=<span class="num">10</span>, T_mult=<span class="num">2</span>)</code></pre>
             <div class="diagram"><pre>RECOMMENDATION:
-  Fixed epochs, known runtime → CosineAnnealingLR
-  Unknown training length → ReduceLROnPlateau
-  Fine-tuning Transformers → Linear warmup + cosine decay
-  Super-convergence → OneCycleLR
+  Fixed epochs, known runtime <span class="d-a">→</span> CosineAnnealingLR
+  Unknown training length <span class="d-a">→</span> ReduceLROnPlateau
+  Fine-tuning Transformers <span class="d-a">→</span> Linear warmup + cosine decay
+  Super-convergence <span class="d-a">→</span> OneCycleLR
   
-  Warmup (first 5-10% of steps): start from 0 → peak LR
+  Warmup (first 5-10% of steps): start from 0 <span class="d-a">→</span> peak LR
   Prevents early training instability with fresh random weights.</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -2087,39 +2099,39 @@ criterion = nn.<span class="fn">BCEWithLogitsLoss</span>()  <span class="cmt"># 
             <div class="diagram"><pre>CHECKLIST WHEN MODEL ISN'T LEARNING:
 
 1. SANITY CHECK: Can model overfit 1 batch?
-   → Train on 1 batch repeatedly. Loss should go to ~0.
-   → If not: bug in model/loss, wrong labels, incorrect data shape.
+   <span class="d-a">→</span> Train on 1 batch repeatedly. Loss should go to ~0.
+   <span class="d-a">→</span> If not: bug in model/loss, wrong labels, incorrect data shape.
 
 2. CHECK DATA:
-   → Are labels correct? (print a few samples with labels)
-   → Are features properly normalized?
-   → Any NaN/Inf in inputs?
+   <span class="d-a">→</span> Are labels correct? (print a few samples with labels)
+   <span class="d-a">→</span> Are features properly normalized?
+   <span class="d-a">→</span> Any NaN/Inf in inputs?
 
 3. CHECK LOSS:
-   → Is loss decreasing on training data?
-   → Is loss at expected initial value?
-     Random binary classifier → initial loss ≈ -ln(0.5) = 0.693
-     Random 10-class → initial loss ≈ -ln(0.1) = 2.303
+   <span class="d-a">→</span> Is loss decreasing on training data?
+   <span class="d-a">→</span> Is loss at expected initial value?
+     Random binary classifier <span class="d-a">→</span> initial loss ≈ -ln(0.5) = 0.693
+     Random 10-class <span class="d-a">→</span> initial loss ≈ -ln(0.1) = 2.303
 
 4. CHECK GRADIENTS:
-   → Are gradients flowing? (check for zero/NaN gradients)
-   → Gradient magnitudes: should be ~1e-3 to 1e-1 for most params
-   → Use gradient clipping if exploding
+   <span class="d-a">→</span> Are gradients flowing? (check for zero/NaN gradients)
+   <span class="d-a">→</span> Gradient magnitudes: should be ~1e-3 to 1e-1 for most params
+   <span class="d-a">→</span> Use gradient clipping if exploding
 
 5. LEARNING RATE:
-   → Try lr={1e-1, 1e-2, 1e-3, 1e-4, 1e-5} — see which range works
-   → Use LR finder (start tiny, increase exponentially, plot loss vs lr)
+   <span class="d-a">→</span> Try lr={1e-1, 1e-2, 1e-3, 1e-4, 1e-5} — see which range works
+   <span class="d-a">→</span> Use LR finder (start tiny, increase exponentially, plot loss vs lr)
 
 6. ARCHITECTURE:
-   → Start simple (1-2 layers), verify it trains, then add complexity
-   → Check activation functions match the task
+   <span class="d-a">→</span> Start simple (1-2 layers), verify it trains, then add complexity
+   <span class="d-a">→</span> Check activation functions match the task
 
 7. COMMON BUGS:
-   ❌ Forgot model.train() / model.eval() (dropout/BN behave differently!)
-   ❌ Wrong loss for task (MSE for classification, CE for regression)
-   ❌ Softmax + CrossEntropyLoss (PyTorch CE includes softmax!)
-   ❌ Not shuffling data (model sees same order every epoch)
-   ❌ Learning rate too high (loss oscillates/explodes)</pre></div>
+   × Forgot model.train() / model.eval() (dropout/BN behave differently!)
+   × Wrong loss for task (MSE for classification, CE for regression)
+   × Softmax + CrossEntropyLoss (PyTorch CE includes softmax!)
+   × Not shuffling data (model sees same order every epoch)
+   × Learning rate too high (loss oscillates/explodes)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01NeuralNetwor-16">
@@ -2433,13 +2445,13 @@ optimizer = torch.optim.<span class="fn">Adam</span>(model.<span class="fn">para
             <h3>What Is Convolution?</h3>
             <span class="mth mth-block"><span class="mth-txt">Output</span>(<i>i</i>, <i>j</i>) <span class="mth-op">=</span> <span class="mth-lim"><span class="mth-op-b"><span class="mth-bigop">∑</span></span><span class="mth-bot"><i>m</i></span></span><span class="mth-lim"><span class="mth-op-b"><span class="mth-bigop">∑</span></span><span class="mth-bot"><i>n</i></span></span> <span class="mth-txt">Input</span>(<i>i</i><span class="mth-op">+</span><i>m</i>, <i>j</i><span class="mth-op">+</span><i>n</i>) · <span class="mth-txt">Kernel</span>(<i>m</i>, <i>n</i>) <span class="mth-op">+</span> <i>b</i></span>
             <div class="diagram"><pre>INPUT (5×5)           KERNEL (3×3)        OUTPUT (3×3)
-┌─────────────┐       ┌─────────┐         ┌─────────┐
-│ 1  0  1  0  1│      │ 1  0  1 │         │ 4  3  4 │
-│ 0  1  0  1  0│      │ 0  1  0 │    →    │ 2  4  3 │
-│ 1  0  1  0  1│      │ 1  0  1 │         │ 4  3  4 │
-│ 0  1  0  1  0│      └─────────┘         └─────────┘
-│ 1  0  1  0  1│
-└─────────────┘
+<span class="d-l">┌─────────────┐</span>       <span class="d-l">┌─────────┐</span>         <span class="d-l">┌─────────┐</span>
+<span class="d-l">│</span> 1  0  1  0  1<span class="d-l">│</span>      <span class="d-l">│</span> 1  0  1 <span class="d-l">│</span>         <span class="d-l">│</span> 4  3  4 <span class="d-l">│</span>
+<span class="d-l">│</span> 0  1  0  1  0<span class="d-l">│</span>      <span class="d-l">│</span> 0  1  0 <span class="d-l">│</span>    <span class="d-a">→</span>    <span class="d-l">│</span> 2  4  3 <span class="d-l">│</span>
+<span class="d-l">│</span> 1  0  1  0  1<span class="d-l">│</span>      <span class="d-l">│</span> 1  0  1 <span class="d-l">│</span>         <span class="d-l">│</span> 4  3  4 <span class="d-l">│</span>
+<span class="d-l">│</span> 0  1  0  1  0<span class="d-l">│</span>      <span class="d-l">└─────────┘</span>         <span class="d-l">└─────────┘</span>
+<span class="d-l">│</span> 1  0  1  0  1<span class="d-l">│</span>
+<span class="d-l">└─────────────┘</span>
 
 Position (0,0): 1·1 + 0·0 + 1·1 + 0·0 + 1·1 + 0·0 + 1·1 + 0·0 + 1·1 = 4</pre></div>
             <div class="note">
@@ -2482,16 +2494,16 @@ Position (0,0): 1·1 + 0·0 + 1·1 + 0·0 + 1·1 + 0·0 + 1·1 + 0·0 + 1·1 = 4
               </table>
             </div>
             <div class="diagram"><pre>EXAMPLES:
-  Input=32, kernel=3, padding=1, stride=1 → (32+2-3)/1 + 1 = 32 (same)
-  Input=32, kernel=3, padding=0, stride=1 → (32+0-3)/1 + 1 = 30 (shrinks)  
-  Input=32, kernel=3, padding=1, stride=2 → (32+2-3)/2 + 1 = 16 (downsample)
-  Input=224, kernel=7, padding=3, stride=2 → (224+6-7)/2 + 1 = 112 (ResNet first layer)</pre></div>
+  Input=32, kernel=3, padding=1, stride=1 <span class="d-a">→</span> (32+2-3)/1 + 1 = 32 (same)
+  Input=32, kernel=3, padding=0, stride=1 <span class="d-a">→</span> (32+0-3)/1 + 1 = 30 (shrinks)  
+  Input=32, kernel=3, padding=1, stride=2 <span class="d-a">→</span> (32+2-3)/2 + 1 = 16 (downsample)
+  Input=224, kernel=7, padding=3, stride=2 <span class="d-a">→</span> (224+6-7)/2 + 1 = 112 (ResNet first layer)</pre></div>
             <h3>Parameter Count</h3>
             <span class="mth mth-block"><span class="mth-txt">Params</span> <span class="mth-op">=</span> (<i>k</i> × <i>k</i> × <i>C</i><sub><i>i</i><i>n</i></sub> <span class="mth-op">+</span> 1) × <i>C</i><sub><i>o</i><i>u</i><i>t</i></sub></span>
             <div class="diagram"><pre>Example: Conv2d(in_channels=64, out_channels=128, kernel_size=3)
   Params = (3 × 3 × 64 + 1) × 128 = 73,856
 
-Compared to FC layer: 64×64 image → 128 neurons
+Compared to FC layer: 64×64 image <span class="d-a">→</span> 128 neurons
   Params = (64 × 64 × 64 + 1) × 128 = 33,554,560
 
   CNN: ~74K vs FC: ~33M — CNNs are 450× more parameter efficient!
@@ -2500,11 +2512,11 @@ Compared to FC layer: 64×64 image → 128 neurons
             <div class="diagram"><pre>THREE KEY PROPERTIES:
 
 1. LOCAL CONNECTIVITY: Each neuron sees only a small region (receptive field)
-   → Learns local features (edges, textures)
+   <span class="d-a">→</span> Learns local features (edges, textures)
 
 2. WEIGHT SHARING: Same kernel applied across entire input
-   → Dramatically fewer parameters
-   → Translation equivariance: same feature detected everywhere
+   <span class="d-a">→</span> Dramatically fewer parameters
+   <span class="d-a">→</span> Translation equivariance: same feature detected everywhere
 
 3. HIERARCHICAL FEATURES:
    Layer 1: Edges, gradients
@@ -2525,29 +2537,29 @@ Compared to FC layer: 64×64 image → 128 neurons
             <p><strong>Definition:</strong> Pooling layers reduce the spatial dimensions (height and width) of feature maps by summarizing regions of the input into single values. <strong>Max pooling</strong> takes the maximum value in each region (preserves strongest activations/features), while <strong>average pooling</strong> takes the mean (preserves overall distribution). Pooling provides three key benefits: (1) reduces computational cost by shrinking feature maps, (2) provides a degree of translation invariance — small shifts in the input don't change the pooled output, and (3) controls <abbr title="a model that fits the training data&#x27;s noise and generalises worse than a simpler one would">overfitting</abbr> by reducing the number of parameters in subsequent layers.</p>
             <h3>Max Pooling vs Average Pooling</h3>
             <div class="diagram"><pre>Input (4×4)       Max Pool (2×2, s=2)    Avg Pool (2×2, s=2)
-┌───────────┐     ┌───────┐               ┌───────┐
-│ 1  3  2  4│     │ 5   4 │               │2.5 2.5│
-│ 5  2  1  0│ →   │ 3   4 │               │2.0 2.5│
-│ 1  0  3  2│     └───────┘               └───────┘
-│ 3  1  1  4│
-└───────────┘
+<span class="d-l">┌───────────┐</span>     <span class="d-l">┌───────┐</span>               <span class="d-l">┌───────┐</span>
+<span class="d-l">│</span> 1  3  2  4<span class="d-l">│</span>     <span class="d-l">│</span> 5   4 <span class="d-l">│</span>               <span class="d-l">│</span>2.5 2.5<span class="d-l">│</span>
+<span class="d-l">│</span> 5  2  1  0<span class="d-l">│</span> <span class="d-a">→</span>   <span class="d-l">│</span> 3   4 <span class="d-l">│</span>               <span class="d-l">│</span>2.0 2.5<span class="d-l">│</span>
+<span class="d-l">│</span> 1  0  3  2<span class="d-l">│</span>     <span class="d-l">└───────┘</span>               <span class="d-l">└───────┘</span>
+<span class="d-l">│</span> 3  1  1  4<span class="d-l">│</span>
+<span class="d-l">└───────────┘</span>
 
 Max Pool: Takes maximum value — captures most prominent feature
 Avg Pool: Takes average — captures overall feature distribution</pre></div>
             <h3>Global Average Pooling (GAP)</h3>
             <div class="diagram"><pre>GLOBAL AVERAGE POOLING: Averages ENTIRE feature map into single value.
-  Input: (batch, C, H, W) → Output: (batch, C, 1, 1) → flatten → (batch, C)
+  Input: (batch, C, H, W) <span class="d-a">→</span> Output: (batch, C, 1, 1) <span class="d-a">→</span> flatten <span class="d-a">→</span> (batch, C)
 
 WHY USE:
-  • Replaces final FC layer → massive parameter reduction
+  • Replaces final FC layer <span class="d-a">→</span> massive parameter reduction
   • No additional parameters to learn
   • Provides spatial invariance — feature location doesn't matter
   • Acts as regularization (fewer parameters)
   • Used in: ResNet, GoogLeNet, EfficientNet, modern architectures
 
 Example:
-  Before GAP: 512 × 7 × 7 → FC(25088, 1000) = 25M params
-  With GAP:   512 × 7 × 7 → GAP → 512 → FC(512, 1000) = 0.5M params</pre></div>
+  Before GAP: 512 × 7 × 7 <span class="d-a">→</span> FC(25088, 1000) = 25M params
+  With GAP:   512 × 7 × 7 <span class="d-a">→</span> GAP <span class="d-a">→</span> 512 <span class="d-a">→</span> FC(512, 1000) = 0.5M params</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02CNNsmd-24">
@@ -2561,18 +2573,18 @@ Example:
             <div class="diagram"><pre>STANDARD CNN PIPELINE:
 
 Input Image (3, 224, 224)
-  │
-  ├── FEATURE EXTRACTOR (convolutional backbone)
-  │   ├── [Conv → BN → ReLU → Conv → BN → ReLU → MaxPool] × N
-  │   │    Channels: 3 → 64 → 128 → 256 → 512
-  │   │    Spatial:  224 → 112 → 56 → 28 → 14 → 7
-  │   └── Global Average Pooling → (512,)
-  │
-  ├── CLASSIFIER (fully connected head)
-  │   ├── FC(512, 256) → ReLU → Dropout(0.5)
-  │   └── FC(256, num_classes) → Softmax
-  │
-  └── Output: Class probabilities
+  <span class="d-l">│</span>
+  <span class="d-l">├──</span> FEATURE EXTRACTOR (convolutional backbone)
+  <span class="d-l">│</span>   <span class="d-l">├──</span> [Conv <span class="d-a">→</span> BN <span class="d-a">→</span> ReLU <span class="d-a">→</span> Conv <span class="d-a">→</span> BN <span class="d-a">→</span> ReLU <span class="d-a">→</span> MaxPool] × N
+  <span class="d-l">│</span>   <span class="d-l">│</span>    Channels: 3 <span class="d-a">→</span> 64 <span class="d-a">→</span> 128 <span class="d-a">→</span> 256 <span class="d-a">→</span> 512
+  <span class="d-l">│</span>   <span class="d-l">│</span>    Spatial:  224 <span class="d-a">→</span> 112 <span class="d-a">→</span> 56 <span class="d-a">→</span> 28 <span class="d-a">→</span> 14 <span class="d-a">→</span> 7
+  <span class="d-l">│</span>   <span class="d-l">└──</span> Global Average Pooling <span class="d-a">→</span> (512,)
+  <span class="d-l">│</span>
+  <span class="d-l">├──</span> CLASSIFIER (fully connected head)
+  <span class="d-l">│</span>   <span class="d-l">├──</span> FC(512, 256) <span class="d-a">→</span> ReLU <span class="d-a">→</span> Dropout(0.5)
+  <span class="d-l">│</span>   <span class="d-l">└──</span> FC(256, num_classes) <span class="d-a">→</span> Softmax
+  <span class="d-l">│</span>
+  <span class="d-l">└──</span> Output: Class probabilities
 
 DESIGN PATTERNS:
   • Double channels when you halve spatial dimensions
@@ -2588,8 +2600,8 @@ Stack of 3×3 convs:
   3 layers: 7×7 receptive field
 
   Two 3×3 convs have SAME receptive field as one 5×5 conv
-  BUT: 2×(3²C²) = 18C² params vs 25C² params → 28% fewer parameters
-  AND: 2 non-linearities vs 1 → more expressive
+  BUT: 2×(3²C²) = 18C² params vs 25C² params <span class="d-a">→</span> 28% fewer parameters
+  AND: 2 non-linearities vs 1 <span class="d-a">→</span> more expressive
 
   This is why VGGNet (all 3×3) outperforms larger kernels.
 
@@ -2603,7 +2615,7 @@ Formula: RF(l) = RF(l-1) + (k_l - 1) × Π(s_i for i &lt; l)</pre></div>
           <div class="q-a">
             <p><strong><abbr title="convolutional neural network">CNN</abbr> architecture evolution</strong> traces the progression from LeNet-5 (1998) through AlexNet, VGGNet, GoogLeNet/Inception, ResNet, and modern architectures like EfficientNet and ConvNeXt. Each generation introduced key innovations — deeper networks, skip connections, multi-scale processing — that pushed image classification accuracy while addressing training challenges.</p>
             <div class="diagram"><pre>Year  Architecture    Key Innovation              Top-5 Error  Params
-────  ──────────────  ─────────────────────────   ──────────   ──────
+<span class="d-l">────</span>  <span class="d-l">──────────────</span>  <span class="d-l">─────────────────────────</span>   <span class="d-l">──────────</span>   <span class="d-l">──────</span>
 1998  LeNet-5         First practical CNN          —            60K
 2012  AlexNet         GPU training, ReLU, Dropout  16.4%        60M
 2014  VGGNet          Deep with 3×3 only           7.3%         138M
@@ -2616,33 +2628,33 @@ Formula: RF(l) = RF(l-1) + (k_l - 1) × Π(s_i for i &lt; l)</pre></div>
             <h3>ResNet — The Most Important Architecture</h3>
             <div class="diagram"><pre>RESIDUAL BLOCK:
 
-  x ─────────────────────────┐
-  │                          │ (identity shortcut)
-  ├── Conv3×3 → BN → ReLU    │
-  │                          │
-  ├── Conv3×3 → BN           │
-  │                          │
-  └──────────── + ◄──────────┘
-                │
+  x <span class="d-l">─────────────────────────┐</span>
+  <span class="d-l">│</span>                          <span class="d-l">│</span> (identity shortcut)
+  <span class="d-l">├──</span> Conv3×3 <span class="d-a">→</span> BN <span class="d-a">→</span> ReLU    <span class="d-l">│</span>
+  <span class="d-l">│</span>                          <span class="d-l">│</span>
+  <span class="d-l">├──</span> Conv3×3 <span class="d-a">→</span> BN           <span class="d-l">│</span>
+  <span class="d-l">│</span>                          <span class="d-l">│</span>
+  <span class="d-l">└────────────</span> + <span class="d-a">◄</span><span class="d-l">──────────┘</span>
+                <span class="d-l">│</span>
               ReLU
-                │
+                <span class="d-l">│</span>
               Output
 
-  F(x) = H(x) - x   →   H(x) = F(x) + x  (residual learning)
+  F(x) = H(x) - x   <span class="d-a">→</span>   H(x) = F(x) + x  (residual learning)
 
 WHY IT WORKS:
-  1. Gradient flow: ∂H/∂x = 1 + ∂F/∂x → gradient always ≥ 1
+  1. Gradient flow: ∂H/∂x = 1 + ∂F/∂x <span class="d-a">→</span> gradient always ≥ 1
      (skip connection provides "gradient highway")
   2. Identity mapping is easy: just set F(x) = 0
   3. Learning residual ΔF is easier than learning full H
   4. Enables training of 100+ layer networks (ResNet-152)
 
 BOTTLENECK (ResNet-50+):
-  x → Conv1×1(reduce) → BN → ReLU
-    → Conv3×3           → BN → ReLU
-    → Conv1×1(expand)   → BN → (+x) → ReLU
+  x <span class="d-a">→</span> Conv1×1(reduce) <span class="d-a">→</span> BN <span class="d-a">→</span> ReLU
+    <span class="d-a">→</span> Conv3×3           <span class="d-a">→</span> BN <span class="d-a">→</span> ReLU
+    <span class="d-a">→</span> Conv1×1(expand)   <span class="d-a">→</span> BN <span class="d-a">→</span> (+x) <span class="d-a">→</span> ReLU
 
-  256ch → 64ch → 64ch → 256ch (4× fewer FLOPs than 256→256→256)</pre></div>
+  256ch <span class="d-a">→</span> 64ch <span class="d-a">→</span> 64ch <span class="d-a">→</span> 256ch (4× fewer FLOPs than 256<span class="d-a">→</span>256<span class="d-a">→</span>256)</pre></div>
             <h3>EfficientNet — Compound Scaling</h3>
             <pre class="code"><code>SCALING DIMENSIONS:
   Width:  More channels per layer
@@ -2665,19 +2677,19 @@ Key insight: scaling ALL dimensions together is better than scaling any one alon
             <div class="diagram"><pre>Modernized ResNet with Transformer-inspired design choices:
 
   1. PATCHIFY STEM: 4×4 non-overlapping convolutions (like ViT patch embedding)
-     → replaces ResNet's 7×7 conv + maxpool
+     <span class="d-a">→</span> replaces ResNet's 7×7 conv + maxpool
 
-  2. INVERTED BOTTLENECK: expand → depthwise conv → shrink
-     96 → 384 → depthwise 7×7 → 96 (opposite of ResNet bottleneck)
+  2. INVERTED BOTTLENECK: expand <span class="d-a">→</span> depthwise conv <span class="d-a">→</span> shrink
+     96 <span class="d-a">→</span> 384 <span class="d-a">→</span> depthwise 7×7 <span class="d-a">→</span> 96 (opposite of ResNet bottleneck)
 
   3. LARGER KERNELS: 7×7 depthwise convolutions
-     → moved from early to late position in block (fewer FLOPs)
+     <span class="d-a">→</span> moved from early to late position in block (fewer FLOPs)
 
   4. LAYERNORM instead of BatchNorm
-     → simpler, works with any batch size
+     <span class="d-a">→</span> simpler, works with any batch size
 
   5. GELU activation, fewer activation layers
-     → only one activation per block (like Transformer FFN)
+     <span class="d-a">→</span> only one activation per block (like Transformer FFN)
 
   6. Fewer normalization layers — only one per block
 
@@ -2699,25 +2711,25 @@ model = models.<span class="fn">convnext_tiny</span>(pretrained=<span class="kw"
             <p><strong>Architectural innovations</strong> are the building blocks that enable modern CNNs to achieve superior performance: 1×1 convolutions reduce dimensionality, skip/residual connections enable training of very deep networks, depthwise separable convolutions reduce computation, and squeeze-and-excitation blocks add channel attention.</p>
             <h3>1×1 Convolutions (Network in Network)</h3>
             <div class="diagram"><pre>PURPOSE: Change number of channels without changing spatial dimensions.
-  Input: (C_in, H, W) → 1×1 Conv → Output: (C_out, H, W)
+  Input: (C_in, H, W) <span class="d-a">→</span> 1×1 Conv <span class="d-a">→</span> Output: (C_out, H, W)
 
 USES:
-  • Dimensionality reduction (bottleneck): 256ch → 64ch before expensive 3×3
+  • Dimensionality reduction (bottleneck): 256ch <span class="d-a">→</span> 64ch before expensive 3×3
   • Cross-channel feature combination
   • Add non-linearity (cheap: only C_in × C_out params)
   
 Used in: GoogLeNet Inception, ResNet bottleneck, MobileNet, EfficientNet</pre></div>
             <h3>Depthwise Separable Convolution (MobileNet)</h3>
             <div class="diagram"><pre>STANDARD CONV:
-  Input: (C_in, H, W) → k×k×C_in conv → (C_out, H, W)
+  Input: (C_in, H, W) <span class="d-a">→</span> k×k×C_in conv <span class="d-a">→</span> (C_out, H, W)
   Params: k² × C_in × C_out
 
 DEPTHWISE SEPARABLE:
   Step 1 (Depthwise): Each channel gets its OWN k×k filter
-    Input: (C_in, H, W) → (C_in, H, W)   [Params: k² × C_in]
+    Input: (C_in, H, W) <span class="d-a">→</span> (C_in, H, W)   [Params: k² × C_in]
   
   Step 2 (Pointwise): 1×1 conv combines channels
-    Input: (C_in, H, W) → (C_out, H, W)  [Params: C_in × C_out]
+    Input: (C_in, H, W) <span class="d-a">→</span> (C_out, H, W)  [Params: C_in × C_out]
 
   Total params: k²×C_in + C_in×C_out
   Savings: C_out/(k²) + 1 ≈ 1/k² = 1/9 for k=3
@@ -2729,15 +2741,15 @@ EXAMPLE: in=64, out=128, k=3
             <h3>Attention in CNNs</h3>
             <div class="diagram"><pre>SE-NET (Squeeze-and-Excitation):
   Feature map (C, H, W)
-    → Global Avg Pool → (C, 1, 1)           [Squeeze]
-    → FC → ReLU → FC → Sigmoid → (C, 1, 1) [Excitation]
-    → Multiply with original feature map     [Scale]
+    <span class="d-a">→</span> Global Avg Pool <span class="d-a">→</span> (C, 1, 1)           [Squeeze]
+    <span class="d-a">→</span> FC <span class="d-a">→</span> ReLU <span class="d-a">→</span> FC <span class="d-a">→</span> Sigmoid <span class="d-a">→</span> (C, 1, 1) [Excitation]
+    <span class="d-a">→</span> Multiply with original feature map     [Scale]
   
   Learns to RE-WEIGHT channels: emphasize useful channels, suppress useless.
 
 CBAM (Convolutional Block Attention Module):
   Channel attention (SE-like) + Spatial attention (where to focus)
-  Feature map → Channel Attention → Spatial Attention → Refined features</pre></div>
+  Feature map <span class="d-a">→</span> Channel Attention <span class="d-a">→</span> Spatial Attention <span class="d-a">→</span> Refined features</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02CNNsmd-27">
@@ -2749,7 +2761,7 @@ CBAM (Convolutional Block Attention Module):
             <div class="diagram"><pre>STRATEGY GUIDE:
 
   Dataset Size    Similarity to Source    Strategy
-  ──────────     ────────────────────    ────────────────────
+  <span class="d-l">──────────</span>     <span class="d-l">────────────────────</span>    <span class="d-l">────────────────────</span>
   Small           High                   Freeze all, train FC head
   Small           Low                    Freeze early, fine-tune last few + FC
   Large           High                   Fine-tune all with small LR
@@ -2788,10 +2800,10 @@ optimizer = optim.<span class="fn">AdamW</span>([
     {<span class="str">'params'</span>: model.fc.<span class="fn">parameters</span>(), <span class="str">'lr'</span>: 1e-<span class="num">3</span>},        <span class="cmt"># New: normal LR</span>
 ], weight_decay=<span class="num">0.01</span>)</code></pre>
             <div class="diagram"><pre>COMMON MISTAKES IN TRANSFER LEARNING:
-  ❌ Using same LR for pretrained and new layers (pretrained need 10-100× lower)
-  ❌ Not normalizing images with ImageNet mean/std when using ImageNet model
-  ❌ Training FC head without freezing backbone first (can ruin pretrained features)
-  ❌ Using too high LR → "catastrophic forgetting" of pretrained knowledge</pre></div>
+  × Using same LR for pretrained and new layers (pretrained need 10-100× lower)
+  × Not normalizing images with ImageNet mean/std when using ImageNet model
+  × Training FC head without freezing backbone first (can ruin pretrained features)
+  × Using too high LR <span class="d-a">→</span> "catastrophic forgetting" of pretrained knowledge</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02CNNsmd-28">
@@ -2822,11 +2834,11 @@ train_transform = T.<span class="fn">Compose</span>([
   • Always augment TRAINING data only (never validation/test)
   • Start light, increase if overfitting persists
   • Match augmentations to domain:
-    Medical images: rotation, flip ✓; color jitter ✗
-    Satellite: ALL rotations ✓; vertical flip ✓ 
-    Text in images: horizontal flip ✗; perspective ✓
+    Medical images: rotation, flip √; color jitter ×
+    Satellite: ALL rotations √; vertical flip √ 
+    Text in images: horizontal flip ×; perspective √
   • Test-time augmentation (TTA): predict on multiple augmented versions,
-    average predictions → +1-2% accuracy at inference cost</pre></div>
+    average predictions <span class="d-a">→</span> +1-2% accuracy at inference cost</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02CNNsmd-29">
@@ -2837,7 +2849,7 @@ train_transform = T.<span class="fn">Compose</span>([
             <p><strong>Object detection</strong> extends image classification by simultaneously predicting bounding box coordinates and class labels for multiple objects in an image. Architectures are categorized as two-stage (R-CNN, Faster R-CNN — region proposal then classification) or single-stage (YOLO, <abbr title="solid-state drive">SSD</abbr> — direct prediction) with different speed-accuracy tradeoffs.</p>
             <div class="diagram"><pre>TWO-STAGE DETECTORS:
   Faster R-CNN:
-    Stage 1: Region Proposal Network (RPN) → candidate bounding boxes
+    Stage 1: Region Proposal Network (RPN) <span class="d-a">→</span> candidate bounding boxes
     Stage 2: Classify + refine each proposal
     Pros: High accuracy, especially for small objects
     Cons: Slower (~5-7 FPS)
@@ -2846,7 +2858,7 @@ ONE-STAGE DETECTORS:
   YOLO (You Only Look Once):
     • Divide image into S×S grid
     • Each cell predicts B bounding boxes + confidence + class probabilities
-    • Single forward pass → real-time speed
+    • Single forward pass <span class="d-a">→</span> real-time speed
     
   YOLOv5/v8 (Ultralytics):
     Feature Pyramid Network (FPN) for multi-scale detection
@@ -2886,13 +2898,13 @@ PANOPTIC SEGMENTATION: Semantic + Instance combined
   • Every pixel classified + each "thing" gets unique ID
 
 U-NET ARCHITECTURE:
-  ┌─────────────────────────────────────────────────┐
-  │ ENCODER (downsample)         DECODER (upsample) │
-  │ Conv→Pool→Conv→Pool    Cat→Conv→Up→Cat→Conv→Up  │
-  │                                                 │
-  │ 64→128→256→512→1024    1024→512→256→128→64→C    │
-  │         ↗ skip connections ↗                    │
-  └─────────────────────────────────────────────────┘
+  <span class="d-l">┌─────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> ENCODER (downsample)         DECODER (upsample) <span class="d-l">│</span>
+  <span class="d-l">│</span> Conv<span class="d-a">→</span>Pool<span class="d-a">→</span>Conv<span class="d-a">→</span>Pool    Cat<span class="d-a">→</span>Conv<span class="d-a">→</span>Up<span class="d-a">→</span>Cat<span class="d-a">→</span>Conv<span class="d-a">→</span>Up  <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                 <span class="d-l">│</span>
+  <span class="d-l">│</span> 64<span class="d-a">→</span>128<span class="d-a">→</span>256<span class="d-a">→</span>512<span class="d-a">→</span>1024    1024<span class="d-a">→</span>512<span class="d-a">→</span>256<span class="d-a">→</span>128<span class="d-a">→</span>64<span class="d-a">→</span>C    <span class="d-l">│</span>
+  <span class="d-l">│</span>         / skip connections /                    <span class="d-l">│</span>
+  <span class="d-l">└─────────────────────────────────────────────────┘</span>
   
   Skip connections preserve fine spatial details lost during downsampling.</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -2906,9 +2918,9 @@ U-NET ARCHITECTURE:
             <div class="diagram"><pre>GRAD-CAM: Gradient-weighted Class Activation Mapping
 
 STEPS:
-  1. Forward pass → get prediction for target class c
+  1. Forward pass <span class="d-a">→</span> get prediction for target class c
   2. Compute gradients of class score w.r.t. last conv feature maps (A^k)
-  3. Global average pool the gradients → importance weights α_k
+  3. Global average pool the gradients <span class="d-a">→</span> importance weights α_k
   4. Weighted combination: L = ReLU(Σ α_k × A_k)
   5. Overlay heatmap on original image
 
@@ -3321,14 +3333,14 @@ final_boxes = boxes[keep_indices]
             <span class="mth mth-block"><i>y</i><sub><i>t</i></sub> <span class="mth-op">=</span> <i>W</i><sub><i>h</i><i>y</i></sub> <i>h</i><sub><i>t</i></sub> <span class="mth-op">+</span> <i>b</i><sub><i>y</i></sub></span>
             <div class="diagram"><pre>UNROLLED RNN:
 
-  x₁ ────→ x₂ ────→ x₃ ────→ xₜ
-  │         │         │         │
-  ▼         ▼         ▼         ▼
-┌───┐     ┌───┐     ┌───┐     ┌─┐
-│ h₁│────→│ h₂│────→│ h₃│────→│ hₜ│   Hidden state
-└───┘     └───┘     └───┘     └─┘
-  │         │         │         │
-  ▼         ▼         ▼         ▼
+  x₁ <span class="d-l">────</span><span class="d-a">→</span> x₂ <span class="d-l">────</span><span class="d-a">→</span> x₃ <span class="d-l">────</span><span class="d-a">→</span> xₜ
+  <span class="d-l">│</span>         <span class="d-l">│</span>         <span class="d-l">│</span>         <span class="d-l">│</span>
+  <span class="d-a">▼</span>         <span class="d-a">▼</span>         <span class="d-a">▼</span>         <span class="d-a">▼</span>
+<span class="d-l">┌───┐</span>     <span class="d-l">┌───┐</span>     <span class="d-l">┌───┐</span>     <span class="d-l">┌─┐</span>
+<span class="d-l">│</span> h₁<span class="d-l">│────</span><span class="d-a">→</span><span class="d-l">│</span> h₂<span class="d-l">│────</span><span class="d-a">→</span><span class="d-l">│</span> h₃<span class="d-l">│────</span><span class="d-a">→</span><span class="d-l">│</span> hₜ<span class="d-l">│</span>   Hidden state
+<span class="d-l">└───┘</span>     <span class="d-l">└───┘</span>     <span class="d-l">└───┘</span>     <span class="d-l">└─┘</span>
+  <span class="d-l">│</span>         <span class="d-l">│</span>         <span class="d-l">│</span>         <span class="d-l">│</span>
+  <span class="d-a">▼</span>         <span class="d-a">▼</span>         <span class="d-a">▼</span>         <span class="d-a">▼</span>
   y₁        y₂        y₃        yₜ
 
 KEY INSIGHT: 
@@ -3341,22 +3353,22 @@ HIDDEN STATE h_t:
   • This is also the fundamental limitation: fixed-size bottleneck</pre></div>
             <h3>RNN Variants by Task</h3>
             <div class="diagram"><pre>MANY-TO-ONE (Classification):
-  x₁→x₂→x₃→...→xₜ → h_T → y
+  x₁<span class="d-a">→</span>x₂<span class="d-a">→</span>x₃<span class="d-a">→</span>...<span class="d-a">→</span>xₜ <span class="d-a">→</span> h_T <span class="d-a">→</span> y
   Example: Sentiment classification
 
 ONE-TO-MANY (Generation):  
-  x → h₁→h₂→h₃→...→hₜ
+  x <span class="d-a">→</span> h₁<span class="d-a">→</span>h₂<span class="d-a">→</span>h₃<span class="d-a">→</span>...<span class="d-a">→</span>hₜ
        y₁  y₂  y₃     yₜ
   Example: Image captioning
 
 MANY-TO-MANY (same length):
-  x₁→x₂→x₃→...→xₜ
+  x₁<span class="d-a">→</span>x₂<span class="d-a">→</span>x₃<span class="d-a">→</span>...<span class="d-a">→</span>xₜ
   y₁  y₂  y₃     yₜ
   Example: POS tagging, NER
 
 MANY-TO-MANY (different lengths — Seq2Seq):
-  x₁→x₂→x₃ → [context] → y₁→y₂→y₃→y₄
-  Encoder         →         Decoder
+  x₁<span class="d-a">→</span>x₂<span class="d-a">→</span>x₃ <span class="d-a">→</span> [context] <span class="d-a">→</span> y₁<span class="d-a">→</span>y₂<span class="d-a">→</span>y₃<span class="d-a">→</span>y₄
+  Encoder         <span class="d-a">→</span>         Decoder
   Example: Translation, summarization</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -3372,7 +3384,7 @@ MANY-TO-MANY (different lengths — Seq2Seq):
 
   Loss at time t depends on ALL previous hidden states:
   
-  L_t ← h_t ← h_{t-1} ← h_{t-2} ← ... ← h_1
+  L_t <span class="d-a">←</span> h_t <span class="d-a">←</span> h_{t-1} <span class="d-a">←</span> h_{t-2} <span class="d-a">←</span> ... <span class="d-a">←</span> h_1
   
   The gradient w.r.t. W_hh must flow backward through ALL time steps.
   
@@ -3389,8 +3401,8 @@ TRUNCATED BPTT:
   • Backpropagate only within each chunk
   • Forward pass carries h_t across chunks (no truncation)
   
-  Chunk 1:  x₁...x₃₅  → BPTT within this chunk
-  Chunk 2:  x₃₆...x₇₀ → BPTT within, but h₃₅ carries over
+  Chunk 1:  x₁...x₃₅  <span class="d-a">→</span> BPTT within this chunk
+  Chunk 2:  x₃₆...x₇₀ <span class="d-a">→</span> BPTT within, but h₃₅ carries over
   
   Tradeoff: Doesn't learn dependencies longer than k steps,
   but O(k) memory and practical for very long sequences.</pre></div>
@@ -3406,11 +3418,11 @@ TRUNCATED BPTT:
             <div class="diagram"><pre>ANALYSIS:
   tanh'(z) ∈ (0, 1], max at z=0 where tanh'(0) = 1
   
-  If |λ_max(W_hh)| &lt; 1: product → 0 exponentially (VANISHING)
-  If |λ_max(W_hh)| &gt; 1: product → ∞ exponentially (EXPLODING)
+  If |λ_max(W_hh)| &lt; 1: product <span class="d-a">→</span> 0 exponentially (VANISHING)
+  If |λ_max(W_hh)| &gt; 1: product <span class="d-a">→</span> ∞ exponentially (EXPLODING)
 
   For tanh: max gradient is 1, so the product shrinks at each step.
-  After ~10-20 steps, gradient ≈ 0 → early time steps can't learn.
+  After ~10-20 steps, gradient ≈ 0 <span class="d-a">→</span> early time steps can't learn.
 
 CONSEQUENCE:
   Vanilla RNN CANNOT learn long-range dependencies (&gt;20 time steps).
@@ -3420,9 +3432,9 @@ CONSEQUENCE:
 
 SOLUTIONS:
   1. LSTM / GRU:  Gated architectures with additive gradient flow
-  2. Gradient clipping: ||g|| &gt; threshold → g = g × threshold/||g||
+  2. Gradient clipping: ||g|| &gt; threshold <span class="d-a">→</span> g = g × threshold/||g||
   3. Skip connections: Residual across time steps
-  4. Transformers: Self-attention → O(1) path between any two positions</pre></div>
+  4. Transformers: Self-attention <span class="d-a">→</span> O(1) path between any two positions</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f03SequenceMode-44">
@@ -3442,39 +3454,39 @@ SOLUTIONS:
             <div class="diagram"><pre>LSTM CELL (detailed diagram):
 
                     Cell State C_{t-1}
-                             │
-    ┌────────────────────────┤
-    │                        │
-    │   FORGET GATE          │     INPUT GATE
-    │   ┌─────────┐          │     ┌─────────┐     ┌──────────┐
-    │   │ σ(W_f)  │──×───┤  ×──│ σ(W_i)  │  ×  │tanh(W_C) │
-    │   └─────────┘   │  │  │  └─────────┘     └──────────┘
-    │                  │  │  │       │                    │
-    │         f_t──────┘  │  │       i_t             C̃_t
-    │                     │  │       │                    │
-    │                     ▼  ▼       └────────────×───────┘
-    │                  f_t×C_{t-1}  +  i_t×C̃_t
-    │                        │
-    │                        ▼
-    │                      C_t ←── NEW CELL STATE
-    │                        │
-    │                     tanh(C_t)
-    │                        │
-    │   OUTPUT GATE          │
-    │   ┌─────────┐          │
-    │   │ σ(W_o)  │──────×───┘
-    │   └─────────┘          │
-    │        o_t─────────────┘
-    │                        │
-    │                    ▼
-    │                   h_t ←── HIDDEN STATE (output)
-    │
-    └── [h_{t-1}, x_t] are inputs to ALL gates
+                             <span class="d-l">│</span>
+    <span class="d-l">┌────────────────────────┤</span>
+    <span class="d-l">│</span>                        <span class="d-l">│</span>
+    <span class="d-l">│</span>   FORGET GATE          <span class="d-l">│</span>     INPUT GATE
+    <span class="d-l">│</span>   <span class="d-l">┌─────────┐</span>          <span class="d-l">│</span>     <span class="d-l">┌─────────┐</span>     <span class="d-l">┌──────────┐</span>
+    <span class="d-l">│</span>   <span class="d-l">│</span> σ(W_f)  <span class="d-l">│──</span>×<span class="d-l">───┤</span>  ×<span class="d-l">──│</span> σ(W_i)  <span class="d-l">│</span>  ×  <span class="d-l">│</span>tanh(W_C) <span class="d-l">│</span>
+    <span class="d-l">│</span>   <span class="d-l">└─────────┘</span>   <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>      <span class="d-l">└─────────┘</span>         <span class="d-l">└──────────┘</span>
+    <span class="d-l">│</span>                  <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>       <span class="d-l">│</span>                    <span class="d-l">│</span>
+    <span class="d-l">│</span>         f_t<span class="d-l">──────┘</span>  <span class="d-l">│</span>  <span class="d-l">│</span>       i_t             C̃_t
+    <span class="d-l">│</span>                     <span class="d-l">│</span>  <span class="d-l">│</span>       <span class="d-l">│</span>                    <span class="d-l">│</span>
+    <span class="d-l">│</span>                     <span class="d-a">▼</span>  <span class="d-a">▼</span>       <span class="d-l">└────────────</span>×<span class="d-l">───────┘</span>
+    <span class="d-l">│</span>                  f_t×C_{t-1}  +  i_t×C̃_t
+    <span class="d-l">│</span>                        <span class="d-l">│</span>
+    <span class="d-l">│</span>                        <span class="d-a">▼</span>
+    <span class="d-l">│</span>                      C_t <span class="d-a">←</span><span class="d-l">──</span> NEW CELL STATE
+    <span class="d-l">│</span>                        <span class="d-l">│</span>
+    <span class="d-l">│</span>                     tanh(C_t)
+    <span class="d-l">│</span>                        <span class="d-l">│</span>
+    <span class="d-l">│</span>   OUTPUT GATE          <span class="d-l">│</span>
+    <span class="d-l">│</span>   <span class="d-l">┌─────────┐</span>          <span class="d-l">│</span>
+    <span class="d-l">│</span>   <span class="d-l">│</span> σ(W_o)  <span class="d-l">│──────</span>×<span class="d-l">───┘</span>
+    <span class="d-l">│</span>   <span class="d-l">└─────────┘</span>          <span class="d-l">│</span>
+    <span class="d-l">│</span>        o_t<span class="d-l">─────────────┘</span>
+    <span class="d-l">│</span>                        <span class="d-l">│</span>
+    <span class="d-l">│</span>                    <span class="d-a">▼</span>
+    <span class="d-l">│</span>                   h_t <span class="d-a">←</span><span class="d-l">──</span> HIDDEN STATE (output)
+    <span class="d-l">│</span>
+    <span class="d-l">└──</span> [h_{t-1}, x_t] are inputs to ALL gates
 
 GATE FUNCTIONS:
   FORGET GATE (f_t): "What to forget from old memory?"
-    f_t ≈ 1 → remember everything
-    f_t ≈ 0 → forget everything
+    f_t ≈ 1 <span class="d-a">→</span> remember everything
+    f_t ≈ 0 <span class="d-a">→</span> forget everything
     Example: When period "." appears, forget previous sentence context.
 
   INPUT GATE (i_t × C̃_t): "What new info to store?"
@@ -3483,7 +3495,7 @@ GATE FUNCTIONS:
     Example: Store new subject after seeing "John" in "John went to..."
 
   OUTPUT GATE (o_t): "What to expose from memory?"
-    h_t = o_t × tanh(C_t) → selectively reveals cell state
+    h_t = o_t × tanh(C_t) <span class="d-a">→</span> selectively reveals cell state
     Example: When generating next word, only expose relevant part of memory</pre></div>
             <h3>Why LSTM Solves Vanishing Gradients</h3>
             <pre class="code"><code>CELL STATE GRADIENT:
@@ -3525,39 +3537,39 @@ GATE FUNCTIONS:
             <span class="mth mth-block"><i>h</i><sub><i>t</i></sub> <span class="mth-op">=</span> (1 <span class="mth-op">−</span> <i>z</i><sub><i>t</i></sub>) ⊙ <i>h</i><sub><i>t</i><span class="mth-op">−</span>1</sub> <span class="mth-op">+</span> <i>z</i><sub><i>t</i></sub> ⊙ <i>h̃</i><sub><i>t</i></sub>   <span class="mth-txt">(Final state)</span></span>
             <div class="diagram"><pre>GRU CELL:
 
-  ┌─────────────────────────────────┐
-  │                                 │
-  │   UPDATE GATE     RESET GATE    │
-  │   ┌─────────┐    ┌─────────┐    │
-  │   │ σ(W_z)  │    │ σ(W_r)  │    │
-  │   └────┬────┘    └────┬────┘    │
-  │        z_t            r_t       │
-  │        │         │              │
-  │        │         ┌────┘         │
-  │        │         ▼              │
-  │        │    r_t × h_{t-1}       │
-  │        │         │              │
-  │        │    ┌────┴────┐         │
-  │        │    │tanh(W_h)│         │
-  │        │    └────┬────┘         │
-  │        │         h̃_t           │
-  │        │         │              │
-  │        ▼         ▼              │
-  │   (1-z_t)×h_{t-1} + z_t×h̃_t    │
-  │        │                        │
-  │              ▼                  │
-  │             h_t                 │
-  └─────────────────────────────────┘
+  <span class="d-l">┌─────────────────────────────────┐</span>
+  <span class="d-l">│</span>                                 <span class="d-l">│</span>
+  <span class="d-l">│</span>   UPDATE GATE     RESET GATE    <span class="d-l">│</span>
+  <span class="d-l">│</span>   <span class="d-l">┌─────────┐</span>    <span class="d-l">┌─────────┐</span>    <span class="d-l">│</span>
+  <span class="d-l">│</span>   <span class="d-l">│</span> σ(W_z)  <span class="d-l">│</span>    <span class="d-l">│</span> σ(W_r)  <span class="d-l">│</span>    <span class="d-l">│</span>
+  <span class="d-l">│</span>   <span class="d-l">└────┬────┘</span>    <span class="d-l">└────┬────┘</span>    <span class="d-l">│</span>
+  <span class="d-l">│</span>        z_t            r_t       <span class="d-l">│</span>
+  <span class="d-l">│</span>        <span class="d-l">│</span>         <span class="d-l">│</span>              <span class="d-l">│</span>
+  <span class="d-l">│</span>        <span class="d-l">│</span>         <span class="d-l">┌────┘</span>         <span class="d-l">│</span>
+  <span class="d-l">│</span>        <span class="d-l">│</span>         <span class="d-a">▼</span>              <span class="d-l">│</span>
+  <span class="d-l">│</span>        <span class="d-l">│</span>    r_t × h_{t-1}       <span class="d-l">│</span>
+  <span class="d-l">│</span>        <span class="d-l">│</span>         <span class="d-l">│</span>              <span class="d-l">│</span>
+  <span class="d-l">│</span>        <span class="d-l">│</span>    <span class="d-l">┌────┴────┐</span>         <span class="d-l">│</span>
+  <span class="d-l">│</span>        <span class="d-l">│</span>    <span class="d-l">│</span>tanh(W_h)<span class="d-l">│</span>         <span class="d-l">│</span>
+  <span class="d-l">│</span>        <span class="d-l">│</span>    <span class="d-l">└────┬────┘</span>         <span class="d-l">│</span>
+  <span class="d-l">│</span>        <span class="d-l">│</span>         h̃_t           <span class="d-l">│</span>
+  <span class="d-l">│</span>        <span class="d-l">│</span>         <span class="d-l">│</span>              <span class="d-l">│</span>
+  <span class="d-l">│</span>        <span class="d-a">▼</span>         <span class="d-a">▼</span>              <span class="d-l">│</span>
+  <span class="d-l">│</span>   (1-z_t)×h_{t-1} + z_t×h̃_t    <span class="d-l">│</span>
+  <span class="d-l">│</span>        <span class="d-l">│</span>                        <span class="d-l">│</span>
+  <span class="d-l">│</span>              <span class="d-a">▼</span>                  <span class="d-l">│</span>
+  <span class="d-l">│</span>             h_t                 <span class="d-l">│</span>
+  <span class="d-l">└─────────────────────────────────┘</span>
 
 GATE ROLES:
   UPDATE GATE (z_t): Combines forget + input gate functions.
-    z_t ≈ 0 → keep old state (like LSTM forget=1, input=0)
-    z_t ≈ 1 → use new candidate (like LSTM forget=0, input=1)
+    z_t ≈ 0 <span class="d-a">→</span> keep old state (like LSTM forget=1, input=0)
+    z_t ≈ 1 <span class="d-a">→</span> use new candidate (like LSTM forget=0, input=1)
     Note: (1 - z_t) makes forget and input gate "coupled"
 
   RESET GATE (r_t): How much of past state to use for candidate.
-    r_t ≈ 0 → ignore previous hidden state entirely
-    r_t ≈ 1 → fully use previous state
+    r_t ≈ 0 <span class="d-a">→</span> ignore previous hidden state entirely
+    r_t ≈ 1 <span class="d-a">→</span> fully use previous state
     
 GRU PARAMETER COUNT:
   3 gates: 3h(h + d)  — 25% fewer params than LSTM's 4h(h + d)</pre></div>
@@ -3653,8 +3665,8 @@ EMPIRICAL FINDINGS (Chung et al., 2014):
             <div class="diagram"><pre>BIDIRECTIONAL: Run two RNNs — one forward, one backward.
   Concatenate their hidden states at each time step.
 
-  Forward:   h₁→ h₂→ h₃→ ...→ hₜ
-  Backward:  h̃₁← h̃₂← h̃₃← ...← h̃ₜ
+  Forward:   h₁<span class="d-a">→</span> h₂<span class="d-a">→</span> h₃<span class="d-a">→</span> ...<span class="d-a">→</span> hₜ
+  Backward:  h̃₁<span class="d-a">←</span> h̃₂<span class="d-a">←</span> h̃₃<span class="d-a">←</span> ...<span class="d-a">←</span> h̃ₜ
   
   Output at time t: [h_t; h̃_t]  (concatenated, size = 2×hidden)
 
@@ -3664,18 +3676,18 @@ EMPIRICAL FINDINGS (Chung et al., 2014):
     Adding backward context: "The bank of the river" — clear!
 
   WHEN TO USE:
-    ✅ Classification, NER, POS tagging (full sequence available)
-    ❌ Language modeling, text generation (can't see future)
-    ❌ Real-time processing (need entire sequence first)</pre></div>
+    √ Classification, NER, POS tagging (full sequence available)
+    × Language modeling, text generation (can't see future)
+    × Real-time processing (need entire sequence first)</pre></div>
             <h3>Stacked RNN</h3>
             <div class="diagram"><pre>STACKED (DEEP) RNN:
 
-  Layer 3:  h₁³→ h₂³→ h₃³→ hₜ³     (high-level features)
-             ↑     ↑     ↑     ↑
-  Layer 2:  h₁²→ h₂²→ h₃²→ hₜ²     (mid-level features)
-             ↑     ↑     ↑     ↑
-  Layer 1:  h₁¹→ h₂¹→ h₃¹→ hₜ¹     (low-level features)
-             ↑     ↑     ↑     ↑
+  Layer 3:  h₁³<span class="d-a">→</span> h₂³<span class="d-a">→</span> h₃³<span class="d-a">→</span> hₜ³     (high-level features)
+             <span class="d-a">↑</span>     <span class="d-a">↑</span>     <span class="d-a">↑</span>     <span class="d-a">↑</span>
+  Layer 2:  h₁²<span class="d-a">→</span> h₂²<span class="d-a">→</span> h₃²<span class="d-a">→</span> hₜ²     (mid-level features)
+             <span class="d-a">↑</span>     <span class="d-a">↑</span>     <span class="d-a">↑</span>     <span class="d-a">↑</span>
+  Layer 1:  h₁¹<span class="d-a">→</span> h₂¹<span class="d-a">→</span> h₃¹<span class="d-a">→</span> hₜ¹     (low-level features)
+             <span class="d-a">↑</span>     <span class="d-a">↑</span>     <span class="d-a">↑</span>     <span class="d-a">↑</span>
             x₁    x₂    x₃    xₜ
 
   Each layer's output becomes the next layer's input.
@@ -3701,21 +3713,21 @@ EMPIRICAL FINDINGS (Chung et al., 2014):
             <div class="diagram"><pre>ENCODER-DECODER:
 
   ENCODER (reads input sequence):
-    x₁ → x₂ → x₃ → x₄ → [EOS]
-    h₁ → h₂ → h₃ → h₄
-                          │
+    x₁ <span class="d-a">→</span> x₂ <span class="d-a">→</span> x₃ <span class="d-a">→</span> x₄ <span class="d-a">→</span> [EOS]
+    h₁ <span class="d-a">→</span> h₂ <span class="d-a">→</span> h₃ <span class="d-a">→</span> h₄
+                          <span class="d-l">│</span>
                     context vector c = h₄
-                          │
+                          <span class="d-l">│</span>
   DECODER (generates output sequence):
-                    c → h̃₁ → h̃₂ → h̃₃ → [EOS]
-                   [SOS] → ŷ₁ → ŷ₂ → ŷ₃
+                    c <span class="d-a">→</span> h̃₁ <span class="d-a">→</span> h̃₂ <span class="d-a">→</span> h̃₃ <span class="d-a">→</span> [EOS]
+                   [SOS] <span class="d-a">→</span> ŷ₁ <span class="d-a">→</span> ŷ₂ <span class="d-a">→</span> ŷ₃
 
   PROBLEMS WITH BASIC SEQ2SEQ:
     1. Fixed-size context vector c — bottleneck for long sequences
     2. Last encoder state must encode ALL information
     3. Performance degrades for sequences &gt; 20-30 tokens
     
-    → SOLUTION: Attention mechanism (next section)</pre></div>
+    <span class="d-a">→</span> SOLUTION: Attention mechanism (next section)</pre></div>
             <h3>Teacher Forcing</h3>
             <pre class="code"><code>TEACHER FORCING (training):
   Feed GROUND TRUTH y_{t-1} as input to decoder at step t.
@@ -3747,7 +3759,7 @@ EMPIRICAL FINDINGS (Chung et al., 2014):
   Instead of encoding ENTIRE source into single vector,
   at each decoder step, ATTEND to relevant parts of the source.
 
-  "Le chat mange" → "The cat eats"
+  "Le chat mange" <span class="d-a">→</span> "The cat eats"
   
   Generating "cat": attend to "chat" (high α for position 2)
   Generating "eats": attend to "mange" (high α for position 3)
@@ -3755,8 +3767,8 @@ EMPIRICAL FINDINGS (Chung et al., 2014):
   STEPS:
     1. Compute alignment score e_ij between decoder state s_{i-1}
        and each encoder hidden state h_j
-    2. Softmax → attention weights α_ij (sum to 1)
-    3. Weighted sum of encoder states → context vector c_i
+    2. Softmax <span class="d-a">→</span> attention weights α_ij (sum to 1)
+    3. Weighted sum of encoder states <span class="d-a">→</span> context vector c_i
     4. Feed [c_i; s_{i-1}] to decoder to generate next token</pre></div>
             <h3>Luong Attention (Multiplicative)</h3>
             <span class="mth mth-block"><i>e</i><sub><i>i</i><i>j</i></sub> <span class="mth-op">=</span> <i>s</i><sub><i>i</i></sub><sup><i>T</i></sup> <i>W</i><sub><i>a</i></sub> <i>h</i><sub><i>j</i></sub>   <span class="mth-txt">(general)</span></span>
@@ -3834,18 +3846,18 @@ EMPIRICAL FINDINGS (Chung et al., 2014):
             <p><strong>Beam search</strong> is a decoding strategy that maintains the top-K most probable partial sequences at each step, exploring multiple promising paths rather than greedily choosing the single best token. It produces higher-quality output sequences than greedy decoding while being more tractable than exhaustive search.</p>
             <div class="diagram"><pre>GREEDY DECODING: At each step, pick the highest-probability token.
   Problem: locally optimal choices ≠ globally optimal sequence.
-  "The" → "cat" (0.9) → "sat" (0.1) = 0.09
-  "The" → "dog" (0.7) → "ran" (0.8) = 0.56 ← better overall!
+  "The" <span class="d-a">→</span> "cat" (0.9) <span class="d-a">→</span> "sat" (0.1) = 0.09
+  "The" <span class="d-a">→</span> "dog" (0.7) <span class="d-a">→</span> "ran" (0.8) = 0.56 <span class="d-a">←</span> better overall!
 
 BEAM SEARCH: Keep top-B candidates at each step.
   Beam width B=3:
 
-  Step 1: "The" → {cat(0.9), dog(0.7), bird(0.3)}
+  Step 1: "The" <span class="d-a">→</span> {cat(0.9), dog(0.7), bird(0.3)}
   
   Step 2: For each candidate, expand all vocab:
-    cat → {cat sat(0.09), cat ate(0.27), cat ran(0.18)}
-    dog → {dog ran(0.56), dog ate(0.28), dog sat(0.14)}
-    bird → {bird flew(0.24), bird sang(0.12), ...}
+    cat <span class="d-a">→</span> {cat sat(0.09), cat ate(0.27), cat ran(0.18)}
+    dog <span class="d-a">→</span> {dog ran(0.56), dog ate(0.28), dog sat(0.14)}
+    bird <span class="d-a">→</span> {bird flew(0.24), bird sang(0.12), ...}
     
     Keep top-3: {dog ran(0.56), cat ate(0.27), bird flew(0.24)}
   
@@ -3872,8 +3884,8 @@ BEAM SEARCH: Keep top-B candidates at each step.
   AND no alignment is provided.
 
 APPLICATIONS:
-  • Speech recognition: audio frames (100s) → text (10s of chars)
-  • Handwriting recognition: pixel columns → characters
+  • Speech recognition: audio frames (100s) <span class="d-a">→</span> text (10s of chars)
+  • Handwriting recognition: pixel columns <span class="d-a">→</span> characters
 
 HOW IT WORKS:
   1. Network outputs probability distribution over {alphabet, blank} at EACH frame
@@ -3884,7 +3896,7 @@ HOW IT WORKS:
   After collapsing: "hello" (merge repeats, remove blanks)
   
   The "-" (blank) token handles:
-    • Repeated characters: "ll" → "l-l" 
+    • Repeated characters: "ll" <span class="d-a">→</span> "l-l" 
     • Variable-length alignment
 
   PyTorch: torch.nn.CTCLoss()
@@ -3907,7 +3919,7 @@ SOLUTION 1 — PADDING:
   PROBLEM: Padding tokens affect computation (not free in RNN!)
   
 SOLUTION 2 — PACKING (PyTorch):
-  Pack sequences → RNN processes only real tokens → unpack
+  Pack sequences <span class="d-a">→</span> RNN processes only real tokens <span class="d-a">→</span> unpack
   Saves compute, avoids processing padding.</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">import</span> torch
 <span class="kw">from</span> torch.nn.utils.rnn <span class="kw">import</span> pack_padded_sequence, pad_packed_sequence

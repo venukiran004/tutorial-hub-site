@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1259,10 +1271,10 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
   RETRIEVE relevant documents from external knowledge
   and AUGMENT the prompt with that context before GENERATING.
 
-  ┌──────┐    ┌───────────┐    ┌──────────┐    ┌──────────┐
-  │ Query│───→│ Retriever │───→│ Context  │───→│ LLM      │
-  └──────┘    │(VectorDB) │    │ + Query  │    │ Answer   │
-              └───────────┘    └──────────┘    └──────────┘
+  <span class="d-l">┌──────┐</span>    <span class="d-l">┌───────────┐</span>    <span class="d-l">┌──────────┐</span>    <span class="d-l">┌──────────┐</span>
+  <span class="d-l">│</span> Query<span class="d-l">│───</span><span class="d-a">→</span><span class="d-l">│</span> Retriever <span class="d-l">│───</span><span class="d-a">→</span><span class="d-l">│</span> Context  <span class="d-l">│───</span><span class="d-a">→</span><span class="d-l">│</span> LLM      <span class="d-l">│</span>
+  <span class="d-l">└──────┘</span>    <span class="d-l">│</span>(VectorDB) <span class="d-l">│</span>    <span class="d-l">│</span> + Query  <span class="d-l">│</span>    <span class="d-l">│</span> Answer   <span class="d-l">│</span>
+              <span class="d-l">└───────────┘</span>    <span class="d-l">└──────────┘</span>    <span class="d-l">└──────────┘</span>
 
   WHY RAG?
   - Access to up-to-date information (training data has a cutoff)
@@ -1276,20 +1288,20 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
         <div class="q-a" style="margin:0 0 12px">
           <p>Choosing between prompting, <abbr title="retrieval-augmented generation">RAG</abbr>, and fine-tuning depends on whether you need to change what the model knows or how it behaves. Prompting is the simplest approach for general tasks, RAG injects external knowledge at query time, and fine-tuning adapts the model's behavior or reasoning style — these methods are complementary and can be combined.</p>
           <div class="diagram"><pre>DECISION MATRIX:
-  Approach       │ When to Use                     │ Cost    │ Latency
-  ───────────────┼─────────────────────────────────┼─────────┼────────
-  Prompting      │ Simple tasks, general knowledge │ Low     │ Low
-  RAG            │ Domain docs, current data,      │ Medium  │ Medium
-                 │ need citations, data changes    │         │
-  Fine-Tuning    │ Style/format adaptation,        │ High    │ Low
-                 │ specialized reasoning           │         │
-  RAG + FT       │ Both domain knowledge AND       │ Highest │ Medium
-                 │ specialized behavior needed     │         │
+  Approach       <span class="d-l">│</span> When to Use                     <span class="d-l">│</span> Cost    <span class="d-l">│</span> Latency
+  <span class="d-l">───────────────┼─────────────────────────────────┼─────────┼────────</span>
+  Prompting      <span class="d-l">│</span> Simple tasks, general knowledge <span class="d-l">│</span> Low     <span class="d-l">│</span> Low
+  RAG            <span class="d-l">│</span> Domain docs, current data,      <span class="d-l">│</span> Medium  <span class="d-l">│</span> Medium
+                 <span class="d-l">│</span> need citations, data changes    <span class="d-l">│</span>         <span class="d-l">│</span>
+  Fine-Tuning    <span class="d-l">│</span> Style/format adaptation,        <span class="d-l">│</span> High    <span class="d-l">│</span> Low
+                 <span class="d-l">│</span> specialized reasoning           <span class="d-l">│</span>         <span class="d-l">│</span>
+  RAG + FT       <span class="d-l">│</span> Both domain knowledge AND       <span class="d-l">│</span> Highest <span class="d-l">│</span> Medium
+                 <span class="d-l">│</span> specialized behavior needed     <span class="d-l">│</span>         <span class="d-l">│</span>
 
   RULES OF THUMB:
-  - Start with prompting → try RAG → fine-tune as last resort
-  - RAG for "what the model KNOWS" → inject knowledge
-  - Fine-tuning for "how the model BEHAVES" → change behavior
+  - Start with prompting <span class="d-a">→</span> try RAG <span class="d-a">→</span> fine-tune as last resort
+  - RAG for "what the model KNOWS" <span class="d-a">→</span> inject knowledge
+  - Fine-tuning for "how the model BEHAVES" <span class="d-a">→</span> change behavior
   - They're complementary, not competing approaches</pre></div>
         </div>
         <div class="parthead" id="f05RAGandVector-p3"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>3. Embeddings</span><i></i>
@@ -1311,13 +1323,13 @@ model = <span class="fn">SentenceTransformer</span>(<span class="str">"all-MiniL
 
 vectors = model.<span class="fn">encode</span>([<span class="str">"Hello world"</span>, <span class="str">"AI is amazing"</span>])  <span class="cmt"># (2, 384)</span></code></pre>
           <div class="diagram"><pre>EMBEDDING MODEL COMPARISON:
-  Model                    │ Dims  │ MTEB Score │ Speed    │ Cost
-  ─────────────────────────┼───────┼────────────┼──────────┼─────────
-  text-embedding-3-small   │ 1536  │ 62.3       │ Fast     │ $0.02/1M
-  text-embedding-3-large   │ 3072  │ 64.6       │ Medium   │ $0.13/1M
-  all-MiniLM-L6-v2         │ 384   │ 56.3       │ Very Fast│ Free
-  bge-large-en-v1.5        │ 1024  │ 64.2       │ Medium   │ Free
-  Cohere embed-v3          │ 1024  │ 64.5       │ Fast     │ $0.10/1M
+  Model                    <span class="d-l">│</span> Dims  <span class="d-l">│</span> MTEB Score <span class="d-l">│</span> Speed    <span class="d-l">│</span> Cost
+  <span class="d-l">─────────────────────────┼───────┼────────────┼──────────┼─────────</span>
+  text-embedding-3-small   <span class="d-l">│</span> 1536  <span class="d-l">│</span> 62.3       <span class="d-l">│</span> Fast     <span class="d-l">│</span> $0.02/1M
+  text-embedding-3-large   <span class="d-l">│</span> 3072  <span class="d-l">│</span> 64.6       <span class="d-l">│</span> Medium   <span class="d-l">│</span> $0.13/1M
+  all-MiniLM-L6-v2         <span class="d-l">│</span> 384   <span class="d-l">│</span> 56.3       <span class="d-l">│</span> Very Fast<span class="d-l">│</span> Free
+  bge-large-en-v1.5        <span class="d-l">│</span> 1024  <span class="d-l">│</span> 64.2       <span class="d-l">│</span> Medium   <span class="d-l">│</span> Free
+  Cohere embed-v3          <span class="d-l">│</span> 1024  <span class="d-l">│</span> 64.5       <span class="d-l">│</span> Fast     <span class="d-l">│</span> $0.10/1M
   
   CHOOSING:
   - Prototype: all-MiniLM-L6-v2 (fast, free, good enough)
@@ -1335,24 +1347,24 @@ vectors = model.<span class="fn">encode</span>([<span class="str">"Hello world"<
           </div>
           <div class="q-a">
             <div class="diagram"><pre>CHUNKING TYPES OVERVIEW:
-┌─────────────────────────────────────────────────────────────────────┐
-│ Type                    │ How It Splits              │ Best For     │
-│─────────────────────────┼────────────────────────────┼──────────────│
-│ Fixed-size              │ Every N characters/tokens  │ Simple docs  │
-│ Recursive Character     │ Hierarchy of separators    │ General use  │
-│ Sentence-based          │ By sentence boundaries     │ NLP tasks    │
-│ Paragraph-based         │ By paragraph breaks        │ Articles     │
-│ Token-based             │ By token count             │ LLM context  │
-│ Semantic                │ By meaning/topic change    │ Mixed content│
-│ Document-structure      │ By headings/sections       │ Structured   │
-│ Markdown/HTML-aware     │ By markup structure        │ Docs/wikis   │
-│ Code-aware              │ By functions/classes       │ Source code  │
-│ Sliding Window          │ Overlapping fixed windows  │ Dense search │
-│ Agentic/Proposition     │ LLM extracts atomic facts  │ High quality │
-│ Late Chunking           │ Embed full doc, then chunk │ Context pres.│
-│ Parent-Child            │ Small chunks → parent ref  │ Both precise │
-│                         │                            │ + context    │
-└─────────────────────────────────────────────────────────────────────┘</pre></div>
+<span class="d-l">┌─────────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span> Type                    <span class="d-l">│</span> How It Splits              <span class="d-l">│</span> Best For     <span class="d-l">│</span>
+<span class="d-l">│─────────────────────────┼────────────────────────────┼──────────────│</span>
+<span class="d-l">│</span> Fixed-size              <span class="d-l">│</span> Every N characters/tokens  <span class="d-l">│</span> Simple docs  <span class="d-l">│</span>
+<span class="d-l">│</span> Recursive Character     <span class="d-l">│</span> Hierarchy of separators    <span class="d-l">│</span> General use  <span class="d-l">│</span>
+<span class="d-l">│</span> Sentence-based          <span class="d-l">│</span> By sentence boundaries     <span class="d-l">│</span> NLP tasks    <span class="d-l">│</span>
+<span class="d-l">│</span> Paragraph-based         <span class="d-l">│</span> By paragraph breaks        <span class="d-l">│</span> Articles     <span class="d-l">│</span>
+<span class="d-l">│</span> Token-based             <span class="d-l">│</span> By token count             <span class="d-l">│</span> LLM context  <span class="d-l">│</span>
+<span class="d-l">│</span> Semantic                <span class="d-l">│</span> By meaning/topic change    <span class="d-l">│</span> Mixed content<span class="d-l">│</span>
+<span class="d-l">│</span> Document-structure      <span class="d-l">│</span> By headings/sections       <span class="d-l">│</span> Structured   <span class="d-l">│</span>
+<span class="d-l">│</span> Markdown/HTML-aware     <span class="d-l">│</span> By markup structure        <span class="d-l">│</span> Docs/wikis   <span class="d-l">│</span>
+<span class="d-l">│</span> Code-aware              <span class="d-l">│</span> By functions/classes       <span class="d-l">│</span> Source code  <span class="d-l">│</span>
+<span class="d-l">│</span> Sliding Window          <span class="d-l">│</span> Overlapping fixed windows  <span class="d-l">│</span> Dense search <span class="d-l">│</span>
+<span class="d-l">│</span> Agentic/Proposition     <span class="d-l">│</span> LLM extracts atomic facts  <span class="d-l">│</span> High quality <span class="d-l">│</span>
+<span class="d-l">│</span> Late Chunking           <span class="d-l">│</span> Embed full doc, then chunk <span class="d-l">│</span> Context pres.<span class="d-l">│</span>
+<span class="d-l">│</span> Parent-Child            <span class="d-l">│</span> Small chunks <span class="d-a">→</span> parent ref  <span class="d-l">│</span> Both precise <span class="d-l">│</span>
+<span class="d-l">│</span>                         <span class="d-l">│</span>                            <span class="d-l">│</span> + context    <span class="d-l">│</span>
+<span class="d-l">└─────────────────────────────────────────────────────────────────────┘</span></pre></div>
             <h4>4.1.1 Fixed-Size Chunking</h4>
             <p>Splits text into chunks of exactly N characters or tokens regardless of content.</p>
             <pre class="code" data-lang="python"><code><span class="cmt"># Simplest approach — just split every N characters</span>
@@ -1513,13 +1525,13 @@ retriever = <span class="fn">ParentDocumentRetriever</span>(
   TOO LARGE: Dilutes relevant info, wastes context window tokens
   
   DECISION TREE:
-  ├── Simple text docs? → Recursive Character (default)
-  ├── Structured docs (MD/HTML)? → Markdown/HTML-aware
-  ├── Source code? → Code-aware (Language-specific)
-  ├── Mixed topics in one doc? → Semantic chunking
-  ├── Need precision + context? → Parent-Child
-  ├── Quality critical? → Proposition/Agentic chunking
-  └── Not sure? → Start with RecursiveCharacter(1000, 200)
+  <span class="d-l">├──</span> Simple text docs? <span class="d-a">→</span> Recursive Character (default)
+  <span class="d-l">├──</span> Structured docs (MD/HTML)? <span class="d-a">→</span> Markdown/HTML-aware
+  <span class="d-l">├──</span> Source code? <span class="d-a">→</span> Code-aware (Language-specific)
+  <span class="d-l">├──</span> Mixed topics in one doc? <span class="d-a">→</span> Semantic chunking
+  <span class="d-l">├──</span> Need precision + context? <span class="d-a">→</span> Parent-Child
+  <span class="d-l">├──</span> Quality critical? <span class="d-a">→</span> Proposition/Agentic chunking
+  <span class="d-l">└──</span> Not sure? <span class="d-a">→</span> Start with RecursiveCharacter(1000, 200)
   
   BEST PRACTICE: Start with RecursiveCharacter(1000, 200), tune based on eval</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -1547,20 +1559,20 @@ Semantic Search (Embeddings):
 
 HOW SEMANTIC SEARCH WORKS:
   1. OFFLINE (Indexing):
-     Document → Embedding Model → Vector [768 dims] → Store in Vector DB
+     Document <span class="d-a">→</span> Embedding Model <span class="d-a">→</span> Vector [768 dims] <span class="d-a">→</span> Store in Vector DB
      
   2. ONLINE (Querying):
-     Query → Same Embedding Model → Query Vector [768 dims]
-     → Find nearest vectors in Vector DB (cosine similarity)
-     → Return top-K matching documents
+     Query <span class="d-a">→</span> Same Embedding Model <span class="d-a">→</span> Query Vector [768 dims]
+     <span class="d-a">→</span> Find nearest vectors in Vector DB (cosine similarity)
+     <span class="d-a">→</span> Return top-K matching documents
 
   3. SIMILARITY METRICS:
      Cosine Similarity: cos(θ) = (A·B) / (||A|| × ||B||)
-       → Measures angle between vectors (0=opposite, 1=identical)
+       <span class="d-a">→</span> Measures angle between vectors (0=opposite, 1=identical)
      Dot Product: A·B = Σ(aᵢ × bᵢ)
-       → Measures magnitude-weighted similarity
+       <span class="d-a">→</span> Measures magnitude-weighted similarity
      L2 / Euclidean: √Σ(aᵢ - bᵢ)²
-       → Measures straight-line distance (smaller = more similar)
+       <span class="d-a">→</span> Measures straight-line distance (smaller = more similar)
 
 WHY SEMANTIC SEARCH MATTERS FOR RAG:
   - Users ask questions in natural language, not keywords
@@ -1578,26 +1590,26 @@ WHY SEMANTIC SEARCH MATTERS FOR RAG:
             <div class="diagram"><pre>WHY NORMAL DATABASES FAIL FOR EMBEDDINGS:
 
 1. NO NATIVE SIMILARITY SEARCH:
-   SQL: SELECT * FROM docs WHERE embedding = [0.23, -0.87, ...]  ← Exact match only!
-   Need: "Find the 5 closest vectors" ← SQL has no operator for this
+   SQL: SELECT * FROM docs WHERE embedding = [0.23, -0.87, ...]  <span class="d-a">←</span> Exact match only!
+   Need: "Find the 5 closest vectors" <span class="d-a">←</span> SQL has no operator for this
    
 2. BRUTE FORCE IS TOO SLOW:
    To find similar vectors without an index:
    Compare query vector against EVERY stored vector
    1M documents × 768 dims = 768M floating-point operations PER QUERY
-   → Several seconds per query — unusable in production
+   <span class="d-a">→</span> Several seconds per query — unusable in production
 
 3. NO VECTOR INDEXING:
-   Normal DB indexes: B-tree, Hash → designed for exact match, range queries
+   Normal DB indexes: B-tree, Hash <span class="d-a">→</span> designed for exact match, range queries
    Vector search needs: ANN (Approximate Nearest Neighbor) indexes
-   → HNSW (Hierarchical Navigable Small Worlds): Graph-based, O(log n)
-   → IVF (Inverted File Index): Cluster-based, O(√n)
-   → Normal B-tree cannot index 768-dimensional space efficiently
+   <span class="d-a">→</span> HNSW (Hierarchical Navigable Small Worlds): Graph-based, O(log n)
+   <span class="d-a">→</span> IVF (Inverted File Index): Cluster-based, O(√n)
+   <span class="d-a">→</span> Normal B-tree cannot index 768-dimensional space efficiently
 
 4. STORAGE INEFFICIENCY:
    768 floats × 4 bytes = 3 KB per vector
    1M documents = 3 GB just for vectors
-   Normal DBs store as BLOB/ARRAY → no compression, no quantization
+   Normal DBs store as BLOB/ARRAY <span class="d-a">→</span> no compression, no quantization
    Vector DBs: Product Quantization can compress 768 floats to ~96 bytes
 
 5. NO METADATA FILTERING + VECTOR SEARCH:
@@ -1606,25 +1618,25 @@ WHY SEMANTIC SEARCH MATTERS FOR RAG:
    Normal DBs can filter but not search vectors; Vector DBs do both
 
 COMPARISON:
-  ┌─────────────────────┬──────────────────────┬──────────────────────┐
-  │ Feature             │ Normal DB (MySQL)    │ Vector DB (Qdrant)   │
-  ├─────────────────────┼──────────────────────┼──────────────────────┤
-  │ Store vectors       │ As BLOB/JSON (slow)  │ Native format        │
-  │ Similarity search   │ Full scan O(n)       │ ANN O(log n)         │
-  │ 1M vector search    │ ~5-10 seconds        │ ~5-50 milliseconds   │
-  │ Vector indexing     │ None                 │ HNSW, IVF, PQ        │
-  │ Quantization        │ No                   │ Yes (4x compression) │
-  │ Hybrid search       │ No                   │ Yes (vector + filter)│
-  │ Batch upsert        │ Slow                 │ Optimized            │
-  │ Dimensionality      │ Not optimized        │ Purpose-built        │
-  └─────────────────────┴──────────────────────┴──────────────────────┘
+  <span class="d-l">┌─────────────────────┬──────────────────────┬──────────────────────┐</span>
+  <span class="d-l">│</span> Feature             <span class="d-l">│</span> Normal DB (MySQL)    <span class="d-l">│</span> Vector DB (Qdrant)   <span class="d-l">│</span>
+  <span class="d-l">├─────────────────────┼──────────────────────┼──────────────────────┤</span>
+  <span class="d-l">│</span> Store vectors       <span class="d-l">│</span> As BLOB/JSON (slow)  <span class="d-l">│</span> Native format        <span class="d-l">│</span>
+  <span class="d-l">│</span> Similarity search   <span class="d-l">│</span> Full scan O(n)       <span class="d-l">│</span> ANN O(log n)         <span class="d-l">│</span>
+  <span class="d-l">│</span> 1M vector search    <span class="d-l">│</span> ~5-10 seconds        <span class="d-l">│</span> ~5-50 milliseconds   <span class="d-l">│</span>
+  <span class="d-l">│</span> Vector indexing     <span class="d-l">│</span> None                 <span class="d-l">│</span> HNSW, IVF, PQ        <span class="d-l">│</span>
+  <span class="d-l">│</span> Quantization        <span class="d-l">│</span> No                   <span class="d-l">│</span> Yes (4x compression) <span class="d-l">│</span>
+  <span class="d-l">│</span> Hybrid search       <span class="d-l">│</span> No                   <span class="d-l">│</span> Yes (vector + filter)<span class="d-l">│</span>
+  <span class="d-l">│</span> Batch upsert        <span class="d-l">│</span> Slow                 <span class="d-l">│</span> Optimized            <span class="d-l">│</span>
+  <span class="d-l">│</span> Dimensionality      <span class="d-l">│</span> Not optimized        <span class="d-l">│</span> Purpose-built        <span class="d-l">│</span>
+  <span class="d-l">└─────────────────────┴──────────────────────┴──────────────────────┘</span>
 
 EXCEPTION: pgvector
   PostgreSQL + pgvector extension DOES support vector search!
-  → Adds vector data type and similarity operators
-  → Supports HNSW and IVF indexing
-  → Good for small-medium scale when you already use PostgreSQL
-  → But purpose-built vector DBs are faster at large scale</pre></div>
+  <span class="d-a">→</span> Adds vector data type and similarity operators
+  <span class="d-a">→</span> Supports HNSW and IVF indexing
+  <span class="d-a">→</span> Good for small-medium scale when you already use PostgreSQL
+  <span class="d-a">→</span> But purpose-built vector DBs are faster at large scale</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="f05RAGandVector-p5"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>5. Vector Stores &amp; Indexing</span><i></i>
@@ -1656,15 +1668,15 @@ vectorstore = QdrantVectorStore.<span class="fn">from_documents</span>(chunks, e
 <span class="cmt"># ── pgvector (PostgreSQL extension) ──────────────────────</span>
 <span class="cmt"># Best for: When you already use PostgreSQL</span></code></pre>
           <div class="diagram"><pre>VECTOR STORE COMPARISON:
-  Store     │ Type    │ Filtering │ Hybrid │ Scale      │ Best For
-  ──────────┼─────────┼───────────┼────────┼────────────┼─────────────
-  FAISS     │ Library │ Limited   │ No     │ Single node│ Prototyping
-  Chroma    │ DB      │ Yes       │ No     │ Small-Med  │ Development
-  Pinecone  │ Managed │ Excellent │ Yes    │ Billions   │ Production
-  Qdrant    │ DB      │ Excellent │ Yes    │ Large      │ Production
-  Weaviate  │ DB      │ Excellent │ Yes    │ Large      │ Multimodal
-  Milvus    │ DB      │ Yes       │ Yes    │ Billions   │ Large-scale
-  pgvector  │ PG Ext  │ Full SQL  │ No     │ Medium     │ Existing PG
+  Store     <span class="d-l">│</span> Type    <span class="d-l">│</span> Filtering <span class="d-l">│</span> Hybrid <span class="d-l">│</span> Scale      <span class="d-l">│</span> Best For
+  <span class="d-l">──────────┼─────────┼───────────┼────────┼────────────┼─────────────</span>
+  FAISS     <span class="d-l">│</span> Library <span class="d-l">│</span> Limited   <span class="d-l">│</span> No     <span class="d-l">│</span> Single node<span class="d-l">│</span> Prototyping
+  Chroma    <span class="d-l">│</span> DB      <span class="d-l">│</span> Yes       <span class="d-l">│</span> No     <span class="d-l">│</span> Small-Med  <span class="d-l">│</span> Development
+  Pinecone  <span class="d-l">│</span> Managed <span class="d-l">│</span> Excellent <span class="d-l">│</span> Yes    <span class="d-l">│</span> Billions   <span class="d-l">│</span> Production
+  Qdrant    <span class="d-l">│</span> DB      <span class="d-l">│</span> Excellent <span class="d-l">│</span> Yes    <span class="d-l">│</span> Large      <span class="d-l">│</span> Production
+  Weaviate  <span class="d-l">│</span> DB      <span class="d-l">│</span> Excellent <span class="d-l">│</span> Yes    <span class="d-l">│</span> Large      <span class="d-l">│</span> Multimodal
+  Milvus    <span class="d-l">│</span> DB      <span class="d-l">│</span> Yes       <span class="d-l">│</span> Yes    <span class="d-l">│</span> Billions   <span class="d-l">│</span> Large-scale
+  pgvector  <span class="d-l">│</span> PG Ext  <span class="d-l">│</span> Full SQL  <span class="d-l">│</span> No     <span class="d-l">│</span> Medium     <span class="d-l">│</span> Existing PG
   
   ANN ALGORITHMS:
   HNSW:  Best quality, moderate memory, O(log n) search
@@ -1690,17 +1702,17 @@ vectorstore = QdrantVectorStore.<span class="fn">from_documents</span>(chunks, e
                             • a navigable graph           (HNSW)
                             • nothing                     (Flat = brute force)
 
-  3. AN ID MAPPING        internal row 0..N-1  →  your real id ("doc_42")
+  3. AN ID MAPPING        internal row 0..N-1  <span class="d-a">→</span>  your real id ("doc_42")
                           so a hit can be traced back to a chunk
 
   The CHUNK TEXT + METADATA do NOT live in the index. They live in a
   separate "docstore" keyed by id. The index returns ids + distances;
   you then look up the text in the docstore.
 
-      ┌─────────── vector store on disk ───────────┐
-      │  index file   →  vectors + structure + ids │   "which ids are nearest?"
-      │  docstore     →  id → {text, metadata}      │   "what text is id 42?"
-      └─────────────────────────────────────────────┘</pre></div>
+      <span class="d-l">┌───────────</span> vector store on disk <span class="d-l">───────────┐</span>
+      <span class="d-l">│</span>  index file   <span class="d-a">→</span>  vectors + structure + ids <span class="d-l">│</span>   "which ids are nearest?"
+      <span class="d-l">│</span>  docstore     <span class="d-a">→</span>  id <span class="d-a">→</span> {text, metadata}      <span class="d-l">│</span>   "what text is id 42?"
+      <span class="d-l">└─────────────────────────────────────────────┘</span></pre></div>
             <p>So the answer to <em>"what will the index be?"</em> depends on which <strong>index type</strong> you pick. Each stores a different structure:</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1709,21 +1721,21 @@ vectorstore = QdrantVectorStore.<span class="fn">from_documents</span>(chunks, e
             <h3>5.2 The Four Index Types — What Each One Stores</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f05RAGandVector-5"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>FLAT  (IndexFlatL2 / IndexFlatIP)  ── exact, the baseline
-  STORES:  just the raw matrix  →  N × d float32   (nothing else)
+            <div class="diagram"><pre>FLAT  (IndexFlatL2 / IndexFlatIP)  <span class="d-l">──</span> exact, the baseline
+  STORES:  just the raw matrix  <span class="d-a">→</span>  N × d float32   (nothing else)
   SEARCH:  compute distance to EVERY vector, sort. O(N·d). Exact.
-  DISK:    N × d × 4 bytes  (1M × 768 → ~3 GB)
+  DISK:    N × d × 4 bytes  (1M × 768 <span class="d-a">→</span> ~3 GB)
   USE:     ground-truth / &lt;100k vectors
 
-IVF  (IndexIVFFlat)  ── cluster-and-prune
+IVF  (IndexIVFFlat)  <span class="d-l">──</span> cluster-and-prune
   STORES:  • centroids        k × d        (the "coarse quantizer")
-           • inverted lists   cluster_id → [vector ids + their vectors]
+           • inverted lists   cluster_id <span class="d-a">→</span> [vector ids + their vectors]
   SEARCH:  find the nprobe nearest centroids, scan ONLY those lists.
            Touches ~ (nprobe/k) of the data.  O(√N) typical.
   DISK:    vectors + centroids + the list assignments
   USE:     1M–100M vectors, tunable recall via nprobe
 
-HNSW  (IndexHNSWFlat)  ── navigable small-world graph
+HNSW  (IndexHNSWFlat)  <span class="d-l">──</span> navigable small-world graph
   STORES:  • the vectors
            • a multi-LAYER graph: per vector, a neighbour list per layer
              (top layers sparse "highways", bottom layer dense)
@@ -1732,17 +1744,17 @@ HNSW  (IndexHNSWFlat)  ── navigable small-world graph
   DISK:    vectors + adjacency lists (the graph is the big extra cost)
   USE:     default for low-latency production; best recall/speed, more RAM
 
-PQ / IVF-PQ  (IndexIVFPQ)  ── compression
+PQ / IVF-PQ  (IndexIVFPQ)  <span class="d-l">──</span> compression
   STORES:  • codebooks   m × 256 × (d/m)   (m little sub-quantizers)
            • each vector as m BYTES (codes), NOT the original floats
   SEARCH:  approximate distance from the codes (asymmetric distance table)
-  DISK:    768 floats (3072 B)  →  m bytes (e.g. 96 B): ~32× smaller
+  DISK:    768 floats (3072 B)  <span class="d-a">→</span>  m bytes (e.g. 96 B): ~32× smaller
   USE:     billions of vectors / RAM-constrained; trades some recall</pre></div>
             <div class="diagram"><pre>PICKING ONE (rule of thumb):
-  &lt; 100k          → Flat (exact, simplest)
-  100k – 10M      → HNSW (best latency/recall) or IVF
-  &gt; 100M / RAM↓   → IVF-PQ (compressed)
-  need exact recall guarantee → Flat</pre></div>
+  &lt; 100k          <span class="d-a">→</span> Flat (exact, simplest)
+  100k – 10M      <span class="d-a">→</span> HNSW (best latency/recall) or IVF
+  &gt; 100M / RAM<span class="d-a">↓</span>   <span class="d-a">→</span> IVF-PQ (compressed)
+  need exact recall guarantee <span class="d-a">→</span> Flat</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f05RAGandVector-6">
@@ -1755,51 +1767,51 @@ PQ / IVF-PQ  (IndexIVFPQ)  ── compression
             <p>Same five techniques as above, but <em>drawn</em> — this is the picture to hold in your head for each <abbr title="approximate nearest neighbour">ANN</abbr> structure.</p>
             <div class="diagram"><pre>FLAT (brute force) — compare the query to EVERY vector, no shortcut
         q
-        │  measure distance to all N points, then sort
-        ▼
-   ●  ●  ●  ●  ●  ●  ●  ●  ●  ●  ●  ●        ← all N vectors scanned
+        <span class="d-l">│</span>  measure distance to all N points, then sort
+        <span class="d-a">▼</span>
+   ●  ●  ●  ●  ●  ●  ●  ●  ●  ●  ●  ●        <span class="d-a">←</span> all N vectors scanned
     \  \  |  /  /                              every single one measured
      (exact nearest neighbour = GUARANTEED)
    recall 100% · cost O(N·d) · no training · the ground-truth baseline</pre></div>
             <div class="diagram"><pre>IVF (Inverted File) — k-means cuts space into cells; scan only the nearest few
-        ┌──────────┬──────────┬──────────┐
-        │  ●   ●   │    ● ●   │   ●     │   each cell = one "inverted list"
-        │   ✦c1    │   ✦c2 ●  │  ✦c3  ● │   ✦ = centroid (the coarse quantizer)
-        ├──────────┼──────────┼──────────┤
-        │  ● q     │  ●    ●  │   ●  ●  │   q falls near c1 &amp; c4 →
-        │   ✦c4 ●  │   ✦c5    │  ✦c6  ● │   scan ONLY those nprobe lists,
-        └──────────┴──────────┴──────────┘   skip every other cell
-   nprobe=2 → touch ~2/6 of the data · O(√N) · recall tuned by nprobe (↑nprobe = ↑recall, ↓speed)</pre></div>
+        <span class="d-l">┌──────────┬──────────┬──────────┐</span>
+        <span class="d-l">│</span>  ●   ●   <span class="d-l">│</span>    ● ●   <span class="d-l">│</span>   ●     <span class="d-l">│</span>   each cell = one "inverted list"
+        <span class="d-l">│</span>   *c1    <span class="d-l">│</span>   *c2 ●  <span class="d-l">│</span>  *c3  ● <span class="d-l">│</span>   * = centroid (the coarse quantizer)
+        <span class="d-l">├──────────┼──────────┼──────────┤</span>
+        <span class="d-l">│</span>  ● q     <span class="d-l">│</span>  ●    ●  <span class="d-l">│</span>   ●  ●  <span class="d-l">│</span>   q falls near c1 &amp; c4 <span class="d-a">→</span>
+        <span class="d-l">│</span>   *c4 ●  <span class="d-l">│</span>   *c5    <span class="d-l">│</span>  *c6  ● <span class="d-l">│</span>   scan ONLY those nprobe lists,
+        <span class="d-l">└──────────┴──────────┴──────────┘</span>   skip every other cell
+   nprobe=2 <span class="d-a">→</span> touch ~2/6 of the data · O(√N) · recall tuned by nprobe (<span class="d-a">↑</span>nprobe = <span class="d-a">↑</span>recall, <span class="d-a">↓</span>speed)</pre></div>
             <div class="diagram"><pre>HNSW (Hierarchical Navigable Small World) — a layered "skip-list of graphs"
-  Layer 2  (sparse highways)   ●───────────────────●        ← few, long-range links
+  Layer 2  (sparse highways)   ●<span class="d-l">───────────────────</span>●        <span class="d-a">←</span> few, long-range links
                                 \                  /
-  Layer 1  (medium density)  ●───●────●────●────●───●        ← descend toward q
+  Layer 1  (medium density)  ●<span class="d-l">───</span>●<span class="d-l">────</span>●<span class="d-l">────</span>●<span class="d-l">────</span>●<span class="d-l">───</span>●        <span class="d-a">←</span> descend toward q
                               \   |   /  \   |   /
-  Layer 0  (ALL nodes)    ●─●─●─●─●─●─●─●─●─●─●─●─●─●         ← dense, full graph
-                          entry node → greedily hop to the closest neighbour →
-                          drop a layer → repeat → converge on q's neighbourhood
+  Layer 0  (ALL nodes)    ●<span class="d-l">─</span>●<span class="d-l">─</span>●<span class="d-l">─</span>●<span class="d-l">─</span>●<span class="d-l">─</span>●<span class="d-l">─</span>●<span class="d-l">─</span>●<span class="d-l">─</span>●<span class="d-l">─</span>●<span class="d-l">─</span>●<span class="d-l">─</span>●<span class="d-l">─</span>●<span class="d-l">─</span>●         <span class="d-a">←</span> dense, full graph
+                          entry node <span class="d-a">→</span> greedily hop to the closest neighbour <span class="d-a">→</span>
+                          drop a layer <span class="d-a">→</span> repeat <span class="d-a">→</span> converge on q's neighbourhood
    O(log N) · best recall/latency in production · the graph (adjacency lists) costs extra RAM</pre></div>
             <div class="diagram"><pre>PQ (Product Quantization) — chop each vector into m sub-vectors, store a code byte each
-   original 768 floats:  [ 0.12 … │ … │ ……… │ … 0.47 ]   3072 bytes
+   original 768 floats:  [ 0.12 … <span class="d-l">│</span> … <span class="d-l">│</span> ……… <span class="d-l">│</span> … 0.47 ]   3072 bytes
                            sub-1     sub-2  …    sub-m
-                             │         │           │
-                      nearest    nearest      nearest        ← per-chunk codebook
+                             <span class="d-l">│</span>         <span class="d-l">│</span>           <span class="d-l">│</span>
+                      nearest    nearest      nearest        <span class="d-a">←</span> per-chunk codebook
                       centroid   centroid     centroid          (256 options = 1 byte)
                         =17         =4          =200
-   stored as codes:   [ 17 , 4 , … , 200 ]  →  m bytes (e.g. 96)   ~32× smaller on disk
-   distance ≈ summed from a precomputed code→distance table (approximate, no raw floats)</pre></div>
+   stored as codes:   [ 17 , 4 , … , 200 ]  <span class="d-a">→</span>  m bytes (e.g. 96)   ~32× smaller on disk
+   distance ≈ summed from a precomputed code<span class="d-a">→</span>distance table (approximate, no raw floats)</pre></div>
             <div class="diagram"><pre>IVF-PQ — combine both: IVF PICKS the lists, PQ COMPRESSES the vectors inside them
-   query ─► nearest centroids (IVF prune) ─► scan those lists, but each vector
-            is just a few PQ code-bytes (not full floats) ─► billions fit in RAM
+   query <span class="d-l">─</span><span class="d-a">►</span> nearest centroids (IVF prune) <span class="d-l">─</span><span class="d-a">►</span> scan those lists, but each vector
+            is just a few PQ code-bytes (not full floats) <span class="d-l">─</span><span class="d-a">►</span> billions fit in RAM
    the production answer for &gt;100M vectors on a memory budget.</pre></div>
             <div class="diagram"><pre>LSH (Locality-Sensitive Hashing) — random hyperplanes hash near points to the SAME bucket
-   hash(x) = ( sign(x·r1), sign(x·r2), sign(x·r3) )  →  e.g. "101"
-        bucket 101 : ● ● ●        query hashes to 101 → only compare bucket 101's points
-        bucket 100 : ●            collisions ≈ similarity; use several hash tables to ↑ recall
+   hash(x) = ( sign(x·r1), sign(x·r2), sign(x·r3) )  <span class="d-a">→</span>  e.g. "101"
+        bucket 101 : ● ● ●        query hashes to 101 <span class="d-a">→</span> only compare bucket 101's points
+        bucket 100 : ●            collisions ≈ similarity; use several hash tables to <span class="d-a">↑</span> recall
         bucket 011 : ● ●          simple &amp; streaming-friendly, but lower recall than IVF/HNSW</pre></div>
             <div class="diagram"><pre>AT A GLANCE
   TECHNIQUE  IDEA               SPEED    RECALL    MEMORY   TRAIN?   BEST WHEN
-  ─────────  ─────────────────  ───────  ────────  ───────  ──────   ──────────────────────
+  <span class="d-l">─────────</span>  <span class="d-l">─────────────────</span>  <span class="d-l">───────</span>  <span class="d-l">────────</span>  <span class="d-l">───────</span>  <span class="d-l">──────</span>   <span class="d-l">──────────────────────</span>
   Flat       scan everything    slow     100%      high     no       &lt;100k / need exact
   IVF        cluster + prune    medium   tunable   medium   yes      1M–100M, tune nprobe
   HNSW       greedy graph hops  fast     high      high     no       low-latency production
@@ -1819,20 +1831,20 @@ PQ / IVF-PQ  (IndexIVFPQ)  ── compression
             <p>The key idea: <strong>index file (vectors + structure + internal ids)</strong> is separate from the <strong>docstore (id → text + metadata)</strong>.</p>
             <div class="diagram"><pre>FAISS  (faiss.write_index / FAISS.save_local)
   LangChain writes a FOLDER with TWO files:
-    index.faiss   ← binary: a header (index type), the vectors/PQ codes,
+    index.faiss   <span class="d-a">←</span> binary: a header (index type), the vectors/PQ codes,
                     the IVF centroids or HNSW graph, and internal ids.
                     Plain FAISS internal ids are 0..N-1; wrap in
                     IndexIDMap to store your own int64 ids.
-    index.pkl     ← pickled docstore:
-                      • docstore:            id → Document(page_content, metadata)
-                      • index_to_docstore_id: internal row → docstore id
-  → FAISS itself holds NO text. The .pkl is what maps a hit back to a chunk.
+    index.pkl     <span class="d-a">←</span> pickled docstore:
+                      • docstore:            id <span class="d-a">→</span> Document(page_content, metadata)
+                      • index_to_docstore_id: internal row <span class="d-a">→</span> docstore id
+  <span class="d-a">→</span> FAISS itself holds NO text. The .pkl is what maps a hit back to a chunk.
 
 CHROMA
   A SQLite DB (chroma.sqlite3) + per-collection segment dirs:
-    • documents (text) + metadata  → SQLite tables
-    • embeddings                    → binary segment files
-    • HNSW graph                    → its own segment (hnsw index files)
+    • documents (text) + metadata  <span class="d-a">→</span> SQLite tables
+    • embeddings                    <span class="d-a">→</span> binary segment files
+    • HNSW graph                    <span class="d-a">→</span> its own segment (hnsw index files)
 
 QDRANT
   Per-collection "segments" on disk:
@@ -1844,14 +1856,14 @@ pgvector (PostgreSQL)
     CREATE TABLE docs (id bigserial, content text,
                        metadata jsonb, embedding vector(768));
     CREATE INDEX ON docs USING hnsw (embedding vector_cosine_ops);
-  → text, metadata, AND vector are columns in ONE row; the HNSW/IVFFlat
+  <span class="d-a">→</span> text, metadata, AND vector are columns in ONE row; the HNSW/IVFFlat
     index is a standard Postgres index built over the vector column.</pre></div>
             <div class="diagram"><pre>WHAT TO PERSIST IN PRODUCTION (checklist):
-  ✓ the vectors (or PQ codes)          ✓ the ANN structure (graph/centroids)
-  ✓ internal-id → your-id mapping       ✓ id → text + metadata (docstore)
-  ✓ embedding MODEL NAME + dimension    ← re-embedding with a different model
+  √ the vectors (or PQ codes)          √ the ANN structure (graph/centroids)
+  √ internal-id <span class="d-a">→</span> your-id mapping       √ id <span class="d-a">→</span> text + metadata (docstore)
+  √ embedding MODEL NAME + dimension    <span class="d-a">←</span> re-embedding with a different model
                                           silently breaks the index
-  ✓ distance metric (cosine/L2/IP)      ✓ index params (nlist/nprobe/M/efSearch)</pre></div>
+  √ distance metric (cosine/L2/IP)      √ index params (nlist/nprobe/M/efSearch)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f05RAGandVector-8">
@@ -1989,22 +2001,22 @@ pgvector (PostgreSQL)
             </div>
             <p>They all do the <strong>same job</strong> (store vectors + metadata, search by similarity), so the mental model is always the same:</p>
             <div class="diagram"><pre>EVERY vector DB record is really just:   { id,  vector[d],  metadata/text }
-                                              │      │            └─ filter on this + return it
-                                              │      └─ what ANN search compares
-                                              └─ how a hit maps back to your data</pre></div>
+                                              <span class="d-l">│</span>      <span class="d-l">│</span>            <span class="d-l">└─</span> filter on this + return it
+                                              <span class="d-l">│</span>      <span class="d-l">└─</span> what ANN search compares
+                                              <span class="d-l">└─</span> how a hit maps back to your data</pre></div>
             <p>What differs is <strong>(1) how a record looks</strong>, <strong>(2) how it runs</strong> (a library in your code? a server you host? a cloud someone else runs? one node or a cluster?), and <strong>(3) the default index</strong>.</p>
             <div class="diagram"><pre>ARCHITECTURE SPECTRUM (how it runs)
-  ── lighter ─────────────────────────────────────────────────────► heavier ──
+  <span class="d-l">──</span> lighter <span class="d-l">─────────────────────────────────────────────────────</span><span class="d-a">►</span> heavier <span class="d-l">──</span>
   Embedded library      Standalone server         Distributed cluster      Managed cloud
   (in YOUR process)     (one service you run)      (sharded + replicated)   (someone else runs it)
   FAISS · Chroma        Qdrant · Weaviate          Milvus · Qdrant ·        Pinecone
   pgvector = lives INSIDE your PostgreSQL           Weaviate</pre></div>
             <p>Now each one, concretely:</p>
             <div class="diagram"><pre>FAISS  — a LIBRARY, not a server
-  ONE RECORD =  (int id, float[d] vector)        ← NO text, NO metadata
+  ONE RECORD =  (int id, float[d] vector)        <span class="d-a">←</span> NO text, NO metadata
   RUNS AS    =  C++/Python library in your process; you save files yourself
   INDEX      =  you choose: Flat / IVF / HNSW / IVF-PQ
-  LOOKS LIKE =  index.faiss (vectors+structure+ids)  +  index.pkl (id → text/meta)</pre></div>
+  LOOKS LIKE =  index.faiss (vectors+structure+ids)  +  index.pkl (id <span class="d-a">→</span> text/meta)</pre></div>
             <pre class="code"><code>CHROMA  — embedded DB (or small server)
   ONE RECORD =  { id, embedding:[...], document:"text", metadata:{src:"faq"} }
   RUNS AS    =  embedded (a chroma.sqlite3 file) OR a local server; single-node
@@ -2018,7 +2030,7 @@ pgvector (PostgreSQL)
   LOOKS LIKE =  client.upsert("docs",
                   points=[{ "id":1, "vector":[...], "payload":{"src":"faq"} }])</code></pre>
             <div class="diagram"><pre>PINECONE  — fully managed cloud
-  ONE RECORD =  { id, values:[...], metadata:{} }   inside  index → namespace
+  ONE RECORD =  { id, values:[...], metadata:{} }   inside  index <span class="d-a">→</span> namespace
   RUNS AS    =  serverless/managed cloud; distributed; you NEVER run a server
   INDEX      =  proprietary ANN (HNSW-like), tuned + scaled automatically
   LOOKS LIKE =  index.upsert(namespace="docs",
@@ -2043,15 +2055,15 @@ pgvector (PostgreSQL)
                             ORDER BY embedding &lt;=&gt; :query_vec  LIMIT 5;</code></pre>
             <p><strong>At a glance:</strong>
             </p>
-            <div class="diagram"><pre>DB        │ Runs as             │ One record =                        │ Default index │ Distributed?
-──────────┼─────────────────────┼─────────────────────────────────────┼───────────────┼─────────────
-FAISS     │ library (in-proc)   │ id + vector  (text kept elsewhere)  │ you choose    │ no
-Chroma    │ embedded / server   │ id + embedding + document + meta    │ HNSW          │ no
-pgvector  │ inside PostgreSQL   │ a table row (cols incl. vector)     │ HNSW/IVFFlat  │ no (PG repl.)
-Qdrant    │ server (Rust)       │ point: id + vector + payload        │ HNSW          │ yes
-Weaviate  │ server (Go)         │ object in class: properties+vector  │ HNSW          │ yes
-Milvus    │ distributed system  │ entity in collection (typed fields) │ pick per field│ yes (native)
-Pinecone  │ managed cloud       │ id + values + metadata (namespace)  │ managed ANN   │ yes (managed)</pre></div>
+            <div class="diagram"><pre>DB        <span class="d-l">│</span> Runs as             <span class="d-l">│</span> One record =                        <span class="d-l">│</span> Default index <span class="d-l">│</span> Distributed?
+<span class="d-l">──────────┼─────────────────────┼─────────────────────────────────────┼───────────────┼─────────────</span>
+FAISS     <span class="d-l">│</span> library (in-proc)   <span class="d-l">│</span> id + vector  (text kept elsewhere)  <span class="d-l">│</span> you choose    <span class="d-l">│</span> no
+Chroma    <span class="d-l">│</span> embedded / server   <span class="d-l">│</span> id + embedding + document + meta    <span class="d-l">│</span> HNSW          <span class="d-l">│</span> no
+pgvector  <span class="d-l">│</span> inside PostgreSQL   <span class="d-l">│</span> a table row (cols incl. vector)     <span class="d-l">│</span> HNSW/IVFFlat  <span class="d-l">│</span> no (PG repl.)
+Qdrant    <span class="d-l">│</span> server (Rust)       <span class="d-l">│</span> point: id + vector + payload        <span class="d-l">│</span> HNSW          <span class="d-l">│</span> yes
+Weaviate  <span class="d-l">│</span> server (Go)         <span class="d-l">│</span> object in class: properties+vector  <span class="d-l">│</span> HNSW          <span class="d-l">│</span> yes
+Milvus    <span class="d-l">│</span> distributed system  <span class="d-l">│</span> entity in collection (typed fields) <span class="d-l">│</span> pick per field<span class="d-l">│</span> yes (native)
+Pinecone  <span class="d-l">│</span> managed cloud       <span class="d-l">│</span> id + values + metadata (namespace)  <span class="d-l">│</span> managed ANN   <span class="d-l">│</span> yes (managed)</pre></div>
             <div class="note n-key">
               <p><strong>Bottom line:</strong> the <em>shape</em> changes (a bare <code>(id, vector)</code> in FAISS, a SQL row in pgvector, a typed "entity" in Milvus), but it's always <strong>id + vector + metadata behind an <abbr title="approximate nearest neighbour">ANN</abbr> index</strong>. Pick by how you want to <em>run</em> it: prototype → <strong>FAISS/Chroma</strong>; already on Postgres → <strong>pgvector</strong>; self-hosted production with filters → <strong>Qdrant/Weaviate</strong>; zero-ops managed → <strong>Pinecone</strong>; billions of vectors → <strong>Milvus</strong>.</p>
             </div>
@@ -2331,21 +2343,21 @@ multi_retriever = MultiQueryRetriever.<span class="fn">from_llm</span>(retriever
             <div class="diagram"><pre>BM25 SCORE of document D for query Q = sum over each query term qᵢ of:
 
                           f(qᵢ, D) · (k₁ + 1)
-   IDF(qᵢ) · ─────────────────────────────────────────────
+   IDF(qᵢ) · <span class="d-l">─────────────────────────────────────────────</span>
               f(qᵢ, D) + k₁ · (1 − b + b · |D| / avgdl)
 
   f(qᵢ, D)  term frequency of qᵢ in D        |D|     length of D (in words)
   N         total number of documents        avgdl   average document length
   n(qᵢ)     number of docs containing qᵢ
 
-  IDF(qᵢ) = ln( (N − n(qᵢ) + 0.5) / (n(qᵢ) + 0.5) + 1 )    ← rare terms score higher
+  IDF(qᵢ) = ln( (N − n(qᵢ) + 0.5) / (n(qᵢ) + 0.5) + 1 )    <span class="d-a">←</span> rare terms score higher
 
   TUNING KNOBS
     k₁ (≈1.2–2.0)  term-frequency saturation. Higher = TF matters more.
     b  (≈0.75)     length normalization. b=0 ignores length; b=1 fully normalizes.
 
   WHY IT BEATS TF-IDF
-    • Saturation: with k₁, going from 1→2 hits helps a lot, 50→51 barely moves.
+    • Saturation: with k₁, going from 1<span class="d-a">→</span>2 hits helps a lot, 50<span class="d-a">→</span>51 barely moves.
     • Length: the b·|D|/avgdl term penalizes padding so a 50-page doc that
       mentions a term twice doesn't outrank a focused paragraph.
   WHEN BM25 WINS over vectors: exact terms, IDs, error codes, names, acronyms,
@@ -2518,30 +2530,30 @@ resp = co.<span class="fn">rerank</span>(
             <h3>9.5.1 The Reranker Family — All the Types</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f05RAGandVector-17"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="keyterms"><span class="kt">re-scores it for relevance</span><span class="kt">RRF/weighted fusion reorders by</span><span class="kt">diversity</span><span class="kt">Default recipe</span><span class="kt">cross-encoder</span><span class="kt">MMR</span>
+            <div class="keyterms"><span class="kt">re-scores it for relevance</span><span class="kt">rank math</span><span class="kt">MMR re-orders for</span><span class="kt">retrieve (bi-encoder + BM25) →</span><span class="kt">rerank ~20→5 → optional</span>
             </div>
             <p>A reranker takes the shortlist from stage-1 retrieval and <strong>re-scores it for relevance</strong>. They differ in <em>where the query meets the document</em> — and that single design choice sets the speed/quality trade-off.</p>
             <div class="diagram"><pre>BI-ENCODER (retrieval)        CROSS-ENCODER (rerank)         LATE-INTERACTION (ColBERT)
-  q ─►[Enc]─► ■ (1 vec)         [ q ⊕ d ] ─►[Enc]─► score      q ─►[Enc]─► ■■■  (token vecs)
-  d ─►[Enc]─► ■ (1 vec)          one pass over the PAIR         d ─►[Enc]─► ■■■■■ (token vecs)
+  q <span class="d-l">─</span><span class="d-a">►</span>[Enc]<span class="d-l">─</span><span class="d-a">►</span> ■ (1 vec)         [ q ⊕ d ] <span class="d-l">─</span><span class="d-a">►</span>[Enc]<span class="d-l">─</span><span class="d-a">►</span> score      q <span class="d-l">─</span><span class="d-a">►</span>[Enc]<span class="d-l">─</span><span class="d-a">►</span> ■■■  (token vecs)
+  d <span class="d-l">─</span><span class="d-a">►</span>[Enc]<span class="d-l">─</span><span class="d-a">►</span> ■ (1 vec)          one pass over the PAIR         d <span class="d-l">─</span><span class="d-a">►</span>[Enc]<span class="d-l">─</span><span class="d-a">►</span> ■■■■■ (token vecs)
   score = cos(■, ■)             every q-token attends to        score = Σ_i max_j sim(q_i , d_j)
   docs embedded OFFLINE          every d-token (full cross)      docs embedded OFFLINE per-token
-  ⚡ fast · ⊖ approximate         🐢 slow · ⊕ very precise         ⚖ middle: precompute + token match
-  → this is stage-1 RETRIEVAL    → the default RERANKER           → big shortlist, precision near CE</pre></div>
+  ! fast · ⊖ approximate         * slow · ⊕ very precise         = middle: precompute + token match
+  <span class="d-a">→</span> this is stage-1 RETRIEVAL    <span class="d-a">→</span> the default RERANKER           <span class="d-a">→</span> big shortlist, precision near CE</pre></div>
             <div class="diagram"><pre>LLM-AS-RERANKER (listwise)
-  prompt → "Rank these passages by relevance to: {query}
-            [1] … [2] … [3] …   →  return best order (or score each 0–10)"
-  highest quality + zero training, but slowest &amp; priciest → use on a TINY shortlist (≤10).
+  prompt <span class="d-a">→</span> "Rank these passages by relevance to: {query}
+            [1] … [2] … [3] …   <span class="d-a">→</span>  return best order (or score each 0–10)"
+  highest quality + zero training, but slowest &amp; priciest <span class="d-a">→</span> use on a TINY shortlist (≤10).
   Variants: pointwise (score each doc), pairwise (which of A/B is better), listwise (order all).</pre></div>
             <div class="diagram"><pre>RERANKER TYPE        HOW IT SCORES (q,d)            SPEED    QUALITY   HOSTING        REACH FOR IT WHEN
-────────────────     ───────────────────────────   ──────   ───────   ────────────   ─────────────────────────
-Bi-encoder*          cos(q_vec, d_vec)             ⚡⚡⚡     ★★        self / any      *stage-1 RETRIEVAL, not rerank
-Cross-encoder        joint (q,d) transformer pass   🐢       ★★★★      self-host      DEFAULT reranker; ~20–100 cands
-Late-interaction     token max-sim sum (ColBERT)    ⚡⚡      ★★★★      self-host      large shortlist, can precompute
-LLM reranker         ask an LLM to order / score    🐢🐢     ★★★★★     API / self     tiny shortlist, max quality
-Hosted API           Cohere / Jina / Voyage rerank  ⚡⚡      ★★★★      managed API    no model to host, ship fast
-Score fusion**       RRF / weighted (no model)      ⚡⚡⚡     ★★★       none           merge multiple retrievers (§9.4)
-MMR (diversity)***   relevance − λ·redundancy       ⚡⚡⚡     —         none           kill near-duplicate top-K (§16.4)</pre></div>
+<span class="d-l">────────────────</span>     <span class="d-l">───────────────────────────</span>   <span class="d-l">──────</span>   <span class="d-l">───────</span>   <span class="d-l">────────────</span>   <span class="d-l">─────────────────────────</span>
+Bi-encoder*          cos(q_vec, d_vec)             !!!     ●●        self / any      *stage-1 RETRIEVAL, not rerank
+Cross-encoder        joint (q,d) transformer pass   *       ●●●●      self-host      DEFAULT reranker; ~20–100 cands
+Late-interaction     token max-sim sum (ColBERT)    !!      ●●●●      self-host      large shortlist, can precompute
+LLM reranker         ask an LLM to order / score    **     ●●●●●     API / self     tiny shortlist, max quality
+Hosted API           Cohere / Jina / Voyage rerank  !!      ●●●●      managed API    no model to host, ship fast
+Score fusion**       RRF / weighted (no model)      !!!     ●●●       none           merge multiple retrievers (§9.4)
+MMR (diversity)***   relevance − λ·redundancy       !!!     —         none           kill near-duplicate top-K (§16.4)</pre></div>
             <div class="note">
               <p><code>*</code> The <abbr title="a model that embeds query and passage separately, so passages can be indexed in advance">bi-encoder</abbr> is the first-stage retriever, listed for contrast (separate embeddings, no cross-attention).
                 <code>**</code> <abbr title="reciprocal rank fusion — merges two ranked lists by summing 1/(k+rank), needing no score calibration">RRF</abbr>/weighted fusion reorders by <strong>rank math</strong>, not a learned model — it <em>combines</em> rankers rather than re-scoring pairs.
@@ -2588,7 +2600,7 @@ reranking_retriever = <span class="fn">ContextualCompressionRetriever</span>(
   Level 1 (Naive):     Vector search only
   Level 2 (Better):    + Multi-query / HyDE
   Level 3 (Good):      + Hybrid search (BM25 + vector, fused via RRF)
-  Level 4 (Great):     + Cross-encoder re-ranking (fetch ~20 → keep ~5)
+  Level 4 (Great):     + Cross-encoder re-ranking (fetch ~20 <span class="d-a">→</span> keep ~5)
   Level 5 (Best):      + Contextual embeddings + adaptive retrieval
 
   Each level adds latency but improves quality.
@@ -3174,14 +3186,14 @@ VOCAB, DOC_LEN = <span class="num">20000</span>, <span class="num">80</span>
             <div class="diagram"><pre>RAPTOR (Recursive Abstractive Processing for Tree-Organized Retrieval)
   Recursively CLUSTER + SUMMARIZE chunks into a tree, then index every level:
 
-   Level 2:            [ summary of the whole doc ]           ← coarse, "big picture"
+   Level 2:            [ summary of the whole doc ]           <span class="d-a">←</span> coarse, "big picture"
                        /                          \
-   Level 1:   [ summary of cluster A ]   [ summary of cluster B ]   ← mid-level themes
+   Level 1:   [ summary of cluster A ]   [ summary of cluster B ]   <span class="d-a">←</span> mid-level themes
               /        |       \             /          \
-   Level 0:  chunk   chunk   chunk        chunk        chunk         ← raw leaves
+   Level 0:  chunk   chunk   chunk        chunk        chunk         <span class="d-a">←</span> raw leaves
   Retrieve across ALL levels at once: a detail question hits leaves;
   "what's the overall theme?" hits a high-level summary node.
-  → wins on multi-hop / thematic questions a flat chunk index answers poorly.</pre></div>
+  <span class="d-a">→</span> wins on multi-hop / thematic questions a flat chunk index answers poorly.</pre></div>
             <div class="diagram"><pre>SENTENCE-WINDOW    embed ONE sentence (precise match), but RETURN it ± N
                    neighbouring sentences (enough context for the LLM).
 
@@ -3190,10 +3202,10 @@ AUTO-MERGING       index small leaf chunks; if MANY leaves of the same parent
                    LLM 8 fragments of one section. (LlamaIndex cousin of parent-child, §4.1.9)
 
 QUERY ROUTING      pick the RIGHT index/tool BEFORE retrieving:
-                     "2024 revenue?"            → SQL / structured store (not the vector DB)
-                     "explain our refund policy"→ policy vector index
-                     "latest news on X"         → web-search tool
-                     small-talk                 → answer directly, skip retrieval
+                     "2024 revenue?"            <span class="d-a">→</span> SQL / structured store (not the vector DB)
+                     "explain our refund policy"<span class="d-a">→</span> policy vector index
+                     "latest news on X"         <span class="d-a">→</span> web-search tool
+                     small-talk                 <span class="d-a">→</span> answer directly, skip retrieval
                    Semantic router = embed the query, nearest "route prototype" wins (no LLM call).
                    This is the dispatch layer under Adaptive RAG (§10) and Agentic RAG (§11).</pre></div>
             <div class="note">
@@ -3293,10 +3305,10 @@ cached_embeddings = CacheBackedEmbeddings.<span class="fn">from_bytes_store</spa
             </div>
             <p>"Semantic" caching matches by <strong>meaning</strong> (<abbr title="a dense numeric vector representing text so that similar meanings sit close together">embedding</abbr> similarity), not exact string — so paraphrases hit the cache. There are two distinct places to do it:</p>
             <p><strong>(a) Response cache → skip retrieval <em>and</em> the <abbr title="large language model">LLM</abbr>.</strong> Embed the incoming query; if cosine similarity to a previously-answered query ≥ a (high) threshold, return that cached answer directly. Biggest saving (skips the whole pipeline) but riskiest — a near-miss serves a <em>wrong</em> answer — so keep the bar high (~0.95–0.98) + a <abbr title="time to live">TTL</abbr>.</p>
-            <div class="diagram"><pre>Cached:  "How do I reset my password?"  → "Go to Settings → Security → Reset…"
+            <div class="diagram"><pre>Cached:  "How do I reset my password?"  <span class="d-a">→</span> "Go to Settings <span class="d-a">→</span> Security <span class="d-a">→</span> Reset…"
 New:     "I forgot my password, how do I change it?"
-         embed → cosine 0.93 vs cached query
-         ≥ threshold?  → return cached answer  (~10 ms, $0)   instead of ~2 s + retrieval + LLM cost</pre></div>
+         embed <span class="d-a">→</span> cosine 0.93 vs cached query
+         ≥ threshold?  <span class="d-a">→</span> return cached answer  (~10 ms, $0)   instead of ~2 s + retrieval + LLM cost</pre></div>
             <p><strong>(b) Retrieval cache → skip the vector search, still run the LLM.</strong> Cache <code>query → retrieved chunk-IDs</code>. If a new query is semantically close to a cached one, reuse its chunks and go straight to generation. <strong>Safer</strong> than the response cache (the LLM still grounds on context and can re-phrase / personalize), and it removes the vector-search + rerank cost. Use it when answers must stay fresh/personalized but the <em>relevant documents</em> are stable.</p>
             <p>Plus the two already shown above: <strong>exact-match</strong> (hash the normalized query) and <strong>embedding cache</strong> (don't re-embed unchanged chunks).</p>
             <pre class="code" data-lang="python"><code><span class="cmt"># query vector store of past queries -&gt; (chunks, answer)</span>
@@ -3434,117 +3446,117 @@ results = <span class="fn">evaluate</span>(dataset, metrics=[faithfulness, answe
 <span class="cmt"># {'faithfulness': 0.92, 'answer_relevancy': 0.88, 'context_precision': 0.85}</span></code></pre>
           <div class="diagram"><pre>RAGAS METRICS — DETAILED DEFINITIONS:
 
-  ┌───────────────────────────────────────────────────────────────────────────┐
-  │ FAITHFULNESS (Groundedness / Hallucination-Free)                          │
-  ├───────────────────────────────────────────────────────────────────────────┤
-  │ Definition: Measures whether EVERY claim in the generated answer is       │
-  │ supported by the retrieved context. A faithful answer contains NO         │
-  │ information that cannot be traced back to the provided documents.         │
-  │                                                                           │
-  │ How measured:                                                             │
-  │   1. LLM breaks the answer into individual claims/statements              │
-  │   2. Each claim is checked against the context for support                │
-  │   3. Score = (supported claims) / (total claims)                          │
-  │                                                                           │
-  │ Score = 1.0 → Every claim is backed by context                            │
-  │ Score = 0.5 → Half the claims are hallucinated                            │
-  │                                                                           │
-  │ Fix low faithfulness:                                                     │
-  │   • Add "Answer ONLY based on the given context" to system prompt         │
-  │   • Use Self-RAG (model self-checks for hallucination)                    │
-  │   • Reduce temperature to decrease creative generation                    │
-  │   • Add citation requirements ("cite the source for each claim")          │
-  └───────────────────────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> FAITHFULNESS (Groundedness / Hallucination-Free)                          <span class="d-l">│</span>
+  <span class="d-l">├───────────────────────────────────────────────────────────────────────────┤</span>
+  <span class="d-l">│</span> Definition: Measures whether EVERY claim in the generated answer is       <span class="d-l">│</span>
+  <span class="d-l">│</span> supported by the retrieved context. A faithful answer contains NO         <span class="d-l">│</span>
+  <span class="d-l">│</span> information that cannot be traced back to the provided documents.         <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> How measured:                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span>   1. LLM breaks the answer into individual claims/statements              <span class="d-l">│</span>
+  <span class="d-l">│</span>   2. Each claim is checked against the context for support                <span class="d-l">│</span>
+  <span class="d-l">│</span>   3. Score = (supported claims) / (total claims)                          <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Score = 1.0 <span class="d-a">→</span> Every claim is backed by context                            <span class="d-l">│</span>
+  <span class="d-l">│</span> Score = 0.5 <span class="d-a">→</span> Half the claims are hallucinated                            <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Fix low faithfulness:                                                     <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Add "Answer ONLY based on the given context" to system prompt         <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Use Self-RAG (model self-checks for hallucination)                    <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Reduce temperature to decrease creative generation                    <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Add citation requirements ("cite the source for each claim")          <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────────────────────┘</span>
 
-  ┌───────────────────────────────────────────────────────────────────────────┐
-  │ ANSWER RELEVANCY                                                          │
-  ├───────────────────────────────────────────────────────────────────────────┤
-  │ Definition: Measures how well the generated answer addresses the          │
-  │ user's original question. An answer can be faithful (grounded in          │
-  │ context) but irrelevant (doesn't answer what was asked).                  │
-  │                                                                           │
-  │ How measured:                                                             │
-  │   1. LLM generates N hypothetical questions from the answer               │
-  │   2. Cosine similarity between original question and generated questions  │
-  │   3. Average similarity = answer relevancy score                          │
-  │                                                                           │
-  │ Score = 1.0 → Answer perfectly addresses the question                     │
-  │ Score = 0.3 → Answer is tangentially related but misses the point         │
-  │                                                                           │
-  │ Fix low relevancy:                                                        │
-  │   • Better query transformation (HyDE, multi-query)                       │
-  │   • Improve prompt: "Answer the question directly and concisely"          │
-  │   • Re-rank retrieved docs to prioritize most relevant                    │
-  └───────────────────────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> ANSWER RELEVANCY                                                          <span class="d-l">│</span>
+  <span class="d-l">├───────────────────────────────────────────────────────────────────────────┤</span>
+  <span class="d-l">│</span> Definition: Measures how well the generated answer addresses the          <span class="d-l">│</span>
+  <span class="d-l">│</span> user's original question. An answer can be faithful (grounded in          <span class="d-l">│</span>
+  <span class="d-l">│</span> context) but irrelevant (doesn't answer what was asked).                  <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> How measured:                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span>   1. LLM generates N hypothetical questions from the answer               <span class="d-l">│</span>
+  <span class="d-l">│</span>   2. Cosine similarity between original question and generated questions  <span class="d-l">│</span>
+  <span class="d-l">│</span>   3. Average similarity = answer relevancy score                          <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Score = 1.0 <span class="d-a">→</span> Answer perfectly addresses the question                     <span class="d-l">│</span>
+  <span class="d-l">│</span> Score = 0.3 <span class="d-a">→</span> Answer is tangentially related but misses the point         <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Fix low relevancy:                                                        <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Better query transformation (HyDE, multi-query)                       <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Improve prompt: "Answer the question directly and concisely"          <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Re-rank retrieved docs to prioritize most relevant                    <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────────────────────┘</span>
 
-  ┌───────────────────────────────────────────────────────────────────────────┐
-  │ CONTEXT PRECISION                                                         │
-  ├───────────────────────────────────────────────────────────────────────────┤
-  │ Definition: Measures whether the retrieved documents are RELEVANT to      │
-  │ the question. High precision means most retrieved chunks are useful;      │
-  │ low precision means the retriever is pulling in noisy, irrelevant docs.   │
-  │                                                                           │
-  │ How measured:                                                             │
-  │   1. LLM judges each retrieved chunk: relevant or not relevant            │
-  │   2. Computes precision@k with rank-awareness (relevant docs ranked       │
-  │      higher get more weight)                                              │
-  │                                                                           │
-  │ Score = 1.0 → All retrieved docs are relevant, well-ranked                │
-  │ Score = 0.2 → Most retrieved docs are noise                               │
-  │                                                                           │
-  │ Fix low precision:                                                        │
-  │   • Smaller, more focused chunks (reduce chunk_size)                      │
-  │   • Add metadata filtering (date, source, category)                       │
-  │   • Use re-ranking (cross-encoder) to push relevant docs up               │
-  │   • Better embedding model for your domain                                │
-  └───────────────────────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> CONTEXT PRECISION                                                         <span class="d-l">│</span>
+  <span class="d-l">├───────────────────────────────────────────────────────────────────────────┤</span>
+  <span class="d-l">│</span> Definition: Measures whether the retrieved documents are RELEVANT to      <span class="d-l">│</span>
+  <span class="d-l">│</span> the question. High precision means most retrieved chunks are useful;      <span class="d-l">│</span>
+  <span class="d-l">│</span> low precision means the retriever is pulling in noisy, irrelevant docs.   <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> How measured:                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span>   1. LLM judges each retrieved chunk: relevant or not relevant            <span class="d-l">│</span>
+  <span class="d-l">│</span>   2. Computes precision@k with rank-awareness (relevant docs ranked       <span class="d-l">│</span>
+  <span class="d-l">│</span>      higher get more weight)                                              <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Score = 1.0 <span class="d-a">→</span> All retrieved docs are relevant, well-ranked                <span class="d-l">│</span>
+  <span class="d-l">│</span> Score = 0.2 <span class="d-a">→</span> Most retrieved docs are noise                               <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Fix low precision:                                                        <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Smaller, more focused chunks (reduce chunk_size)                      <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Add metadata filtering (date, source, category)                       <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Use re-ranking (cross-encoder) to push relevant docs up               <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Better embedding model for your domain                                <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────────────────────┘</span>
 
-  ┌───────────────────────────────────────────────────────────────────────────┐
-  │ CONTEXT RECALL                                                            │
-  ├───────────────────────────────────────────────────────────────────────────┤
-  │ Definition: Measures whether ALL relevant documents were retrieved        │
-  │ (not just some). Low recall means the retriever is missing important      │
-  │ documents that contain the answer. Requires ground_truth reference.       │
-  │                                                                           │
-  │ How measured:                                                             │
-  │   1. LLM breaks ground_truth answer into individual claims                │
-  │   2. Checks if each claim is supported by any retrieved context           │
-  │   3. Score = (claims supported by context) / (total claims in GT)         │
-  │                                                                           │
-  │ Score = 1.0 → All needed info was retrieved                               │
-  │ Score = 0.4 → 60% of needed information was NOT retrieved                 │
-  │                                                                           │
-  │ Fix low recall:                                                           │
-  │   • Increase top_k (retrieve more documents)                              │
-  │   • Use hybrid search (BM25 + vector — catches keyword matches)           │
-  │   • Multi-query retrieval (rephrase question multiple ways)               │
-  │   • Improve chunking (ensure relevant info isn't split across chunks)     │
-  └───────────────────────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> CONTEXT RECALL                                                            <span class="d-l">│</span>
+  <span class="d-l">├───────────────────────────────────────────────────────────────────────────┤</span>
+  <span class="d-l">│</span> Definition: Measures whether ALL relevant documents were retrieved        <span class="d-l">│</span>
+  <span class="d-l">│</span> (not just some). Low recall means the retriever is missing important      <span class="d-l">│</span>
+  <span class="d-l">│</span> documents that contain the answer. Requires ground_truth reference.       <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> How measured:                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span>   1. LLM breaks ground_truth answer into individual claims                <span class="d-l">│</span>
+  <span class="d-l">│</span>   2. Checks if each claim is supported by any retrieved context           <span class="d-l">│</span>
+  <span class="d-l">│</span>   3. Score = (claims supported by context) / (total claims in GT)         <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Score = 1.0 <span class="d-a">→</span> All needed info was retrieved                               <span class="d-l">│</span>
+  <span class="d-l">│</span> Score = 0.4 <span class="d-a">→</span> 60% of needed information was NOT retrieved                 <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Fix low recall:                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Increase top_k (retrieve more documents)                              <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Use hybrid search (BM25 + vector — catches keyword matches)           <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Multi-query retrieval (rephrase question multiple ways)               <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Improve chunking (ensure relevant info isn't split across chunks)     <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────────────────────┘</span>
 
-  ┌───────────────────────────────────────────────────────────────────────────┐
-  │ OTHER IMPORTANT RAG EVALUATION METRICS                                    │
-  ├───────────────────────────────────────────────────────────────────────────┤
-  │                                                                           │
-  │ Answer Correctness:  Does the answer match the ground truth?              │
-  │   • Combines factual similarity + semantic similarity                     │
-  │   • Needs ground truth labels (expensive to create)                       │
-  │                                                                           │
-  │ Answer Similarity:   Semantic similarity between answer and ground truth  │
-  │   • Uses embedding cosine similarity                                      │
-  │   • Doesn't penalize extra correct information                            │
-  │                                                                           │
-  │ Noise Sensitivity:   How much does irrelevant context affect the answer?  │
-  │   • Test by injecting unrelated chunks — does the answer change?          │
-  │   • Robust RAG should ignore noise                                        │
-  │                                                                           │
-  │ Latency:             Time from query to final response                    │
-  │   • Retrieval latency + generation latency                                │
-  │   • Target: &lt; 2s for interactive, &lt; 10s for complex queries               │
-  │                                                                           │
-  │ Cost per Query:      Embedding + retrieval + LLM token costs              │
-  │   • Track input/output tokens per query                                   │
-  │   • Cache embeddings and frequent queries                                 │
-  └───────────────────────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> OTHER IMPORTANT RAG EVALUATION METRICS                                    <span class="d-l">│</span>
+  <span class="d-l">├───────────────────────────────────────────────────────────────────────────┤</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Answer Correctness:  Does the answer match the ground truth?              <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Combines factual similarity + semantic similarity                     <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Needs ground truth labels (expensive to create)                       <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Answer Similarity:   Semantic similarity between answer and ground truth  <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Uses embedding cosine similarity                                      <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Doesn't penalize extra correct information                            <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Noise Sensitivity:   How much does irrelevant context affect the answer?  <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Test by injecting unrelated chunks — does the answer change?          <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Robust RAG should ignore noise                                        <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Latency:             Time from query to final response                    <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Retrieval latency + generation latency                                <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Target: &lt; 2s for interactive, &lt; 10s for complex queries               <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Cost per Query:      Embedding + retrieval + LLM token costs              <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Track input/output tokens per query                                   <span class="d-l">│</span>
+  <span class="d-l">│</span>   • Cache embeddings and frequent queries                                 <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────────────────────┘</span>
 
   TARGET SCORES:
     &gt; 0.9: Excellent — production ready
@@ -3574,7 +3586,7 @@ results = <span class="fn">evaluate</span>(dataset, metrics=[faithfulness, answe
   Recall@K    = (# relevant in top-K) / R          "of what exists, how much did I find?"
   Hit@K       = 1 if ANY relevant doc in top-K     "did a good doc make the cut at all?"
   MRR         = mean over queries of 1/(rank of FIRST relevant)   "how high is the first hit?"
-  AP          = mean of Precision@i at each relevant rank i   →  MAP = mean of AP over queries
+  AP          = mean of Precision@i at each relevant rank i   <span class="d-a">→</span>  MAP = mean of AP over queries
   DCG@K       = Σ rel(i)/log2(i+1)  ;  nDCG@K = DCG@K / ideal-DCG@K   (graded, rank-weighted)</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">import</span> math
 
@@ -3629,16 +3641,16 @@ relevant = {<span class="str">"d1"</span>, <span class="str">"d2"</span>}       
         <div class="q-a" style="margin:0 0 12px">
           <p>Production <abbr title="retrieval-augmented generation">RAG</abbr> systems require a comprehensive set of operational practices beyond the basic pipeline, including <abbr title="fusing keyword (BM25) and dense vector results, usually with reciprocal rank fusion">hybrid search</abbr>, re-ranking, evaluation pipelines, caching, and monitoring. Scalability decisions — from single-machine FAISS to distributed Milvus clusters — depend on dataset size, latency requirements, and infrastructure budget.</p>
           <div class="diagram"><pre>PRODUCTION RAG CHECKLIST:
-  ✅ Hybrid search (BM25 + vector)
-  ✅ Re-ranking (cross-encoder top-5)
-  ✅ Evaluation pipeline (RAGAS on test set)
-  ✅ Caching (semantic + embedding cache)
-  ✅ Metadata filtering (source, date, category)
-  ✅ Source citations in responses
-  ✅ Fallback for no-context ("I don't know")
-  ✅ Monitoring (retrieval quality, latency, cost)
-  ✅ Incremental indexing (add new docs without rebuild)
-  ✅ PII filtering on retrieved documents
+  √ Hybrid search (BM25 + vector)
+  √ Re-ranking (cross-encoder top-5)
+  √ Evaluation pipeline (RAGAS on test set)
+  √ Caching (semantic + embedding cache)
+  √ Metadata filtering (source, date, category)
+  √ Source citations in responses
+  √ Fallback for no-context ("I don't know")
+  √ Monitoring (retrieval quality, latency, cost)
+  √ Incremental indexing (add new docs without rebuild)
+  √ PII filtering on retrieved documents
 
 SCALABILITY:
   &lt; 100K docs:   FAISS or Chroma (single machine)
@@ -3647,7 +3659,7 @@ SCALABILITY:
   &gt; 1B:          Milvus cluster, custom HNSW with sharding
 
 LATENCY OPTIMIZATION:
-  1. Quantized embeddings (float32 → int8: 4× less memory)
+  1. Quantized embeddings (float32 <span class="d-a">→</span> int8: 4× less memory)
   2. ANN tuning (HNSW: ef_search, M parameters)
   3. Pre-filter with metadata before vector search
   4. Cache frequent queries (semantic cache)
@@ -3664,16 +3676,16 @@ LATENCY OPTIMIZATION:
           <div class="q-a">
             <p>The quality of a <abbr title="retrieval-augmented generation">RAG</abbr> system depends heavily on how well documents are parsed. Different formats require different strategies. Poor parsing (e.g., losing table structure, ignoring headers) leads to irrelevant or incomplete retrieval.</p>
             <div class="diagram"><pre>FORMAT          TOOL / APPROACH                          NOTES
-────────────────────────────────────────────────────────────────────
+<span class="d-l">────────────────────────────────────────────────────────────────────</span>
 PDF (text)      PyPDFLoader, PDFPlumber                  Preserves layout
 PDF (scanned)   OCR: Tesseract, Azure Doc Intelligence   Slower, noisier
-PDF (tables)    Camelot, Tabula, Unstructured             Tables → markdown
+PDF (tables)    Camelot, Tabula, Unstructured             Tables <span class="d-a">→</span> markdown
 HTML            BeautifulSoup + boilerplate removal       Remove nav/ads
 Word (.docx)    Docx2txtLoader, python-docx                Preserves headings
 PPT             python-pptx, Unstructured                 Slide-level chunks
 Markdown        MarkdownHeaderTextSplitter                Split by headers
 Code            RecursiveCharacterTextSplitter(language=)  Respects functions
-Images/Charts   Vision LLM (GPT-4V, Claude) → text desc   Caption for embedding
+Images/Charts   Vision LLM (GPT-4V, Claude) <span class="d-a">→</span> text desc   Caption for embedding
 
 BEST PRACTICE:
   1. Extract text WITH structure (headings, tables, lists)
@@ -3929,14 +3941,14 @@ records = [{<span class="str">"id"</span>: <span class="fn">content_id</span>(ch
             <h3>17.2 Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f05RAGandVector-38"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Documents → Entity &amp; Relation Extraction → Knowledge Graph
-                                              │
-User Query → Intent Detection ──┬─────────────┤
-                                │             │
+            <div class="diagram"><pre>Documents <span class="d-a">→</span> Entity &amp; Relation Extraction <span class="d-a">→</span> Knowledge Graph
+                                              <span class="d-l">│</span>
+User Query <span class="d-a">→</span> Intent Detection <span class="d-l">──┬─────────────┤</span>
+                                <span class="d-l">│</span>             <span class="d-l">│</span>
                           Vector Retrieval  Graph Traversal
-                                │             │
-                                └──── Merge ──┘
-                                              │
+                                <span class="d-l">│</span>             <span class="d-l">│</span>
+                                <span class="d-l">└────</span> Merge <span class="d-l">──┘</span>
+                                              <span class="d-l">│</span>
                                    LLM Generation (with graph context)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -4107,28 +4119,28 @@ result = chain.<span class="fn">invoke</span>({<span class="str">"query"</span>:
             </div>
             <p><strong>Option A: Multimodal Embeddings</strong>
             </p>
-            <div class="diagram"><pre>Documents → Parse into text chunks + image/table chunks
-                    │                        │
+            <div class="diagram"><pre>Documents <span class="d-a">→</span> Parse into text chunks + image/table chunks
+                    <span class="d-l">│</span>                        <span class="d-l">│</span>
               Text embeddings          Vision embeddings
               (text model)          (CLIP / multimodal model)
-                    │                        │
-                    └──── Unified vector store ────┘
-                              │
-Query → Embed → Retrieve (text + visual chunks) → Multimodal LLM → Answer</pre></div>
+                    <span class="d-l">│</span>                        <span class="d-l">│</span>
+                    <span class="d-l">└────</span> Unified vector store <span class="d-l">────┘</span>
+                              <span class="d-l">│</span>
+Query <span class="d-a">→</span> Embed <span class="d-a">→</span> Retrieve (text + visual chunks) <span class="d-a">→</span> Multimodal LLM <span class="d-a">→</span> Answer</pre></div>
             <p><strong>Option B: Summarize-then-Embed</strong>
             </p>
-            <div class="diagram"><pre>Images/Tables → Vision LLM (GPT-4o, Claude) → Text summaries
-                                                    │
+            <div class="diagram"><pre>Images/Tables <span class="d-a">→</span> Vision LLM (GPT-4o, Claude) <span class="d-a">→</span> Text summaries
+                                                    <span class="d-l">│</span>
                                           Embed summaries as text
-                                                    │
+                                                    <span class="d-l">│</span>
                                       Store alongside text chunks</pre></div>
             <p><strong>Option C: Raw Multimodal (ColPali/ColQwen)</strong>
             </p>
-            <div class="diagram"><pre>Document pages → Treated as images directly (no parsing)
-                        │
+            <div class="diagram"><pre>Document pages <span class="d-a">→</span> Treated as images directly (no parsing)
+                        <span class="d-l">│</span>
               Vision-language model embeds full pages
-                        │
-              Query → Retrieve relevant pages → Multimodal LLM → Answer</pre></div>
+                        <span class="d-l">│</span>
+              Query <span class="d-a">→</span> Retrieve relevant pages <span class="d-a">→</span> Multimodal LLM <span class="d-a">→</span> Answer</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f05RAGandVector-46">
@@ -4398,17 +4410,17 @@ texts = [el <span class="kw">for</span> el <span class="kw">in</span> elements <
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Codebase
-  ├── Code-aware chunking (AST-based)
-  ├── Code graph construction (calls, imports, inheritance)
-  ├── Documentation extraction (docstrings, README, comments)
-  └── Embedding + indexing
+  <span class="d-l">├──</span> Code-aware chunking (AST-based)
+  <span class="d-l">├──</span> Code graph construction (calls, imports, inheritance)
+  <span class="d-l">├──</span> Documentation extraction (docstrings, README, comments)
+  <span class="d-l">└──</span> Embedding + indexing
 
 User Query
-  ├── Intent classification (explain / generate / debug / review)
-  ├── Symbol extraction (function/class names mentioned)
-  ├── Hybrid retrieval (semantic + symbol + graph expansion)
-  ├── Re-ranking + context assembly
-  └── LLM generation with retrieved code context</pre></div>
+  <span class="d-l">├──</span> Intent classification (explain / generate / debug / review)
+  <span class="d-l">├──</span> Symbol extraction (function/class names mentioned)
+  <span class="d-l">├──</span> Hybrid retrieval (semantic + symbol + graph expansion)
+  <span class="d-l">├──</span> Re-ranking + context assembly
+  <span class="d-l">└──</span> LLM generation with retrieved code context</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f05RAGandVector-56">
@@ -4448,7 +4460,7 @@ User Query
             <div class="keyterms"><span class="kt">pipeline</span><span class="kt">Cache hardest, cache first</span><span class="kt">semantic cache</span><span class="kt">Vector DB</span><span class="kt">quantization</span><span class="kt">ingestion/indexing path</span>
             </div>
             <p>Intuition first: a <abbr title="retrieval-augmented generation">RAG</abbr> query is a <strong>pipeline</strong>, and each stage scales differently — so you scale the bottleneck, not "the system":</p>
-            <div class="diagram"><pre>query → embed query → ANN search (vector DB) → [rerank] → assemble context → LLM generate
+            <div class="diagram"><pre>query <span class="d-a">→</span> embed query <span class="d-a">→</span> ANN search (vector DB) <span class="d-a">→</span> [rerank] <span class="d-a">→</span> assemble context <span class="d-a">→</span> LLM generate
          (embed model)   (vector DB QPS)        (cross-encoder)              (tokens, $$$)</pre></div>
             <p>Bottlenecks and their fixes:</p>
             <ul>

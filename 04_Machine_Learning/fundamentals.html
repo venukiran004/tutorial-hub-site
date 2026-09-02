@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1267,11 +1279,11 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <div class="keyterms"><span class="kt">When to use ML over explicit rules</span><span class="kt">When NOT to use ML</span>
             </div>
             <div class="diagram"><pre>Traditional Programming:
-  Input: DATA + RULES → Output: ANSWERS
-  Example: if email contains "buy now" AND sender not in contacts → spam
+  Input: DATA + RULES <span class="d-a">→</span> Output: ANSWERS
+  Example: if email contains "buy now" AND sender not in contacts <span class="d-a">→</span> spam
 
 Machine Learning:
-  Input: DATA + ANSWERS → Output: RULES (learned model)
+  Input: DATA + ANSWERS <span class="d-a">→</span> Output: RULES (learned model)
   Example: Model automatically discovers patterns from labeled emails</pre></div>
             <p><strong>When to use ML over explicit rules:</strong>
               - Rules are too complex to articulate (image recognition, <abbr title="natural language processing">NLP</abbr>)
@@ -1350,18 +1362,18 @@ Machine Learning:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Artificial Intelligence (AI)
-  └── Machine Learning (ML)
-        ├── Classical ML (tabular data, feature engineering)
-        │     ├── Linear Models
-        │     ├── Tree-Based Models (RF, XGBoost)
-        │     ├── SVMs
-        │     └── Clustering, PCA
-        └── Deep Learning (DL)
-              ├── ANNs (Feedforward)
-              ├── CNNs (Images)
-              ├── RNNs/LSTMs (Sequences)
-              ├── Transformers (NLP, LLMs)
-              └── GANs, VAEs (Generative)</pre></div>
+  <span class="d-l">└──</span> Machine Learning (ML)
+        <span class="d-l">├──</span> Classical ML (tabular data, feature engineering)
+        <span class="d-l">│</span>     <span class="d-l">├──</span> Linear Models
+        <span class="d-l">│</span>     <span class="d-l">├──</span> Tree-Based Models (RF, XGBoost)
+        <span class="d-l">│</span>     <span class="d-l">├──</span> SVMs
+        <span class="d-l">│</span>     <span class="d-l">└──</span> Clustering, PCA
+        <span class="d-l">└──</span> Deep Learning (DL)
+              <span class="d-l">├──</span> ANNs (Feedforward)
+              <span class="d-l">├──</span> CNNs (Images)
+              <span class="d-l">├──</span> RNNs/LSTMs (Sequences)
+              <span class="d-l">├──</span> Transformers (NLP, LLMs)
+              <span class="d-l">└──</span> GANs, VAEs (Generative)</pre></div>
             <p><strong>Key distinction:</strong> Classical ML requires manual feature engineering; deep learning learns features automatically from raw data (pixels, text tokens, audio waveforms).</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1586,7 +1598,7 @@ Ordinal Classification:       Ordered classes (rating 1-5)</code></pre>
   - Semi-supervised learning leverages both
 
 Techniques:
-  1. Self-training: Train on labeled → predict unlabeled → add confident predictions → retrain
+  1. Self-training: Train on labeled <span class="d-a">→</span> predict unlabeled <span class="d-a">→</span> add confident predictions <span class="d-a">→</span> retrain
   2. Label propagation: Spread labels through a similarity graph
   3. Consistency regularization: Model should predict same for augmented versions
   4. Pseudo-labeling: Use model predictions as labels for unlabeled data (used in modern LLMs)</pre></div>
@@ -1600,15 +1612,15 @@ Techniques:
             <div class="keyterms"><span class="kt">Model-Free</span><span class="kt">Model-Based</span><span class="kt">On-Policy</span><span class="kt">Off-Policy</span><span class="kt">Production RL applications</span>
             </div>
             <p>An agent learns to make decisions by performing actions in an environment and receiving rewards.</p>
-            <div class="diagram"><pre>Agent ──(action)──→ Environment
-  ↑                      │
-  └──(state, reward)─────┘
+            <div class="diagram"><pre>Agent <span class="d-l">──</span>(action)<span class="d-l">──</span><span class="d-a">→</span> Environment
+  <span class="d-a">↑</span>                      <span class="d-l">│</span>
+  <span class="d-l">└──</span>(state, reward)<span class="d-l">─────┘</span>
 
 Key Concepts:
   State (s):     Current situation
   Action (a):    What the agent does
   Reward (r):    Feedback signal (+/-)
-  Policy (π):    Strategy mapping states → actions
+  Policy (π):    Strategy mapping states <span class="d-a">→</span> actions
   Value (V):     Expected cumulative reward from a state
   Q-value (Q):   Expected cumulative reward for (state, action) pair
 
@@ -1661,7 +1673,7 @@ Goal: Learn policy π* that maximizes cumulative reward = Σ γᵗ rₜ
           <div class="q-a">
             <p>The model creates its own supervision signal from unlabeled data.</p>
             <div class="diagram"><pre>Examples:
-  - BERT: Mask 15% of tokens → predict masked tokens
+  - BERT: Mask 15% of tokens <span class="d-a">→</span> predict masked tokens
   - GPT:  Predict next token from previous tokens
   - SimCLR: Compare augmented views of same image
   - DINO: Self-distillation with no labels
@@ -1669,7 +1681,7 @@ Goal: Learn policy π* that maximizes cumulative reward = Σ γᵗ rₜ
 Why it matters:
   - Powers modern LLMs (GPT, Claude, LLaMA)
   - Learns rich representations from massive unlabeled data
-  - Pre-train on unlabeled → fine-tune on small labeled dataset</pre></div>
+  - Pre-train on unlabeled <span class="d-a">→</span> fine-tune on small labeled dataset</pre></div>
             <div class="note">
               <p><strong>🔑 Key Insight:</strong> <span class="mag">~90%</span> of production ML is supervised learning on tabular data. But self-supervised pre-training is the foundation of the current AI revolution (LLMs, vision transformers). Understanding both paradigms is critical.</p>
             </div>
@@ -1685,46 +1697,46 @@ Why it matters:
             <h3>3.1 Complete Pipeline</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01MLFundamenta-10"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>┌─────────────────────────────────────────────────────────────────────┐
-│                    ML PROJECT LIFECYCLE                             │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  1. PROBLEM DEFINITION          ← Business goal, success metric     │
-│         │                                                           │
-│         ▼                                                           │
-│  2. DATA COLLECTION             ← DBs, APIs, scraping, vendors      │
-│         │                                                           │
-│         ▼                                                           │
-│  3. EXPLORATORY DATA ANALYSIS   ← Distributions, correlations       │
-│         │                                                           │
-│         ▼                                                           │
-│  4. DATA CLEANING               ← Missing values, outliers, dupes   │
-│         │                                                           │
-│         ▼                                                           │
-│  5. FEATURE ENGINEERING         ← Create, transform, select         │
-│         │                                                           │
-│         ▼                                                           │
-│  6. DATA SPLITTING              ← Train / Val / Test                │
-│         │                         (time-based for temporal data!)   │
-│         ▼                                                           │
-│  7. MODEL SELECTION &amp; TRAINING  ← Try multiple algorithms           │
-│         │                                                           │
-│         ▼                                                           │
-│  8. MODEL EVALUATION            ← Metrics + cross-validation        │
-│         │                                                           │
-│         ▼                                                           │
-│  9. HYPERPARAMETER TUNING       ← Optuna &gt; Random &gt; Grid            │
-│         │                                                           │
-│         ▼                                                           │
-│  10. FINAL EVALUATION           ← Test set (ONE TIME ONLY!)         │
-│         │                                                           │
-│         ▼                                                           │
-│  11. MODEL DEPLOYMENT           ← FastAPI / Docker / K8s            │
-│         │                                                           │
-│         ▼                                                           │
-│  12. MONITORING &amp; MAINTENANCE   ← Drift detection, retraining       │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌─────────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                    ML PROJECT LIFECYCLE                             <span class="d-l">│</span>
+<span class="d-l">├─────────────────────────────────────────────────────────────────────┤</span>
+<span class="d-l">│</span>                                                                     <span class="d-l">│</span>
+<span class="d-l">│</span>  1. PROBLEM DEFINITION          <span class="d-a">←</span> Business goal, success metric     <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  2. DATA COLLECTION             <span class="d-a">←</span> DBs, APIs, scraping, vendors      <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  3. EXPLORATORY DATA ANALYSIS   <span class="d-a">←</span> Distributions, correlations       <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  4. DATA CLEANING               <span class="d-a">←</span> Missing values, outliers, dupes   <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  5. FEATURE ENGINEERING         <span class="d-a">←</span> Create, transform, select         <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  6. DATA SPLITTING              <span class="d-a">←</span> Train / Val / Test                <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>                         (time-based for temporal data!)   <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  7. MODEL SELECTION &amp; TRAINING  <span class="d-a">←</span> Try multiple algorithms           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  8. MODEL EVALUATION            <span class="d-a">←</span> Metrics + cross-validation        <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  9. HYPERPARAMETER TUNING       <span class="d-a">←</span> Optuna &gt; Random &gt; Grid            <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  10. FINAL EVALUATION           <span class="d-a">←</span> Test set (ONE TIME ONLY!)         <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  11. MODEL DEPLOYMENT           <span class="d-a">←</span> FastAPI / Docker / K8s            <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  12. MONITORING &amp; MAINTENANCE   <span class="d-a">←</span> Drift detection, retraining       <span class="d-l">│</span>
+<span class="d-l">│</span>                                                                     <span class="d-l">│</span>
+<span class="d-l">└─────────────────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01MLFundamenta-11">
@@ -1945,21 +1957,21 @@ test  = df[df[<span class="str">'date'</span>] &gt;= <span class="str">'2024-04-
           </div>
           <div class="q-a">
             <div class="diagram"><pre>BIAS (How far off on average):
-  ┌────────────────────────────────────────────┐
-  │  Target: ●                                 │
-  │                                            │
-  │  High Bias:  ○ ○ ○ ○  (consistently off)   │
-  │  Low Bias:   ● ● ● ●  (centered on target) │
-  └────────────────────────────────────────────┘
+  <span class="d-l">┌────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span>  Target: ●                                 <span class="d-l">│</span>
+  <span class="d-l">│</span>                                            <span class="d-l">│</span>
+  <span class="d-l">│</span>  High Bias:  ○ ○ ○ ○  (consistently off)   <span class="d-l">│</span>
+  <span class="d-l">│</span>  Low Bias:   ● ● ● ●  (centered on target) <span class="d-l">│</span>
+  <span class="d-l">└────────────────────────────────────────────┘</span>
 
 VARIANCE (How spread out):
-  ┌────────────────────────────────────────────┐
-  │  Target: ●                                 │
-  │                                            │
-  │  High Var:   ○          ○                  │
-  │                  ○   ○      (scattered)    │
-  │  Low Var:    ○ ○ ○ ○  (tight cluster)      │
-  └────────────────────────────────────────────┘
+  <span class="d-l">┌────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span>  Target: ●                                 <span class="d-l">│</span>
+  <span class="d-l">│</span>                                            <span class="d-l">│</span>
+  <span class="d-l">│</span>  High Var:   ○          ○                  <span class="d-l">│</span>
+  <span class="d-l">│</span>                  ○   ○      (scattered)    <span class="d-l">│</span>
+  <span class="d-l">│</span>  Low Var:    ○ ○ ○ ○  (tight cluster)      <span class="d-l">│</span>
+  <span class="d-l">└────────────────────────────────────────────┘</span>
 
 BEST MODEL:
   Low Bias + Low Variance = Accurate + Consistent</pre></div>
@@ -2176,24 +2188,24 @@ result_shallow = <span class="fn">bias_variance_decomposition</span>(
             <h3>5.1 Detection Framework</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01MLFundamenta-19"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>┌───────────────────────────────────────────────────────────────────┐
-│ Scenario           │ Train Score │ Val Score │ Diagnosis          │
-├───────────────────┼─────────────┼───────────┼─────────────────────┤
-│ UNDERFITTING       │ 60%         │ 58%       │ Both bad → too     │
-│ (High Bias)        │             │           │ simple             │
-├───────────────────┼─────────────┼───────────┼─────────────────────┤
-│ GOOD FIT           │ 92%         │ 90%       │ Both good, small   │
-│                    │             │           │ gap                │
-├───────────────────┼─────────────┼───────────┼─────────────────────┤
-│ OVERFITTING        │ 99%         │ 75%       │ Large gap → too    │
-│ (High Variance)    │             │           │ complex            │
-├───────────────────┼─────────────┼───────────┼─────────────────────┤
-│ DATA ISSUE         │ 50%         │ 48%       │ Both terrible →    │
-│                    │             │           │ bad features/data  │
-├───────────────────┼─────────────┼───────────┼─────────────────────┤
-│ DATA LEAKAGE       │ 99.9%       │ 99.5%     │ Too good to be     │
-│                    │             │           │ true → CHECK DATA  │
-└───────────────────┴─────────────┴───────────┴─────────────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌───────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span> Scenario           <span class="d-l">│</span> Train Score <span class="d-l">│</span> Val Score <span class="d-l">│</span> Diagnosis          <span class="d-l">│</span>
+<span class="d-l">├───────────────────┼─────────────┼───────────┼─────────────────────┤</span>
+<span class="d-l">│</span> UNDERFITTING       <span class="d-l">│</span> 60%         <span class="d-l">│</span> 58%       <span class="d-l">│</span> Both bad <span class="d-a">→</span> too     <span class="d-l">│</span>
+<span class="d-l">│</span> (High Bias)        <span class="d-l">│</span>             <span class="d-l">│</span>           <span class="d-l">│</span> simple             <span class="d-l">│</span>
+<span class="d-l">├───────────────────┼─────────────┼───────────┼─────────────────────┤</span>
+<span class="d-l">│</span> GOOD FIT           <span class="d-l">│</span> 92%         <span class="d-l">│</span> 90%       <span class="d-l">│</span> Both good, small   <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span>             <span class="d-l">│</span>           <span class="d-l">│</span> gap                <span class="d-l">│</span>
+<span class="d-l">├───────────────────┼─────────────┼───────────┼─────────────────────┤</span>
+<span class="d-l">│</span> OVERFITTING        <span class="d-l">│</span> 99%         <span class="d-l">│</span> 75%       <span class="d-l">│</span> Large gap <span class="d-a">→</span> too    <span class="d-l">│</span>
+<span class="d-l">│</span> (High Variance)    <span class="d-l">│</span>             <span class="d-l">│</span>           <span class="d-l">│</span> complex            <span class="d-l">│</span>
+<span class="d-l">├───────────────────┼─────────────┼───────────┼─────────────────────┤</span>
+<span class="d-l">│</span> DATA ISSUE         <span class="d-l">│</span> 50%         <span class="d-l">│</span> 48%       <span class="d-l">│</span> Both terrible <span class="d-a">→</span>    <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span>             <span class="d-l">│</span>           <span class="d-l">│</span> bad features/data  <span class="d-l">│</span>
+<span class="d-l">├───────────────────┼─────────────┼───────────┼─────────────────────┤</span>
+<span class="d-l">│</span> DATA LEAKAGE       <span class="d-l">│</span> 99.9%       <span class="d-l">│</span> 99.5%     <span class="d-l">│</span> Too good to be     <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span>             <span class="d-l">│</span>           <span class="d-l">│</span> true <span class="d-a">→</span> CHECK DATA  <span class="d-l">│</span>
+<span class="d-l">└───────────────────┴─────────────┴───────────┴─────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01MLFundamenta-20">
@@ -2397,13 +2409,13 @@ model.<span class="fn">load_state_dict</span>(torch.<span class="fn">load</span>
           <div class="q-a">
             <div class="diagram"><pre>Problem: Single train/test split is UNRELIABLE
   - Different splits give different performance estimates
-  - Small test set → high variance in estimate
+  - Small test set <span class="d-a">→</span> high variance in estimate
   - Wastes data (some data never used for training or testing)
 
 Solution: K-Fold CV uses ALL data for both training AND testing (in different folds)
-  → More reliable performance estimate
-  → Better use of limited data
-  → Detects overfitting more reliably</pre></div>
+  <span class="d-a">→</span> More reliable performance estimate
+  <span class="d-a">→</span> Better use of limited data
+  <span class="d-a">→</span> Detects overfitting more reliably</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01MLFundamenta-24">
@@ -2411,14 +2423,14 @@ Solution: K-Fold CV uses ALL data for both training AND testing (in different fo
             <h3>6.2 K-Fold Cross-Validation — Visualization</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01MLFundamenta-24"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Data: [────────────────────────────────────]
+            <div class="diagram"><pre>Data: [<span class="d-l">────────────────────────────────────</span>]
        A       B       C       D       E     (5 folds)
 
-Fold 1: [TEST ][─────── TRAIN ──────────────]  → Score₁
-Fold 2: [TRAIN][TEST ][──── TRAIN ──────────]  → Score₂
-Fold 3: [──TRAIN──── ][TEST ][── TRAIN ─────]  → Score₃
-Fold 4: [────── TRAIN ──────][TEST ][TRAIN ─]  → Score₄
-Fold 5: [──────── TRAIN ────────── ][TEST  ]  → Score₅
+Fold 1: [TEST ][<span class="d-l">───────</span> TRAIN <span class="d-l">──────────────</span>]  <span class="d-a">→</span> Score₁
+Fold 2: [TRAIN][TEST ][<span class="d-l">────</span> TRAIN <span class="d-l">──────────</span>]  <span class="d-a">→</span> Score₂
+Fold 3: [<span class="d-l">──</span>TRAIN<span class="d-l">────</span> ][TEST ][<span class="d-l">──</span> TRAIN <span class="d-l">─────</span>]  <span class="d-a">→</span> Score₃
+Fold 4: [<span class="d-l">──────</span> TRAIN <span class="d-l">──────</span>][TEST ][TRAIN <span class="d-l">─</span>]  <span class="d-a">→</span> Score₄
+Fold 5: [<span class="d-l">────────</span> TRAIN <span class="d-l">──────────</span> ][TEST  ]  <span class="d-a">→</span> Score₅
 
 Final: mean(Score₁...₅) ± std(Score₁...₅)</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -2763,7 +2775,7 @@ TYPE 2: TRAIN-TEST CONTAMINATION
   Fix: Fit transforms on training data ONLY
 
 TYPE 3: TEMPORAL LEAKAGE
-  Example: Random split for time series data → future in training
+  Example: Random split for time series data <span class="d-a">→</span> future in training
   Fix: Time-based split, never random for temporal data
 
 TYPE 4: GROUP LEAKAGE
@@ -2797,14 +2809,14 @@ TYPE 5: PREPROCESSING LEAKAGE
             <h3>9.4 Prevention Checklist</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01MLFundamenta-37"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>✅ Always use Pipeline (scaler + model) for CV
-✅ Temporal data → time-based split
-✅ Grouped data → GroupKFold
-✅ Audit every feature: "Available at prediction time?"
-✅ SMOTE inside CV folds only
-✅ Never look at test set statistics
-✅ Feature engineering inside CV folds
-✅ Remove features correlated with target timing</pre></div>
+            <div class="diagram"><pre>√ Always use Pipeline (scaler + model) for CV
+√ Temporal data <span class="d-a">→</span> time-based split
+√ Grouped data <span class="d-a">→</span> GroupKFold
+√ Audit every feature: "Available at prediction time?"
+√ SMOTE inside CV folds only
+√ Never look at test set statistics
+√ Feature engineering inside CV folds
+√ Remove features correlated with target timing</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="f01MLFundamenta-p9"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-network"/></svg>10. Feature Scaling — Why, When, How</span><i></i>
@@ -2821,7 +2833,7 @@ TYPE 5: PREPROCESSING LEAKAGE
 Feature 2: Age (18 - 65)
 
 Without scaling: Distance dominated by salary
-KNN, SVM, PCA → Give almost all weight to salary</pre></div>
+KNN, SVM, PCA <span class="d-a">→</span> Give almost all weight to salary</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01MLFundamenta-39">
@@ -2959,18 +2971,18 @@ X_train_pt = pt.<span class="fn">fit_transform</span>(X_train)
             <h3>11.1 Model Serving Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01MLFundamenta-41"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>┌──────────┐     ┌──────────────┐     ┌───────────────────┐
-│  Client   │────→│  API Gateway  │────→│  ML Service     │
-│  (App)    │     │  (nginx/ALB)  │     │  (FastAPI)      │
-└──────────┘     └──────────────┘     └───────────────────┘
-                                                          │
-                                     ┌──────┴─────────────┐
-                                     │                    │
-                              ┌──────┴───┐   ┌────┴───────┐
-                              │  Model    │   │  Feature  │
-                              │  Registry │   │  Store    │
-                              │  (MLflow) │   │  (Feast)  │
-                              └──────────┘   └────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌──────────┐</span>     <span class="d-l">┌──────────────┐</span>     <span class="d-l">┌───────────────────┐</span>
+<span class="d-l">│</span>  Client   <span class="d-l">│────</span><span class="d-a">→</span><span class="d-l">│</span>  API Gateway  <span class="d-l">│────</span><span class="d-a">→</span><span class="d-l">│</span>  ML Service     <span class="d-l">│</span>
+<span class="d-l">│</span>  (App)    <span class="d-l">│</span>     <span class="d-l">│</span>  (nginx/ALB)  <span class="d-l">│</span>     <span class="d-l">│</span>  (FastAPI)      <span class="d-l">│</span>
+<span class="d-l">└──────────┘</span>     <span class="d-l">└──────────────┘</span>     <span class="d-l">└───────────────────┘</span>
+                                                          <span class="d-l">│</span>
+                                     <span class="d-l">┌──────┴─────────────┐</span>
+                                     <span class="d-l">│</span>                    <span class="d-l">│</span>
+                              <span class="d-l">┌──────┴───┐</span>   <span class="d-l">┌────┴───────┐</span>
+                              <span class="d-l">│</span>  Model    <span class="d-l">│</span>   <span class="d-l">│</span>  Feature  <span class="d-l">│</span>
+                              <span class="d-l">│</span>  Registry <span class="d-l">│</span>   <span class="d-l">│</span>  Store    <span class="d-l">│</span>
+                              <span class="d-l">│</span>  (MLflow) <span class="d-l">│</span>   <span class="d-l">│</span>  (Feast)  <span class="d-l">│</span>
+                              <span class="d-l">└──────────┘</span>   <span class="d-l">└────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01MLFundamenta-42">
@@ -3113,7 +3125,7 @@ scaler = joblib.<span class="fn">load</span>(<span class="str">"scaler.joblib"</
             <div class="diagram"><pre>1. Route X% of traffic to new model (challenger)
 2. Remaining traffic goes to current model (champion)
 3. Compare business metrics (not just ML metrics!)
-4. If challenger wins → promote to champion
+4. If challenger wins <span class="d-a">→</span> promote to champion
 5. Monitor for regressions
 
 Key: ML metrics (AUC, F1) may improve but business metrics (revenue, engagement)
@@ -3141,7 +3153,7 @@ Solutions:
         <div class="q-a" style="margin:0 0 12px">
           <p>Missing data falls into three categories: <strong>MCAR</strong> (Missing Completely At Random — missingness is random, safe to drop), <strong>MAR</strong> (Missing At Random — missingness depends on observed data, use model-based imputation), <strong>MNAR</strong> (Missing Not At Random — missingness depends on the missing value itself, must model the mechanism). The handling strategy significantly affects model performance.</p>
           <div class="diagram"><pre>STRATEGY                   WHEN TO USE                    RISK
-────────────────────────────────────────────────────────────────
+<span class="d-l">────────────────────────────────────────────────────────────────</span>
 Drop rows (listwise)       &lt; 5% missing, MCAR             Lose data &amp; power
 Drop columns               &gt; 50% missing                  Lose feature
 Mean/median imputation     Numerical, low missing %       Reduces variance
@@ -3164,7 +3176,7 @@ Model-specific (XGBoost)   Any — handles internally       Model-dependent</pre
 
 Key insight:
   Discriminative: P(y|x) — "given this email, is it spam?"
-  Generative:     P(x,y) → P(y|x) via Bayes — "what does spam email look like?"
+  Generative:     P(x,y) <span class="d-a">→</span> P(y|x) via Bayes — "what does spam email look like?"
   
   Andrew Ng's rule: Discriminative reaches lower asymptotic error;
   Generative converges faster with less data.</pre></div>
@@ -3277,14 +3289,14 @@ With the WRONG bias:
             <h3>13.3 Choosing the Right Inductive Bias</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01MLFundamenta-48"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Know your data → Choose matching bias:
-  - Linear relationships?        → Linear models
-  - Feature interactions matter?  → Tree models, neural networks
-  - Spatial structure (images)?   → CNNs
-  - Sequential data?              → RNNs, Transformers
-  - Features are independent?     → Naive Bayes
-  - Smooth, local patterns?       → KNN, kernel methods
-  - Unknown structure?            → Ensemble methods (combine biases)</pre></div>
+            <div class="diagram"><pre>Know your data <span class="d-a">→</span> Choose matching bias:
+  - Linear relationships?        <span class="d-a">→</span> Linear models
+  - Feature interactions matter?  <span class="d-a">→</span> Tree models, neural networks
+  - Spatial structure (images)?   <span class="d-a">→</span> CNNs
+  - Sequential data?              <span class="d-a">→</span> RNNs, Transformers
+  - Features are independent?     <span class="d-a">→</span> Naive Bayes
+  - Smooth, local patterns?       <span class="d-a">→</span> KNN, kernel methods
+  - Unknown structure?            <span class="d-a">→</span> Ensemble methods (combine biases)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="f01MLFundamenta-p15"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>16. Lazy vs Eager Learners</span><i></i>
@@ -3690,7 +3702,7 @@ Use Model-Based when:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Problem: With 95% negative / 5% positive:
-  - Model learns to predict "negative" for everything → 95% accuracy!
+  - Model learns to predict "negative" for everything <span class="d-a">→</span> 95% accuracy!
   - Loss function dominated by majority class gradients
   - Decision boundary pushed toward minority class
   - Minority class treated as noise
@@ -3798,8 +3810,8 @@ Result: High accuracy but ZERO recall on the class we care about</pre></div>
               - <span class="mth"><i>x</i><sub><span class="mth-txt">nn</span></sub></span> = one of <span class="mth"><i>x</i><sub><i>i</i></sub></span>'s k-nearest minority neighbors
               - <span class="mth"><span class="mth-gr">λ</span></span> = random number in $[0, 1]$</p>
             <div class="diagram"><pre>Visualization:
-  x_i ●─────────────────● x_nn
-                 ▲
+  x_i ●<span class="d-l">─────────────────</span>● x_nn
+                 <span class="d-a">▲</span>
             x_new (random point on the line)
 
 Steps:
@@ -3903,7 +3915,7 @@ Rule of thumb:
 Example — Fraud Detection:
   C_FP = $10 (investigating a legitimate transaction)
   C_FN = $10,000 (missing a fraudulent transaction)
-  → C_FN / C_FP = 1000 → weight minority class 1000x more
+  <span class="d-a">→</span> C_FN / C_FP = 1000 <span class="d-a">→</span> weight minority class 1000x more
 
 Implementation:
   - sklearn: class_weight={0: 1, 1: 1000}
@@ -4197,16 +4209,16 @@ Key advantage: Bayesian gives uncertainty estimates, not just point predictions.
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Model:      y = wᵀx + ε,   ε ~ N(0, σ²)
-Prior:      w ~ N(0, Σ₀)           ← regularization built-in
+Prior:      w ~ N(0, Σ₀)           <span class="d-a">←</span> regularization built-in
 Likelihood: P(y|X,w) = N(Xw, σ²I)
 
-Posterior (conjugate → closed-form):
+Posterior (conjugate <span class="d-a">→</span> closed-form):
     P(w|X,y) = N(μ_post, Σ_post)
     Σ_post = (Σ₀⁻¹ + σ⁻² XᵀX)⁻¹
     μ_post = Σ_post (σ⁻² Xᵀy)
 
 Prediction: P(y*|x*,D) = N(μ_postᵀ x*, x*ᵀ Σ_post x* + σ²)
-    → Mean prediction + uncertainty (variance) for free!
+    <span class="d-a">→</span> Mean prediction + uncertainty (variance) for free!
 
 Connection to Ridge: MAP estimate with Gaussian prior = Ridge regression.
     L2 penalty λ‖w‖² corresponds to prior variance σ²/λ.</pre></div>
@@ -4225,13 +4237,13 @@ Prediction:
 
 Uncertainty types:
     Epistemic (model) uncertainty: Reducible with more data.
-        → Captured by posterior variance over weights.
+        <span class="d-a">→</span> Captured by posterior variance over weights.
     Aleatoric (data) uncertainty: Irreducible noise in the data.
-        → Captured by predicting both mean and variance.
+        <span class="d-a">→</span> Captured by predicting both mean and variance.
 
 Practical approximations:
     • MC Dropout: Use dropout at test time, run N forward passes
-      → Mean = prediction, Variance = uncertainty
+      <span class="d-a">→</span> Mean = prediction, Variance = uncertainty
     • Deep Ensembles: Train N models, use disagreement as uncertainty
     • Variational Inference: Learn approximate posterior (next section)</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -4408,7 +4420,7 @@ Protocol:
 
 = (Cumulative loss of online learner) - (Loss of best fixed model in hindsight)
 
-No-regret algorithm: Regret / T → 0 as T → ∞
+No-regret algorithm: Regret / T <span class="d-a">→</span> 0 as T <span class="d-a">→</span> ∞
     • Online Gradient Descent: Regret = O(√T)
     • Exponential Weights (Hedge): Regret = O(√(T log N)) for N experts
     • AdaGrad: Adapts to geometry, O(√T) but often better in practice</pre></div>
@@ -4510,21 +4522,21 @@ adwin = drift.<span class="fn">ADWIN</span>(delta=<span class="num">0.002</span>
             <h3>Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f01MLFundamenta-80"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>┌─────────────────────────────────────────────┐
-│              Central Server                 │
-│   ┌──────────────────────────────────────┐  │
-│   │  1. Send global model to clients    │   │
-│   │  2. Receive client updates          │   │
-│   │  3. Aggregate (FedAvg)              │   │
-│   │  4. Update global model             │   │
-│   └──────────────────────────────────────┘  │
-└─────────────────────────────────────────────┘
-         │          │          │
-    ┌────┴───┐  ┌───┴───┐  ┌───┴──────────────┐
-    │Client 1│  │Client 2│  │Client 3         │
-    │Local   │  │Local   │  │Local            │
-    │Data    │  │Data    │  │Data             │
-    └────────┘  └────────┘  └─────────────────┘
+            <div class="diagram"><pre><span class="d-l">┌─────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>              Central Server                 <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">┌──────────────────────────────────────┐</span>  <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>  1. Send global model to clients    <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>  2. Receive client updates          <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>  3. Aggregate (FedAvg)              <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>  4. Update global model             <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">└──────────────────────────────────────┘</span>  <span class="d-l">│</span>
+<span class="d-l">└─────────────────────────────────────────────┘</span>
+         <span class="d-l">│</span>          <span class="d-l">│</span>          <span class="d-l">│</span>
+    <span class="d-l">┌────┴───┐</span>  <span class="d-l">┌───┴───┐</span>  <span class="d-l">┌───┴──────────────┐</span>
+    <span class="d-l">│</span>Client 1<span class="d-l">│</span>  <span class="d-l">│</span>Client 2<span class="d-l">│</span>  <span class="d-l">│</span>Client 3         <span class="d-l">│</span>
+    <span class="d-l">│</span>Local   <span class="d-l">│</span>  <span class="d-l">│</span>Local   <span class="d-l">│</span>  <span class="d-l">│</span>Local            <span class="d-l">│</span>
+    <span class="d-l">│</span>Data    <span class="d-l">│</span>  <span class="d-l">│</span>Data    <span class="d-l">│</span>  <span class="d-l">│</span>Data             <span class="d-l">│</span>
+    <span class="d-l">└────────┘</span>  <span class="d-l">└────────┘</span>  <span class="d-l">└─────────────────┘</span>
 
 Key principle: Data never leaves the client device.
 Only model updates (gradients or weights) are communicated.</pre></div>
@@ -4548,14 +4560,14 @@ Server:
 
 Client k:
     Receive w_t from server
-    Initialize local model: w ← w_t
+    Initialize local model: w <span class="d-a">←</span> w_t
     for E local epochs:
         for each mini-batch b from local data:
-            w ← w - η∇L(w; b)      ← standard SGD
+            w <span class="d-a">←</span> w - η∇L(w; b)      <span class="d-a">←</span> standard SGD
     Send w back to server
 
 Hyperparameters:
-    E = local epochs (more → less communication, risk of divergence)
+    E = local epochs (more <span class="d-a">→</span> less communication, risk of divergence)
     B = local batch size
     K = fraction of clients per round
     η = local learning rate</pre></div>
@@ -4569,7 +4581,7 @@ Hyperparameters:
             <div class="diagram"><pre>Problem: Sending full model updates is expensive (millions of params).
 
 Solutions:
-    Gradient compression: Quantize gradients (e.g., 32-bit → 1-bit)
+    Gradient compression: Quantize gradients (e.g., 32-bit <span class="d-a">→</span> 1-bit)
     Sparse updates: Send only top-k% largest gradient components
     Knowledge distillation: Share predictions on public data, not weights
     FedProx: Add proximal term to limit local divergence
@@ -4585,7 +4597,7 @@ Solutions:
     Add calibrated noise to gradients before sending:
     g̃ = clip(g, C) + N(0, σ²C²I)
     Provides (ε, δ)-DP guarantees.
-    Trade-off: More noise → more privacy → less accuracy.
+    Trade-off: More noise <span class="d-a">→</span> more privacy <span class="d-a">→</span> less accuracy.
 
 Secure Aggregation:
     Clients encrypt their updates.
@@ -4833,10 +4845,10 @@ Manufacturing:  Predictive maintenance across factories</code></pre></div><butto
             <div class="keyterms"><span class="kt">Too small</span><span class="kt">Too large</span><span class="kt">diverges</span><span class="kt">learning-rate schedule</span>
             </div>
             <div class="diagram"><pre>α too small        α just right        α too large
- J │\                 J │\               J │\    ╱  diverges
-   │ \___ slow          │ \                │ \  ╱
-   │     ___            │  \___ fast       │  \╱
-   └────────── steps    └────── min        └────── ↑ overshoots</pre></div>
+ J <span class="d-l">│</span>\                 J <span class="d-l">│</span>\               J <span class="d-l">│</span>\    <span class="d-l">╱</span>  diverges
+   <span class="d-l">│</span> \___ slow          <span class="d-l">│</span> \                <span class="d-l">│</span> \  <span class="d-l">╱</span>
+   <span class="d-l">│</span>     ___            <span class="d-l">│</span>  \___ fast       <span class="d-l">│</span>  \<span class="d-l">╱</span>
+   <span class="d-l">└──────────</span> steps    <span class="d-l">└──────</span> min        <span class="d-l">└──────</span> <span class="d-a">↑</span> overshoots</pre></div>
             <ul>
               <li><strong>Too small</strong> → painfully slow convergence.</li>
               <li><strong>Too large</strong> → overshoots, oscillates, or <strong>diverges</strong>.</li>
@@ -5299,18 +5311,18 @@ Manufacturing:  Predictive maintenance across factories</code></pre></div><butto
             <p>Every classification metric derives from the confusion matrix.</p>
             <div class="diagram"><pre>                          PREDICTED
                     Positive    Negative
-              ┌────────────┬────────────┐
-  ACTUAL  Pos │     TP     │     FN     │  ← Condition Positive (P)
-              ├────────────┼────────────┤
-          Neg │     FP     │     TN     │  ← Condition Negative (N)
-              └────────────┴────────────┘
-                    ↑            ↑
+              <span class="d-l">┌────────────┬────────────┐</span>
+  ACTUAL  Pos <span class="d-l">│</span>     TP     <span class="d-l">│</span>     FN     <span class="d-l">│</span>  <span class="d-a">←</span> Condition Positive (P)
+              <span class="d-l">├────────────┼────────────┤</span>
+          Neg <span class="d-l">│</span>     FP     <span class="d-l">│</span>     TN     <span class="d-l">│</span>  <span class="d-a">←</span> Condition Negative (N)
+              <span class="d-l">└────────────┴────────────┘</span>
+                    <span class="d-a">↑</span>            <span class="d-a">↑</span>
             Predicted Pos  Predicted Neg
 
-TP (True Positive):  Model said YES, reality is YES    ✅ Correct
-FP (False Positive): Model said YES, reality is NO     ❌ Type I Error  (False Alarm)
-FN (False Negative): Model said NO,  reality is YES    ❌ Type II Error (Missed Detection)
-TN (True Negative):  Model said NO,  reality is NO     ✅ Correct</pre></div>
+TP (True Positive):  Model said YES, reality is YES    √ Correct
+FP (False Positive): Model said YES, reality is NO     × Type I Error  (False Alarm)
+FN (False Negative): Model said NO,  reality is YES    × Type II Error (Missed Detection)
+TN (True Negative):  Model said NO,  reality is NO     √ Correct</pre></div>
             <p><strong>Mnemonic:</strong> The second word tells you the MODEL's prediction. The first word tells you if it was RIGHT.
               - <strong>False Positive</strong> = model predicted <strong>Positive</strong>, but it was <strong>False</strong> (wrong).</p>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> sklearn.metrics <span class="kw">import</span> confusion_matrix, ConfusionMatrixDisplay
@@ -5498,16 +5510,16 @@ f05 = <span class="fn">fbeta_score</span>(y_true, y_pred, beta=<span class="num"
             <span class="mth mth-block"><span class="mth-txt">TPR</span> <span class="mth-op">=</span> <span class="mth-frac"><span class="mth-num"><i>T</i><i>P</i></span><span class="mth-den"><i>T</i><i>P</i> <span class="mth-op">+</span> <i>F</i><i>N</i></span></span>   <span class="mth-txt">(y-axis)</span></span>
             <span class="mth mth-block"><span class="mth-txt">FPR</span> <span class="mth-op">=</span> <span class="mth-frac"><span class="mth-num"><i>F</i><i>P</i></span><span class="mth-den"><i>F</i><i>P</i> <span class="mth-op">+</span> <i>T</i><i>N</i></span></span>   <span class="mth-txt">(x-axis)</span></span>
             <div class="diagram"><pre>TPR (Recall)
-  1.0 ┤         ┌──────── Perfect Model (AUC = 1.0)
-      │        /
-      │       / ← Good Model (AUC = 0.85)
-      │      /
-  0.5 ┤     /
-      │    / ← Random (AUC = 0.5, diagonal)
-      │   /
-      │  /
-  0.0 ┤ /
-      └──────────────────── FPR
+  1.0 <span class="d-l">┤</span>         <span class="d-l">┌────────</span> Perfect Model (AUC = 1.0)
+      <span class="d-l">│</span>        /
+      <span class="d-l">│</span>       / <span class="d-a">←</span> Good Model (AUC = 0.85)
+      <span class="d-l">│</span>      /
+  0.5 <span class="d-l">┤</span>     /
+      <span class="d-l">│</span>    / <span class="d-a">←</span> Random (AUC = 0.5, diagonal)
+      <span class="d-l">│</span>   /
+      <span class="d-l">│</span>  /
+  0.0 <span class="d-l">┤</span> /
+      <span class="d-l">└────────────────────</span> FPR
       0.0       0.5       1.0</pre></div>
             <h4>AUC-ROC Interpretation</h4>
             <span class="mth mth-block"><span class="mth-txt">AUC-ROC</span> <span class="mth-op">=</span> <i>P</i>(<span class="mth-txt">score</span>(<i>x</i><sup><span class="mth-op">+</span></sup>) <span class="mth-op">&gt;</span> <span class="mth-txt">score</span>(<i>x</i><sup><span class="mth-op">−</span></sup>))</span>
@@ -5585,11 +5597,11 @@ auc_ovo = <span class="fn">roc_auc_score</span>(y_true, y_prob_matrix, multi_cla
             </p>
             <p>AUC-ROC can be misleadingly optimistic for <strong>highly imbalanced datasets</strong>. When negatives vastly outnumber positives, even a small FPR corresponds to many false positives.</p>
             <div class="diagram"><pre>Example: 10,000 negatives, 100 positives
-  FPR = 0.01 → FP = 100 false positives
-  TP = 90 → Precision = 90/(90+100) = 47%
+  FPR = 0.01 <span class="d-a">→</span> FP = 100 false positives
+  TP = 90 <span class="d-a">→</span> Precision = 90/(90+100) = 47%
   
-  ROC shows: TPR=0.9, FPR=0.01 → looks great!
-  PR shows:  Recall=0.9, Precision=0.47 → reveals the problem!</pre></div>
+  ROC shows: TPR=0.9, FPR=0.01 <span class="d-a">→</span> looks great!
+  PR shows:  Recall=0.9, Precision=0.47 <span class="d-a">→</span> reveals the problem!</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> sklearn.metrics <span class="kw">import</span> (
     precision_recall_curve, average_precision_score, 
     PrecisionRecallDisplay
@@ -6137,7 +6149,7 @@ ap = <span class="fn">average_precision</span>([<span class="num">1</span>, <spa
             <div class="diagram"><pre>Example:
   Model predicts P(rain) = 0.7 for 100 days
   If well-calibrated: rain on ~70 of those days
-  If poorly calibrated: rain on only 30 days → overconfident!</pre></div>
+  If poorly calibrated: rain on only 30 days <span class="d-a">→</span> overconfident!</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02EvaluationMe-124">
@@ -6353,31 +6365,31 @@ best_threshold = thresholds[np.<span class="fn">argmin</span>(costs)]
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Is it classification or regression?
-├── CLASSIFICATION
-│   ├── Are classes balanced?
-│   │   ├── YES → Accuracy (simple), F1 (robust)
-│   │   └── NO (imbalanced) ──→
-│   │       ├── Need to catch all positives? → Recall, F2
-│   │       ├── Need to be right when predicting positive? → Precision, F0.5
-│   │       ├── Need balance? → F1, MCC
-│   │       └── Need overall ranking quality? → AUC-PR (preferred), AUC-ROC
-│   │
-│   ├── Do you need probabilities?
-│   │   ├── YES → Log Loss, Brier Score, ECE
-│   │   └── NO → F1, MCC, Kappa
-│   │
-│   └── Multi-class?
-│       ├── All classes equal importance → Macro F1
-│       ├── Weight by frequency → Weighted F1
-│       └── Overall performance → Micro F1
-    │
-└── REGRESSION
-    ├── Are outliers present?
-    │   ├── YES → MAE, Median AE, Huber Loss
-    │   └── NO → RMSE, MSE
-    ├── Need percentage interpretation? → MAPE
-    ├── Need model comparison? → R², Adjusted R²
-    └── Training loss? → MSE (default), Huber (robust)</pre></div>
+<span class="d-l">├──</span> CLASSIFICATION
+<span class="d-l">│</span>   <span class="d-l">├──</span> Are classes balanced?
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">├──</span> YES <span class="d-a">→</span> Accuracy (simple), F1 (robust)
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">└──</span> NO (imbalanced) <span class="d-l">──</span><span class="d-a">→</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>       <span class="d-l">├──</span> Need to catch all positives? <span class="d-a">→</span> Recall, F2
+<span class="d-l">│</span>   <span class="d-l">│</span>       <span class="d-l">├──</span> Need to be right when predicting positive? <span class="d-a">→</span> Precision, F0.5
+<span class="d-l">│</span>   <span class="d-l">│</span>       <span class="d-l">├──</span> Need balance? <span class="d-a">→</span> F1, MCC
+<span class="d-l">│</span>   <span class="d-l">│</span>       <span class="d-l">└──</span> Need overall ranking quality? <span class="d-a">→</span> AUC-PR (preferred), AUC-ROC
+<span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">├──</span> Do you need probabilities?
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">├──</span> YES <span class="d-a">→</span> Log Loss, Brier Score, ECE
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">└──</span> NO <span class="d-a">→</span> F1, MCC, Kappa
+<span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">└──</span> Multi-class?
+<span class="d-l">│</span>       <span class="d-l">├──</span> All classes equal importance <span class="d-a">→</span> Macro F1
+<span class="d-l">│</span>       <span class="d-l">├──</span> Weight by frequency <span class="d-a">→</span> Weighted F1
+<span class="d-l">│</span>       <span class="d-l">└──</span> Overall performance <span class="d-a">→</span> Micro F1
+    <span class="d-l">│</span>
+<span class="d-l">└──</span> REGRESSION
+    <span class="d-l">├──</span> Are outliers present?
+    <span class="d-l">│</span>   <span class="d-l">├──</span> YES <span class="d-a">→</span> MAE, Median AE, Huber Loss
+    <span class="d-l">│</span>   <span class="d-l">└──</span> NO <span class="d-a">→</span> RMSE, MSE
+    <span class="d-l">├──</span> Need percentage interpretation? <span class="d-a">→</span> MAPE
+    <span class="d-l">├──</span> Need model comparison? <span class="d-a">→</span> R², Adjusted R²
+    <span class="d-l">└──</span> Training loss? <span class="d-a">→</span> MSE (default), Huber (robust)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02EvaluationMe-131">
@@ -7027,9 +7039,9 @@ bs = <span class="fn">brier_score_loss</span>(y_true, y_prob)
             <h3>The one-line answer</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03ChoosingMetr-148"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>MAE   → report this when every unit of error costs the same
-RMSE  → report this when a big miss hurts more than several small ones
-MSE   → train on this; it is smooth, so gradient descent can use it</pre></div>
+            <div class="diagram"><pre>MAE   <span class="d-a">→</span> report this when every unit of error costs the same
+RMSE  <span class="d-a">→</span> report this when a big miss hurts more than several small ones
+MSE   <span class="d-a">→</span> train on this; it is smooth, so gradient descent can use it</pre></div>
             <p>MAE and RMSE are both in the units of the target (dollars, minutes, degrees). MSE is in
               <em>squared</em> units, which is why nobody quotes it to a stakeholder — "the error was 2,065
               dollars-squared" means nothing.</p>
@@ -7346,8 +7358,8 @@ rmse = np.<span class="fn">sqrt</span>(mse)
             <h3>The one-line answer</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03ChoosingMetr-155"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Precision → the cost of a FALSE ALARM is high; be sure before you act
-Recall    → the cost of a MISS is high; catch everything, sort it out later</pre></div>
+            <div class="diagram"><pre>Precision <span class="d-a">→</span> the cost of a FALSE ALARM is high; be sure before you act
+Recall    <span class="d-a">→</span> the cost of a MISS is high; catch everything, sort it out later</pre></div>
             <pre class="code"><code>Precision = TP / (TP + FP)      of everything I FLAGGED, how much was real?
 Recall    = TP / (TP + FN)      of everything that WAS real, how much did I catch?</code></pre>
             <p>Same numerator, different denominator. That is the entire story.</p>
@@ -7360,14 +7372,14 @@ Recall    = TP / (TP + FN)      of everything that WAS real, how much did I catc
           <div class="q-a">
             <div class="diagram"><pre>                        PREDICTED
                   fraud          legit
-              ┌──────────────┬──────────────┐
-       fraud  │  TP          │  FN          │   ← recall reads ACROSS this row
-              │  caught it   │  MISSED it   │      TP / (TP + FN)
- ACTUAL       ├──────────────┼──────────────┤
-       legit  │  FP          │  TN          │
-              │  FALSE ALARM │  correct     │
-              └──────────────┴──────────────┘
-                     ↑
+              <span class="d-l">┌──────────────┬──────────────┐</span>
+       fraud  <span class="d-l">│</span>  TP          <span class="d-l">│</span>  FN          <span class="d-l">│</span>   <span class="d-a">←</span> recall reads ACROSS this row
+              <span class="d-l">│</span>  caught it   <span class="d-l">│</span>  MISSED it   <span class="d-l">│</span>      TP / (TP + FN)
+ ACTUAL       <span class="d-l">├──────────────┼──────────────┤</span>
+       legit  <span class="d-l">│</span>  FP          <span class="d-l">│</span>  TN          <span class="d-l">│</span>
+              <span class="d-l">│</span>  FALSE ALARM <span class="d-l">│</span>  correct     <span class="d-l">│</span>
+              <span class="d-l">└──────────────┴──────────────┘</span>
+                     <span class="d-a">↑</span>
               precision reads DOWN this column
                   TP / (TP + FP)</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -7475,8 +7487,8 @@ Accuracy  = (70 + 9770) / 10000              = 0.984</code></pre>
                 </tbody>
               </table>
             </div>
-            <div class="diagram"><pre>threshold ↑  →  fewer alerts  →  precision ↑  recall ↓
-threshold ↓  →  more alerts   →  precision ↓  recall ↑</pre></div>
+            <div class="diagram"><pre>threshold <span class="d-a">↑</span>  <span class="d-a">→</span>  fewer alerts  <span class="d-a">→</span>  precision <span class="d-a">↑</span>  recall <span class="d-a">↓</span>
+threshold <span class="d-a">↓</span>  <span class="d-a">→</span>  more alerts   <span class="d-a">→</span>  precision <span class="d-a">↓</span>  recall <span class="d-a">↑</span></pre></div>
             <p>You cannot buy both. Every threshold is a position on that trade, and choosing the
               threshold <em>is</em> choosing the metric.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -7508,8 +7520,8 @@ threshold ↓  →  more alerts   →  precision ↓  recall ↑</pre></div>
             <p>Optimise recall. Run the loose threshold: catch 92 of every 100 cancers and accept that
               most flagged patients turn out to be healthy. The follow-up scan is the second stage that
               fixes the precision. Screening is <em>designed</em> to be a high-recall first filter.</p>
-            <div class="diagram"><pre>Auto-decline a payment  →  acting on the alert IS the decision   →  precision
-Screen for disease      →  the alert only triggers a second look →  recall</pre></div>
+            <div class="diagram"><pre>Auto-decline a payment  <span class="d-a">→</span>  acting on the alert IS the decision   <span class="d-a">→</span>  precision
+Screen for disease      <span class="d-a">→</span>  the alert only triggers a second look <span class="d-a">→</span>  recall</pre></div>
             <p>That is the general rule, and it is worth more than any table: if the flag causes an
               irreversible action, optimise precision. If the flag only causes another look, optimise
               recall.</p>
@@ -7690,8 +7702,8 @@ C_FN, C_FP = <span class="num">220</span>, <span class="num">8</span>          <
          = sqrt(     289     +      900,000,000   )
          ≈ 30,000
 
-   contribution of income  →  900,000,000   (99.99997%)
-   contribution of age     →          289   ( 0.00003%)</pre></div>
+   contribution of income  <span class="d-a">→</span>  900,000,000   (99.99997%)
+   contribution of age     <span class="d-a">→</span>          289   ( 0.00003%)</pre></div>
             <p>The age difference is not small. It is <em>invisible</em>. A k-nearest-neighbours model on this
               data is a model of income alone, and no amount of tuning will fix it — the fix is
               arithmetic, not hyperparameters.</p>
@@ -7916,7 +7928,7 @@ Safe when: you do not know the true min and max in advance</code></pre></div><bu
             <h3>When to use it</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f04FeatureScali-172"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Pixel data → already a known 0–255 range, so min and max are facts, not estimates
+            <div class="diagram"><pre>Pixel data <span class="d-a">→</span> already a known 0–255 range, so min and max are facts, not estimates
 Neural network inputs that feed a bounded activation (sigmoid, tanh)
 Anywhere the algorithm requires non-negative input (NMF)
 Bounded scores you want to keep bounded — percentages, ratings</pre></div>
@@ -7982,9 +7994,9 @@ Bounded scores you want to keep bounded — percentages, ratings</pre></div>
             </div>
             <p>Look at the min-max column drawn on its own axis:</p>
             <div class="diagram"><pre>   0.0        0.25        0.5        0.75        1.0
-    ├──────────┼───────────┼───────────┼──────────┤
+    <span class="d-l">├──────────┼───────────┼───────────┼──────────┤</span>
     ● ●  ●   ●                                    ●
-    └── four real people ──┘                      └── one outlier
+    <span class="d-l">└──</span> four real people <span class="d-l">──┘</span>                      <span class="d-l">└──</span> one outlier
         squashed into 25% of the range</pre></div>
             <p>The outlier claimed <span class="mag">75%</span> of the scale and left every ordinary record piled up at the
               bottom. Any distance-based model now sees four nearly identical customers. One extreme
@@ -8004,8 +8016,8 @@ Bounded scores you want to keep bounded — percentages, ratings</pre></div>
             <p>For our income: median = 50,000, Q1 = 35,000, Q3 = 65,000, so IQR = 30,000. That is the
               last column above — the four ordinary records spread cleanly across −1.0 to +0.5, and the
               outlier sits at +5.0, still visible, no longer in charge.</p>
-            <div class="diagram"><pre>robust  → four real people spread across −1.0 … +0.5,  outlier flagged at +5.0
-min-max → four real people crushed into 0.00 … 0.25,   outlier defines the axis</pre></div>
+            <div class="diagram"><pre>robust  <span class="d-a">→</span> four real people spread across −1.0 … +0.5,  outlier flagged at +5.0
+min-max <span class="d-a">→</span> four real people crushed into 0.00 … 0.25,   outlier defines the axis</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f04FeatureScali-175">
@@ -8136,11 +8148,11 @@ test_s  = <span class="fn">standardise_apply</span>(test_col,  mu, sd)   <span c
         <div class="parthead" id="f04FeatureScali-p4"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>The summary worth remembering</span><i></i>
         </div>
         <div class="q-a" style="margin:0 0 12px">
-          <div class="diagram"><pre>Trees        → skip scaling entirely
-Clean data   → StandardScaler
-Known range  → MinMaxScaler
-Dirty data   → RobustScaler
-Always       → fit on train, inside a Pipeline</pre></div>
+          <div class="diagram"><pre>Trees        <span class="d-a">→</span> skip scaling entirely
+Clean data   <span class="d-a">→</span> StandardScaler
+Known range  <span class="d-a">→</span> MinMaxScaler
+Dirty data   <span class="d-a">→</span> RobustScaler
+Always       <span class="d-a">→</span> fit on train, inside a Pipeline</pre></div>
         </div>
       </section>
       <section class="filesec" id="f07EnsembleandT">
@@ -8175,27 +8187,27 @@ Always       → fit on train, inside a Pipeline</pre></div>
           </div>
           <div class="q-a">
             <div class="diagram"><pre>ENSEMBLE METHODS
-├── AVERAGING (reduce variance)
-│   ├── Bagging
-│   │   ├── Random Forest
-│   │   ├── Extra Trees
-│   │   └── BaggingClassifier/Regressor
-│   └── Simple Averaging / Blending
-│
-├── BOOSTING (reduce bias)
-│   ├── AdaBoost
-│   ├── Gradient Boosting
-│   ├── XGBoost
-│   ├── LightGBM
-│   └── CatBoost
-│
-├── STACKING (learn optimal combination)
-│   ├── StackingClassifier
-│   └── Blending (hold-out based)
-│
-└── VOTING (simple combination)
-    ├── Hard Voting (majority)
-    └── Soft Voting (probability averaging)</pre></div>
+<span class="d-l">├──</span> AVERAGING (reduce variance)
+<span class="d-l">│</span>   <span class="d-l">├──</span> Bagging
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">├──</span> Random Forest
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">├──</span> Extra Trees
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">└──</span> BaggingClassifier/Regressor
+<span class="d-l">│</span>   <span class="d-l">└──</span> Simple Averaging / Blending
+<span class="d-l">│</span>
+<span class="d-l">├──</span> BOOSTING (reduce bias)
+<span class="d-l">│</span>   <span class="d-l">├──</span> AdaBoost
+<span class="d-l">│</span>   <span class="d-l">├──</span> Gradient Boosting
+<span class="d-l">│</span>   <span class="d-l">├──</span> XGBoost
+<span class="d-l">│</span>   <span class="d-l">├──</span> LightGBM
+<span class="d-l">│</span>   <span class="d-l">└──</span> CatBoost
+<span class="d-l">│</span>
+<span class="d-l">├──</span> STACKING (learn optimal combination)
+<span class="d-l">│</span>   <span class="d-l">├──</span> StackingClassifier
+<span class="d-l">│</span>   <span class="d-l">└──</span> Blending (hold-out based)
+<span class="d-l">│</span>
+<span class="d-l">└──</span> VOTING (simple combination)
+    <span class="d-l">├──</span> Hard Voting (majority)
+    <span class="d-l">└──</span> Soft Voting (probability averaging)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f07EnsembleandT-180">
@@ -8233,11 +8245,11 @@ bagging.<span class="fn">fit</span>(X_train, y_train)
      b. Compute weighted error: εₜ = Σ wᵢ · 𝟙(hₜ(xᵢ) ≠ yᵢ)
      c. Compute learner weight: αₜ = ½ ln((1-εₜ)/εₜ)
      d. Update sample weights:
-        wᵢ ← wᵢ · exp(-αₜ · yᵢ · hₜ(xᵢ))
+        wᵢ <span class="d-a">←</span> wᵢ · exp(-αₜ · yᵢ · hₜ(xᵢ))
      e. Normalize weights to sum to 1
   3. Final: H(x) = sign(Σ αₜ · hₜ(x))
   
-  Key insight: Misclassified samples get HIGHER weights → next learner
+  Key insight: Misclassified samples get HIGHER weights <span class="d-a">→</span> next learner
   focuses on them. Sample weights accumulate toward hard examples.</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> AdaBoostClassifier
 
@@ -8335,26 +8347,26 @@ ada.<span class="fn">fit</span>(X_train, y_train)</code></pre></div><button clas
             <div class="diagram"><pre>ARCHITECTURE:
 
 Level 0 (Base Models):
-  ┌──────────┐ ┌──────────┐ ┌──────────┐
-  │ Random   │ │ XGBoost  │ │ LightGBM │
-  │ Forest   │ │          │ │          │
-  └────┬─────┘ └────┬─────┘ └────┬─────┘
-       │             │                 │
-       ▼             ▼             ▼
+  <span class="d-l">┌──────────┐</span> <span class="d-l">┌──────────┐</span> <span class="d-l">┌──────────┐</span>
+  <span class="d-l">│</span> Random   <span class="d-l">│</span> <span class="d-l">│</span> XGBoost  <span class="d-l">│</span> <span class="d-l">│</span> LightGBM <span class="d-l">│</span>
+  <span class="d-l">│</span> Forest   <span class="d-l">│</span> <span class="d-l">│</span>          <span class="d-l">│</span> <span class="d-l">│</span>          <span class="d-l">│</span>
+  <span class="d-l">└────┬─────┘</span> <span class="d-l">└────┬─────┘</span> <span class="d-l">└────┬─────┘</span>
+       <span class="d-l">│</span>             <span class="d-l">│</span>                 <span class="d-l">│</span>
+       <span class="d-a">▼</span>             <span class="d-a">▼</span>             <span class="d-a">▼</span>
   [pred_rf]     [pred_xgb]   [pred_lgb]
-       │             │                 │
-       └──────┬──────┘──────┬──────────┘
-  │                                    │
-              ▼              ▼
+       <span class="d-l">│</span>             <span class="d-l">│</span>                 <span class="d-l">│</span>
+       <span class="d-l">└──────┬──────┘──────┬──────────┘</span>
+  <span class="d-l">│</span>                                    <span class="d-l">│</span>
+              <span class="d-a">▼</span>              <span class="d-a">▼</span>
 Level 1 (Meta-Learner):
-  ┌────────────────────────────────────┐
-  │    Logistic Regression             │
-  │  Features: [pred_rf,               │
-  │            pred_xgb,               │
-  │            pred_lgb]               │
-  └────────────────────────────────────┘
-              │
-              ▼
+  <span class="d-l">┌────────────────────────────────────┐</span>
+  <span class="d-l">│</span>    Logistic Regression             <span class="d-l">│</span>
+  <span class="d-l">│</span>  Features: [pred_rf,               <span class="d-l">│</span>
+  <span class="d-l">│</span>            pred_xgb,               <span class="d-l">│</span>
+  <span class="d-l">│</span>            pred_lgb]               <span class="d-l">│</span>
+  <span class="d-l">└────────────────────────────────────┘</span>
+              <span class="d-l">│</span>
+              <span class="d-a">▼</span>
         Final Prediction
 
 CRITICAL: Base model predictions must be generated using
@@ -8504,12 +8516,12 @@ soft_vote = <span class="fn">VotingClassifier</span>(
             <p>Bergstra &amp; Bengio (2012) showed that for most ML problems, only 1-3 hyperparameters actually matter. Random search explores each dimension more thoroughly than grid search:</p>
             <div class="diagram"><pre>Grid Search (3×3=9 trials):      Random Search (9 random trials):
 
-x₁  ●──●──●                     x₁  ●   ●     ●
-    │  │  │                           ●    ●
-    ●──●──●                        ●      ●
-    │  │  │                            ●  ●
-    ●──●──●                      
-    └──────→ x₂                      └────────→ x₂
+x₁  ●<span class="d-l">──</span>●<span class="d-l">──</span>●                     x₁  ●   ●     ●
+    <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>                           ●    ●
+    ●<span class="d-l">──</span>●<span class="d-l">──</span>●                        ●      ●
+    <span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>                            ●  ●
+    ●<span class="d-l">──</span>●<span class="d-l">──</span>●                      
+    <span class="d-l">└──────</span><span class="d-a">→</span> x₂                      <span class="d-l">└────────</span><span class="d-a">→</span> x₂
 
 Grid: only 3 unique values of x₁   Random: 9 unique values of x₁
 If only x₁ matters, grid wastes 6 trials on the same x₁ values!</pre></div>
@@ -8620,25 +8632,25 @@ halving.<span class="fn">fit</span>(X_train, y_train)</code></pre></div><button 
           </div>
           <div class="q-a">
             <div class="diagram"><pre>PHASE 1: Quick exploration (5 minutes)
-  → Random Search with 50-100 iterations
-  → Identify which parameters matter most
-  → Get rough parameter ranges
+  <span class="d-a">→</span> Random Search with 50-100 iterations
+  <span class="d-a">→</span> Identify which parameters matter most
+  <span class="d-a">→</span> Get rough parameter ranges
 
 PHASE 2: Focused optimization (30-60 minutes)
-  → Optuna with 100-200 iterations on important params
-  → Fix unimportant params at defaults
-  → Use early stopping
+  <span class="d-a">→</span> Optuna with 100-200 iterations on important params
+  <span class="d-a">→</span> Fix unimportant params at defaults
+  <span class="d-a">→</span> Use early stopping
 
 PHASE 3: Final model (10 minutes)
-  → Train with best params on full training data
-  → Evaluate on held-out test set (ONCE!)
-  → Save model with metadata
+  <span class="d-a">→</span> Train with best params on full training data
+  <span class="d-a">→</span> Evaluate on held-out test set (ONCE!)
+  <span class="d-a">→</span> Save model with metadata
 
 ANTI-PATTERNS:
-  ❌ Grid search over many params (exponential)
-  ❌ Tuning on test set (data leakage)
-  ❌ Not using early stopping (wasted compute)
-  ❌ Tuning too aggressively (overfitting the validation set)</pre></div>
+  × Grid search over many params (exponential)
+  × Tuning on test set (data leakage)
+  × Not using early stopping (wasted compute)
+  × Tuning too aggressively (overfitting the validation set)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="f07EnsembleandT-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>3. Handling Imbalanced Data</span><i></i>
@@ -8654,8 +8666,8 @@ ANTI-PATTERNS:
             <div class="diagram"><pre>Example: Fraud detection
   99.5% legitimate, 0.5% fraud
   
-  Model A (predict all "legitimate"): 99.5% accuracy → USELESS!
-  Model B (actual ML model):           98.0% accuracy → catches 70% of fraud
+  Model A (predict all "legitimate"): 99.5% accuracy <span class="d-a">→</span> USELESS!
+  Model B (actual ML model):           98.0% accuracy <span class="d-a">→</span> catches 70% of fraud
   
   Model B is clearly better, but accuracy suggests Model A is superior.</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -8665,37 +8677,37 @@ ANTI-PATTERNS:
             <h3>3.2 Comprehensive Strategy</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f07EnsembleandT-191"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>┌──────────────────────────────────────────────────────┐
-│              IMBALANCED DATA STRATEGIES              │
-├──────────────────────────────────────────────────────┤
-│                                                      │
-│  LEVEL 1: METRICS (change how you EVALUATE)          │
-│    • F1, F2 instead of accuracy                      │
-│    • AUC-PR instead of AUC-ROC                       │
-│    • MCC for balanced evaluation                     │
-│    • Business cost metric                            │
-│                                                      │
-│  LEVEL 2: DATA (change the TRAINING DATA)            │
-│    • Oversampling (SMOTE, ADASYN)                    │
-│    • Undersampling (Random, Tomek Links, NearMiss)   │
-│    • Combined (SMOTEENN, SMOTETomek)                 │
-│    • Data augmentation                               │
-│                                                      │
-│  LEVEL 3: ALGORITHM (change how the MODEL LEARNS)    │
-│    • class_weight='balanced'                         │
-│    • Cost-sensitive learning                         │
-│    • Balanced ensembles                              │
-│                                                      │
-│  LEVEL 4: THRESHOLD (change how you PREDICT)         │
-│    • Optimize threshold for business cost            │
-│    • Lower threshold for minority class              │
-│                                                      │
-│  LEVEL 5: ENSEMBLE (combine STRATEGIES)              │
-│    • BalancedBagging                                 │
-│    • EasyEnsemble                                    │
-│    • Cascade classifiers                             │
-│                                                      │
-└──────────────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌──────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>              IMBALANCED DATA STRATEGIES              <span class="d-l">│</span>
+<span class="d-l">├──────────────────────────────────────────────────────┤</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  LEVEL 1: METRICS (change how you EVALUATE)          <span class="d-l">│</span>
+<span class="d-l">│</span>    • F1, F2 instead of accuracy                      <span class="d-l">│</span>
+<span class="d-l">│</span>    • AUC-PR instead of AUC-ROC                       <span class="d-l">│</span>
+<span class="d-l">│</span>    • MCC for balanced evaluation                     <span class="d-l">│</span>
+<span class="d-l">│</span>    • Business cost metric                            <span class="d-l">│</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  LEVEL 2: DATA (change the TRAINING DATA)            <span class="d-l">│</span>
+<span class="d-l">│</span>    • Oversampling (SMOTE, ADASYN)                    <span class="d-l">│</span>
+<span class="d-l">│</span>    • Undersampling (Random, Tomek Links, NearMiss)   <span class="d-l">│</span>
+<span class="d-l">│</span>    • Combined (SMOTEENN, SMOTETomek)                 <span class="d-l">│</span>
+<span class="d-l">│</span>    • Data augmentation                               <span class="d-l">│</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  LEVEL 3: ALGORITHM (change how the MODEL LEARNS)    <span class="d-l">│</span>
+<span class="d-l">│</span>    • class_weight='balanced'                         <span class="d-l">│</span>
+<span class="d-l">│</span>    • Cost-sensitive learning                         <span class="d-l">│</span>
+<span class="d-l">│</span>    • Balanced ensembles                              <span class="d-l">│</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  LEVEL 4: THRESHOLD (change how you PREDICT)         <span class="d-l">│</span>
+<span class="d-l">│</span>    • Optimize threshold for business cost            <span class="d-l">│</span>
+<span class="d-l">│</span>    • Lower threshold for minority class              <span class="d-l">│</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  LEVEL 5: ENSEMBLE (combine STRATEGIES)              <span class="d-l">│</span>
+<span class="d-l">│</span>    • BalancedBagging                                 <span class="d-l">│</span>
+<span class="d-l">│</span>    • EasyEnsemble                                    <span class="d-l">│</span>
+<span class="d-l">│</span>    • Cascade classifiers                             <span class="d-l">│</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f07EnsembleandT-192">
@@ -8711,8 +8723,8 @@ ANTI-PATTERNS:
      x_new = x + rand(0,1) × (x_nn - x)
   5. Repeat until minority class is balanced
 
-  x₁ ●────────────● x₂ (nearest neighbor)
-         ↑
+  x₁ ●<span class="d-l">────────────</span>● x₂ (nearest neighbor)
+         <span class="d-a">↑</span>
       x_new (random point between them)</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> imblearn.over_sampling <span class="kw">import</span> SMOTE, ADASYN, BorderlineSMOTE
 <span class="kw">from</span> imblearn.under_sampling <span class="kw">import</span> RandomUnderSampler, TomekLinks
@@ -8805,7 +8817,7 @@ y_pred_optimized = (y_prob &gt;= optimal_threshold).<span class="fn">astype</spa
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Imbalance Ratio    Strategy
-──────────────    ─────────────────────────────────────────
+<span class="d-l">──────────────</span>    <span class="d-l">─────────────────────────────────────────</span>
 Slight (80/20)    class_weight='balanced' is usually enough
 Moderate (90/10)  class_weight + threshold tuning
 Severe (99/1)     SMOTE + class_weight + threshold tuning
@@ -9127,33 +9139,33 @@ pipe = <span class="fn">Pipeline</span>([
           </div>
           <div class="q-a">
             <div class="diagram"><pre>START HERE
-        │
-├── Is the target tabular data?
-│   ├── YES
-│   │   ├── Need interpretability? (regulated industry)
-│   │   │   ├── YES → Logistic/Linear Regression or Decision Tree
-│   │   │   └── NO ───┐
-│   │   │            │
-│   │   │   Dataset size?
-│   │   │   ├── &lt; 1K samples → Logistic Regression, SVM, Naive Bayes
-│   │   │   ├── 1K - 100K → Random Forest (baseline) → XGBoost (tune)
-│   │   │   └── &gt; 100K → LightGBM (speed) or XGBoost
-│   │   │
-│   │   ├── Many categorical features?
-│   │   │   └── YES → CatBoost
-│   │   │
-│   │   └── Text data?
-│   │       └── TF-IDF + Logistic Regression → then try XGBoost
-│   │
-│   └── NO (images, NLP, sequences)
-│       └── Deep Learning (CNN, Transformer, RNN/LSTM)
-        │
-└── PRODUCTION MODEL SELECTION:
+        <span class="d-l">│</span>
+<span class="d-l">├──</span> Is the target tabular data?
+<span class="d-l">│</span>   <span class="d-l">├──</span> YES
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">├──</span> Need interpretability? (regulated industry)
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">├──</span> YES <span class="d-a">→</span> Logistic/Linear Regression or Decision Tree
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">└──</span> NO <span class="d-l">───┐</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>            <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   Dataset size?
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">├──</span> &lt; 1K samples <span class="d-a">→</span> Logistic Regression, SVM, Naive Bayes
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">├──</span> 1K - 100K <span class="d-a">→</span> Random Forest (baseline) <span class="d-a">→</span> XGBoost (tune)
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">└──</span> &gt; 100K <span class="d-a">→</span> LightGBM (speed) or XGBoost
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">├──</span> Many categorical features?
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">└──</span> YES <span class="d-a">→</span> CatBoost
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">└──</span> Text data?
+<span class="d-l">│</span>   <span class="d-l">│</span>       <span class="d-l">└──</span> TF-IDF + Logistic Regression <span class="d-a">→</span> then try XGBoost
+<span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">└──</span> NO (images, NLP, sequences)
+<span class="d-l">│</span>       <span class="d-l">└──</span> Deep Learning (CNN, Transformer, RNN/LSTM)
+        <span class="d-l">│</span>
+<span class="d-l">└──</span> PRODUCTION MODEL SELECTION:
     1. Baseline: Logistic Regression (always!)
     2. Strong baseline: Random Forest
     3. Best accuracy: XGBoost / LightGBM
     4. If categorical heavy: CatBoost
-    5. If ensemble needed: Stacking (RF + XGB + LGB → LR meta)</pre></div>
+    5. If ensemble needed: Stacking (RF + XGB + LGB <span class="d-a">→</span> LR meta)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f07EnsembleandT-202">
@@ -9326,7 +9338,7 @@ joblib.<span class="fn">dump</span>(final_pipeline, <span class="str">'churn_mod
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Framework        Core Approach                    Best For
-──────────────────────────────────────────────────────────────────
+<span class="d-l">──────────────────────────────────────────────────────────────────</span>
 FLAML            Cost-effective search (low cost)  Fast baseline, low compute
 auto-sklearn     Meta-learning + Bayesian opt.     Sklearn-compatible workflows
 H2O AutoML       Stacking + diverse algorithms     Enterprise, large datasets
@@ -9396,7 +9408,7 @@ preds = aml.leader.<span class="fn">predict</span>(test)</code></pre></div><butt
           </div>
           <div class="q-a">
             <div class="diagram"><pre>AutoML WINS:                          Manual WINS:
-─────────────────────────────────────────────────────────
+<span class="d-l">─────────────────────────────────────────────────────────</span>
 Rapid prototyping / POC               Production models needing
                                         interpretability
 Baseline before manual tuning          Domain-specific feature eng.
@@ -9667,25 +9679,25 @@ scores = <span class="fn">cross_val_score</span>(pipe, X, y, cv=<span class="num
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <div class="diagram"><pre>ENSEMBLES:
-  ❌ Using very similar models → no diversity, no ensemble benefit
-  ❌ Stacking without CV → data leakage in meta-learner
-  ❌ Too many base models → diminishing returns, maintenance burden
+  × Using very similar models <span class="d-a">→</span> no diversity, no ensemble benefit
+  × Stacking without CV <span class="d-a">→</span> data leakage in meta-learner
+  × Too many base models <span class="d-a">→</span> diminishing returns, maintenance burden
 
 TUNING:
-  ❌ Grid search over many params → exponential time, wasteful
-  ❌ Tuning on test set → evaluation leakage
-  ❌ Not using early stopping → wasted compute and overfitting
+  × Grid search over many params <span class="d-a">→</span> exponential time, wasteful
+  × Tuning on test set <span class="d-a">→</span> evaluation leakage
+  × Not using early stopping <span class="d-a">→</span> wasted compute and overfitting
 
 IMBALANCED DATA:
-  ❌ Using accuracy → misleading
-  ❌ SMOTE before CV → data leakage
-  ❌ SMOTE on test data → invalid evaluation
-  ❌ Only trying resampling, not class weights → simple often works better
+  × Using accuracy <span class="d-a">→</span> misleading
+  × SMOTE before CV <span class="d-a">→</span> data leakage
+  × SMOTE on test data <span class="d-a">→</span> invalid evaluation
+  × Only trying resampling, not class weights <span class="d-a">→</span> simple often works better
 
 PIPELINES:
-  ❌ fit_transform on test data → should be transform only
-  ❌ Not using Pipeline for CV → data leakage
-  ❌ Not saving Pipeline → preprocessing mismatch in production</pre></div>
+  × fit_transform on test data <span class="d-a">→</span> should be transform only
+  × Not using Pipeline for CV <span class="d-a">→</span> data leakage
+  × Not saving Pipeline <span class="d-a">→</span> preprocessing mismatch in production</pre></div>
           <hr />
           <p><em>Core ML theory lives in these files, while every individual algorithm now has its own
             deep, self-contained reference under <code>Algorithms/</code>:</em>

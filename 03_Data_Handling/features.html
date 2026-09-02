@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1113,9 +1125,9 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
         <div class="q-a" style="margin:0 0 12px">
           <p><strong>Plain words:</strong> A model only ever sees the <em>numbers you feed it</em>. Feature engineering is the craft of turning raw, messy data into informative numbers so the model can actually learn the pattern. It is usually the single biggest lever on accuracy — bigger than the choice of algorithm.</p>
           <div class="diagram"><pre>Impact ranking (typical):
-  Feature engineering   →  2–10× improvement      ← biggest lever
-  Hyperparameter tuning →  1.1–1.5×
-  Model architecture    →  1.0–1.3×
+  Feature engineering   <span class="d-a">→</span>  2–10× improvement      <span class="d-a">←</span> biggest lever
+  Hyperparameter tuning <span class="d-a">→</span>  1.1–1.5×
+  Model architecture    <span class="d-a">→</span>  1.0–1.3×
 
 Time spent: 60–80% of an ML project is data + features.</pre></div>
         </div>
@@ -1127,12 +1139,12 @@ Time spent: 60–80% of an ML project is data + features.</pre></div>
             <div class="keyterms"><span class="kt">Construction</span><span class="kt">Transformation</span><span class="kt">Extraction</span><span class="kt">Selection</span>
             </div>
             <div class="diagram"><pre>                     FEATURE ENGINEERING
-                            │
-   ┌────────────┬───────────┼────────────┬─────────────┐
-   ▼            ▼           ▼            ▼
+                            <span class="d-l">│</span>
+   <span class="d-l">┌────────────┬───────────┼────────────┬─────────────┐</span>
+   <span class="d-a">▼</span>            <span class="d-a">▼</span>           <span class="d-a">▼</span>            <span class="d-a">▼</span>
 CONSTRUCTION  TRANSFORMATION  EXTRACTION   SELECTION
 (create new) (reshape one)   (compress many) (keep a subset)
-   │            │              │             │
+   <span class="d-l">│</span>            <span class="d-l">│</span>              <span class="d-l">│</span>             <span class="d-l">│</span>
  ratios,     scaling, log,   PCA, SVD,     drop weak/
  aggregates, encoding,       embeddings,   correlated/
  polynomial, binning         autoencoders  leaky features</pre></div>
@@ -1240,9 +1252,9 @@ CONSTRUCTION  TRANSFORMATION  EXTRACTION   SELECTION
             <p><strong>Simple example — spotting skew with mean vs median:</strong>
             </p>
             <div class="diagram"><pre>incomes (k): 20, 22, 25, 28, 30, 35, 40, 500
-mean   = 87.5      ← dragged up by the 500
-median = 29        ← the "typical" person
-mean ≫ median  →  right-skewed  →  expect to log-transform (§8)</pre></div>
+mean   = 87.5      <span class="d-a">←</span> dragged up by the 500
+median = 29        <span class="d-a">←</span> the "typical" person
+mean ≫ median  <span class="d-a">→</span>  right-skewed  <span class="d-a">→</span>  expect to log-transform (§8)</pre></div>
             <p><strong>Reading cardinality (categoricals):</strong>
             </p>
             <pre class="code"><code>unique levels   label              typical handling
@@ -1269,7 +1281,7 @@ feature  ↔ binary target      group mean of target per level (= target encodin
 plan = Basic     0.45
 plan = Pro       0.22
 plan = Premium   0.08
-Spread 0.08 → 0.45 = strong signal. "plan" is worth keeping.</pre></div>
+Spread 0.08 <span class="d-a">→</span> 0.45 = strong signal. "plan" is worth keeping.</pre></div>
             <p><strong>Which correlation to use:</strong>
             </p>
             <div class="tbl-wrap">
@@ -1340,12 +1352,12 @@ columns the report flags. It replaces the boring 80%, not the thinking 20%.</cod
             <h3>3.1 Data Quality Dimensions</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-6"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>COMPLETENESS  Are values present?           → missing data (§4)
-ACCURACY      Are values correct?           → range/sanity checks
-CONSISTENCY   Do values agree?              → "NYC" vs "New York"
-VALIDITY      Do they follow the rules?     → age ∈ [0,120], end &gt; start
-UNIQUENESS    Any unwanted duplicates?      → dedup
-TIMELINESS    Is the data current?          → staleness checks</pre></div>
+            <div class="diagram"><pre>COMPLETENESS  Are values present?           <span class="d-a">→</span> missing data (§4)
+ACCURACY      Are values correct?           <span class="d-a">→</span> range/sanity checks
+CONSISTENCY   Do values agree?              <span class="d-a">→</span> "NYC" vs "New York"
+VALIDITY      Do they follow the rules?     <span class="d-a">→</span> age ∈ [0,120], end &gt; start
+UNIQUENESS    Any unwanted duplicates?      <span class="d-a">→</span> dedup
+TIMELINESS    Is the data current?          <span class="d-a">→</span> staleness checks</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fFeatureEnginee-7">
@@ -1354,11 +1366,11 @@ TIMELINESS    Is the data current?          → staleness checks</pre></div>
           </div>
           <div class="q-a">
             <p>Wrong types silently break everything. Common fixes:</p>
-            <div class="diagram"><pre>"$1,234.56"  (text)        → strip $ and , → number 1234.56
-"007" zip code             → keep as TEXT (numbers lose the leading 0)
-"yes"/"no"                 → boolean True/False
-"2024-13-40"               → invalid date → mark missing
-low-cardinality text       → store as 'category' (saves memory, speeds groupby)</pre></div>
+            <div class="diagram"><pre>"$1,234.56"  (text)        <span class="d-a">→</span> strip $ and , <span class="d-a">→</span> number 1234.56
+"007" zip code             <span class="d-a">→</span> keep as TEXT (numbers lose the leading 0)
+"yes"/"no"                 <span class="d-a">→</span> boolean True/False
+"2024-13-40"               <span class="d-a">→</span> invalid date <span class="d-a">→</span> mark missing
+low-cardinality text       <span class="d-a">→</span> store as 'category' (saves memory, speeds groupby)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fFeatureEnginee-8">
@@ -1366,9 +1378,9 @@ low-cardinality text       → store as 'category' (saves memory, speeds groupby
             <h3>3.3 Duplicates</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-8"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>EXACT     identical rows                    → drop, keep first
-KEY-BASED same (customer, date) twice       → sort by updated_at, keep latest
-FUZZY     "Apple Inc" vs "Apple,  Inc."     → string-similarity match, then unify</pre></div>
+            <div class="diagram"><pre>EXACT     identical rows                    <span class="d-a">→</span> drop, keep first
+KEY-BASED same (customer, date) twice       <span class="d-a">→</span> sort by updated_at, keep latest
+FUZZY     "Apple Inc" vs "Apple,  Inc."     <span class="d-a">→</span> string-similarity match, then unify</pre></div>
             <div class="note">
               <p>Always <strong>investigate before deleting</strong> — a "duplicate" may be a legitimate repeat event.</p>
             </div>
@@ -1379,8 +1391,8 @@ FUZZY     "Apple Inc" vs "Apple,  Inc."     → string-similarity match, then un
             <h3>3.4 String &amp; Category Standardization</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-9"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>"  USA "  "usa"  "U.S.A."  "United States"   →  all map to  "us"
-Steps: trim spaces → lowercase → collapse repeats → apply a mapping dictionary.</pre></div>
+            <div class="diagram"><pre>"  USA "  "usa"  "U.S.A."  "United States"   <span class="d-a">→</span>  all map to  "us"
+Steps: trim spaces <span class="d-a">→</span> lowercase <span class="d-a">→</span> collapse repeats <span class="d-a">→</span> apply a mapping dictionary.</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="fFeatureEnginee-p3"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>4. Missing Data</span><i></i>
@@ -1562,14 +1574,14 @@ Steps: trim spaces → lowercase → collapse repeats → apply a mapping dictio
             </p>
             <div class="diagram"><pre>Q1 = 10,  Q3 = 12,  IQR = Q3 − Q1 = 2
 fence = [Q1 − 1.5·IQR ,  Q3 + 1.5·IQR] = [7 , 15]
-80 is outside [7,15]  →  flagged ✅</pre></div>
+80 is outside [7,15]  <span class="d-a">→</span>  flagged √</pre></div>
             <p><strong>Z-score</strong> = how many std-devs from the mean: <code>z = (x − mean) / std</code>. Flag <code>|z| &gt; 3</code>.
               <em>Weakness:</em> the outlier itself inflates the mean and std, hiding itself.</p>
             <p><strong>Modified Z-score (robust, uses median):</strong>
             </p>
             <div class="diagram"><pre>z_mod = 0.6745 · (x − median) / MAD      (MAD = median abs deviation)
 median = 11,  MAD = 1
-z_mod(80) = 0.6745 · (80 − 11) / 1 = 46.5     ≫ 3.5  →  flagged ✅</pre></div>
+z_mod(80) = 0.6745 · (80 − 11) / 1 = 46.5     ≫ 3.5  <span class="d-a">→</span>  flagged √</pre></div>
             <p>The modified z-score isn't fooled by the outlier because median and MAD barely move.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1582,8 +1594,8 @@ z_mod(80) = 0.6745 · (80 − 11) / 1 = 46.5     ≫ 3.5  →  flagged ✅</pre>
             <div class="diagram"><pre>D² = (x − mean)ᵀ · Σ⁻¹ · (x − mean)         (Σ = covariance matrix)
 
 Example points roughly on the line y≈x; the off-line point (4,1):
-  (2,2) (3,3) (4,4) (5,5) (6,6)  →  D² ≈ 0.2–2.2   (normal)
-  (4,1)                          →  D² = 4.17       (sticks out)
+  (2,2) (3,3) (4,4) (5,5) (6,6)  <span class="d-a">→</span>  D² ≈ 0.2–2.2   (normal)
+  (4,1)                          <span class="d-a">→</span>  D² = 4.17       (sticks out)
 Compare D² to a chi-square cutoff (df = #features): for 2 features, 7.38 at 97.5%.</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1592,13 +1604,13 @@ Compare D² to a chi-square cutoff (df = #features): for 2 features, 7.38 at 97.
             <h3>5.3 Treatment</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-15"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Is it a data-entry error?      → fix it, or set to missing and impute (§4)
-Valid but extreme?             → CAP (winsorize) to the 1st/99th pct, or transform
-Is it the thing you study?     → KEEP (fraud, churn spikes, failures)
-Model is tree-based?           → usually keep — trees split, scale-invariant
-Model is linear / KNN / NN?    → cap or transform (§8) or RobustScaler (§7)</pre></div>
+            <div class="diagram"><pre>Is it a data-entry error?      <span class="d-a">→</span> fix it, or set to missing and impute (§4)
+Valid but extreme?             <span class="d-a">→</span> CAP (winsorize) to the 1st/99th pct, or transform
+Is it the thing you study?     <span class="d-a">→</span> KEEP (fraud, churn spikes, failures)
+Model is tree-based?           <span class="d-a">→</span> usually keep — trees split, scale-invariant
+Model is linear / KNN / NN?    <span class="d-a">→</span> cap or transform (§8) or RobustScaler (§7)</pre></div>
             <div class="diagram"><pre>Trimming   = delete outlier rows           (lose data; use sparingly)
-Capping    = clip to a limit (winsorize)   (keep row, tame the value)  ← most common
+Capping    = clip to a limit (winsorize)   (keep row, tame the value)  <span class="d-a">←</span> most common
 Transform  = log/Box-Cox compresses tails  (§8)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1647,7 +1659,7 @@ Dubai     1    0                 1      0.000
             <div class="keyterms"><span class="kt">Dummy</span><span class="kt">low cardinality (&lt; ~10–15 levels)</span>
             </div>
             <p>One new 0/1 column per level.</p>
-            <div class="diagram"><pre>city    →  is_Paris  is_London  is_Tokyo  is_Dubai
+            <div class="diagram"><pre>city    <span class="d-a">→</span>  is_Paris  is_London  is_Tokyo  is_Dubai
 Paris        1          0          0         0
 London       0          1          0         0
 Tokyo        0          0          1         0</pre></div>
@@ -1688,10 +1700,10 @@ Dubai         1         0.125</code></pre>
             <p><strong>Problem:</strong> <code>Dubai</code> has only 1 row → <code>0.0</code> is noise, and <code>Tokyo</code>'s <code>1.0</code> is overconfident. <strong>Fix = smoothing</strong> toward the global mean:</p>
             <div class="diagram"><pre>encoded = (n · category_mean + m · global_mean) / (n + m)        m = smoothing (e.g. 2)
 
-Paris : (3·0.667 + 2·0.5) / 5 = 0.600    ← barely moved (lots of data)
-Tokyo : (2·1.0   + 2·0.5) / 4 = 0.750    ← pulled in from 1.0 (little data)
+Paris : (3·0.667 + 2·0.5) / 5 = 0.600    <span class="d-a">←</span> barely moved (lots of data)
+Tokyo : (2·1.0   + 2·0.5) / 4 = 0.750    <span class="d-a">←</span> pulled in from 1.0 (little data)
 London: (2·0.0   + 2·0.5) / 4 = 0.250
-Dubai : (1·0.0   + 2·0.5) / 3 = 0.333    ← pulled hard toward 0.5 (only 1 row)</pre></div>
+Dubai : (1·0.0   + 2·0.5) / 3 = 0.333    <span class="d-a">←</span> pulled hard toward 0.5 (only 1 row)</pre></div>
             <p>Big categories keep their own mean; rare ones lean on the global mean. <strong>Smoothing = trust data you have a lot of.</strong>
               - ✅ The go-to for <strong>high-cardinality</strong> tabular ML; one column, directly target-aware.
               - ⚠️ <strong>Leakage-prone</strong> — must be done with <abbr title="splitting data into folds and training repeatedly so the score is not one lucky split">cross-validation</abbr> / out-of-fold (see §6.5 and §15).</p>
@@ -1706,9 +1718,9 @@ Dubai : (1·0.0   + 2·0.5) / 3 = 0.333    ← pulled hard toward 0.5 (only 1 ro
             </div>
             <p><strong>Leave-One-Out:</strong> encode each row with its category's mean target <strong>excluding that row</strong> — so a row never sees its own answer.</p>
             <div class="diagram"><pre>Paris rows (targets 1,0,1):
-  row1 (t=1) → mean of the other two (0,1) = 0.5
-  row2 (t=0) → mean of the other two (1,1) = 1.0
-  row3 (t=1) → mean of the other two (1,0) = 0.5</pre></div>
+  row1 (t=1) <span class="d-a">→</span> mean of the other two (0,1) = 0.5
+  row2 (t=0) <span class="d-a">→</span> mean of the other two (1,1) = 1.0
+  row3 (t=1) <span class="d-a">→</span> mean of the other two (1,0) = 0.5</pre></div>
             <p><strong>Ordered / CatBoost encoding:</strong> same spirit but uses only <em>past</em> rows in a random order — the trick CatBoost uses internally to avoid target leakage.
               - ✅ Strong high-cardinality encoders with built-in leakage protection.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -1722,7 +1734,7 @@ Dubai : (1·0.0   + 2·0.5) / 3 = 0.333    ← pulled hard toward 0.5 (only 1 ro
             </div>
             <p><strong>Plain words:</strong> for a <strong>binary</strong> target, WoE tells you, per category, how much it leans "good" vs "bad" — on a clean log scale that linear models (logistic regression) love. <strong>IV</strong> rolls all categories into one number: <em>how predictive is this whole feature?</em>
             </p>
-            <div class="diagram"><pre>WoE = ln( %good_in_level / %bad_in_level )       (+ve → safer than average)
+            <div class="diagram"><pre>WoE = ln( %good_in_level / %bad_in_level )       (+ve <span class="d-a">→</span> safer than average)
 IV  = Σ (%good − %bad) · WoE        over all levels</pre></div>
             <p>Worked example — an <code>age</code> feature binned, target = "bad" (default):</p>
             <pre class="code"><code>bin     good  bad   %good   %bad    WoE      IV part
@@ -1733,7 +1745,7 @@ IV  = Σ (%good − %bad) · WoE        over all levels</pre></div>
 totals  700   200                          IV = 0.757</code></pre>
             <p><strong>Reading IV (rule of thumb):</strong>
             </p>
-            <div class="diagram"><pre>&lt; 0.02   useless     0.1–0.3  medium      0.5+   suspiciously strong → check leakage
+            <div class="diagram"><pre>&lt; 0.02   useless     0.1–0.3  medium      0.5+   suspiciously strong <span class="d-a">→</span> check leakage
 0.02–0.1 weak        0.3–0.5  strong</pre></div>
             <ul>
               <li>✅ Monotonic, interpretable, perfect for logistic-regression scorecards; IV doubles as a <strong>feature-selection</strong> score.</li>
@@ -1749,8 +1761,8 @@ totals  700   200                          IV = 0.757</code></pre>
             <div class="keyterms"><span class="kt">Binary</span><span class="kt">base-2 across columns</span><span class="kt">Hashing (the &quot;hashing trick&quot;)</span><span class="kt">Any</span><span class="kt">Collisions</span>
             </div>
             <p><strong>Binary:</strong> integer-encode, then write the integer in <strong>base-2 across columns</strong>.</p>
-            <div class="diagram"><pre>Dubai 0→00   London 1→01   Paris 2→10   Tokyo 3→11      (4 levels → 2 columns)
-500 levels → ~9 columns (log₂500), vs 500 for one-hot.</pre></div>
+            <div class="diagram"><pre>Dubai 0<span class="d-a">→</span>00   London 1<span class="d-a">→</span>01   Paris 2<span class="d-a">→</span>10   Tokyo 3<span class="d-a">→</span>11      (4 levels <span class="d-a">→</span> 2 columns)
+500 levels <span class="d-a">→</span> ~9 columns (log₂500), vs 500 for one-hot.</pre></div>
             <p><strong>Hashing (the "hashing trick"):</strong> run the category name through a hash function and take it mod <em>N</em> to land in one of <em>N</em> fixed buckets.
               - ✅ <strong>Any</strong> number of categories → a <em>fixed</em> small width; great for streaming/unknown future categories.
               - ⚠️ <strong>Collisions</strong> — two categories can share a bucket (usually a tolerable price).</p>
@@ -1762,7 +1774,7 @@ totals  700   200                          IV = 0.757</code></pre>
           </div>
           <div class="q-a">
             <p>Group every category below a frequency threshold into a single <code>"Rare"</code> level.</p>
-            <div class="diagram"><pre>Dubai is 12.5% of rows; with a 15% threshold →  Dubai → "Rare"</pre></div>
+            <div class="diagram"><pre>Dubai is 12.5% of rows; with a 15% threshold <span class="d-a">→</span>  Dubai <span class="d-a">→</span> "Rare"</pre></div>
             <ul>
               <li>✅ Stops one-hot/target encoders from creating noisy columns for categories seen 3 times.</li>
               <li>Often a <strong>pre-step</strong> before one-hot or target encoding.</li>
@@ -1792,7 +1804,7 @@ Paris     2    1,0,0,0         3     0.375   0.667   0.600    0.5/1.0  10
 London    1    0,1,0,0         2     0.250   0.000   0.250    0.0      01
 Tokyo     3    0,0,1,0         2     0.250   1.000   0.750    1.0      11
 Dubai     0    0,0,0,1         1     0.125   0.000   0.333    0.5*     00
-                                                        (*LOO single row → global 0.5)</pre></div>
+                                                        (*LOO single row <span class="d-a">→</span> global 0.5)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fFeatureEnginee-27">
@@ -1800,14 +1812,14 @@ Dubai     0    0,0,0,1         1     0.125   0.000   0.333    0.5*     00
             <h3>Encoding Decision Guide</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-27"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>binary (2 values)              → label (0/1)
-ordered categories             → ordinal with your chosen order
-nominal, &lt; 10 levels           → one-hot / dummy
-nominal, 10–50 levels          → target (smoothed/CV) or frequency
-nominal, &gt; 50 levels           → target, binary, hashing, or embeddings
-binary target + want scorecard → WoE (and use IV to rank features)
-tree models                    → label/ordinal works fine (no one-hot needed)
-linear / NN models             → one-hot or target/WoE (never raw label on nominal)</pre></div>
+            <div class="diagram"><pre>binary (2 values)              <span class="d-a">→</span> label (0/1)
+ordered categories             <span class="d-a">→</span> ordinal with your chosen order
+nominal, &lt; 10 levels           <span class="d-a">→</span> one-hot / dummy
+nominal, 10–50 levels          <span class="d-a">→</span> target (smoothed/CV) or frequency
+nominal, &gt; 50 levels           <span class="d-a">→</span> target, binary, hashing, or embeddings
+binary target + want scorecard <span class="d-a">→</span> WoE (and use IV to rank features)
+tree models                    <span class="d-a">→</span> label/ordinal works fine (no one-hot needed)
+linear / NN models             <span class="d-a">→</span> one-hot or target/WoE (never raw label on nominal)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="fFeatureEnginee-p6"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-network"/></svg>7. Feature Scaling</span><i></i>
@@ -1910,9 +1922,9 @@ Yeo-Johnson      like Box-Cox but allows 0/negatives  any real values</code></pr
             </div>
             <p>Right-skewed column: <code>1, 2, 4, 8, 16, 100</code>  → <strong>skewness ≈ 1.71</strong> (far from 0 = very skewed).</p>
             <div class="diagram"><pre>transform        values (rounded)                    skewness
-raw              1, 2, 4, 8, 16, 100                   1.71   ← bad
-log1p            0.69, 1.10, 1.61, 2.20, 2.83, 4.62    0.78   ← better
-Box-Cox (λ≈−0.20) 0.00, 0.65, 1.21, 1.71, 2.14, 3.03   0.10   ← almost symmetric ✅</pre></div>
+raw              1, 2, 4, 8, 16, 100                   1.71   <span class="d-a">←</span> bad
+log1p            0.69, 1.10, 1.61, 2.20, 2.83, 4.62    0.78   <span class="d-a">←</span> better
+Box-Cox (λ≈−0.20) 0.00, 0.65, 1.21, 1.71, 2.14, 3.03   0.10   <span class="d-a">←</span> almost symmetric √</pre></div>
             <p>Box-Cox searched for the power that flattens the skew best and landed near λ = −0.2.</p>
             <div class="note">
               <p><strong>For regression targets:</strong> log-transforming a skewed <em>target</em> (then exponentiating predictions back) is a classic, high-value trick. Remember to invert it at the end.</p>
@@ -1982,7 +1994,7 @@ Box-Cox (λ≈−0.20) 0.00, 0.65, 1.21, 1.71, 2.14, 3.03   0.10   ← almost sy
             <h3>Binarization</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-32"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>threshold age ≥ 18  →  "is_adult"
+            <div class="diagram"><pre>threshold age ≥ 18  <span class="d-a">→</span>  "is_adult"
 ages   5, 17, 25, 40, 67
 flag   0,  0,  1,  1,  1</pre></div>
             <p>Useful for "has any / none" style features (<code>num_complaints &gt; 0 → had_complaint</code>).</p>
@@ -2001,7 +2013,7 @@ flag   0,  0,  1,  1,  1</pre></div>
         <div class="q-a" style="margin:0 0 12px">
           <p><strong>Plain words:</strong> sometimes one column secretly holds <strong>two kinds of information</strong> — a letter <em>and</em> a number, or numbers mixed with labels. Split it into separate clean features.</p>
           <p><strong>Type A — value contains both a category and a number</strong> (e.g. a ticket/cabin code):</p>
-          <div class="diagram"><pre>code        →  code_letter (category)   code_number (numeric)
+          <div class="diagram"><pre>code        <span class="d-a">→</span>  code_letter (category)   code_number (numeric)
 A12               A                          12
 B7                B                           7
 C103              C                         103
@@ -2024,7 +2036,7 @@ D5                D                           5</pre></div>
             <h3>11.1 Component Extraction</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-34"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>from one timestamp →  year, month, day, hour, day-of-week, quarter,
+            <div class="diagram"><pre>from one timestamp <span class="d-a">→</span>  year, month, day, hour, day-of-week, quarter,
                       is_weekend, is_month_start, is_holiday, week-of-year</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -2052,8 +2064,8 @@ Jan(1)  +0.50   +0.87
 Jun(6)   0.00   −1.00
 Dec(12) −0.00   +1.00
 
-Dec → Jan   circle distance = 0.52   (raw gap said 11  ← wrong!)
-Jun → Dec   circle distance = 2.00   (raw gap said  6)</pre></div>
+Dec <span class="d-a">→</span> Jan   circle distance = 0.52   (raw gap said 11  <span class="d-a">←</span> wrong!)
+Jun <span class="d-a">→</span> Dec   circle distance = 2.00   (raw gap said  6)</pre></div>
             <p>On the circle, Dec and Jan are correctly <strong>close</strong>, and the truly-opposite months are far. You need <strong>both</strong> sin and cos — sin alone can't tell two different months apart (two months share the same sine).
               - Tree models don't need this (they split on the raw number happily); linear models and NNs do.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -2072,7 +2084,7 @@ Jun → Dec   circle distance = 2.00   (raw gap said  6)</pre></div>
 bmi                 = weight_kg / height_m²
 debt_to_income      = total_debt / annual_income
 revenue_per_employee= revenue / employees
-age × income        ← interaction: effect of age may depend on income</pre></div>
+age × income        <span class="d-a">←</span> interaction: effect of age may depend on income</pre></div>
             <p>A hand-built ratio often beats letting the model rediscover it.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -2081,9 +2093,9 @@ age × income        ← interaction: effect of age may depend on income</pre></
             <h3>Polynomial &amp; Interaction Features</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-38"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>from [a, b] degree-2  →  a, b, a², a·b, b²
+            <div class="diagram"><pre>from [a, b] degree-2  <span class="d-a">→</span>  a, b, a², a·b, b²
 captures curves and "A only matters when B is high".
-⚠️ explodes fast: 10 features, degree 2 → 65 features; degree 3 → 285.
+! explodes fast: 10 features, degree 2 <span class="d-a">→</span> 65 features; degree 3 <span class="d-a">→</span> 285.
 Prefer a few targeted interactions from domain knowledge over blind expansion.</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -2161,8 +2173,8 @@ TIME SERIES  lag_1/lag_7 (yesterday/last-week value), rolling_mean_7,
             </table>
           </div>
           <p><strong>PCA intuition:</strong> picture a stretched oval cloud of points. PCA finds the long axis of the oval (PC1, most spread) and the short axis (PC2). Keep PC1, drop PC2 → 2 columns become 1 with little information lost.</p>
-          <div class="diagram"><pre>✅ fewer features → faster, less overfit, removes multicollinearity
-⚠️ new axes are combinations → hard to interpret; SCALE first; can hurt trees</pre></div>
+          <div class="diagram"><pre>√ fewer features <span class="d-a">→</span> faster, less overfit, removes multicollinearity
+! new axes are combinations <span class="d-a">→</span> hard to interpret; SCALE first; can hurt trees</pre></div>
         </div>
         <div class="parthead" id="fFeatureEnginee-p13"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>14. Feature Selection</span><i></i>
         </div>
@@ -2194,9 +2206,9 @@ WoE Information Value rank features by IV (§6.6)</code></pre>
               play=Yes  play=No
 Sunny            6        1
 Rainy            1        6
-Strong link  →  MI = 0.41 bits
+Strong link  <span class="d-a">→</span>  MI = 0.41 bits
 
-if weather and play were unrelated  →  MI ≈ 0.00 bits</pre></div>
+if weather and play were unrelated  <span class="d-a">→</span>  MI ≈ 0.00 bits</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fFeatureEnginee-43">
@@ -2204,7 +2216,7 @@ if weather and play were unrelated  →  MI ≈ 0.00 bits</pre></div>
             <h3>Wrapper Methods</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-43"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>RFE (Recursive Feature Elimination): train → drop the weakest feature → repeat.
+            <div class="diagram"><pre>RFE (Recursive Feature Elimination): train <span class="d-a">→</span> drop the weakest feature <span class="d-a">→</span> repeat.
 RFECV: same, with cross-validation to auto-pick the best number of features.
 Forward / backward selection: add (or remove) one feature at a time, greedily.</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -2214,9 +2226,9 @@ Forward / backward selection: add (or remove) one feature at a time, greedily.</
             <h3>Embedded Methods</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-44"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Lasso (L1)          shrinks useless coefficients to exactly 0 → auto-selects
+            <div class="diagram"><pre>Lasso (L1)          shrinks useless coefficients to exactly 0 <span class="d-a">→</span> auto-selects
 Tree importance     RF/XGBoost rank features by how much they cut error
-Permutation imp.    shuffle one feature, measure accuracy drop  ← most reliable</pre></div>
+Permutation imp.    shuffle one feature, measure accuracy drop  <span class="d-a">←</span> most reliable</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fFeatureEnginee-45">
@@ -2252,11 +2264,11 @@ ALWAYS run selection INSIDE cross-validation folds, never on the full data (§15
             <h3>Detection &amp; Prevention</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-47"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>🚩 validation accuracy suspiciously high?            → suspect leakage
-🚩 one feature dominates importance unexpectedly?    → investigate it
-✅ do ALL preprocessing (impute/scale/encode/select) learned on train only
-✅ time series → split by date, never randomly
-✅ for every feature ask: "available at prediction time?"</pre></div>
+            <div class="diagram"><pre>* validation accuracy suspiciously high?            <span class="d-a">→</span> suspect leakage
+* one feature dominates importance unexpectedly?    <span class="d-a">→</span> investigate it
+√ do ALL preprocessing (impute/scale/encode/select) learned on train only
+√ time series <span class="d-a">→</span> split by date, never randomly
+√ for every feature ask: "available at prediction time?"</pre></div>
             <div class="note">
               <p>Every earlier section repeats one rule because it is <em>the</em> rule: <strong>fit transformations on train, apply to test.</strong> That single discipline prevents most leakage.</p>
             </div>
@@ -2289,14 +2301,14 @@ ALWAYS run selection INSIDE cross-validation folds, never on the full data (§15
             <h3>Pick the Right Tool</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="fFeatureEnginee-48"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>SKEWED numeric           → log / Box-Cox / Yeo-Johnson (§8)
-OUTLIERS present         → RobustScaler (§7) or cap (§5)
-LOW-card categorical     → one-hot (§6.2)
-HIGH-card categorical    → target / frequency / binary / embeddings (§6)
-BINARY-target + linear   → WoE encoding + IV selection (§6.6)
-CYCLIC time part         → sin/cos (§11.3)
-MANY correlated numeric  → PCA (§13) or drop correlated (§14)
-NON-linear feature↔target→ Mutual Information to detect/select (§14)</pre></div>
+            <div class="diagram"><pre>SKEWED numeric           <span class="d-a">→</span> log / Box-Cox / Yeo-Johnson (§8)
+OUTLIERS present         <span class="d-a">→</span> RobustScaler (§7) or cap (§5)
+LOW-card categorical     <span class="d-a">→</span> one-hot (§6.2)
+HIGH-card categorical    <span class="d-a">→</span> target / frequency / binary / embeddings (§6)
+BINARY-target + linear   <span class="d-a">→</span> WoE encoding + IV selection (§6.6)
+CYCLIC time part         <span class="d-a">→</span> sin/cos (§11.3)
+MANY correlated numeric  <span class="d-a">→</span> PCA (§13) or drop correlated (§14)
+NON-linear feature↔target<span class="d-a">→</span> Mutual Information to detect/select (§14)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fFeatureEnginee-49">
@@ -2305,8 +2317,8 @@ NON-linear feature↔target→ Mutual Information to detect/select (§14)</pre><
           </div>
           <div class="q-a">
             <div class="diagram"><pre>ENCODING   one-hot on 500 levels · label-encoding nominal for linear models ·
-           target encoding without CV → leakage
-SCALING    fitting scaler on full data → leakage · scaling for tree models (pointless)
+           target encoding without CV <span class="d-a">→</span> leakage
+SCALING    fitting scaler on full data <span class="d-a">→</span> leakage · scaling for tree models (pointless)
 MISSING    deleting columns that are informatively missing · no missing-indicator
 OUTLIERS   blindly deleting (fraud IS the signal) · z-score hidden by its own outlier
 TIME       random split on time series · features that peek into the future

@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -2980,18 +2992,18 @@ a.dtype      <span class="cmt"># float64</span>
 a.nbytes     <span class="cmt"># 480 (60 × 8 bytes)</span>
 a.strides    <span class="cmt"># (160, 40, 8) — bytes to step in each dimension</span></code></pre>
             <div class="diagram"><pre>DTYPE CHEAT SHEET:
-  np.float16   → Half precision (2 bytes) — GPU training
-  np.float32   → Single precision (4 bytes) — ML default
-  np.float64   → Double precision (8 bytes) — NumPy default
-  np.int32     → Integer (4 bytes)
-  np.int64     → Integer (8 bytes) — Python int default
-  np.bool_     → Boolean (1 byte)
-  np.complex64 → Complex (8 bytes)
+  np.float16   <span class="d-a">→</span> Half precision (2 bytes) — GPU training
+  np.float32   <span class="d-a">→</span> Single precision (4 bytes) — ML default
+  np.float64   <span class="d-a">→</span> Double precision (8 bytes) — NumPy default
+  np.int32     <span class="d-a">→</span> Integer (4 bytes)
+  np.int64     <span class="d-a">→</span> Integer (8 bytes) — Python int default
+  np.bool_     <span class="d-a">→</span> Boolean (1 byte)
+  np.complex64 <span class="d-a">→</span> Complex (8 bytes)
   
   MEMORY SAVINGS:
-    float64 → float32: 2× less memory, often sufficient for ML
-    int64 → int32/int16: huge savings for categorical data
-    object → category (Pandas): 10-100× savings for string columns</pre></div>
+    float64 <span class="d-a">→</span> float32: 2× less memory, often sufficient for ML
+    int64 <span class="d-a">→</span> int32/int16: huge savings for categorical data
+    object <span class="d-a">→</span> category (Pandas): 10-100× savings for string columns</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fPandasandNumPy-86">
@@ -3077,10 +3089,10 @@ X = np.random.<span class="fn">randn</span>(<span class="num">100</span>, <span 
 diff = X[:, np.newaxis, :] - X[np.newaxis, :, :]  <span class="cmt"># (100, 100, 3)</span>
 dist_matrix = np.<span class="fn">sqrt</span>((diff ** <span class="num">2</span>).<span class="fn">sum</span>(axis=<span class="num">2</span>))     <span class="cmt"># (100, 100)</span></code></pre>
             <div class="diagram"><pre>BROADCASTING VISUALIZATION:
-  (3, 4) + (4,)    → (3, 4) + (1, 4) → (3, 4) ✓
-  (3, 4) + (3, 1)  → (3, 4) + (3, 1) → (3, 4) ✓
-  (3, 4) + (3,)    → (3, 4) + (1, 3) → INCOMPATIBLE ✗
-  (5, 1, 4) + (3, 1) → (5, 1, 4) + (1, 3, 1) → (5, 3, 4) ✓</pre></div>
+  (3, 4) + (4,)    <span class="d-a">→</span> (3, 4) + (1, 4) <span class="d-a">→</span> (3, 4) √
+  (3, 4) + (3, 1)  <span class="d-a">→</span> (3, 4) + (3, 1) <span class="d-a">→</span> (3, 4) √
+  (3, 4) + (3,)    <span class="d-a">→</span> (3, 4) + (1, 3) <span class="d-a">→</span> INCOMPATIBLE ×
+  (5, 1, 4) + (3, 1) <span class="d-a">→</span> (5, 1, 4) + (1, 3, 1) <span class="d-a">→</span> (5, 3, 4) √</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fPandasandNumPy-88">
@@ -3331,13 +3343,13 @@ df.iat[<span class="num">0</span>, <span class="num">1</span>]                 <
 df.loc[df[<span class="str">'age'</span>] &gt; <span class="num">30</span>, <span class="str">'category'</span>] = <span class="str">'senior'</span>
 df[<span class="str">'new_col'</span>] = df[<span class="str">'age'</span>] * <span class="num">2</span>  <span class="cmt"># Add column</span></code></pre>
             <div class="diagram"><pre>INDEXING CHEAT SHEET:
-  Method │ Selection    │ Slicing     │ Speed
-  ───────┼──────────────┼─────────────┼──────────
-  loc    │ By label     │ Inclusive   │ General
-  iloc   │ By position  │ Exclusive   │ General
-  at     │ By label     │ Scalar only │ Fast
-  iat    │ By position  │ Scalar only │ Fast
-  []     │ Columns/rows │ Varies      │ Sugar
+  Method <span class="d-l">│</span> Selection    <span class="d-l">│</span> Slicing     <span class="d-l">│</span> Speed
+  <span class="d-l">───────┼──────────────┼─────────────┼──────────</span>
+  loc    <span class="d-l">│</span> By label     <span class="d-l">│</span> Inclusive   <span class="d-l">│</span> General
+  iloc   <span class="d-l">│</span> By position  <span class="d-l">│</span> Exclusive   <span class="d-l">│</span> General
+  at     <span class="d-l">│</span> By label     <span class="d-l">│</span> Scalar only <span class="d-l">│</span> Fast
+  iat    <span class="d-l">│</span> By position  <span class="d-l">│</span> Scalar only <span class="d-l">│</span> Fast
+  []     <span class="d-l">│</span> Columns/rows <span class="d-l">│</span> Varies      <span class="d-l">│</span> Sugar
   
   RULES:
   - loc/at: INCLUSIVE end for slices
@@ -3461,14 +3473,14 @@ pd.<span class="fn">concat</span>([df1, df2], axis=<span class="num">0</span>, i
 <span class="cmt"># ── Join (index-based merge) ─────────────────────────────</span>
 df1.<span class="fn">join</span>(df2, how=<span class="str">'left'</span>)  <span class="cmt"># Joins on index</span></code></pre>
             <div class="diagram"><pre>MERGE CHEAT SHEET:
-  how='inner' → Only matching rows from BOTH tables
-  how='left'  → ALL rows from left, matching from right (NaN for no match)
-  how='right' → Matching from left, ALL rows from right
-  how='outer' → ALL rows from both (NaN where no match)
+  how='inner' <span class="d-a">→</span> Only matching rows from BOTH tables
+  how='left'  <span class="d-a">→</span> ALL rows from left, matching from right (NaN for no match)
+  how='right' <span class="d-a">→</span> Matching from left, ALL rows from right
+  how='outer' <span class="d-a">→</span> ALL rows from both (NaN where no match)
   
   KEY GOTCHA: Duplicated keys create cartesian product!
     Left has 3 rows with key='A', Right has 2 rows with key='A'
-    → Result has 3 × 2 = 6 rows for key='A'
+    <span class="d-a">→</span> Result has 3 × 2 = 6 rows for key='A'
     Always check: result.shape after merge</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -3751,17 +3763,17 @@ df = pd.<span class="fn">DataFrame</span>(rows)  <span class="cmt"># O(n)</span>
 <span class="cmt"># 8. eval() for complex column expressions</span>
 df.<span class="fn">eval</span>(<span class="str">'profit = revenue - cost - tax'</span>, inplace=<span class="kw">True</span>)  <span class="cmt"># NumExpr engine</span></code></pre>
             <div class="diagram"><pre>PANDAS vs POLARS COMPARISON:
-  Feature        │ Pandas         │ Polars
-  ───────────────┼────────────────┼────────────────
-  API            │ df.method()    │ df.method() (similar)
-  Engine         │ NumPy-based    │ Apache Arrow + Rust
-  Multithreading │ Mostly single  │ Multi-threaded by default
-  Lazy eval      │ No             │ Yes (LazyFrame)
-  Speed          │ Baseline       │ 5-50× faster
-  Memory         │ Higher         │ Lower (Arrow columnar)
-  Strings        │ Python objects │ Arrow UTF-8 (fast)
-  Missing vals   │ NaN            │ null (proper null)
-  Ecosystem      │ Massive        │ Growing
+  Feature        <span class="d-l">│</span> Pandas         <span class="d-l">│</span> Polars
+  <span class="d-l">───────────────┼────────────────┼────────────────</span>
+  API            <span class="d-l">│</span> df.method()    <span class="d-l">│</span> df.method() (similar)
+  Engine         <span class="d-l">│</span> NumPy-based    <span class="d-l">│</span> Apache Arrow + Rust
+  Multithreading <span class="d-l">│</span> Mostly single  <span class="d-l">│</span> Multi-threaded by default
+  Lazy eval      <span class="d-l">│</span> No             <span class="d-l">│</span> Yes (LazyFrame)
+  Speed          <span class="d-l">│</span> Baseline       <span class="d-l">│</span> 5-50× faster
+  Memory         <span class="d-l">│</span> Higher         <span class="d-l">│</span> Lower (Arrow columnar)
+  Strings        <span class="d-l">│</span> Python objects <span class="d-l">│</span> Arrow UTF-8 (fast)
+  Missing vals   <span class="d-l">│</span> NaN            <span class="d-l">│</span> null (proper null)
+  Ecosystem      <span class="d-l">│</span> Massive        <span class="d-l">│</span> Growing
   
   WHEN TO USE POLARS:
   - Data &gt; 1GB

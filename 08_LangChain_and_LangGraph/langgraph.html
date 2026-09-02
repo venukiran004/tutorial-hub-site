@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1240,19 +1252,19 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
           <div class="q-a">
             <p>LangGraph is a stateful agent orchestration framework that models workflows as directed graphs with cycles, enabling <abbr title="large language model">LLM</abbr> applications to loop, branch, and persist state across steps. Unlike linear LangChain chains, LangGraph provides explicit control over execution flow, built-in <abbr title="persisting workflow state so a run can resume from the last good point after a failure">checkpointing</abbr>, and human-in-the-loop capabilities.</p>
             <div class="diagram"><pre>WHY LANGGRAPH?
-  LangChain chains = fixed pipelines (A → B → C)
+  LangChain chains = fixed pipelines (A <span class="d-a">→</span> B <span class="d-a">→</span> C)
   LangGraph = stateful GRAPHS with cycles, conditions, persistence
 
-  ┌─────────────────────────────────────────────┐
-  │  Agent Loop:                                │
-  │    Start → LLM → Tool Decision?             │
-  │              ↙ Yes       ↘ No               │
-  │         Execute Tool    Return Answer       │
-  │              ↓                              │
-  │         Update State                        │
-  │              ↓                              │
-  │         Back to LLM (cycle!)                │
-  └─────────────────────────────────────────────┘
+  <span class="d-l">┌─────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span>  Agent Loop:                                <span class="d-l">│</span>
+  <span class="d-l">│</span>    Start <span class="d-a">→</span> LLM <span class="d-a">→</span> Tool Decision?             <span class="d-l">│</span>
+  <span class="d-l">│</span>              / Yes       \ No               <span class="d-l">│</span>
+  <span class="d-l">│</span>         Execute Tool    Return Answer       <span class="d-l">│</span>
+  <span class="d-l">│</span>              <span class="d-a">↓</span>                              <span class="d-l">│</span>
+  <span class="d-l">│</span>         Update State                        <span class="d-l">│</span>
+  <span class="d-l">│</span>              <span class="d-a">↓</span>                              <span class="d-l">│</span>
+  <span class="d-l">│</span>         Back to LLM (cycle!)                <span class="d-l">│</span>
+  <span class="d-l">└─────────────────────────────────────────────┘</span>
 
   KEY DIFFERENTIATORS:
   - Cycles (agents that loop)
@@ -1557,19 +1569,19 @@ agent = <span class="fn">create_react_agent</span>(
             </div>
             <h3>The building block — the Augmented LLM</h3>
             <p>Every pattern below is built from one unit: an LLM given <strong>tools</strong>, <strong>retrieval</strong>, and <strong>memory</strong>.</p>
-            <div class="diagram"><pre>                ┌──────────────┐
-   query ─────► │     LLM      │ ─────► response
-                └──────┬───────┘
-          ┌───────────┼────────┐
-          ▼            ▼            ▼
+            <div class="diagram"><pre>                <span class="d-l">┌──────────────┐</span>
+   query <span class="d-l">─────</span><span class="d-a">►</span> <span class="d-l">│</span>     LLM      <span class="d-l">│</span> <span class="d-l">─────</span><span class="d-a">►</span> response
+                <span class="d-l">└──────┬───────┘</span>
+          <span class="d-l">┌───────────┼────────┐</span>
+          <span class="d-a">▼</span>            <span class="d-a">▼</span>            <span class="d-a">▼</span>
       [ Tools ]   [ Retrieval ]  [ Memory ]</pre></div>
             <hr />
             <h3>Workflow 1 — Prompt Chaining  <em>(decompose into fixed sequential steps)</em>
             </h3>
             <p>Use when a task splits into <strong>predictable sub-steps</strong> (e.g. outline → draft → polish). Add a <strong>gate</strong> to fail fast.</p>
-            <div class="diagram"><pre> in ─► [LLM 1] ─► (gate / check) ─► [LLM 2] ─► [LLM 3] ─► out
-                       │ fail
-                       └────► exit / fix</pre></div>
+            <div class="diagram"><pre> in <span class="d-l">─</span><span class="d-a">►</span> [LLM 1] <span class="d-l">─</span><span class="d-a">►</span> (gate / check) <span class="d-l">─</span><span class="d-a">►</span> [LLM 2] <span class="d-l">─</span><span class="d-a">►</span> [LLM 3] <span class="d-l">─</span><span class="d-a">►</span> out
+                       <span class="d-l">│</span> fail
+                       <span class="d-l">└────</span><span class="d-a">►</span> exit / fix</pre></div>
             <pre class="code" data-lang="python"><code>g = <span class="fn">StateGraph</span>(State)
 g.<span class="fn">add_node</span>(<span class="str">"outline"</span>, outline); g.<span class="fn">add_node</span>(<span class="str">"draft"</span>, draft); g.<span class="fn">add_node</span>(<span class="str">"polish"</span>, polish)
 g.<span class="fn">add_edge</span>(START, <span class="str">"outline"</span>)
@@ -1578,9 +1590,9 @@ g.<span class="fn">add_edge</span>(<span class="str">"draft"</span>, <span class
             <h3>Workflow 2 — Routing  <em>(classify, then dispatch to a specialist)</em>
             </h3>
             <p>Use when inputs fall into <strong>distinct categories</strong> each handled best differently (billing vs technical vs refund).</p>
-            <div class="diagram"><pre>                    ┌─► [ Handler A ]
- in ─► [ Router ] ──┼─► [ Handler B ] ─► out
-        (classify)  └─► [ Handler C ]</pre></div>
+            <div class="diagram"><pre>                    <span class="d-l">┌─</span><span class="d-a">►</span> [ Handler A ]
+ in <span class="d-l">─</span><span class="d-a">►</span> [ Router ] <span class="d-l">──┼─</span><span class="d-a">►</span> [ Handler B ] <span class="d-l">─</span><span class="d-a">►</span> out
+        (classify)  <span class="d-l">└─</span><span class="d-a">►</span> [ Handler C ]</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">route</span>(s) -&gt; Literal[<span class="str">"billing"</span>,<span class="str">"tech"</span>,<span class="str">"refund"</span>]:
     <span class="kw">return</span> <span class="fn">classify_llm</span>(s[<span class="str">"query"</span>])          <span class="cmt"># LLM/classifier picks the branch</span>
 g.<span class="fn">add_conditional_edges</span>(<span class="str">"router"</span>, route, {<span class="str">"billing"</span>:<span class="str">"billing"</span>,<span class="str">"tech"</span>:<span class="str">"tech"</span>,<span class="str">"refund"</span>:<span class="str">"refund"</span>})</code></pre>
@@ -1588,16 +1600,16 @@ g.<span class="fn">add_conditional_edges</span>(<span class="str">"router"</span
             </h3>
             <p>Two flavors. <strong>Sectioning:</strong> split the work into independent parts. <strong>Voting:</strong> run the <em>same</em> task several times and aggregate (majority / best-of-N) for reliability.</p>
             <div class="diagram"><pre> SECTIONING                          VOTING
-        ┌►[LLM: tone ]┐                  ┌►[LLM]┐
- in ─►──┼►[LLM: facts]┼►[Aggregate]►out  in►──┼►[LLM]┼►[Vote / pick best]►out
-        └►[LLM: style]┘                  └►[LLM]┘</pre></div>
+        <span class="d-l">┌</span><span class="d-a">►</span>[LLM: tone ]<span class="d-l">┐</span>                  <span class="d-l">┌</span><span class="d-a">►</span>[LLM]<span class="d-l">┐</span>
+ in <span class="d-l">─</span><span class="d-a">►</span><span class="d-l">──┼</span><span class="d-a">►</span>[LLM: facts]<span class="d-l">┼</span><span class="d-a">►</span>[Aggregate]<span class="d-a">►</span>out  in<span class="d-a">►</span><span class="d-l">──┼</span><span class="d-a">►</span>[LLM]<span class="d-l">┼</span><span class="d-a">►</span>[Vote / pick best]<span class="d-a">►</span>out
+        <span class="d-l">└</span><span class="d-a">►</span>[LLM: style]<span class="d-l">┘</span>                  <span class="d-l">└</span><span class="d-a">►</span>[LLM]<span class="d-l">┘</span></pre></div>
             <p>In LangGraph: add multiple edges out of one node (fan-out runs in parallel), and a reducer (<code>Annotated[list, add]</code>) collects results into a join node.</p>
             <h3>Workflow 4 — Orchestrator-Workers  <em>(dynamic number of subtasks)</em>
             </h3>
             <p>Like sectioning, but <strong>the orchestrator decides how many workers and what each does at runtime</strong> — you don't know the subtasks in advance (e.g. "edit these N files", "research these M sub-questions"). This is LangGraph's <strong><code>Send</code></strong> / map-reduce.</p>
-            <div class="diagram"><pre>                      ┌─► [ Worker 1 ]┐
- in ─► [ Orchestrator ]┼─► [ Worker 2 ]┼─► [ Synthesizer ] ─► out
-       (plans subtasks)└─► [ Worker N ]┘
+            <div class="diagram"><pre>                      <span class="d-l">┌─</span><span class="d-a">►</span> [ Worker 1 ]<span class="d-l">┐</span>
+ in <span class="d-l">─</span><span class="d-a">►</span> [ Orchestrator ]<span class="d-l">┼─</span><span class="d-a">►</span> [ Worker 2 ]<span class="d-l">┼─</span><span class="d-a">►</span> [ Synthesizer ] <span class="d-l">─</span><span class="d-a">►</span> out
+       (plans subtasks)<span class="d-l">└─</span><span class="d-a">►</span> [ Worker N ]<span class="d-l">┘</span>
        (# workers chosen at runtime)</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">assign</span>(s):                       <span class="cmt"># orchestrator fans out dynamically</span>
     <span class="kw">return</span> [<span class="fn">Send</span>(<span class="str">"worker"</span>, {<span class="str">"task"</span>: t}) <span class="kw">for</span> t <span class="kw">in</span> s[<span class="str">"subtasks"</span>]]
@@ -1606,9 +1618,9 @@ g.<span class="fn">add_edge</span>(<span class="str">"worker"</span>, <span clas
             <h3>Workflow 5 — Evaluator-Optimizer  <em>(generate → critique → refine loop)</em>
             </h3>
             <p>Use when output quality improves with <strong>feedback</strong> and you have clear eval criteria (translation, code that must pass tests). One LLM generates, another evaluates and returns feedback, loop until "accept".</p>
-            <div class="diagram"><pre> in ─► [ Generator ] ──┬─► [ Evaluator ] ── accept ──► out
-            ▲          │         │ reject (+ feedback)
-            └──────────┴─────────┘   (loop, capped by a step budget)</pre></div>
+            <div class="diagram"><pre> in <span class="d-l">─</span><span class="d-a">►</span> [ Generator ] <span class="d-l">──┬─</span><span class="d-a">►</span> [ Evaluator ] <span class="d-l">──</span> accept <span class="d-l">──</span><span class="d-a">►</span> out
+            <span class="d-a">▲</span>          <span class="d-l">│</span>         <span class="d-l">│</span> reject (+ feedback)
+            <span class="d-l">└──────────┴─────────┘</span>   (loop, capped by a step budget)</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">gate</span>(s) -&gt; Literal[<span class="str">"generator"</span>,<span class="str">"__end__"</span>]:
     <span class="kw">return</span> END <span class="kw">if</span> s[<span class="str">"verdict"</span>] == <span class="str">"accept"</span> <span class="kw">or</span> s[<span class="str">"iters"</span>] &gt;= <span class="num">3</span> <span class="kw">else</span> <span class="str">"generator"</span>
 g.<span class="fn">add_edge</span>(<span class="str">"generator"</span>, <span class="str">"evaluator"</span>)
@@ -1622,11 +1634,11 @@ g.<span class="fn">add_conditional_edges</span>(<span class="str">"evaluator"</s
             <h3>Agent — LLM-directed control flow  <em>(the loop is not fixed)</em>
             </h3>
             <p>A true <strong>agent</strong> runs an open-ended loop: the LLM repeatedly decides which tool to call, observes the result, and continues <strong>until it decides it's done</strong> (or hits a budget). This is the ReAct loop / <code>create_react_agent</code>.</p>
-            <div class="diagram"><pre>              ┌──────────────────────────────────────┐
-              ▼  (observation fed back into context) │
- query ─► [ LLM: think + act ] ─► tool call? ─yes─► [ Tool ] ─┘
-              │
-              └─ no ─► final answer
+            <div class="diagram"><pre>              <span class="d-l">┌──────────────────────────────────────┐</span>
+              <span class="d-a">▼</span>  (observation fed back into context) <span class="d-l">│</span>
+ query <span class="d-l">─</span><span class="d-a">►</span> [ LLM: think + act ] <span class="d-l">─</span><span class="d-a">►</span> tool call? <span class="d-l">─</span>yes<span class="d-l">─</span><span class="d-a">►</span> [ Tool ] <span class="d-l">─┘</span>
+              <span class="d-l">│</span>
+              <span class="d-l">└─</span> no <span class="d-l">─</span><span class="d-a">►</span> final answer
    (loops an unknown number of times — guard with recursion_limit)</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> langgraph.prebuilt <span class="kw">import</span> create_react_agent
 agent = <span class="fn">create_react_agent</span>(model, tools=[search, calculator, db_query])
@@ -1924,9 +1936,9 @@ parent.<span class="fn">add_edge</span>(<span class="str">"research"</span>, <sp
 parent.<span class="fn">add_edge</span>(<span class="str">"writing"</span>, END)</code></pre>
             <h3>Map-Reduce — the <code>Send</code> API (dynamic fan-out → fan-in)</h3>
             <p><strong>Intuition.</strong> You have a <em>list</em> of items (topics, documents, files) and want to run the <strong>same</strong> node on <strong>each one in parallel</strong>, then combine the results. You don't know the count until runtime, so static edges won't do. <code>Send("node", payload)</code> means <em>"spin up one fresh instance of <code>node</code> and hand it exactly this payload as its state."</em> Return a <strong>list</strong> of <code>Send</code>s and LangGraph launches them all in one superstep (the <strong>map</strong>). Each writes to a list key guarded by a <strong>reducer</strong>, so their outputs merge instead of clobbering each other; a final node reads that merged list (the <strong>reduce</strong>).</p>
-            <div class="diagram"><pre>                     ┌─► [worker]  topic="GPUs"   ─┐
- [plan] ──Send×N──►  ├─► [worker]  topic="RAG"    ─┼─►[reduce]─► END
- (split into topics) └─► [worker]  topic="Agents" ─┘   (joins the list)
+            <div class="diagram"><pre>                     <span class="d-l">┌─</span><span class="d-a">►</span> [worker]  topic="GPUs"   <span class="d-l">─┐</span>
+ [plan] <span class="d-l">──</span>Send×N<span class="d-l">──</span><span class="d-a">►</span>  <span class="d-l">├─</span><span class="d-a">►</span> [worker]  topic="RAG"    <span class="d-l">─┼─</span><span class="d-a">►</span>[reduce]<span class="d-l">─</span><span class="d-a">►</span> END
+ (split into topics) <span class="d-l">└─</span><span class="d-a">►</span> [worker]  topic="Agents" <span class="d-l">─┘</span>   (joins the list)
                           (one instance PER item, all in ONE superstep)</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">import</span> operator
 <span class="kw">from</span> typing <span class="kw">import</span> Annotated, TypedDict
@@ -1966,11 +1978,11 @@ app = g.<span class="fn">compile</span>()
 
 app.<span class="fn">invoke</span>({<span class="str">"topics"</span>: [<span class="str">"GPUs"</span>, <span class="str">"RAG"</span>, <span class="str">"Agents"</span>], <span class="str">"summaries"</span>: [], <span class="str">"report"</span>: <span class="str">""</span>})</code></pre>
             <p><strong>Worked trace</strong> for <code>topics=["GPUs", "RAG", "Agents"]</code>:</p>
-            <div class="diagram"><pre>superstep 1  fan_out(START) → [Send(worker,{topic:GPUs}),
+            <div class="diagram"><pre>superstep 1  fan_out(START) <span class="d-a">→</span> [Send(worker,{topic:GPUs}),
                                Send(worker,{topic:RAG}),
                                Send(worker,{topic:Agents})]
 superstep 2  worker×3 run IN PARALLEL, each returns {"summaries":[&lt;one&gt;]}
-             reducer (operator.add) concatenates →
+             reducer (operator.add) concatenates <span class="d-a">→</span>
                  summaries = [sumGPUs, sumRAG, sumAgents]
 superstep 3  reduce() sees all 3, writes report</pre></div>
             <div class="note">
@@ -2145,19 +2157,19 @@ graph.<span class="fn">add_conditional_edges</span>(<span class="str">"call_node
               like a deadlock — the graph never reaches <code>END</code>:</p>
             <div class="diagram"><pre>COMMON "DEADLOCK" / STUCK-STATE MODES
   Symptom                         Cause                          Fix
-  ──────────────────────────────┼──────────────────────────────┼─────────────────────────────
-  GraphRecursionError            │ Infinite cycle — agent keeps  │ Guaranteed exit branch in the
-                                 │ looping (LLM never returns a  │ router + recursion_limit; add a
-                                 │ stop / two agents ping-pong)  │ step counter to force a stop
-  InvalidUpdateError:            │ Two parallel branches write   │ Add a reducer (Annotated[list,
-  "can receive only one value"   │ the SAME state key in one     │ add]) so concurrent writes merge
-                                 │ step with no reducer          │ instead of conflict
-  Graph silently halts           │ A node has NO outgoing edge   │ Every node must route to another
-  (no error, no END)             │ and isn't wired to END        │ node or END (a "dead end")
-  Hangs forever after invoke()   │ interrupt()/interrupt_before  │ Resume with invoke(Command(
-                                 │ fired but you never resumed   │ resume=...)) / invoke(None, cfg)
-  Branch never fires             │ Router returns a key missing  │ Map every possible return value;
-                                 │ from the edge mapping         │ include a default branch</pre></div>
+  <span class="d-l">──────────────────────────────┼──────────────────────────────┼─────────────────────────────</span>
+  GraphRecursionError            <span class="d-l">│</span> Infinite cycle — agent keeps  <span class="d-l">│</span> Guaranteed exit branch in the
+                                 <span class="d-l">│</span> looping (LLM never returns a  <span class="d-l">│</span> router + recursion_limit; add a
+                                 <span class="d-l">│</span> stop / two agents ping-pong)  <span class="d-l">│</span> step counter to force a stop
+  InvalidUpdateError:            <span class="d-l">│</span> Two parallel branches write   <span class="d-l">│</span> Add a reducer (Annotated[list,
+  "can receive only one value"   <span class="d-l">│</span> the SAME state key in one     <span class="d-l">│</span> add]) so concurrent writes merge
+                                 <span class="d-l">│</span> step with no reducer          <span class="d-l">│</span> instead of conflict
+  Graph silently halts           <span class="d-l">│</span> A node has NO outgoing edge   <span class="d-l">│</span> Every node must route to another
+  (no error, no END)             <span class="d-l">│</span> and isn't wired to END        <span class="d-l">│</span> node or END (a "dead end")
+  Hangs forever after invoke()   <span class="d-l">│</span> interrupt()/interrupt_before  <span class="d-l">│</span> Resume with invoke(Command(
+                                 <span class="d-l">│</span> fired but you never resumed   <span class="d-l">│</span> resume=...)) / invoke(None, cfg)
+  Branch never fires             <span class="d-l">│</span> Router returns a key missing  <span class="d-l">│</span> Map every possible return value;
+                                 <span class="d-l">│</span> from the edge mapping         <span class="d-l">│</span> include a default branch</pre></div>
             <pre class="code" data-lang="python"><code><span class="cmt"># 1) Break agent ping-pong loops with an explicit step budget</span>
 <span class="kw">class</span> <span class="fn">State</span>(TypedDict):
     messages: Annotated[list, add]
@@ -2218,12 +2230,12 @@ graph.<span class="fn">add_conditional_edges</span>(<span class="str">"superviso
 <span class="cmt"># Supervisor → Team Leads → Individual Agents</span>
 <span class="cmt"># Good for: complex tasks requiring multiple specialized teams</span></code></pre>
             <div class="diagram"><pre>MULTI-AGENT COMPARISON:
-  Pattern      │ Coordination  │ Best For              │ Complexity
-  ─────────────┼───────────────┼───────────────────────┼──────────
-  Supervisor   │ Central LLM   │ Clear task routing    │ Medium
-  Swarm        │ Peer-to-peer  │ Dynamic handoffs      │ Medium
-  Hierarchical │ Tree structure│ Complex multi-team    │ High
-  Map-Reduce   │ Fan-out/in    │ Parallel independent  │ Low</pre></div>
+  Pattern      <span class="d-l">│</span> Coordination  <span class="d-l">│</span> Best For              <span class="d-l">│</span> Complexity
+  <span class="d-l">─────────────┼───────────────┼───────────────────────┼──────────</span>
+  Supervisor   <span class="d-l">│</span> Central LLM   <span class="d-l">│</span> Clear task routing    <span class="d-l">│</span> Medium
+  Swarm        <span class="d-l">│</span> Peer-to-peer  <span class="d-l">│</span> Dynamic handoffs      <span class="d-l">│</span> Medium
+  Hierarchical <span class="d-l">│</span> Tree structure<span class="d-l">│</span> Complex multi-team    <span class="d-l">│</span> High
+  Map-Reduce   <span class="d-l">│</span> Fan-out/in    <span class="d-l">│</span> Parallel independent  <span class="d-l">│</span> Low</pre></div>
             <h3>Prebuilt multi-agent libraries (don't hand-roll)</h3>
             <p>For the two common topologies, use the official packages instead of wiring graphs by hand:</p>
             <pre class="code" data-lang="python"><code><span class="cmt"># pip install langgraph-supervisor langgraph-swarm</span>

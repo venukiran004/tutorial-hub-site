@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1274,19 +1286,19 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p><strong>Architecture:</strong>
             </p>
             <div class="diagram"><pre>User Upload (Image)
-      │
-      ▼
+      <span class="d-l">│</span>
+      <span class="d-a">▼</span>
 OCR Pre-processing (optional — Tesseract / AWS Textract)
-      │
-      ▼
+      <span class="d-l">│</span>
+      <span class="d-a">▼</span>
 Vision LLM (GPT-4o / Claude 3 Vision / Gemini 1.5 Pro)
-      │  Prompt: "Extract all line items, totals, vendor name"
-      │  Response format: JSON schema
-      ▼
+      <span class="d-l">│</span>  Prompt: "Extract all line items, totals, vendor name"
+      <span class="d-l">│</span>  Response format: JSON schema
+      <span class="d-a">▼</span>
 Pydantic Validator / Output Parser
-      │
-      ▼
-Structured Output → Database / ERP System</pre></div>
+      <span class="d-l">│</span>
+      <span class="d-a">▼</span>
+Structured Output <span class="d-a">→</span> Database / ERP System</pre></div>
             <p><strong>Key Decisions:</strong>
               - Use GPT-4o or Claude 3.5 Sonnet for vision tasks — they handle embedded text well.
               - For high-volume/cost-sensitive: Use Tesseract/Textract for OCR first, then send plain text to a cheaper text-only <abbr title="large language model">LLM</abbr>.
@@ -1381,21 +1393,21 @@ Structured Output → Database / ERP System</pre></div>
             <p><strong>Full Pipeline:</strong>
             </p>
             <div class="diagram"><pre>Document Ingestion
-├── PDF/DOCX Loader (LangChain DocumentLoaders)
-├── Text Splitter (RecursiveCharacterTextSplitter)
-│   ├── chunk_size=1000, chunk_overlap=200
-│   └── Preserve sentence boundaries
-├── Embedding Model (OpenAI text-embedding-3-large / BGE)
-└── Vector Store (Pinecone / Chroma / Weaviate)
+<span class="d-l">├──</span> PDF/DOCX Loader (LangChain DocumentLoaders)
+<span class="d-l">├──</span> Text Splitter (RecursiveCharacterTextSplitter)
+<span class="d-l">│</span>   <span class="d-l">├──</span> chunk_size=1000, chunk_overlap=200
+<span class="d-l">│</span>   <span class="d-l">└──</span> Preserve sentence boundaries
+<span class="d-l">├──</span> Embedding Model (OpenAI text-embedding-3-large / BGE)
+<span class="d-l">└──</span> Vector Store (Pinecone / Chroma / Weaviate)
 
 Query Time
-├── User Question
-├── Query Embedding
-├── Similarity Search (top-k=5)
-├── Re-ranker (Cohere Rerank / Cross-encoder)
-├── Contextual Compression (LLMChainExtractor)
-├── LLM (GPT-4 / Claude)
-└── Answer + Citations</pre></div>
+<span class="d-l">├──</span> User Question
+<span class="d-l">├──</span> Query Embedding
+<span class="d-l">├──</span> Similarity Search (top-k=5)
+<span class="d-l">├──</span> Re-ranker (Cohere Rerank / Cross-encoder)
+<span class="d-l">├──</span> Contextual Compression (LLMChainExtractor)
+<span class="d-l">├──</span> LLM (GPT-4 / Claude)
+<span class="d-l">└──</span> Answer + Citations</pre></div>
             <p><strong>LangChain Implementation Highlights:</strong>
             </p>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> langchain.chains <span class="kw">import</span> RetrievalQA
@@ -1688,17 +1700,17 @@ agent_executor = <span class="fn">AgentExecutor</span>(
             </p>
             <p><strong>Architecture — Hierarchical Multi-Agent System:</strong>
             </p>
-            <div class="diagram"><pre>┌────────────────────────────────────────┐
-│        Orchestrator Agent        │  ← Decomposes the task, assigns subtasks
-│     (LangGraph Supervisor)       │  ← Evaluates outputs, decides next step
-└──────┬──────────┬──────────────────────┘
-       │          │                      │
-┌──────▼──┐  ┌───▼──────┐  ┌─▼───────────┐
-│ Research │  │ Writing  │  │   Editor   │
-│  Agent   │  │  Agent   │  │   Agent    │
-│(web/DB   │  │(draft    │  │(grammar,   │
-│ search)  │  │ content) │  │ style, QA) │
-└──────────┘  └──────────┘  └────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌────────────────────────────────────────┐</span>
+<span class="d-l">│</span>        Orchestrator Agent        <span class="d-l">│</span>  <span class="d-a">←</span> Decomposes the task, assigns subtasks
+<span class="d-l">│</span>     (LangGraph Supervisor)       <span class="d-l">│</span>  <span class="d-a">←</span> Evaluates outputs, decides next step
+<span class="d-l">└──────┬──────────┬──────────────────────┘</span>
+       <span class="d-l">│</span>          <span class="d-l">│</span>                      <span class="d-l">│</span>
+<span class="d-l">┌──────</span><span class="d-a">▼</span><span class="d-l">──┐</span>  <span class="d-l">┌───</span><span class="d-a">▼</span><span class="d-l">──────┐</span>  <span class="d-l">┌─</span><span class="d-a">▼</span><span class="d-l">───────────┐</span>
+<span class="d-l">│</span> Research <span class="d-l">│</span>  <span class="d-l">│</span> Writing  <span class="d-l">│</span>  <span class="d-l">│</span>   Editor   <span class="d-l">│</span>
+<span class="d-l">│</span>  Agent   <span class="d-l">│</span>  <span class="d-l">│</span>  Agent   <span class="d-l">│</span>  <span class="d-l">│</span>   Agent    <span class="d-l">│</span>
+<span class="d-l">│</span>(web/DB   <span class="d-l">│</span>  <span class="d-l">│</span>(draft    <span class="d-l">│</span>  <span class="d-l">│</span>(grammar,   <span class="d-l">│</span>
+<span class="d-l">│</span> search)  <span class="d-l">│</span>  <span class="d-l">│</span> content) <span class="d-l">│</span>  <span class="d-l">│</span> style, QA) <span class="d-l">│</span>
+<span class="d-l">└──────────┘</span>  <span class="d-l">└──────────┘</span>  <span class="d-l">└────────────┘</span></pre></div>
             <p><strong>LangGraph Implementation Pattern:</strong>
             </p>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> langgraph.graph <span class="kw">import</span> StateGraph, END
@@ -2400,14 +2412,14 @@ retriever = SelfQueryRetriever.<span class="fn">from_llm</span>(
               </li>
             </ol>
             <div class="diagram"><pre>Source Systems (CMS, DB, APIs)
-      │  [Change Events / Polling]
-      ▼
+      <span class="d-l">│</span>  [Change Events / Polling]
+      <span class="d-a">▼</span>
 Change Detection Service
-      │  [New/Updated/Deleted docs]
-      ▼
+      <span class="d-l">│</span>  [New/Updated/Deleted docs]
+      <span class="d-a">▼</span>
 Embedding Pipeline (Airflow / Prefect DAG)
-      │
-      ▼
+      <span class="d-l">│</span>
+      <span class="d-a">▼</span>
 Upsert Vector Store (update existing vectors by doc ID)</pre></div>
             <ol start="2">
               <li>
@@ -2633,11 +2645,11 @@ eval_rows = []
             </p>
             <div class="diagram"><pre>Query: "Employees hired after 2020 working on projects using tech from 2023 strategy"
 
-Hop 1: Retrieve "2023 strategy document" → Extract: ["Kubernetes", "LLMs", "GraphQL"]
+Hop 1: Retrieve "2023 strategy document" <span class="d-a">→</span> Extract: ["Kubernetes", "LLMs", "GraphQL"]
 
-Hop 2: Retrieve "project records using Kubernetes, LLMs, GraphQL" → Extract: [Project A, B, C]
+Hop 2: Retrieve "project records using Kubernetes, LLMs, GraphQL" <span class="d-a">→</span> Extract: [Project A, B, C]
 
-Hop 3: Retrieve "employees on Project A, B, C hired after 2020" → Final Answer</pre></div>
+Hop 3: Retrieve "employees on Project A, B, C hired after 2020" <span class="d-a">→</span> Final Answer</pre></div>
             <p><strong>Implementation Options:</strong>
             </p>
             <ol>
@@ -2788,14 +2800,14 @@ qdrant_client.<span class="fn">create_collection</span>(<span class="str">"finan
     collection = f<span class="str">"{user_department}_docs"</span>
     <span class="kw">return</span> vectorstore.<span class="fn">similarity_search</span>(query, collection_name=collection, k=<span class="num">10</span>)</code></pre>
             <div class="diagram"><pre>Option B: Single collection with metadata filters
-──────────────────────────────────────────────────
+<span class="d-l">──────────────────────────────────────────────────</span>
 All 10K+ docs in one Qdrant collection.
 Apply payload filters at query time:
 
   Filter: { "source": "sharepoint", "doc_type": "policy" }
   + Vector similarity search
 
-→ Combines precision of keyword filter with power of semantic search.</pre></div>
+<span class="d-a">→</span> Combines precision of keyword filter with power of semantic search.</pre></div>
             <hr />
             <p><strong>Phase 4 — Efficient Retrieval at Scale</strong>
             </p>
@@ -2864,37 +2876,37 @@ reranker = <span class="fn">CrossEncoderReranker</span>(
             <hr />
             <p><strong>Full Architecture Summary:</strong>
             </p>
-            <div class="diagram"><pre>┌────────────────────────────────────────────────────────────┐
-│                   FILE SOURCES (10,000+)                   │
-│   S3 │ SharePoint │ Google Drive │ Local FS │ Confluence   │
-└──────────────────────┬─────────────────────────────────────┘
-                       │  File Discovery (daily scan)
-                       ▼
-┌────────────────────────────────────────────────────────────┐
-│              INGESTION PIPELINE (Celery Workers)           │
-│  Load → Dedup Check → Chunk → Embed (BGE/OpenAI) → Upsert  │
-└──────────────────────┬─────────────────────────────────────┘
-                       │
-                       ▼
-┌────────────────────────────────────────────────────────────┐
-│              VECTOR STORE (Qdrant / Weaviate)              │
-│   Namespaced collections OR single collection + filters    │
-│   Payload metadata: source, dept, file_type, date, hash    │
-└──────────────────────┬─────────────────────────────────────┘
-                       │
-                       ▼
-┌────────────────────────────────────────────────────────────┐
-│                 RETRIEVAL LAYER                            │
-│  Hybrid Search (BM25 + Vector) → Re-ranker (BGE-Reranker)  │
-│  RBAC filter applied before retrieval                      │
-└──────────────────────┬─────────────────────────────────────┘
-                       │
-                       ▼
-┌────────────────────────────────────────────────────────────┐
-│               LLM + ANSWER SYNTHESIS                       │
-│   Top-5 chunks + metadata → GPT-4o / LLaMA-3               │
-│   Response includes: answer + source file citations        │
-└────────────────────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                   FILE SOURCES (10,000+)                   <span class="d-l">│</span>
+<span class="d-l">│</span>   S3 <span class="d-l">│</span> SharePoint <span class="d-l">│</span> Google Drive <span class="d-l">│</span> Local FS <span class="d-l">│</span> Confluence   <span class="d-l">│</span>
+<span class="d-l">└──────────────────────┬─────────────────────────────────────┘</span>
+                       <span class="d-l">│</span>  File Discovery (daily scan)
+                       <span class="d-a">▼</span>
+<span class="d-l">┌────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>              INGESTION PIPELINE (Celery Workers)           <span class="d-l">│</span>
+<span class="d-l">│</span>  Load <span class="d-a">→</span> Dedup Check <span class="d-a">→</span> Chunk <span class="d-a">→</span> Embed (BGE/OpenAI) <span class="d-a">→</span> Upsert  <span class="d-l">│</span>
+<span class="d-l">└──────────────────────┬─────────────────────────────────────┘</span>
+                       <span class="d-l">│</span>
+                       <span class="d-a">▼</span>
+<span class="d-l">┌────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>              VECTOR STORE (Qdrant / Weaviate)              <span class="d-l">│</span>
+<span class="d-l">│</span>   Namespaced collections OR single collection + filters    <span class="d-l">│</span>
+<span class="d-l">│</span>   Payload metadata: source, dept, file_type, date, hash    <span class="d-l">│</span>
+<span class="d-l">└──────────────────────┬─────────────────────────────────────┘</span>
+                       <span class="d-l">│</span>
+                       <span class="d-a">▼</span>
+<span class="d-l">┌────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                 RETRIEVAL LAYER                            <span class="d-l">│</span>
+<span class="d-l">│</span>  Hybrid Search (BM25 + Vector) <span class="d-a">→</span> Re-ranker (BGE-Reranker)  <span class="d-l">│</span>
+<span class="d-l">│</span>  RBAC filter applied before retrieval                      <span class="d-l">│</span>
+<span class="d-l">└──────────────────────┬─────────────────────────────────────┘</span>
+                       <span class="d-l">│</span>
+                       <span class="d-a">▼</span>
+<span class="d-l">┌────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>               LLM + ANSWER SYNTHESIS                       <span class="d-l">│</span>
+<span class="d-l">│</span>   Top-5 chunks + metadata <span class="d-a">→</span> GPT-4o / LLaMA-3               <span class="d-l">│</span>
+<span class="d-l">│</span>   Response includes: answer + source file citations        <span class="d-l">│</span>
+<span class="d-l">└────────────────────────────────────────────────────────────┘</span></pre></div>
             <p><strong>Key Numbers to Keep in Mind:</strong>
             </p>
             <div class="tbl-wrap">
@@ -2980,20 +2992,20 @@ reranker = <span class="fn">CrossEncoderReranker</span>(
             <p><strong>Step 1 — Streaming ingestion pipeline (replace the batch <abbr title="directed acyclic graph">DAG</abbr> with an event stream):</strong>
             </p>
             <div class="diagram"><pre> Source systems (DB, CMS, ticketing, Kafka topics)
-        │  emit change events  (insert / update / delete)
-        ▼
+        <span class="d-l">│</span>  emit change events  (insert / update / delete)
+        <span class="d-a">▼</span>
  CDC / Webhooks  (Debezium, AWS DMS, app webhooks)
-        │
-        ▼
- Stream bus  (Kafka / Kinesis / Pub-Sub)     ◄── decouples produce speed from embed speed (backpressure)
-        │
-        ▼
+        <span class="d-l">│</span>
+        <span class="d-a">▼</span>
+ Stream bus  (Kafka / Kinesis / Pub-Sub)     <span class="d-a">◄</span><span class="d-l">──</span> decouples produce speed from embed speed (backpressure)
+        <span class="d-l">│</span>
+        <span class="d-a">▼</span>
  Stream processor (Flink / Faust / consumer)
-   ├─ route by event type
-   ├─ re-chunk the changed document only
-   ├─ embed changed chunks  (batch micro-batches for throughput)
-   └─ UPSERT / DELETE in vector store by STABLE doc_id
-        ▼
+   <span class="d-l">├─</span> route by event type
+   <span class="d-l">├─</span> re-chunk the changed document only
+   <span class="d-l">├─</span> embed changed chunks  (batch micro-batches for throughput)
+   <span class="d-l">└─</span> UPSERT / DELETE in vector store by STABLE doc_id
+        <span class="d-a">▼</span>
  Vector store (Qdrant / Pinecone / Weaviate)  +  metadata: {doc_id, version, updated_at, source}</pre></div>
             <p><strong>Step 2 — Get the hard parts right (this is what interviewers probe):</strong>
             </p>
@@ -3109,13 +3121,13 @@ retriever = <span class="fn">ParentDocumentRetriever</span>(
             </p>
             <p><strong>Part A — Data isolation (tenant can't see another tenant's data):</strong>
             </p>
-            <div class="diagram"><pre>User request ──► AuthN/AuthZ ──► resolve caller's tenant_id + roles (server-side, never from client)
-                                        │
-                                        ▼
+            <div class="diagram"><pre>User request <span class="d-l">──</span><span class="d-a">►</span> AuthN/AuthZ <span class="d-l">──</span><span class="d-a">►</span> resolve caller's tenant_id + roles (server-side, never from client)
+                                        <span class="d-l">│</span>
+                                        <span class="d-a">▼</span>
             Retrieval with HARD pre-filter:  where tenant_id = caller AND principal ∈ chunk.acl
-                                        │
-                                        ▼
-                 Re-check ACL at synthesis ──► LLM (never decides access itself)</pre></div>
+                                        <span class="d-l">│</span>
+                                        <span class="d-a">▼</span>
+                 Re-check ACL at synthesis <span class="d-l">──</span><span class="d-a">►</span> LLM (never decides access itself)</pre></div>
             <ol>
               <li class="dl"><b class="dt">Pre-filter, not post-filter</b><span class="dd">apply the <code>tenant_id</code> filter <em>inside</em> the vector search, not after, so foreign vectors are never even scored.</span>
               </li>
@@ -3235,34 +3247,34 @@ kubectl logs -l app=rag-chatbot --tail=<span class="num">100</span> | grep ERROR
               Design the full system architecture.</p>
             <p><strong>Answer:</strong>
             </p>
-            <div class="diagram"><pre>┌─────────────────────────────────────────────────────────────────┐
-│                     INGESTION PIPELINE                          │
-│  PubMed/ArXiv API → Parser → Chunker → Embedder → Vector DB     │
-│  (Daily Airflow DAG)         (LlamaIndex)  (BGE-M3)  (Qdrant)   │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     AGENTIC CORE (LangGraph)                    │
-│                                                                 │
-│  User Query → Intent Router                                     │
-│                    │                                            │
-│          ┌─────────┼──────────┐                                 │
-│          ▼         ▼          ▼                                 │
-│      RAG Tool   Code Exec   Citation                            │
-│    (Qdrant)    (Sandbox     Verifier                            │
-│                 Python)                                         │
-│          └─────────┼──────────┘                                 │
-│                    ▼                                            │
-│              Response Synthesizer                               │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  ON-PREMISES LLM SERVING                        │
-│   LLaMA-3 70B / Mistral Large  →  vLLM (on A100 GPUs)           │
-│   All inference stays on-prem — no data leaves the network      │
-└─────────────────────────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                     INGESTION PIPELINE                          <span class="d-l">│</span>
+<span class="d-l">│</span>  PubMed/ArXiv API <span class="d-a">→</span> Parser <span class="d-a">→</span> Chunker <span class="d-a">→</span> Embedder <span class="d-a">→</span> Vector DB     <span class="d-l">│</span>
+<span class="d-l">│</span>  (Daily Airflow DAG)         (LlamaIndex)  (BGE-M3)  (Qdrant)   <span class="d-l">│</span>
+<span class="d-l">└─────────────────────────────────────────────────────────────────┘</span>
+                              <span class="d-l">│</span>
+                              <span class="d-a">▼</span>
+<span class="d-l">┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                     AGENTIC CORE (LangGraph)                    <span class="d-l">│</span>
+<span class="d-l">│</span>                                                                 <span class="d-l">│</span>
+<span class="d-l">│</span>  User Query <span class="d-a">→</span> Intent Router                                     <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span>                                            <span class="d-l">│</span>
+<span class="d-l">│</span>          <span class="d-l">┌─────────┼──────────┐</span>                                 <span class="d-l">│</span>
+<span class="d-l">│</span>          <span class="d-a">▼</span>         <span class="d-a">▼</span>          <span class="d-a">▼</span>                                 <span class="d-l">│</span>
+<span class="d-l">│</span>      RAG Tool   Code Exec   Citation                            <span class="d-l">│</span>
+<span class="d-l">│</span>    (Qdrant)    (Sandbox     Verifier                            <span class="d-l">│</span>
+<span class="d-l">│</span>                 Python)                                         <span class="d-l">│</span>
+<span class="d-l">│</span>          <span class="d-l">└─────────┼──────────┘</span>                                 <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-a">▼</span>                                            <span class="d-l">│</span>
+<span class="d-l">│</span>              Response Synthesizer                               <span class="d-l">│</span>
+<span class="d-l">└─────────────────────────────────────────────────────────────────┘</span>
+                              <span class="d-l">│</span>
+                              <span class="d-a">▼</span>
+<span class="d-l">┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                  ON-PREMISES LLM SERVING                        <span class="d-l">│</span>
+<span class="d-l">│</span>   LLaMA-3 70B / Mistral Large  <span class="d-a">→</span>  vLLM (on A100 GPUs)           <span class="d-l">│</span>
+<span class="d-l">│</span>   All inference stays on-prem — no data leaves the network      <span class="d-l">│</span>
+<span class="d-l">└─────────────────────────────────────────────────────────────────┘</span></pre></div>
             <p><strong>Component Decisions:</strong>
             </p>
             <div class="tbl-wrap">
@@ -3409,19 +3421,19 @@ kubectl logs -l app=rag-chatbot --tail=<span class="num">100</span> | grep ERROR
             </p>
             <p><strong>Four Pillars of LLM Observability:</strong>
             </p>
-            <div class="diagram"><pre>┌──────────────────────────────────────────────────────┐
-│           LLM OBSERVABILITY STACK                    │
-│                                                      │
-│  1. TRACING          2. METRICS       3. EVALUATION  │
-│  LangSmith /         Cost per model   RAGAS scores   │
-│  OpenTelemetry       Token usage      Quality drift  │
-│  Full prompt/        Latency (p50/95) A/B tests      │
-│  response logs       Error rates      Human evals    │
-│                                                      │
-│  4. ALERTING                                         │
-│  PagerDuty / Slack                                   │
-│  Alert on: cost spike, quality drop, error surge     │
-└──────────────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌──────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>           LLM OBSERVABILITY STACK                    <span class="d-l">│</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  1. TRACING          2. METRICS       3. EVALUATION  <span class="d-l">│</span>
+<span class="d-l">│</span>  LangSmith /         Cost per model   RAGAS scores   <span class="d-l">│</span>
+<span class="d-l">│</span>  OpenTelemetry       Token usage      Quality drift  <span class="d-l">│</span>
+<span class="d-l">│</span>  Full prompt/        Latency (p50/95) A/B tests      <span class="d-l">│</span>
+<span class="d-l">│</span>  response logs       Error rates      Human evals    <span class="d-l">│</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  4. ALERTING                                         <span class="d-l">│</span>
+<span class="d-l">│</span>  PagerDuty / Slack                                   <span class="d-l">│</span>
+<span class="d-l">│</span>  Alert on: cost spike, quality drop, error surge     <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────────────────┘</span></pre></div>
             <p><strong>Implementation:</strong>
             </p>
             <pre class="code" data-lang="python"><code><span class="cmt"># OpenTelemetry instrumentation for any LLM</span>

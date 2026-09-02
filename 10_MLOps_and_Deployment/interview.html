@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1116,10 +1128,10 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
         <div class="q-a" style="margin:0 0 12px">
           <h3>Q1. What is <abbr title="machine-learning operations">MLOps</abbr> and why is it needed?</h3>
           <p>MLOps = ML + DevOps. It applies DevOps principles (CI/CD, automation, monitoring) to the ML lifecycle:</p>
-          <div class="diagram"><pre>TRADITIONAL SOFTWARE:   Code → Build → Test → Deploy → Monitor
-ML SYSTEMS:             Data → Train → Validate → Deploy → Monitor → Retrain
-                           ↑                                    ↓
-                           └────────── Feedback Loop ──────────┘</pre></div>
+          <div class="diagram"><pre>TRADITIONAL SOFTWARE:   Code <span class="d-a">→</span> Build <span class="d-a">→</span> Test <span class="d-a">→</span> Deploy <span class="d-a">→</span> Monitor
+ML SYSTEMS:             Data <span class="d-a">→</span> Train <span class="d-a">→</span> Validate <span class="d-a">→</span> Deploy <span class="d-a">→</span> Monitor <span class="d-a">→</span> Retrain
+                           <span class="d-a">↑</span>                                    <span class="d-a">↓</span>
+                           <span class="d-l">└──────────</span> Feedback Loop <span class="d-l">──────────┘</span></pre></div>
           <p><strong>Why needed:</strong> <span class="mag">87%</span> of ML models never reach production (Gartner). MLOps solves: reproducibility, versioning, deployment automation, monitoring, and retraining.</p>
           <h3>Q2. What are the MLOps maturity levels?</h3>
           <div class="tbl-wrap">
@@ -1221,12 +1233,12 @@ mlflow.<span class="fn">set_experiment</span>(<span class="str">"fraud-detection
     mlflow.sklearn.<span class="fn">log_model</span>(model, <span class="str">"model"</span>)</code></pre>
           <h3>Q4. What is a <abbr title="the shared service that computes and serves features identically to training and serving">feature store</abbr> and why is it important?</h3>
           <p>A centralized repository for storing, managing, and serving ML features:</p>
-          <div class="diagram"><pre>DATA SOURCES → Feature Engineering → FEATURE STORE → Training / Serving
-                                          ↓
-                              ┌───────────┴───────────┐
-                              │ Offline Store (batch)  │  → Training
-                              │ Online Store (low-lat) │  → Inference
-                              └───────────────────────┘</pre></div>
+          <div class="diagram"><pre>DATA SOURCES <span class="d-a">→</span> Feature Engineering <span class="d-a">→</span> FEATURE STORE <span class="d-a">→</span> Training / Serving
+                                          <span class="d-a">↓</span>
+                              <span class="d-l">┌───────────┴───────────┐</span>
+                              <span class="d-l">│</span> Offline Store (batch)  <span class="d-l">│</span>  <span class="d-a">→</span> Training
+                              <span class="d-l">│</span> Online Store (low-lat) <span class="d-l">│</span>  <span class="d-a">→</span> Inference
+                              <span class="d-l">└───────────────────────┘</span></pre></div>
           <ul>
             <li><strong>Prevents <abbr title="the batch and online paths computing the same feature differently, so production silently disagrees with the offline metric">training-serving skew</abbr>:</strong> Same feature computation for training and inference</li>
             <li><strong>Tools:</strong> Feast (open-source), Tecton, Hopsworks, SageMaker Feature Store</li>
@@ -1377,14 +1389,14 @@ dvc checkout  <span class="cmt"># Downloads the correct data version</span></cod
           <p><strong>Serving frameworks:</strong> Triton Inference Server, TorchServe, BentoML, Ray Serve, Seldon</p>
           <h3>Q9. What is A/B testing for ML models?</h3>
           <div class="diagram"><pre>USER TRAFFIC (100%)
-     ├── 90% → Model A (current production)  ─→ Measure metrics
-     └── 10% → Model B (challenger)          ─→ Measure metrics
-                                                    ↓
+     <span class="d-l">├──</span> 90% <span class="d-a">→</span> Model A (current production)  <span class="d-l">─</span><span class="d-a">→</span> Measure metrics
+     <span class="d-l">└──</span> 10% <span class="d-a">→</span> Model B (challenger)          <span class="d-l">─</span><span class="d-a">→</span> Measure metrics
+                                                    <span class="d-a">↓</span>
                                              Statistical test
                                              (t-test, chi-square)
-                                                    ↓
+                                                    <span class="d-a">↓</span>
                                          If B is significantly better
-                                             → Promote B to 100%</pre></div>
+                                             <span class="d-a">→</span> Promote B to 100%</pre></div>
           <p><strong>Key considerations:</strong>
             - Minimum sample size for statistical significance
             - Duration (typically 1-4 weeks)
@@ -1392,9 +1404,9 @@ dvc checkout  <span class="cmt"># Downloads the correct data version</span></cod
             - Metric selection (primary: business metric, secondary: model metric)</p>
           <h3>Q10. What is <abbr title="running a new model alongside the live one on real traffic without serving its output">shadow deployment</abbr> (dark launching)?</h3>
           <div class="diagram"><pre>USER TRAFFIC (100%)
-     └── 100% → Model A (serves response to user)
-     └── 100% → Model B (runs in parallel, response DISCARDED)
-                    ↓
+     <span class="d-l">└──</span> 100% <span class="d-a">→</span> Model A (serves response to user)
+     <span class="d-l">└──</span> 100% <span class="d-a">→</span> Model B (runs in parallel, response DISCARDED)
+                    <span class="d-a">↓</span>
               Compare predictions offline
               No risk to users</pre></div>
           <ul>
@@ -1403,12 +1415,12 @@ dvc checkout  <span class="cmt"># Downloads the correct data version</span></cod
             <li><strong>Use case:</strong> Validate new model before any traffic switch</li>
           </ul>
           <h3>Q11. What is canary deployment?</h3>
-          <div class="diagram"><pre>Phase 1: 1% traffic → New model  (monitor for errors)
-Phase 2: 5% traffic → New model  (monitor metrics)
-Phase 3: 25% traffic → New model (compare against old)
-Phase 4: 100% traffic → New model (full rollout)
+          <div class="diagram"><pre>Phase 1: 1% traffic <span class="d-a">→</span> New model  (monitor for errors)
+Phase 2: 5% traffic <span class="d-a">→</span> New model  (monitor metrics)
+Phase 3: 25% traffic <span class="d-a">→</span> New model (compare against old)
+Phase 4: 100% traffic <span class="d-a">→</span> New model (full rollout)
 
-ROLLBACK: If any phase shows degradation → instant rollback to old model</pre></div>
+ROLLBACK: If any phase shows degradation <span class="d-a">→</span> instant rollback to old model</pre></div>
           <h3>Q12. What is model drift and how do you detect it?</h3>
           <div class="tbl-wrap">
             <table class="t3">
@@ -1449,23 +1461,23 @@ stat, p_value = <span class="fn">ks_2samp</span>(train_feature, prod_feature)
     <span class="fn">print</span>(f<span class="str">"Drift detected! p-value: {p_value}"</span>)</code></pre>
           <h3>Q13. What monitoring should you set up for ML models in production?</h3>
           <div class="diagram"><pre>MODEL MONITORING STACK:
-┌─────────────────────────────────────┐
-│ Business Metrics (revenue, CTR)     │  ← Impact
-│ Model Metrics (accuracy, F1, AUC)   │  ← Quality
-│ Data Metrics (drift, missing, dist) │  ← Input health
-│ System Metrics (latency, CPU, mem)  │  ← Infrastructure
-└─────────────────────────────────────┘
+<span class="d-l">┌─────────────────────────────────────┐</span>
+<span class="d-l">│</span> Business Metrics (revenue, CTR)     <span class="d-l">│</span>  <span class="d-a">←</span> Impact
+<span class="d-l">│</span> Model Metrics (accuracy, F1, AUC)   <span class="d-l">│</span>  <span class="d-a">←</span> Quality
+<span class="d-l">│</span> Data Metrics (drift, missing, dist) <span class="d-l">│</span>  <span class="d-a">←</span> Input health
+<span class="d-l">│</span> System Metrics (latency, CPU, mem)  <span class="d-l">│</span>  <span class="d-a">←</span> Infrastructure
+<span class="d-l">└─────────────────────────────────────┘</span>
 
 TOOLS: Prometheus + Grafana, Evidently, Whylogs, Arize, Fiddler
 ALERTS: PagerDuty/Slack when thresholds crossed</pre></div>
           <h3>Q14. What is CI/CD for ML?</h3>
           <div class="diagram"><pre>CI (Continuous Integration):
-  Push code → Run unit tests → Run data validation → Train model
-  → Run model validation → Integration tests → Build Docker image
+  Push code <span class="d-a">→</span> Run unit tests <span class="d-a">→</span> Run data validation <span class="d-a">→</span> Train model
+  <span class="d-a">→</span> Run model validation <span class="d-a">→</span> Integration tests <span class="d-a">→</span> Build Docker image
 
 CD (Continuous Deployment):
-  Build image → Push to registry → Deploy to staging
-  → Run smoke tests → Shadow/canary deploy → Promote to production
+  Build image <span class="d-a">→</span> Push to registry <span class="d-a">→</span> Deploy to staging
+  <span class="d-a">→</span> Run smoke tests <span class="d-a">→</span> Shadow/canary deploy <span class="d-a">→</span> Promote to production
 
 ML-SPECIFIC CI/CD:
   - Data validation (Great Expectations, Pandera)
@@ -1921,16 +1933,16 @@ volumes:
           <h3>Q30. What is Kubernetes and why is it used for ML serving?</h3>
           <p>K8s orchestrates containers across a cluster:</p>
           <div class="diagram"><pre>K8s ARCHITECTURE:
-┌─────── Control Plane ───────┐
-│ API Server, Scheduler,      │
-│ Controller Manager, etcd    │
-└─────────────────────────────┘
-         ↓ manages
-┌─── Worker Node 1 ────┐  ┌─── Worker Node 2 ──────┐
-│ Pod (container)       │  │ Pod (container)       │
-│ Pod (container)       │  │ Pod (container)       │
-│ kubelet, kube-proxy   │  │ kubelet, kube-proxy   │
-└───────────────────────┘  └───────────────────────┘</pre></div>
+<span class="d-l">┌───────</span> Control Plane <span class="d-l">───────┐</span>
+<span class="d-l">│</span> API Server, Scheduler,      <span class="d-l">│</span>
+<span class="d-l">│</span> Controller Manager, etcd    <span class="d-l">│</span>
+<span class="d-l">└─────────────────────────────┘</span>
+         <span class="d-a">↓</span> manages
+<span class="d-l">┌───</span> Worker Node 1 <span class="d-l">────┐</span>  <span class="d-l">┌───</span> Worker Node 2 <span class="d-l">──────┐</span>
+<span class="d-l">│</span> Pod (container)       <span class="d-l">│</span>  <span class="d-l">│</span> Pod (container)       <span class="d-l">│</span>
+<span class="d-l">│</span> Pod (container)       <span class="d-l">│</span>  <span class="d-l">│</span> Pod (container)       <span class="d-l">│</span>
+<span class="d-l">│</span> kubelet, kube-proxy   <span class="d-l">│</span>  <span class="d-l">│</span> kubelet, kube-proxy   <span class="d-l">│</span>
+<span class="d-l">└───────────────────────┘</span>  <span class="d-l">└───────────────────────┘</span></pre></div>
           <p><strong>For ML:</strong> Auto-scaling (HPA), GPU scheduling, rolling updates, health checks, service discovery.</p>
           <h3>Q31. What is a Kubernetes Deployment?</h3>
           <pre class="code" data-lang="yaml"><code>apiVersion: apps/v1
@@ -2113,12 +2125,12 @@ jobs:
           aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_URI
           docker push $ECR_URI/ml-model:${{ github.sha }}</code></pre>
           <h3>Q37. What is container networking and service discovery in K8s?</h3>
-          <div class="diagram"><pre>POD-TO-POD:    ClusterIP service → DNS (model-api.default.svc.cluster.local)
+          <div class="diagram"><pre>POD-TO-POD:    ClusterIP service <span class="d-a">→</span> DNS (model-api.default.svc.cluster.local)
 POD-TO-EXTERNAL: NodePort or LoadBalancer service
 INGRESS:        Route external HTTP to internal services
 
 Example:
-  Client → Ingress (nginx) → Service (model-api) → Pod1, Pod2, Pod3
+  Client <span class="d-a">→</span> Ingress (nginx) <span class="d-a">→</span> Service (model-api) <span class="d-a">→</span> Pod1, Pod2, Pod3
 
 Service types:
   ClusterIP:    Internal only (default)
@@ -2197,7 +2209,7 @@ ACCURACY = <span class="fn">Gauge</span>(<span class="str">'model_accuracy'</spa
           <div class="diagram"><pre>ELK = Elasticsearch + Logstash + Kibana
 
 ML LOGGING PIPELINE:
-  Model API → Logstash (collect, parse) → Elasticsearch (store, index) → Kibana (visualize)
+  Model API <span class="d-a">→</span> Logstash (collect, parse) <span class="d-a">→</span> Elasticsearch (store, index) <span class="d-a">→</span> Kibana (visualize)
 
 LOG FORMAT:
 {
@@ -2216,11 +2228,11 @@ USE CASES:
   - Audit predictions (compliance)</pre></div>
           <h3>Q43. What is OpenTelemetry and distributed tracing?</h3>
           <div class="diagram"><pre>REQUEST FLOW (traced):
-  Client → API Gateway [trace_id: abc, span: 1]
-           → Feature Service [trace_id: abc, span: 2]
-           → Model Service [trace_id: abc, span: 3]
-           → Post-processing [trace_id: abc, span: 4]
-           → Response
+  Client <span class="d-a">→</span> API Gateway [trace_id: abc, span: 1]
+           <span class="d-a">→</span> Feature Service [trace_id: abc, span: 2]
+           <span class="d-a">→</span> Model Service [trace_id: abc, span: 3]
+           <span class="d-a">→</span> Post-processing [trace_id: abc, span: 4]
+           <span class="d-a">→</span> Response
 
 Each span records: start_time, end_time, status, metadata
 Full trace shows end-to-end latency breakdown</pre></div>
@@ -2978,7 +2990,7 @@ client.<span class="fn">transition_model_version_stage</span>(
           </div>
           <h3>Q76. What is data lineage and why does it matter?</h3>
           <div class="diagram"><pre>DATA LINEAGE TRACKS:
-  Raw Data → Cleaning → Feature Engineering → Training Data → Model v3.2 → Predictions
+  Raw Data <span class="d-a">→</span> Cleaning <span class="d-a">→</span> Feature Engineering <span class="d-a">→</span> Training Data <span class="d-a">→</span> Model v3.2 <span class="d-a">→</span> Predictions
 
 WHY: 
   - Debug: Which data produced bad predictions?
@@ -3004,11 +3016,11 @@ FEATURE_FLAGS = {
     <span class="kw">return</span> model.<span class="fn">predict</span>(request.features)</code></pre>
           <h3>Q78. What is chaos engineering for ML systems?</h3>
           <div class="diagram"><pre>EXPERIMENTS:
-  1. Kill a model server pod → Does load balancer reroute?
-  2. Inject 2s latency to feature store → Does circuit breaker trip?
-  3. Corrupt 10% of input data → Does data validation catch it?
-  4. Fill disk on model server → Does alerting fire?
-  5. Return random predictions → Does monitoring detect accuracy drop?
+  1. Kill a model server pod <span class="d-a">→</span> Does load balancer reroute?
+  2. Inject 2s latency to feature store <span class="d-a">→</span> Does circuit breaker trip?
+  3. Corrupt 10% of input data <span class="d-a">→</span> Does data validation catch it?
+  4. Fill disk on model server <span class="d-a">→</span> Does alerting fire?
+  5. Return random predictions <span class="d-a">→</span> Does monitoring detect accuracy drop?
 
 TOOLS: Chaos Monkey, Litmus, Gremlin
 PRINCIPLE: Build confidence in system resilience through controlled failures</pre></div>

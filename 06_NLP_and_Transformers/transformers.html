@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1195,10 +1207,10 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <p>Transformers are a neural network architecture that replaced recurrent models (RNNs/LSTMs) by using self-attention to process all input positions in parallel, eliminating sequential bottlenecks and enabling massive GPU acceleration. Introduced in the 2017 "Attention Is All You Need" paper by Vaswani et al., they form the foundation of all modern large language models.</p>
-          <div class="diagram"><pre>RNN PROBLEMS → TRANSFORMER SOLUTIONS:
+          <div class="diagram"><pre>RNN PROBLEMS <span class="d-a">→</span> TRANSFORMER SOLUTIONS:
 
   Problem                          Solution
-  ────────────────────────         ──────────────────────────
+  <span class="d-l">────────────────────────</span>         <span class="d-l">──────────────────────────</span>
   Sequential processing (slow)     Parallel attention (all at once)
   Vanishing gradients over time    Direct attention to any position
   Fixed-size context bottleneck    Every token attends to every token
@@ -1224,19 +1236,19 @@ TIMELINE:
           <p>The Transformer follows an encoder-decoder structure where the encoder maps input tokens to contextualized representations via self-attention, and the decoder autoregressively generates output tokens using masked self-attention and cross-attention to the encoder. Each block stacks multi-head attention with feed-forward layers, residual connections, and layer normalization.</p>
           <div class="diagram"><pre>THE ORIGINAL TRANSFORMER (encoder-decoder):
 
-  Source tokens → ENCODER → contextualized representations
-                              ↓ (cross-attention)
-  Target tokens → DECODER → next token probabilities
+  Source tokens <span class="d-a">→</span> ENCODER <span class="d-a">→</span> contextualized representations
+                              <span class="d-a">↓</span> (cross-attention)
+  Target tokens <span class="d-a">→</span> DECODER <span class="d-a">→</span> next token probabilities
 
 ENCODER BLOCK (×N):                    DECODER BLOCK (×N):
   Input                                  Input
-    ↓                                      ↓
+    <span class="d-a">↓</span>                                      <span class="d-a">↓</span>
   Multi-Head Self-Attention              Masked Multi-Head Self-Attention
-    ↓ (+ residual + LayerNorm)             ↓ (+ residual + LayerNorm)
+    <span class="d-a">↓</span> (+ residual + LayerNorm)             <span class="d-a">↓</span> (+ residual + LayerNorm)
   Feed-Forward Network                   Multi-Head Cross-Attention
-    ↓ (+ residual + LayerNorm)             ↓ (+ residual + LayerNorm)  
+    <span class="d-a">↓</span> (+ residual + LayerNorm)             <span class="d-a">↓</span> (+ residual + LayerNorm)  
   Output                                Feed-Forward Network
-                                           ↓ (+ residual + LayerNorm)
+                                           <span class="d-a">↓</span> (+ residual + LayerNorm)
                                          Output
 
 ORIGINAL PAPER CONFIG:
@@ -1281,7 +1293,7 @@ ORIGINAL PAPER CONFIG:
   Without scaling, PE would dominate embeddings.
   Scaling by √d_model makes embedding magnitudes comparable to PE.
   
-  d_model=512 → scale = √512 ≈ 22.6
+  d_model=512 <span class="d-a">→</span> scale = √512 ≈ 22.6
   Embedding values go from ~[-1,1] to ~[-22.6, 22.6]
   Now PE [-1,1] is a small perturbation, not a dominating signal.</pre></div>
         </div>
@@ -1312,8 +1324,8 @@ ORIGINAL PAPER CONFIG:
     WHY SCALE? Without scaling, for large d_k, dot products grow 
     proportionally to d_k. If Q and K are i.i.d N(0,1):
       E[q·k] = 0, Var[q·k] = d_k
-    Large variance → some softmax inputs are huge → softmax saturates
-    → gradients vanish. Dividing by √d_k normalizes variance to 1.
+    Large variance <span class="d-a">→</span> some softmax inputs are huge <span class="d-a">→</span> softmax saturates
+    <span class="d-a">→</span> gradients vanish. Dividing by √d_k normalizes variance to 1.
     
   Step 4: Softmax (per row)
     weights = softmax(scores)        (seq_len × seq_len)
@@ -1337,9 +1349,9 @@ ORIGINAL PAPER CONFIG:
   KEY   (K):  "what info does each token ADVERTISE?" (the index/labels)
   VALUE (V):  "what info does each token DELIVER?"   (the actual content)
 
-  similarity(Q_i, K_j) → how well token j answers token i's query
-  softmax → turn similarities into weights that sum to 1
-  output_i = Σ_j weight_ij · V_j  →  a weighted blend of everyone's content
+  similarity(Q_i, K_j) <span class="d-a">→</span> how well token j answers token i's query
+  softmax <span class="d-a">→</span> turn similarities into weights that sum to 1
+  output_i = Σ_j weight_ij · V_j  <span class="d-a">→</span>  a weighted blend of everyone's content
 
 A normal Python dict does a HARD lookup (one exact key). Attention does a SOFT
 lookup: it blends ALL values, weighted by how well each key matches the query.</pre></div>
@@ -1360,25 +1372,25 @@ V = [[1.0, 0.0, 0.5, 0.2],   # value of "The"
      [0.2, 0.8, 0.1, 0.9],   # value of "cat"
      [0.5, 0.3, 0.7, 0.4]]   # value of "sat"
 
-── Step 2: raw scores = Q·Kᵀ  (3×3) ──────────────────────────
+<span class="d-l">──</span> Step 2: raw scores = Q·Kᵀ  (3×3) <span class="d-l">──────────────────────────</span>
   score[0] (The): [1.0·0.9+0.5·0.4+0.3·0.2+0.2·0.3, ... , ...] = [1.22, 1.02, 0.81]
   score[1] (cat):                                              = [0.92, 1.72, 0.89]
   score[2] (sat):                                              = [0.80, 1.06, 1.18]
 
-── Step 3: scale by √d_k = √4 = 2 ────────────────────────────
+<span class="d-l">──</span> Step 3: scale by √d_k = √4 = 2 <span class="d-l">────────────────────────────</span>
   [[0.610, 0.510, 0.405],
    [0.460, 0.860, 0.445],
    [0.400, 0.530, 0.590]]
 
-── Step 4: softmax each ROW (exponentiate, normalize) ────────
-  row0: e^.61,e^.51,e^.405 = 1.840,1.665,1.499  / 5.005 → [0.368, 0.333, 0.300]
-  row1: e^.46,e^.86,e^.445 = 1.584,2.363,1.561  / 5.508 → [0.288, 0.429, 0.283]
-  row2: e^.40,e^.53,e^.59  = 1.492,1.699,1.804  / 4.995 → [0.299, 0.340, 0.361]
+<span class="d-l">──</span> Step 4: softmax each ROW (exponentiate, normalize) <span class="d-l">────────</span>
+  row0: e^.61,e^.51,e^.405 = 1.840,1.665,1.499  / 5.005 <span class="d-a">→</span> [0.368, 0.333, 0.300]
+  row1: e^.46,e^.86,e^.445 = 1.584,2.363,1.561  / 5.508 <span class="d-a">→</span> [0.288, 0.429, 0.283]
+  row2: e^.40,e^.53,e^.59  = 1.492,1.699,1.804  / 4.995 <span class="d-a">→</span> [0.299, 0.340, 0.361]
         (each row sums to 1.0 — a probability distribution over the 3 tokens)
 
-── Step 5: output = weights · V  (3×4) ───────────────────────
+<span class="d-l">──</span> Step 5: output = weights · V  (3×4) <span class="d-l">───────────────────────</span>
   output[0] = 0.368·V₀ + 0.333·V₁ + 0.300·V₂
-            = [0.585, 0.356, 0.427, 0.493]   ← new representation of "The"
+            = [0.585, 0.356, 0.427, 0.493]   <span class="d-a">←</span> new representation of "The"
   output[1] = 0.288·V₀ + 0.429·V₁ + 0.283·V₂ = [0.487, 0.428, 0.353, 0.560]
   output[2] = 0.299·V₀ + 0.340·V₁ + 0.361·V₂ = [0.548, 0.380, 0.439, 0.490]
 
@@ -1400,7 +1412,7 @@ dot product  q·k = Σ_{i=1}^{d_k} q_i k_i  has:
 
 So the raw scores have standard deviation √d_k. For d_k=64 that's ±8 — large
 inputs push softmax into a near one-hot regime where its gradient ≈ 0
-(saturation → vanishing gradients). Dividing by √d_k rescales the variance back
+(saturation <span class="d-a">→</span> vanishing gradients). Dividing by √d_k rescales the variance back
 to 1, keeping softmax in its responsive range.</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1410,11 +1422,11 @@ to 1, keeping softmax in its responsive range.</pre></div>
           </div>
           <div class="q-a">
             <div class="diagram"><pre>For sequence length n and head dim d_k:
-  Q·Kᵀ      :  (n × d_k)·(d_k × n) → (n × n)   → O(n²·d_k)  time,  O(n²) memory
-  softmax   :  (n × n)                          → O(n²)
-  weights·V :  (n × n)·(n × d_v)  → (n × d_v)   → O(n²·d_v)
+  Q·Kᵀ      :  (n × d_k)·(d_k × n) <span class="d-a">→</span> (n × n)   <span class="d-a">→</span> O(n²·d_k)  time,  O(n²) memory
+  softmax   :  (n × n)                          <span class="d-a">→</span> O(n²)
+  weights·V :  (n × n)·(n × d_v)  <span class="d-a">→</span> (n × d_v)   <span class="d-a">→</span> O(n²·d_v)
 
-  ⇒ Self-attention is O(n²·d) — QUADRATIC in sequence length.
+  <span class="d-a">→</span> Self-attention is O(n²·d) — QUADRATIC in sequence length.
     This n² term is the whole reason long context is hard, and the target of
     Flash Attention (§13), sparse attention, and SSMs (§23).</pre></div>
             <div class="note">
@@ -1430,10 +1442,10 @@ to 1, keeping softmax in its responsive range.</pre></div>
   Single head: ONE kind of relationship (e.g., syntactic)
   Multiple heads: DIFFERENT relationships in parallel
   
-  Head 1: Syntactic dependencies ("subject → verb")
-  Head 2: Semantic similarity ("cat → pet → animal")
+  Head 1: Syntactic dependencies ("subject <span class="d-a">→</span> verb")
+  Head 2: Semantic similarity ("cat <span class="d-a">→</span> pet <span class="d-a">→</span> animal")
   Head 3: Positional proximity ("nearby words")
-  Head 4: Coreference ("he" → "John")
+  Head 4: Coreference ("he" <span class="d-a">→</span> "John")
   
 DIMENSIONS:
   d_model = 512, h = 8 heads
@@ -1494,12 +1506,12 @@ DIMENSIONS:
             <div class="diagram"><pre>For decoder (GPT-style): position i can only attend to positions ≤ i.
 
 Mask matrix (1 = attend, 0 = block):
-  ┌─────────────┐     After masking: scores + (-∞ where mask=0)
-  │ 1  0  0  0  │     Softmax(-∞) = 0 → no attention to future
-  │ 1  1  0  0  │
-  │ 1  1  1  0  │     Token 3 sees: Token 1, Token 2, Token 3
-  │ 1  1  1  1  │     Token 4 sees: Token 1, Token 2, Token 3, Token 4
-  └─────────────┘
+  <span class="d-l">┌─────────────┐</span>     After masking: scores + (-∞ where mask=0)
+  <span class="d-l">│</span> 1  0  0  0  <span class="d-l">│</span>     Softmax(-∞) = 0 <span class="d-a">→</span> no attention to future
+  <span class="d-l">│</span> 1  1  0  0  <span class="d-l">│</span>
+  <span class="d-l">│</span> 1  1  1  0  <span class="d-l">│</span>     Token 3 sees: Token 1, Token 2, Token 3
+  <span class="d-l">│</span> 1  1  1  1  <span class="d-l">│</span>     Token 4 sees: Token 1, Token 2, Token 3, Token 4
+  <span class="d-l">└─────────────┘</span>
   
   This enables autoregressive generation:
   The model predicts next token without "cheating" by looking ahead.</pre></div>
@@ -1512,15 +1524,15 @@ Mask matrix (1 = attend, 0 = block):
    [0.40,  0.53,  0.59,  0.95]
 
 Step 1 — apply causal mask (token 2 may NOT see position 3):
-   [0.40,  0.53,  0.59,  −∞ ]      ← future position set to −∞
+   [0.40,  0.53,  0.59,  −∞ ]      <span class="d-a">←</span> future position set to −∞
 
 Step 2 — softmax:  e^{−∞} = 0, so the future token gets EXACTLY zero weight
    e^.40, e^.53, e^.59, e^{−∞} = 1.492, 1.699, 1.804, 0.0
    sum = 4.995
    weights = [0.299, 0.340, 0.361, 0.000]
-                                    ↑ future contributes nothing
+                                    <span class="d-a">↑</span> future contributes nothing
 
-Without the mask, that 0.95 would have been the LARGEST weight → the model would
+Without the mask, that 0.95 would have been the LARGEST weight <span class="d-a">→</span> the model would
 "cheat" by peeking at the answer it's supposed to predict. The mask is what makes
 training (teacher forcing over the whole sequence at once) match inference
 (generating left-to-right).</pre></div>
@@ -1543,13 +1555,13 @@ training (teacher forcing over the whole sequence at once) match inference
             <p><strong>2. Training is PARALLEL; inference is SEQUENTIAL — same model, different cost.</strong>
             </p>
             <div class="diagram"><pre>  TRAINING (teacher forcing)            INFERENCE (free-running)
-  ───────────────────────────          ─────────────────────────────
+  <span class="d-l">───────────────────────────</span>          <span class="d-l">─────────────────────────────</span>
   Whole gold sequence in at once.       No gold sequence — start from the prompt.
-  Causal mask computes ALL n            Generate tok → APPEND it → feed back →
-  next-token predictions in ONE         generate next → … (n sequential passes).
+  Causal mask computes ALL n            Generate tok <span class="d-a">→</span> APPEND it <span class="d-a">→</span> feed back <span class="d-a">→</span>
+  next-token predictions in ONE         generate next <span class="d-a">→</span> … (n sequential passes).
   forward pass (positions can't peek    Each step's input includes the model's
   ahead, so it's safe to parallelize).  OWN previous outputs.
-        ⚡ O(1) sequential steps               🐢 O(n) sequential steps</pre></div>
+        ! O(1) sequential steps               * O(n) sequential steps</pre></div>
             <p><strong>3. Exposure bias</strong> — the gap between those two regimes. In training the model always conditions on <strong>correct</strong> prefixes; at inference it conditions on its <strong>own</strong> (possibly wrong) tokens, so an early mistake compounds down the sequence. Mitigations: scheduled sampling, sequence-level / <abbr title="reinforcement learning">RL</abbr> fine-tuning, and high-quality decoding (the strategies in §16 — temperature, top-p, beam).</p>
             <p><strong>4. AR vs non-AR families</strong> — autoregressive is one choice, not the only one:</p>
             <pre class="code"><code>  AR (decoder-only: GPT, LLaMA)   left-to-right, one token/step   ★ generation quality, 🐢 sequential
@@ -1577,7 +1589,7 @@ training (teacher forcing over the whole sequence at once) match inference
 
   This is how the decoder "reads" the encoder output.
   
-  Translation: "Le chat" → encoder → K, V
+  Translation: "Le chat" <span class="d-a">→</span> encoder <span class="d-a">→</span> K, V
   Decoder generating "The": Q from decoder, K/V from encoder
   Decoder attends to the most relevant source tokens.</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -1590,16 +1602,16 @@ training (teacher forcing over the whole sequence at once) match inference
           </div>
           <div class="q-a"><span class="mth mth-block"><span class="mth-txt">FFN</span>(<i>x</i>) <span class="mth-op">=</span> <span class="mth-txt">GELU</span>(<i>x</i><i>W</i><sub>1</sub> <span class="mth-op">+</span> <i>b</i><sub>1</sub>) <i>W</i><sub>2</sub> <span class="mth-op">+</span> <i>b</i><sub>2</sub></span>
             <p>Applied <strong>independently and identically to every token position</strong> (hence "position-wise"). While attention <em>mixes</em> tokens, the <abbr title="feed-forward network">FFN</abbr> <em>transforms each token on its own</em> — it's where most of the model's "knowledge" lives.</p>
-            <div class="diagram"><pre>STANDARD: d_model → d_ff → d_model   (e.g. 512 → 2048 → 512)
+            <div class="diagram"><pre>STANDARD: d_model <span class="d-a">→</span> d_ff <span class="d-a">→</span> d_model   (e.g. 512 <span class="d-a">→</span> 2048 <span class="d-a">→</span> 512)
   d_ff = 4 × d_model  (convention from the original paper)
 
   x      :  (d_model,)            = (512,)
-  W1     :  (d_model, d_ff)       = (512, 2048)   expand ↑
-  W2     :  (d_ff, d_model)       = (2048, 512)   project ↓
+  W1     :  (d_model, d_ff)       = (512, 2048)   expand <span class="d-a">↑</span>
+  W2     :  (d_ff, d_model)       = (2048, 512)   project <span class="d-a">↓</span>
 
   Parameters: d_model·d_ff + d_ff·d_model = 2·d_model·d_ff
   For 512/2048: 2·512·2048 = 2,097,152 ≈ 2M per layer
-  → FFN is ~2/3 of all non-embedding params (attention is the other ~1/3).</pre></div>
+  <span class="d-a">→</span> FFN is ~2/3 of all non-embedding params (attention is the other ~1/3).</pre></div>
             <p><strong>Mental model — FFN as key-value memory:</strong> <span class="mth"><i>W</i><sub>1</sub></span> rows act like "keys" that detect patterns in the token; the hidden activation says <em>which</em> patterns fired; <span class="mth"><i>W</i><sub>2</sub></span> columns are the "values" written back. Pre-training stores facts ("Paris→France") in these weights.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1608,14 +1620,14 @@ training (teacher forcing over the whole sequence at once) match inference
             <h3>Activation functions — the math</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02Transformers-9"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>ReLU(x)  = max(0, x)                          ← original, simple, but hard zero
+            <div class="diagram"><pre>ReLU(x)  = max(0, x)                          <span class="d-a">←</span> original, simple, but hard zero
 
-GELU(x)  = x · Φ(x) = x · ½[1 + erf(x/√2)]    ← exact (Φ = standard-normal CDF)
-         ≈ 0.5x(1 + tanh[√(2/π)(x + 0.044715x³)])   ← fast tanh approximation
+GELU(x)  = x · Φ(x) = x · ½[1 + erf(x/√2)]    <span class="d-a">←</span> exact (Φ = standard-normal CDF)
+         ≈ 0.5x(1 + tanh[√(2/π)(x + 0.044715x³)])   <span class="d-a">←</span> fast tanh approximation
   "Gaussian Error Linear Unit": a SMOOTH gate — weights x by the probability a
-  standard normal is below it. Used in BERT, GPT-2/3. Smoothness → better gradients.
+  standard normal is below it. Used in BERT, GPT-2/3. Smoothness <span class="d-a">→</span> better gradients.
 
-Swish/SiLU(x) = x · σ(x)                       ← used inside SwiGLU (LLaMA)</pre></div>
+Swish/SiLU(x) = x · σ(x)                       <span class="d-a">←</span> used inside SwiGLU (LLaMA)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02Transformers-10">
@@ -1630,7 +1642,7 @@ to a standard FFN, d_ff is shrunk to 2/3:
 
    d_ff(SwiGLU) = (2/3) · (4 · d_model) = (8/3) · d_model
 
-  → same cost, ~1-2% better perplexity. This is why LLaMA's FFN hidden size looks
+  <span class="d-a">→</span> same cost, ~1-2% better perplexity. This is why LLaMA's FFN hidden size looks
     "odd" (e.g. 11008 for d_model=4096 ≈ 8/3·4096 rounded to a multiple of 256).</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1644,9 +1656,9 @@ to a standard FFN, d_ff is shrunk to 2/3:
             <p><span class="mth"><span class="mth-gr">γ</span>,<span class="mth-gr">β</span><span class="mth-op">∈</span>ℝ<sup><i>d</i></sup></span> are learned scale/shift; <span class="mth"><span class="mth-gr">ε</span><span class="mth-op">≈</span>10<sup><span class="mth-op">−</span>5</sup></span> guards against divide-by-zero.</p>
             <div class="diagram"><pre>Worked micro-example, x = [2, 4, 4, 4, 5, 5, 7, 9]  (d=8):
   μ  = (2+4+4+4+5+5+7+9)/8 = 5
-  σ² = [(−3)²+(−1)²+(−1)²+(−1)²+0²+0²+2²+4²]/8 = (9+1+1+1+0+0+4+16)/8 = 4 → σ=2
+  σ² = [(−3)²+(−1)²+(−1)²+(−1)²+0²+0²+2²+4²]/8 = (9+1+1+1+0+0+4+16)/8 = 4 <span class="d-a">→</span> σ=2
   x̂ = (x−5)/2 = [−1.5, −0.5, −0.5, −0.5, 0, 0, 1.0, 2.0]   (mean 0, var 1)
-  out = γ·x̂ + β   (γ,β default to 1,0 at init → out = x̂)</pre></div>
+  out = γ·x̂ + β   (γ,β default to 1,0 at init <span class="d-a">→</span> out = x̂)</pre></div>
             <p>Why normalize? Keeps each layer's input distribution stable across the 12–96 stacked blocks → faster, more stable training; lets you use higher learning rates.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1661,7 +1673,7 @@ to a standard FFN, d_ff is shrunk to 2/3:
   RMS = √(mean of squares) = √((4+16+16+16+25+25+49+81)/8) = √(232/8) = √29 ≈ 5.385
   out = x / 5.385 = [0.371, 0.743, 0.743, 0.743, 0.928, 0.928, 1.300, 1.671]
 
-  No μ to compute, no β to store → ~10-15% faster, fewer params, equal quality.
+  No μ to compute, no β to store <span class="d-a">→</span> ~10-15% faster, fewer params, equal quality.
   This is why every recent LLM (LLaMA, Mistral, Gemma, Qwen) uses RMSNorm.</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1671,15 +1683,15 @@ to a standard FFN, d_ff is shrunk to 2/3:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>ORIGINAL (Post-LN):                      MODERN (Pre-LN):
-  x → SubLayer → Add(x) → LayerNorm        x → LayerNorm → SubLayer → Add(x)
+  x <span class="d-a">→</span> SubLayer <span class="d-a">→</span> Add(x) <span class="d-a">→</span> LayerNorm        x <span class="d-a">→</span> LayerNorm <span class="d-a">→</span> SubLayer <span class="d-a">→</span> Add(x)
 
 Post-LN: norm AFTER the residual add. Original Transformer. Needs LR warmup;
          deep stacks can diverge (gradients through the norm get large).
 Pre-LN:  norm INSIDE the residual branch. The residual path stays "clean"
-         (identity), so gradients flow unobstructed through all layers →
+         (identity), so gradients flow unobstructed through all layers <span class="d-a">→</span>
          stable training, no warmup needed. Used by GPT-2+, LLaMA, ViT.
 
-  Pre-LN per block:   x = x + SubLayer(LN(x))   ← the residual x is never normalized</pre></div>
+  Pre-LN per block:   x = x + SubLayer(LN(x))   <span class="d-a">←</span> the residual x is never normalized</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="f02Transformers-p7"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>8. Encoder &amp; Decoder Blocks</span><i></i>
@@ -1743,17 +1755,17 @@ Pre-LN:  norm INSIDE the residual branch. The residual path stays "clean"
 
 BPE (Byte Pair Encoding) — used by GPT, LLaMA:
   1. Start with character vocabulary: {'a', 'b', ..., 'z', ' '}
-  2. Count frequency of adjacent pairs: ('t', 'h') → 100, ('h', 'e') → 85, ...
-  3. Merge most frequent pair into new token: 'th' → single token
+  2. Count frequency of adjacent pairs: ('t', 'h') <span class="d-a">→</span> 100, ('h', 'e') <span class="d-a">→</span> 85, ...
+  3. Merge most frequent pair into new token: 'th' <span class="d-a">→</span> single token
   4. Repeat until desired vocab size reached
   
-  "unhappiness" → ["un", "happiness"] or ["un", "happ", "iness"]
+  "unhappiness" <span class="d-a">→</span> ["un", "happiness"] or ["un", "happ", "iness"]
   
   Training time: Set by vocab_size hyperparameter (32K–100K typical)
 
 WORDPIECE — used by BERT:
   Like BPE but merges based on likelihood gain, not frequency.
-  Uses '##' prefix for continuation: "playing" → ["play", "##ing"]
+  Uses '##' prefix for continuation: "playing" <span class="d-a">→</span> ["play", "##ing"]
 
 SENTENCEPIECE — used by T5, LLaMA:
   Language-agnostic, treats input as raw byte stream.
@@ -1779,34 +1791,34 @@ UNIGRAM (SentencePiece variant):
    6 ×  n e w e r &lt;/w&gt;
    3 ×  w i d e r &lt;/w&gt;
 
-── Count every adjacent symbol pair (weighted by word count) ──
-   (e,r): 6+3 = 9   ← tie for max          (l,o): 5+2 = 7
-   (r,&lt;/w&gt;): 6+3 = 9 ← tie for max         (o,w): 5+2 = 7
+<span class="d-l">──</span> Count every adjacent symbol pair (weighted by word count) <span class="d-l">──</span>
+   (e,r): 6+3 = 9   <span class="d-a">←</span> tie for max          (l,o): 5+2 = 7
+   (r,&lt;/w&gt;): 6+3 = 9 <span class="d-a">←</span> tie for max         (o,w): 5+2 = 7
    (w,e): 2+6 = 8                          (n,e): 6   (e,w): 6
    (w,&lt;/w&gt;): 5    (e,s):2 (s,t):2 (t,&lt;/w&gt;):2   (w,i):3 (i,d):3 (d,e):3
 
-── MERGE 1: pick most frequent pair (e,r) → new token "er"  [freq 9] ──
+<span class="d-l">──</span> MERGE 1: pick most frequent pair (e,r) <span class="d-a">→</span> new token "er"  [freq 9] <span class="d-l">──</span>
    n e w er &lt;/w&gt;   (6)        w i d er &lt;/w&gt;   (3)        (others unchanged)
 
-── MERGE 2: (er,&lt;/w&gt;) → "er&lt;/w&gt;"  [freq 9] ──
+<span class="d-l">──</span> MERGE 2: (er,&lt;/w&gt;) <span class="d-a">→</span> "er&lt;/w&gt;"  [freq 9] <span class="d-l">──</span>
    n e w er&lt;/w&gt;    (6)        w i d er&lt;/w&gt;    (3)
 
-── MERGE 3: (n,e) → "ne"  [6]      MERGE 4: (ne,w) → "new"  [6]
-── MERGE 5: (l,o) → "lo"  [7]      MERGE 6: (lo,w) → "low"  [7]   ...
+<span class="d-l">──</span> MERGE 3: (n,e) <span class="d-a">→</span> "ne"  [6]      MERGE 4: (ne,w) <span class="d-a">→</span> "new"  [6]
+<span class="d-l">──</span> MERGE 5: (l,o) <span class="d-a">→</span> "lo"  [7]      MERGE 6: (lo,w) <span class="d-a">→</span> "low"  [7]   ...
 
 LEARNED MERGE RULES (ordered!):  er, er&lt;/w&gt;, ne, new, lo, low, ...
 FINAL VOCAB = base chars + every merged token.</pre></div>
             <p><strong>Encoding a NEW word</strong> applies the learned merge rules in the same order:</p>
-            <div class="diagram"><pre>"newer"  → n e w e r &lt;/w&gt;
-         → apply "er":     n e w er &lt;/w&gt;
-         → apply "er&lt;/w&gt;": n e w er&lt;/w&gt;
-         → apply "ne":     ne w er&lt;/w&gt;
-         → apply "new":    new er&lt;/w&gt;
-         → tokens: ["new", "er&lt;/w&gt;"]        ✅ 2 tokens, both seen in training
+            <div class="diagram"><pre>"newer"  <span class="d-a">→</span> n e w e r &lt;/w&gt;
+         <span class="d-a">→</span> apply "er":     n e w er &lt;/w&gt;
+         <span class="d-a">→</span> apply "er&lt;/w&gt;": n e w er&lt;/w&gt;
+         <span class="d-a">→</span> apply "ne":     ne w er&lt;/w&gt;
+         <span class="d-a">→</span> apply "new":    new er&lt;/w&gt;
+         <span class="d-a">→</span> tokens: ["new", "er&lt;/w&gt;"]        √ 2 tokens, both seen in training
 
-"lowest" → l o w e s t &lt;/w&gt;
-         → "lo","low" applied → low e s t &lt;/w&gt;   (e,s,t never merged)
-         → tokens: ["low", "e", "s", "t&lt;/w&gt;"]   ← rare suffix falls back to chars
+"lowest" <span class="d-a">→</span> l o w e s t &lt;/w&gt;
+         <span class="d-a">→</span> "lo","low" applied <span class="d-a">→</span> low e s t &lt;/w&gt;   (e,s,t never merged)
+         <span class="d-a">→</span> tokens: ["low", "e", "s", "t&lt;/w&gt;"]   <span class="d-a">←</span> rare suffix falls back to chars
                                                    (NO unknown-token error — key win)</pre></div>
             <div class="note">
               <p><strong>Byte-level BPE (GPT-2/3/4):</strong> start from the 256 raw <em>bytes</em> instead of Unicode characters. Guarantees ZERO out-of-vocabulary — any emoji, any language, any binary blob is always encodable. The <code>Ġ</code> you see in GPT-2 tokens is a visible stand-in for a leading space byte.</p>
@@ -1858,19 +1870,19 @@ LARGER VOCAB:
             <span class="mth mth-block"><span class="mth-txt">Attn</span>(<i>P</i><i>X</i>) <span class="mth-op">=</span> <span class="mth-txt">softmax</span><span class="mth-d">(</span><span class="mth-frac"><span class="mth-num">(<i>P</i><i>X</i><i>W</i><sub><i>Q</i></sub>)(<i>P</i><i>X</i><i>W</i><sub><i>K</i></sub>)<sup><i>T</i></sup></span><span class="mth-den"><span class="mth-sqrt">√<span class="mth-rad"><i>d</i><sub><i>k</i></sub></span></span></span></span><span class="mth-d">)</span>(<i>P</i><i>X</i><i>W</i><sub><i>V</i></sub>)</span>
             <span class="mth mth-block"><span class="mth-op">=</span> <span class="mth-txt">softmax</span><span class="mth-d">(</span><span class="mth-frac"><span class="mth-num"><i>P</i> (<i>X</i><i>W</i><sub><i>Q</i></sub>)(<i>X</i><i>W</i><sub><i>K</i></sub>)<sup><i>T</i></sup> <i>P</i><sup><i>T</i></sup></span><span class="mth-den"><span class="mth-sqrt">√<span class="mth-rad"><i>d</i><sub><i>k</i></sub></span></span></span></span><span class="mth-d">)</span><i>P</i>(<i>X</i><i>W</i><sub><i>V</i></sub>) <span class="mth-op">=</span> <i>P</i>· <span class="mth-txt">Attn</span>(<i>X</i>)</span>
             <p>Softmax is applied row-wise, and <span class="mth"><i>P</i>(·)<i>P</i><sup><i>T</i></sup></span> just relabels rows/columns, so the permutation passes straight through. <strong>Consequence:</strong> without injecting position, the model sees</p>
-            <div class="diagram"><pre>"dog bites man"  ==  "man bites dog"   ← identical bag-of-tokens to the network</pre></div>
+            <div class="diagram"><pre>"dog bites man"  ==  "man bites dog"   <span class="d-a">←</span> identical bag-of-tokens to the network</pre></div>
             <p>So we must add an order signal. Two design axes define every scheme:</p>
             <div class="diagram"><pre>                ABSOLUTE                         RELATIVE
             (encode position i)         (encode distance i − j)
-ADDED TO   ┌───────────────────────┐   ┌─────────────────────────────┐
-EMBEDDING  │ • Learned absolute    │   │ • Shaw et al. relative PE   │
-(input)    │ • Sinusoidal          │   │                             │
-           └───────────────────────┘   └─────────────────────────────┘
-ADDED IN   ┌───────────────────────┐   ┌─────────────────────────────┐
-ATTENTION  │ (rare)                │   │ • T5 relative bias          │
-(scores/QK)│                       │   │ • RoPE (rotation, mult.)    │
-           │                       │   │ • ALiBi (linear bias)       │
-           └───────────────────────┘   └─────────────────────────────┘</pre></div>
+ADDED TO   <span class="d-l">┌───────────────────────┐</span>   <span class="d-l">┌─────────────────────────────┐</span>
+EMBEDDING  <span class="d-l">│</span> • Learned absolute    <span class="d-l">│</span>   <span class="d-l">│</span> • Shaw et al. relative PE   <span class="d-l">│</span>
+(input)    <span class="d-l">│</span> • Sinusoidal          <span class="d-l">│</span>   <span class="d-l">│</span>                             <span class="d-l">│</span>
+           <span class="d-l">└───────────────────────┘</span>   <span class="d-l">└─────────────────────────────┘</span>
+ADDED IN   <span class="d-l">┌───────────────────────┐</span>   <span class="d-l">┌─────────────────────────────┐</span>
+ATTENTION  <span class="d-l">│</span> (rare)                <span class="d-l">│</span>   <span class="d-l">│</span> • T5 relative bias          <span class="d-l">│</span>
+(scores/QK)<span class="d-l">│</span>                       <span class="d-l">│</span>   <span class="d-l">│</span> • RoPE (rotation, mult.)    <span class="d-l">│</span>
+           <span class="d-l">│</span>                       <span class="d-l">│</span>   <span class="d-l">│</span> • ALiBi (linear bias)       <span class="d-l">│</span>
+           <span class="d-l">└───────────────────────┘</span>   <span class="d-l">└─────────────────────────────┘</span></pre></div>
             <p><strong>Why relative usually wins:</strong> what matters linguistically is <em>how far apart</em> two tokens are, not their absolute index. Relative schemes also <strong>extrapolate</strong> to longer sequences than seen in training.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1926,16 +1938,16 @@ x   = <span class="kw">self</span>.<span class="fn">token_emb</span>(idx) + pos<
             <p>Define the per-dimension angular frequency <span class="mth"> <span class="mth-gr">ω</span><sub><i>i</i></sub> <span class="mth-op">=</span> 10000<sup><span class="mth-op">−</span>2<i>i</i>/<i>d</i></sup> </span> (so dimension pair $i$ rotates at rate <span class="mth"><span class="mth-gr">ω</span><sub><i>i</i></sub></span>).</p>
             <div class="diagram"><pre>FREQUENCY SPECTRUM (geometric progression of wavelengths):
 
-  i = 0       → ω = 1            → wavelength 2π        (fastest, flips every token)
-  i = 1       → ω = 10000^(-2/d) → slightly slower
+  i = 0       <span class="d-a">→</span> ω = 1            <span class="d-a">→</span> wavelength 2π        (fastest, flips every token)
+  i = 1       <span class="d-a">→</span> ω = 10000^(-2/d) <span class="d-a">→</span> slightly slower
   ...
-  i = d/2 − 1 → ω ≈ 1/10000      → wavelength ≈ 2π·10000 (slowest, spans whole seq)
+  i = d/2 − 1 <span class="d-a">→</span> ω ≈ 1/10000      <span class="d-a">→</span> wavelength ≈ 2π·10000 (slowest, spans whole seq)
 
-  LOW dims  = HIGH frequency → resolve NEARBY positions (fine ruler)
-  HIGH dims = LOW  frequency → resolve DISTANT positions (coarse ruler)
+  LOW dims  = HIGH frequency <span class="d-a">→</span> resolve NEARBY positions (fine ruler)
+  HIGH dims = LOW  frequency <span class="d-a">→</span> resolve DISTANT positions (coarse ruler)
 
   It's literally binary-counting with sines: each dim is a "clock hand"
-  ticking at a different speed → together they uniquely stamp every position.</pre></div>
+  ticking at a different speed <span class="d-a">→</span> together they uniquely stamp every position.</pre></div>
             <p><strong>The key property — relative position is a linear (rotation) map.</strong> For a fixed offset $k$, <span class="mth"><i>P</i><i>E</i><sub><i>p</i><i>o</i><i>s</i><span class="mth-op">+</span><i>k</i></sub></span> is a <em>linear function of</em> <span class="mth"><i>P</i><i>E</i><sub><i>p</i><i>o</i><i>s</i></sub></span> that does <strong>not depend on <code>pos</code></strong>. Using angle-addition identities on pair $i$:</p>
             <span class="mth mth-block"><span class="mth-fn">sin</span>((<i>p</i><i>o</i><i>s</i><span class="mth-op">+</span><i>k</i>)<span class="mth-gr">ω</span><sub><i>i</i></sub>)<span class="mth-op">=</span><span class="mth-fn">sin</span>(<i>p</i><i>o</i><i>s</i> <span class="mth-gr">ω</span><sub><i>i</i></sub>)<span class="mth-fn">cos</span>(<i>k</i><span class="mth-gr">ω</span><sub><i>i</i></sub>)<span class="mth-op">+</span><span class="mth-fn">cos</span>(<i>p</i><i>o</i><i>s</i> <span class="mth-gr">ω</span><sub><i>i</i></sub>)<span class="mth-fn">sin</span>(<i>k</i><span class="mth-gr">ω</span><sub><i>i</i></sub>)</span>
             <span class="mth mth-block"><span class="mth-fn">cos</span>((<i>p</i><i>o</i><i>s</i><span class="mth-op">+</span><i>k</i>)<span class="mth-gr">ω</span><sub><i>i</i></sub>)<span class="mth-op">=</span><span class="mth-fn">cos</span>(<i>p</i><i>o</i><i>s</i> <span class="mth-gr">ω</span><sub><i>i</i></sub>)<span class="mth-fn">cos</span>(<i>k</i><span class="mth-gr">ω</span><sub><i>i</i></sub>)<span class="mth-op">−</span><span class="mth-fn">sin</span>(<i>p</i><i>o</i><i>s</i> <span class="mth-gr">ω</span><sub><i>i</i></sub>)<span class="mth-fn">sin</span>(<i>k</i><span class="mth-gr">ω</span><sub><i>i</i></sub>)</span>
@@ -1978,7 +1990,7 @@ x   = <span class="kw">self</span>.<span class="fn">token_emb</span>(idx) + pos<
             <div class="diagram"><pre>pos=0: [sin0, cos0, sin0,   cos0  ] = [0.000, 1.000, 0.000, 1.000]
 pos=1: [sin1, cos1, sin.01, cos.01] = [0.841, 0.540, 0.010, 1.000]
 pos=2: [sin2, cos2, sin.02, cos.02] = [0.909,-0.416, 0.020, 1.000]
-        └ fast pair (ω=1) swings a lot ┘ └ slow pair (ω=.01) barely moves ┘</pre></div>
+        <span class="d-l">└</span> fast pair (ω=1) swings a lot <span class="d-l">┘</span> <span class="d-l">└</span> slow pair (ω=.01) barely moves <span class="d-l">┘</span></pre></div>
             <div class="tbl-wrap">
               <table class="t2">
                 <thead>
@@ -2024,7 +2036,7 @@ far distances get coarse, shared buckets (helps extrapolation):
   distance:  0  1  2  3  4 .. 7   8..11  12..15  16..23 ...
   bucket:    0  1  2  3  4 .. 7     8       9       10   ...   (exact small, log-scaled large)
 
-  b is a (num_buckets × num_heads) learned table → tiny, cheap, extrapolates.</pre></div>
+  b is a (num_buckets × num_heads) learned table <span class="d-a">→</span> tiny, cheap, extrapolates.</pre></div>
             <div class="tbl-wrap">
               <table class="t2">
                 <thead>
@@ -2103,10 +2115,10 @@ far distances get coarse, shared buckets (helps extrapolation):
               <p>Note: HF pairs dimensions as <span class="mth">(<i>i</i>, <i>i</i><span class="mth-op">+</span><i>d</i>/2)</span> rather than <span class="mth">(2<i>i</i>, 2<i>i</i><span class="mth-op">+</span>1)</span> — mathematically equivalent up to a fixed permutation of channels, but lets the rotation be a cheap elementwise <code>x*cos + rotate_half(x)*sin</code> with no per-pair matmul.</p>
             </div>
             <h4>Worked sanity check (<span class="mth"><i>d</i><span class="mth-op">=</span>2</span>, one pair, <span class="mth"><span class="mth-gr">θ</span><sub>0</sub><span class="mth-op">=</span>1</span>)</h4>
-            <div class="diagram"><pre>q = [1, 0] at pos m=2 → rotate by 2 rad:  q̃ = [cos2, sin2]  = [-0.416, 0.909]
-k = [1, 0] at pos n=5 → rotate by 5 rad:  k̃ = [cos5, sin5]  = [ 0.284,-0.959]
-⟨q̃,k̃⟩ = (-0.416)(0.284) + (0.909)(-0.959) = -0.990 = cos(m−n) = cos(−3) ✓
-   → exactly cos of the relative distance, independent of absolute positions.</pre></div>
+            <div class="diagram"><pre>q = [1, 0] at pos m=2 <span class="d-a">→</span> rotate by 2 rad:  q̃ = [cos2, sin2]  = [-0.416, 0.909]
+k = [1, 0] at pos n=5 <span class="d-a">→</span> rotate by 5 rad:  k̃ = [cos5, sin5]  = [ 0.284,-0.959]
+&lt;q̃,k̃&gt; = (-0.416)(0.284) + (0.909)(-0.959) = -0.990 = cos(m−n) = cos(−3) √
+   <span class="d-a">→</span> exactly cos of the relative distance, independent of absolute positions.</pre></div>
             <div class="tbl-wrap">
               <table class="t2">
                 <thead>
@@ -2148,8 +2160,8 @@ k = [1, 0] at pos n=5 → rotate by 5 rad:  k̃ = [cos5, sin5]  = [ 0.284,-0.959
 
    key j:    0      1      2      3      4
  bias = −m|i−j|:
-   i=4 →   −2.0   −1.5   −1.0   −0.5    0.0      ← recent tokens penalized least
-                                          ↑ current token, no penalty
+   i=4 <span class="d-a">→</span>   −2.0   −1.5   −1.0   −0.5    0.0      <span class="d-a">←</span> recent tokens penalized least
+                                          <span class="d-a">↑</span> current token, no penalty
 
  Small-slope heads look far back; large-slope heads focus locally.</pre></div>
             <div class="tbl-wrap">
@@ -2186,13 +2198,13 @@ k = [1, 0] at pos n=5 → rotate by 5 rad:  k̃ = [cos5, sin5]  = [ 0.284,-0.959
             <p><abbr title="rotary position embedding">RoPE</abbr> models are trained at some length $L$ but often need to run at $L' &gt; L$. Three math tricks rescale the rotation angles so positions stay in the "trained" regime:</p>
             <div class="diagram"><pre>Position Interpolation (PI, Chen et al.):
   Squeeze new positions into the old range — scale every position by L/L'.
-      m' = m · (L / L')          e.g. train 2K, want 8K → multiply positions by 1/4
+      m' = m · (L / L')          e.g. train 2K, want 8K <span class="d-a">→</span> multiply positions by 1/4
   + Simple, needs a little fine-tuning.  − Compresses fine-grained (high-freq) info.
 
 NTK-aware scaling:
   Don't scale all frequencies equally. Raise the RoPE base so HIGH frequencies
   (local detail) are barely touched and LOW frequencies (global) stretch most.
-      base: 10000 → 10000 · s^{d/(d-2)}      (s = L'/L)
+      base: 10000 <span class="d-a">→</span> 10000 · s^{d/(d-2)}      (s = L'/L)
   + Often works with NO fine-tuning.
 
 YaRN (NTK-by-parts + attention temperature) — used by LLaMA-3, Qwen, etc.:
@@ -2200,7 +2212,7 @@ YaRN (NTK-by-parts + attention temperature) — used by LLaMA-3, Qwen, etc.:
      low-freq, blend the middle (the "by-parts" ramp).
   2. Scale attention logits by 1/√t (temperature) to keep softmax sharpness
      consistent at the longer length.
-  → LLaMA-3: trained 8K → extended to 128K with YaRN.</pre></div>
+  <span class="d-a">→</span> LLaMA-3: trained 8K <span class="d-a">→</span> extended to 128K with YaRN.</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02Transformers-23">
@@ -2346,7 +2358,7 @@ RULE OF THUMB:
             <p>Every Transformer variant is one of <strong>three families</strong>, distinguished by <strong>which attention pattern</strong> they use and therefore <strong>what they're good at</strong>. Answer this question with <em>attention pattern → training objective → use case</em>.</p>
             <p><strong>① Encoder-only (e.g. BERT, RoBERTa, DeBERTa, <abbr title="a dense numeric vector representing text so that similar meanings sit close together">embedding</abbr> models like BGE/E5)</strong>
             </p>
-            <div class="diagram"><pre>Input → [Encoder × N : BIDIRECTIONAL self-attn + FFN] → contextual vectors → task head</pre></div>
+            <div class="diagram"><pre>Input <span class="d-a">→</span> [Encoder × N : BIDIRECTIONAL self-attn + FFN] <span class="d-a">→</span> contextual vectors <span class="d-a">→</span> task head</pre></div>
             <ul>
               <li><strong>Attention:</strong> bidirectional — every token sees the whole sequence (left <em>and</em> right), no causal mask.</li>
               <li><strong>Objective:</strong> Masked LM (fill in masked tokens).</li>
@@ -2356,7 +2368,7 @@ RULE OF THUMB:
             </ul>
             <p><strong>② Decoder-only (e.g. GPT-4, LLaMA, Mistral, Claude, Qwen — <em>all modern chat LLMs</em>)</strong>
             </p>
-            <div class="diagram"><pre>Input → [Decoder × N : CAUSAL self-attn + FFN] → next-token distribution (looped)</pre></div>
+            <div class="diagram"><pre>Input <span class="d-a">→</span> [Decoder × N : CAUSAL self-attn + FFN] <span class="d-a">→</span> next-token distribution (looped)</pre></div>
             <ul>
               <li><strong>Attention:</strong> causal — each token attends only to past tokens.</li>
               <li><strong>Objective:</strong> next-token prediction.</li>
@@ -2367,9 +2379,9 @@ RULE OF THUMB:
             </ul>
             <p><strong>③ Encoder-Decoder / seq2seq (e.g. original Transformer, T5, BART, FLAN-T5, Whisper, <abbr title="neural machine translation">NMT</abbr>)</strong>
             </p>
-            <div class="diagram"><pre>Source → [Encoder × N : bidirectional] ─┐
-                                         ▼ (K,V)
-Target → [Decoder × N : causal self-attn + CROSS-attn to encoder + FFN] → output</pre></div>
+            <div class="diagram"><pre>Source <span class="d-a">→</span> [Encoder × N : bidirectional] <span class="d-l">─┐</span>
+                                         <span class="d-a">▼</span> (K,V)
+Target <span class="d-a">→</span> [Decoder × N : causal self-attn + CROSS-attn to encoder + FFN] <span class="d-a">→</span> output</pre></div>
             <ul>
               <li><strong>Attention:</strong> encoder bidirectional, decoder causal + <strong>cross-attention</strong> (decoder Q, encoder K/V) — the bridge that lets the decoder "read" the fully-encoded source.</li>
               <li><strong>Objective:</strong> seq2seq / span corruption.</li>
@@ -2457,11 +2469,11 @@ Target → [Decoder × N : causal self-attn + CROSS-attn to encoder + FFN] → o
   NSP (Next Sentence Prediction):
     • Given (sentence A, sentence B)
     • Predict: is B the actual next sentence? (binary)
-    • RoBERTa showed NSP isn't necessary → removed it
+    • RoBERTa showed NSP isn't necessary <span class="d-a">→</span> removed it
 
 FINE-TUNING:
-  [CLS] token representation → classification head
-  All token representations → sequence labeling (NER)
+  [CLS] token representation <span class="d-a">→</span> classification head
+  All token representations <span class="d-a">→</span> sequence labeling (NER)
   
   BERT-base:  12 layers, 768 dim, 12 heads, 110M params
   BERT-large: 24 layers, 1024 dim, 16 heads, 340M params</pre></div>
@@ -2482,7 +2494,7 @@ FINE-TUNING:
   Causal mask ensures position i only sees positions ≤ i.
 
 GENERATION (inference):
-  "The cat" → P(next) → sample "sat" → "The cat sat" → P(next) → ...
+  "The cat" <span class="d-a">→</span> P(next) <span class="d-a">→</span> sample "sat" <span class="d-a">→</span> "The cat sat" <span class="d-a">→</span> P(next) <span class="d-a">→</span> ...
   
   Decoding strategies:
     Greedy:     argmax at each step
@@ -2599,7 +2611,7 @@ GPT-4:  ~1.8T params (estimated MoE), 128K context</pre></div>
   Memory for KV cache: 2 × n_heads × seq_len × d_k per layer
 
 MQA (Multi-Query Attention): All heads SHARE one K and one V.
-  Memory for KV cache: 2 × 1 × seq_len × d_k per layer → n_heads× reduction!
+  Memory for KV cache: 2 × 1 × seq_len × d_k per layer <span class="d-a">→</span> n_heads× reduction!
 
   Quality: ~1% worse than MHA
   Speed:  ~3-5× faster inference (less KV cache memory)
@@ -2620,7 +2632,7 @@ MQA (Multi-Query Attention): All heads SHARE one K and one V.
 
   Used in: LLaMA 2, Mistral, Gemma
   
-  LLaMA 2 70B: 64 Q heads, 8 KV groups → 8× KV cache reduction</pre></div>
+  LLaMA 2 70B: 64 Q heads, 8 KV groups <span class="d-a">→</span> 8× KV cache reduction</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02Transformers-34">
@@ -2630,8 +2642,8 @@ MQA (Multi-Query Attention): All heads SHARE one K and one V.
           <div class="q-a">
             <div class="diagram"><pre>PROBLEM: During autoregressive generation, at step t,
   we compute attention over all previous tokens [1..t-1].
-  Without cache: recompute K, V for ALL tokens at EVERY step → O(n²)
-  With KV cache: cache K, V from previous steps → only compute for new token
+  Without cache: recompute K, V for ALL tokens at EVERY step <span class="d-a">→</span> O(n²)
+  With KV cache: cache K, V from previous steps <span class="d-a">→</span> only compute for new token
 
 MEMORY COST:
   Per layer: 2 × seq_len × d_model bytes (K and V)
@@ -2647,7 +2659,7 @@ MEMORY COST:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>FLASH ATTENTION (Dao et al., 2022):
-  Standard attention materializes the full N×N attention matrix → O(N²) memory.
+  Standard attention materializes the full N×N attention matrix <span class="d-a">→</span> O(N²) memory.
   
   Flash Attention:
     • Tiles the computation into blocks that fit in GPU SRAM
@@ -2664,14 +2676,14 @@ MEMORY COST:
   Flash Attention v2: Further kernel optimizations, ~2× over v1.</pre></div>
             <p><strong>The "online softmax" trick (why Flash can avoid the full N×N matrix).</strong> Normally softmax needs the whole row at once (to find the max and the sum). Flash processes the row in <strong>blocks</strong>, carrying a running max $m$ and running denominator <span class="mth">ℓ</span>, and rescaling the partial output whenever a bigger value appears:</p>
             <div class="diagram"><pre>For each new block of scores s with block-max mᵢ:
-  m_new = max(m, mᵢ)                                  ← updated running max
-  ℓ_new = e^{m − m_new}·ℓ + Σ e^{s − m_new}          ← rescale old sum + add new
-  O_new = e^{m − m_new}·O + Σ e^{s − m_new}·V_block   ← rescale old output + add new
-  (m, ℓ, O) ← (m_new, ℓ_new, O_new)
+  m_new = max(m, mᵢ)                                  <span class="d-a">←</span> updated running max
+  ℓ_new = e^{m − m_new}·ℓ + Σ e^{s − m_new}          <span class="d-a">←</span> rescale old sum + add new
+  O_new = e^{m − m_new}·O + Σ e^{s − m_new}·V_block   <span class="d-a">←</span> rescale old output + add new
+  (m, ℓ, O) <span class="d-a">←</span> (m_new, ℓ_new, O_new)
 Final:  output = O / ℓ
 
 Subtracting the running max keeps every exponent ≤ 0 (numerically safe), and the
-e^{m−m_new} factor retroactively corrects earlier blocks → mathematically EXACT,
+e^{m−m_new} factor retroactively corrects earlier blocks <span class="d-a">→</span> mathematically EXACT,
 yet only O(block) memory is ever live. That's the whole idea.</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -2688,8 +2700,8 @@ yet only O(block) memory is ever live. That's the whole idea.</pre></div>
 
 Example — LLaMA-2-70B (n_layers=80, n_heads=64, d_head=128, seq=4096, FP16):
   MHA : 2·80·4096·64·128·2  ≈ 10.7 GB
-  GQA8: 2·80·4096· 8·128·2  ≈ 1.34 GB   ← 8× smaller, ~same quality (what 70B uses)
-  MQA : 2·80·4096· 1·128·2  ≈ 0.17 GB   ← 64× smaller, slight quality drop</pre></div>
+  GQA8: 2·80·4096· 8·128·2  ≈ 1.34 GB   <span class="d-a">←</span> 8× smaller, ~same quality (what 70B uses)
+  MQA : 2·80·4096· 1·128·2  ≈ 0.17 GB   <span class="d-a">←</span> 64× smaller, slight quality drop</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02Transformers-37">
@@ -2759,7 +2771,7 @@ SPECULATIVE DECODING:
   2. Large model verifies ALL K tokens in ONE forward pass (parallel)
   3. Accept verified tokens, reject wrong ones, resample from large model
   
-  Example: K=5 draft tokens, 4 accepted → 4 tokens for price of 1 large forward pass
+  Example: K=5 draft tokens, 4 accepted <span class="d-a">→</span> 4 tokens for price of 1 large forward pass
   
   Speedup: 2-3× with no quality loss
   Requirement: Draft model must be much faster and reasonably accurate</pre></div>
@@ -2776,7 +2788,7 @@ SPECULATIVE DECODING:
     • GPU utilization stays high (no idle waiting)
   
 PAGED ATTENTION (vLLM):
-  KV cache = huge contiguous memory block → fragmentation.
+  KV cache = huge contiguous memory block <span class="d-a">→</span> fragmentation.
   
   PagedAttention: Store KV cache in non-contiguous "pages" (like OS virtual memory).
     • Eliminates memory waste from fragmentation
@@ -2792,14 +2804,14 @@ PAGED ATTENTION (vLLM):
             <h3>Quantization</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02Transformers-40"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>FULL PRECISION:  FP32 → 4 bytes per parameter
+            <div class="diagram"><pre>FULL PRECISION:  FP32 <span class="d-a">→</span> 4 bytes per parameter
                  7B model = 28 GB
                  
-HALF PRECISION:  FP16/BF16 → 2 bytes
-                 7B model = 14 GB ← standard for training
+HALF PRECISION:  FP16/BF16 <span class="d-a">→</span> 2 bytes
+                 7B model = 14 GB <span class="d-a">←</span> standard for training
 
-INT8:            1 byte → 7B model = 7 GB (bitsandbytes)
-INT4:            0.5 byte → 7B model = 3.5 GB (GPTQ, AWQ, GGUF)
+INT8:            1 byte <span class="d-a">→</span> 7B model = 7 GB (bitsandbytes)
+INT4:            0.5 byte <span class="d-a">→</span> 7B model = 3.5 GB (GPTQ, AWQ, GGUF)
 
 METHODS:
   GPTQ: Post-training quantization (one-shot, fast)
@@ -2808,8 +2820,8 @@ METHODS:
   QLoRA: Quantize base model to 4-bit, fine-tune LoRA adapters in FP16
 
 QUALITY IMPACT:
-  FP16 → INT8: ~0.5% performance drop
-  FP16 → INT4: ~1-2% performance drop  
+  FP16 <span class="d-a">→</span> INT8: ~0.5% performance drop
+  FP16 <span class="d-a">→</span> INT4: ~1-2% performance drop  
   Acceptable for inference, not recommended for training</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -2825,7 +2837,7 @@ QUALITY IMPACT:
   Rule: params and data should be scaled EQUALLY.
   
   Chinchilla (70B, 1.4T tokens) &gt; Gopher (280B, 300B tokens)
-  → Smaller model trained on MORE data beats larger model on less data!
+  <span class="d-a">→</span> Smaller model trained on MORE data beats larger model on less data!
 
 SCALING LAW (Kaplan et al., 2020):
   L(N) = (N_c / N)^α + L_∞
@@ -3072,18 +3084,18 @@ trainer.<span class="fn">train</span>()</code></pre></div>
           <div class="diagram"><pre>ViT: Apply Transformer to images by treating image patches as tokens.
 
   Image (224×224×3)
-    ↓ Split into 16×16 patches
+    <span class="d-a">↓</span> Split into 16×16 patches
   14×14 = 196 patches, each 16×16×3 = 768 pixels
-    ↓ Flatten each patch → linear projection → patch embedding
+    <span class="d-a">↓</span> Flatten each patch <span class="d-a">→</span> linear projection <span class="d-a">→</span> patch embedding
   196 token embeddings (each d_model=768)
-    ↓ Prepend [CLS] token + add positional embeddings
+    <span class="d-a">↓</span> Prepend [CLS] token + add positional embeddings
   197 tokens
-    ↓ Standard Transformer encoder (12 layers)
-  [CLS] output → Classification head
+    <span class="d-a">↓</span> Standard Transformer encoder (12 layers)
+  [CLS] output <span class="d-a">→</span> Classification head
 
 PROS:
   • With enough data (JFT-300M), outperforms CNNs
-  • No inductive bias (no convolutions) → learns from data
+  • No inductive bias (no convolutions) <span class="d-a">→</span> learns from data
   • Simple architecture, scalable
 
 CONS:
@@ -3093,8 +3105,8 @@ CONS:
 
 SWIN TRANSFORMER:
   Hierarchical ViT with LOCAL attention windows + shifted windows
-  → O(n) complexity, better for detection/segmentation
-  → Replaced CNN backbone in many vision tasks</pre></div>
+  <span class="d-a">→</span> O(n) complexity, better for detection/segmentation
+  <span class="d-a">→</span> Replaced CNN backbone in many vision tasks</pre></div>
         </div>
         <div class="parthead" id="f02Transformers-p18"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-message"/></svg>19. End-to-End Prompt Processing — How a Transformer Generates a Response</span><i></i>
         </div>
@@ -3106,70 +3118,70 @@ SWIN TRANSFORMER:
             <h3>19.1 The Full Pipeline at a Glance</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f02Transformers-43"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>┌─────────────────────────────────────────────────────────────────────────────┐
-│                    END-TO-END TRANSFORMER GENERATION                        │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  User Prompt                                                                │
-│  "Tell me about Python"                                                     │
-│         │                                                                   │
-│         ▼                                                                   │
-│  ┌──────────────┐                                                           │
-│  │ TOKENIZER    │  BPE / WordPiece                                          │
-│  │ (Encode)     │  "Tell me about Python" → [24446, 502, 922, 14030]        │
-│  └──────┬───────┘                                                           │
-│         │  token_ids: [24446, 502, 922, 14030]                              │
-│         ▼                                                                   │
-│  ┌──────────────┐                                                           │
-│  │ EMBEDDING    │  token_embed(id) + pos_embed(position)                    │
-│  │ LOOKUP       │  → shape: (4, 12288) for GPT-3                            │
-│  └──────┬───────┘                                                           │
-│         │  X: (seq_len=4, d_model=12288)                                    │
-│         ▼                                                                   │
-│  ┌──────────────────────────────────────────────┐                           │
-│  │         TRANSFORMER BLOCK  ×  N layers       │                           │
-│  │  (N=96 for GPT-3, N=32 for LLaMA-7B)        │                            │
-│  │              │                                                           │
-│  │  ┌────────────────────────────────────────┐  │                           │
-│  │  │ 1. Layer Norm                          │  │                           │
-│  │  │ 2. Masked Multi-Head Self-Attention    │  │                           │
-│  │  │    Q, K, V = X·Wq, X·Wk, X·Wv          │  │                           │
-│  │  │    Attn = softmax(QKᵀ/√d_k + mask)·V   │  │                           │
-│  │  │ 3. Residual Connection (X + Attn_out)  │  │                           │
-│  │  │ 4. Layer Norm                          │  │                           │
-│  │  │ 5. Feed-Forward Network (FFN)          │  │                           │
-│  │  │    FFN(x) = GELU(x·W1 + b1)·W2 + b2    │  │                           │
-│  │  │    (hidden: 4 × d_model = 49152)       │  │                           │
-│  │  │ 6. Residual Connection (X + FFN_out)   │  │                           │
-│  │  └────────────────────────────────────────┘  │                           │
-│  │              ... repeat N times ...           │                          │
-│  └──────┬───────────────────────────────────────┘                           │
-│         │  hidden: (4, 12288)                                               │
-│         ▼                                                                   │
-│  ┌──────────────┐                                                           │
-│  │ FINAL LAYER  │  Layer Norm → Linear projection (d_model → vocab_size)    │
-│  │ (LM Head)    │  logits: (4, 50257) — one row per input token             │
-│  └──────┬───────┘                                                           │
-│         │  Take LAST token's logits → (50257,)                              │
-│         ▼                                                                   │
-│  ┌──────────────┐                                                           │
-│  │ SAMPLING     │  temperature → top-k → top-p → sample                     │
-│  │ STRATEGY     │  → next_token_id = 11361 ("Python")                       │
-│  └──────┬───────┘                                                           │
-│         │                                                                   │
-│         ▼                                                                   │
-│  ┌──────────────┐                                                           │
-│  │ AUTOREGRESS  │  Append token → [24446, 502, 922, 14030, 11361]           │
-│  │ LOOP         │  Feed back in → repeat until EOS or max_length            │
-│  └──────┬───────┘                                                           │
-│         │                                                                   │
-│         ▼                                                                   │
-│  ┌──────────────┐                                                           │
-│  │ DETOKENIZE   │  [24446, 502, 922, 14030, 11361, ...] → readable text     │
-│  │ (Decode)     │  "Tell me about Python is a high-level programming..."    │
-│  └──────────────┘                                                           │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌─────────────────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                    END-TO-END TRANSFORMER GENERATION                        <span class="d-l">│</span>
+<span class="d-l">├─────────────────────────────────────────────────────────────────────────────┤</span>
+<span class="d-l">│</span>                                                                             <span class="d-l">│</span>
+<span class="d-l">│</span>  User Prompt                                                                <span class="d-l">│</span>
+<span class="d-l">│</span>  "Tell me about Python"                                                     <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>                                                                   <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                                   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────┐</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> TOKENIZER    <span class="d-l">│</span>  BPE / WordPiece                                          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> (Encode)     <span class="d-l">│</span>  "Tell me about Python" <span class="d-a">→</span> [24446, 502, 922, 14030]        <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────┬───────┘</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>  token_ids: [24446, 502, 922, 14030]                              <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                                   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────┐</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> EMBEDDING    <span class="d-l">│</span>  token_embed(id) + pos_embed(position)                    <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> LOOKUP       <span class="d-l">│</span>  <span class="d-a">→</span> shape: (4, 12288) for GPT-3                            <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────┬───────┘</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>  X: (seq_len=4, d_model=12288)                                    <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                                   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────────────────────────────────────┐</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>         TRANSFORMER BLOCK  ×  N layers       <span class="d-l">│</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  (N=96 for GPT-3, N=32 for LLaMA-7B)        <span class="d-l">│</span>                            <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>              <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">┌────────────────────────────────────────┐</span>  <span class="d-l">│</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> 1. Layer Norm                          <span class="d-l">│</span>  <span class="d-l">│</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> 2. Masked Multi-Head Self-Attention    <span class="d-l">│</span>  <span class="d-l">│</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>    Q, K, V = X·Wq, X·Wk, X·Wv          <span class="d-l">│</span>  <span class="d-l">│</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>    Attn = softmax(QKᵀ/√d_k + mask)·V   <span class="d-l">│</span>  <span class="d-l">│</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> 3. Residual Connection (X + Attn_out)  <span class="d-l">│</span>  <span class="d-l">│</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> 4. Layer Norm                          <span class="d-l">│</span>  <span class="d-l">│</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> 5. Feed-Forward Network (FFN)          <span class="d-l">│</span>  <span class="d-l">│</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>    FFN(x) = GELU(x·W1 + b1)·W2 + b2    <span class="d-l">│</span>  <span class="d-l">│</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span>    (hidden: 4 × d_model = 49152)       <span class="d-l">│</span>  <span class="d-l">│</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">│</span> 6. Residual Connection (X + FFN_out)   <span class="d-l">│</span>  <span class="d-l">│</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>  <span class="d-l">└────────────────────────────────────────┘</span>  <span class="d-l">│</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>              ... repeat N times ...           <span class="d-l">│</span>                          <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────┬───────────────────────────────────────┘</span>                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>  hidden: (4, 12288)                                               <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                                   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────┐</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> FINAL LAYER  <span class="d-l">│</span>  Layer Norm <span class="d-a">→</span> Linear projection (d_model <span class="d-a">→</span> vocab_size)    <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> (LM Head)    <span class="d-l">│</span>  logits: (4, 50257) — one row per input token             <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────┬───────┘</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>  Take LAST token's logits <span class="d-a">→</span> (50257,)                              <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                                   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────┐</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> SAMPLING     <span class="d-l">│</span>  temperature <span class="d-a">→</span> top-k <span class="d-a">→</span> top-p <span class="d-a">→</span> sample                     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> STRATEGY     <span class="d-l">│</span>  <span class="d-a">→</span> next_token_id = 11361 ("Python")                       <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────┬───────┘</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>                                                                   <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                                   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────┐</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> AUTOREGRESS  <span class="d-l">│</span>  Append token <span class="d-a">→</span> [24446, 502, 922, 14030, 11361]           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> LOOP         <span class="d-l">│</span>  Feed back in <span class="d-a">→</span> repeat until EOS or max_length            <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────┬───────┘</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-l">│</span>                                                                   <span class="d-l">│</span>
+<span class="d-l">│</span>         <span class="d-a">▼</span>                                                                   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────────┐</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> DETOKENIZE   <span class="d-l">│</span>  [24446, 502, 922, 14030, 11361, ...] <span class="d-a">→</span> readable text     <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> (Decode)     <span class="d-l">│</span>  "Tell me about Python is a high-level programming..."    <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────────────┘</span>                                                           <span class="d-l">│</span>
+<span class="d-l">│</span>                                                                             <span class="d-l">│</span>
+<span class="d-l">└─────────────────────────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02Transformers-44">
@@ -3232,17 +3244,17 @@ Shapes (GPT-3 175B):
   positional_embedding_matrix: (2048,  12288)   — one row per position (max context)
 
 Result:
-  token_embedding[24446]  → vector of size 12288   (semantic meaning of "Tell")
-  token_embedding[502]    → vector of size 12288   (semantic meaning of " me")
-  token_embedding[922]    → vector of size 12288   (semantic meaning of " about")
-  token_embedding[14030]  → vector of size 12288   (semantic meaning of " Python")
+  token_embedding[24446]  <span class="d-a">→</span> vector of size 12288   (semantic meaning of "Tell")
+  token_embedding[502]    <span class="d-a">→</span> vector of size 12288   (semantic meaning of " me")
+  token_embedding[922]    <span class="d-a">→</span> vector of size 12288   (semantic meaning of " about")
+  token_embedding[14030]  <span class="d-a">→</span> vector of size 12288   (semantic meaning of " Python")
 
-  pos_embedding[0] → vector of size 12288   (encodes "position 0")
-  pos_embedding[1] → vector of size 12288   (encodes "position 1")
-  pos_embedding[2] → vector of size 12288   (encodes "position 2")
-  pos_embedding[3] → vector of size 12288   (encodes "position 3")
+  pos_embedding[0] <span class="d-a">→</span> vector of size 12288   (encodes "position 0")
+  pos_embedding[1] <span class="d-a">→</span> vector of size 12288   (encodes "position 1")
+  pos_embedding[2] <span class="d-a">→</span> vector of size 12288   (encodes "position 2")
+  pos_embedding[3] <span class="d-a">→</span> vector of size 12288   (encodes "position 3")
 
-  X = token_embeds + pos_embeds → shape: (4, 12288)</pre></div>
+  X = token_embeds + pos_embeds <span class="d-a">→</span> shape: (4, 12288)</pre></div>
             <p><strong>Why positional embeddings?</strong> Self-attention is permutation-invariant — without position info, "dog bites man" = "man bites dog". Positional embeddings inject order.</p>
             <p><strong>Variants:</strong>
             </p>
@@ -3291,15 +3303,15 @@ Result:
             <p>The embedded input <code>X: (4, 12288)</code> now passes through <strong>N stacked transformer decoder blocks</strong>.</p>
             <h4>19.5.1 Inside ONE Transformer Block</h4>
             <div class="diagram"><pre>Input X: (4, 12288)
-    │
-    ├──► Layer Norm ──► Multi-Head Causal Self-Attention ──► + (residual)
-    │                                                         │
-    │◄────────────────────────────────────────────────────────┘
-    │
-    ├──► Layer Norm ──► Feed-Forward Network ──► + (residual)
-    │                                             │
-    │◄────────────────────────────────────────────┘
-    │
+    <span class="d-l">│</span>
+    <span class="d-l">├──</span><span class="d-a">►</span> Layer Norm <span class="d-l">──</span><span class="d-a">►</span> Multi-Head Causal Self-Attention <span class="d-l">──</span><span class="d-a">►</span> + (residual)
+    <span class="d-l">│</span>                                                         <span class="d-l">│</span>
+    <span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">────────────────────────────────────────────────────────┘</span>
+    <span class="d-l">│</span>
+    <span class="d-l">├──</span><span class="d-a">►</span> Layer Norm <span class="d-l">──</span><span class="d-a">►</span> Feed-Forward Network <span class="d-l">──</span><span class="d-a">►</span> + (residual)
+    <span class="d-l">│</span>                                             <span class="d-l">│</span>
+    <span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">────────────────────────────────────────────┘</span>
+    <span class="d-l">│</span>
 Output: (4, 12288)   [same shape as input]</pre></div>
             <h4>19.5.2 Multi-Head Causal Self-Attention (detailed)</h4>
             <p><strong>Step A — Project to Q, K, V:</strong>
@@ -3325,15 +3337,15 @@ Output: (4, 12288)   [same shape as input]</pre></div>
             </p>
             <div class="diagram"><pre>scores = Q · Kᵀ / √d_k
        = (4, 128) · (128, 4) / √128
-       = (4, 4) per head   ← each token's attention to every other token</pre></div>
+       = (4, 4) per head   <span class="d-a">←</span> each token's attention to every other token</pre></div>
             <p><strong>Step D — Apply causal mask</strong> (prevent attending to future tokens):</p>
             <div class="diagram"><pre>Raw scores:               After masking:
-┌─────────────────┐       ┌─────────────────┐
-│ 0.8  0.3  0.5  0.2│     │ 0.8  -∞   -∞   -∞ │   ← "Tell" sees only itself
-│ 0.4  0.9  0.1  0.6│     │ 0.4  0.9  -∞   -∞ │   ← "me" sees "Tell", "me"
-│ 0.7  0.2  0.8  0.3│     │ 0.7  0.2  0.8  -∞ │   ← "about" sees first 3
-│ 0.5  0.6  0.4  0.7│     │ 0.5  0.6  0.4  0.7│   ← "Python" sees all 4
-└─────────────────┘       └─────────────────┘
+<span class="d-l">┌─────────────────┐</span>       <span class="d-l">┌─────────────────┐</span>
+<span class="d-l">│</span> 0.8  0.3  0.5  0.2<span class="d-l">│</span>     <span class="d-l">│</span> 0.8  -∞   -∞   -∞ <span class="d-l">│</span>   <span class="d-a">←</span> "Tell" sees only itself
+<span class="d-l">│</span> 0.4  0.9  0.1  0.6<span class="d-l">│</span>     <span class="d-l">│</span> 0.4  0.9  -∞   -∞ <span class="d-l">│</span>   <span class="d-a">←</span> "me" sees "Tell", "me"
+<span class="d-l">│</span> 0.7  0.2  0.8  0.3<span class="d-l">│</span>     <span class="d-l">│</span> 0.7  0.2  0.8  -∞ <span class="d-l">│</span>   <span class="d-a">←</span> "about" sees first 3
+<span class="d-l">│</span> 0.5  0.6  0.4  0.7<span class="d-l">│</span>     <span class="d-l">│</span> 0.5  0.6  0.4  0.7<span class="d-l">│</span>   <span class="d-a">←</span> "Python" sees all 4
+<span class="d-l">└─────────────────┘</span>       <span class="d-l">└─────────────────┘</span>
 
 This is WHY GPT is "autoregressive" — each token can only use past context.</pre></div>
             <p><strong>Step E — Softmax → weighted sum of values:</strong>
@@ -3347,17 +3359,17 @@ This is WHY GPT is "autoregressive" — each token can only use past context.</p
             <p><strong>Step F — Concatenate heads + project:</strong>
             </p>
             <div class="diagram"><pre>concat all 96 heads: (4, 96×128) = (4, 12288)
-output = concat · W_O              → (4, 12288)</pre></div>
+output = concat · W_O              <span class="d-a">→</span> (4, 12288)</pre></div>
             <h4>19.5.3 Feed-Forward Network (<abbr title="feed-forward network">FFN</abbr>)</h4>
             <p>Applied independently to each token position:</p>
             <div class="diagram"><pre>FFN(x) = GELU(x · W1 + b1) · W2 + b2
 
 Shapes:
   x:    (12288,)
-  W1:   (12288, 49152)     ← expand 4×
-  W2:   (49152, 12288)     ← compress back
+  W1:   (12288, 49152)     <span class="d-a">←</span> expand 4×
+  W2:   (49152, 12288)     <span class="d-a">←</span> compress back
   
-  x → 12288 → 49152 → 12288
+  x <span class="d-a">→</span> 12288 <span class="d-a">→</span> 49152 <span class="d-a">→</span> 12288
 
 This is where "knowledge" is stored — the FFN weights encode
 factual associations learned during pre-training.</pre></div>
@@ -3369,10 +3381,10 @@ x = x + <span class="fn">FFN</span>(<span class="fn">LayerNorm</span>(x))       
 <span class="cmt"># Why residuals? Without them, gradients vanish through 96 layers.</span>
 <span class="cmt"># Residuals create "skip highways" for gradient flow.</span></code></pre>
             <h4>19.5.5 Repeat for All N Layers</h4>
-            <div class="diagram"><pre>Layer 1:  X → Attention → FFN → X₁   (4, 12288)
-Layer 2:  X₁ → Attention → FFN → X₂  (4, 12288)
+            <div class="diagram"><pre>Layer 1:  X <span class="d-a">→</span> Attention <span class="d-a">→</span> FFN <span class="d-a">→</span> X₁   (4, 12288)
+Layer 2:  X₁ <span class="d-a">→</span> Attention <span class="d-a">→</span> FFN <span class="d-a">→</span> X₂  (4, 12288)
 ...
-Layer 96: X₉₅ → Attention → FFN → X₉₆ (4, 12288)
+Layer 96: X₉₅ <span class="d-a">→</span> Attention <span class="d-a">→</span> FFN <span class="d-a">→</span> X₉₆ (4, 12288)
 
 What changes across layers:
   - Early layers: learn syntax, POS tags, local patterns
@@ -3388,15 +3400,15 @@ What changes across layers:
             <div class="keyterms"><span class="kt">Why only the last token?</span><span class="kt">next</span>
             </div>
             <p>After all transformer layers, we get the final hidden state and project it to vocabulary size:</p>
-            <div class="diagram"><pre>final_hidden = LayerNorm(X₉₆)             → (4, 12288)
-logits = final_hidden · W_vocab            → (4, 50257)
+            <div class="diagram"><pre>final_hidden = LayerNorm(X₉₆)             <span class="d-a">→</span> (4, 12288)
+logits = final_hidden · W_vocab            <span class="d-a">→</span> (4, 50257)
 
 W_vocab: (12288, 50257) — often TIED with the input token_embedding matrix
 
 logits[i] = unnormalized score for every vocab token at position i
 
 We only care about the LAST position (position 3 = "Python"):
-  last_logits = logits[3]                  → (50257,)
+  last_logits = logits[3]                  <span class="d-a">→</span> (50257,)
   
   This vector has one score per vocab word:
     logits[0]     = -2.3   (score for "!" being next)
@@ -3417,23 +3429,23 @@ We only care about the LAST position (position 3 = "Python"):
             <div class="diagram"><pre>probs = softmax(logits / temperature)
 
 Temperature controls randomness:
-  T = 1.0  → standard softmax (default)
-  T = 0.1  → very peaked (nearly deterministic, picks highest prob)
-  T = 2.0  → very flat (more random, creative)
-  T → 0    → argmax (greedy decoding)
+  T = 1.0  <span class="d-a">→</span> standard softmax (default)
+  T = 0.1  <span class="d-a">→</span> very peaked (nearly deterministic, picks highest prob)
+  T = 2.0  <span class="d-a">→</span> very flat (more random, creative)
+  T <span class="d-a">→</span> 0    <span class="d-a">→</span> argmax (greedy decoding)
 
 Example (simplified 5-token vocab):
   logits = [2.0, 1.0, 0.5, -1.0, -2.0]
   
   T=1.0: probs = [0.506, 0.186, 0.113, 0.025, 0.009]
-  T=0.5: probs = [0.836, 0.113, 0.042, 0.002, 0.000]  ← more confident
-  T=2.0: probs = [0.330, 0.223, 0.182, 0.100, 0.066]  ← more uniform</pre></div>
+  T=0.5: probs = [0.836, 0.113, 0.042, 0.002, 0.000]  <span class="d-a">←</span> more confident
+  T=2.0: probs = [0.330, 0.223, 0.182, 0.100, 0.066]  <span class="d-a">←</span> more uniform</pre></div>
             <h4>19.7.2 Top-k Filtering</h4>
             <div class="diagram"><pre>Keep only the k highest-probability tokens, zero out the rest, renormalize.
 
 k=3 example:
   Before: [0.40, 0.25, 0.15, 0.10, 0.05, 0.03, 0.02]
-  After:  [0.50, 0.31, 0.19, 0.00, 0.00, 0.00, 0.00]  ← top 3 only
+  After:  [0.50, 0.31, 0.19, 0.00, 0.00, 0.00, 0.00]  <span class="d-a">←</span> top 3 only
 
 Pros: Prevents sampling very unlikely tokens
 Cons: Fixed k — sometimes there are 2 good choices, sometimes 100</pre></div>
@@ -3443,27 +3455,27 @@ Cons: Fixed k — sometimes there are 2 good choices, sometimes 100</pre></div>
 p=0.9 example:
   Sorted probs: [0.40, 0.25, 0.15, 0.10, 0.05, 0.03, 0.02]
   Cumulative:   [0.40, 0.65, 0.80, 0.90, ...]
-                                          ↑ stop here (cumsum ≥ 0.9)
-  Keep: top 4 tokens → renormalize
+                                          <span class="d-a">↑</span> stop here (cumsum ≥ 0.9)
+  Keep: top 4 tokens <span class="d-a">→</span> renormalize
 
 Advantage over top-k: Adapts to the shape of the distribution.
-  - If model is confident → keeps few tokens
-  - If model is uncertain → keeps many tokens</pre></div>
+  - If model is confident <span class="d-a">→</span> keeps few tokens
+  - If model is uncertain <span class="d-a">→</span> keeps many tokens</pre></div>
             <h4>19.7.4 Beam Search</h4>
             <div class="diagram"><pre>Instead of sampling 1 token at a time, maintain top-b candidates (beams).
 
 beam_width = 3:
 
-Step 1: "Tell me about Python" → top 3 next tokens:
+Step 1: "Tell me about Python" <span class="d-a">→</span> top 3 next tokens:
   Beam 1: "Tell me about Python is"       (score: -1.2)
   Beam 2: "Tell me about Python,"         (score: -1.5)
   Beam 3: "Tell me about Python was"      (score: -1.8)
 
-Step 2: Expand each beam → keep top 3 overall:
-  Beam 1: "...Python is a"                (score: -2.0)  ✓
-  Beam 2: "...Python is an"               (score: -2.3)  ✓
-  Beam 3: "...Python, a"                  (score: -2.5)  ✓
-  Beam 4: "...Python was created"         (score: -2.7)  ✗ pruned
+Step 2: Expand each beam <span class="d-a">→</span> keep top 3 overall:
+  Beam 1: "...Python is a"                (score: -2.0)  √
+  Beam 2: "...Python is an"               (score: -2.3)  √
+  Beam 3: "...Python, a"                  (score: -2.5)  √
+  Beam 4: "...Python was created"         (score: -2.7)  × pruned
 
 Used more for translation/summarization. For open-ended generation,
 sampling (temperature + top-p) usually produces more natural text.</pre></div>
@@ -3527,16 +3539,16 @@ sampling (temperature + top-p) usually produces more natural text.</pre></div>
           <div class="q-a">
             <p>The model generates <strong>one token at a time</strong>, feeding each generated token back as input.</p>
             <div class="diagram"><pre>Iteration 1:
-  Input:  [24446, 502, 922, 14030]              → "Tell me about Python"
-  Output: next_token = 318                       → " is"
+  Input:  [24446, 502, 922, 14030]              <span class="d-a">→</span> "Tell me about Python"
+  Output: next_token = 318                       <span class="d-a">→</span> " is"
 
 Iteration 2:
-  Input:  [24446, 502, 922, 14030, 318]          → "Tell me about Python is"
-  Output: next_token = 257                       → " a"
+  Input:  [24446, 502, 922, 14030, 318]          <span class="d-a">→</span> "Tell me about Python is"
+  Output: next_token = 257                       <span class="d-a">→</span> " a"
 
 Iteration 3:
-  Input:  [24446, 502, 922, 14030, 318, 257]     → "Tell me about Python is a"
-  Output: next_token = 1029                      → " high"
+  Input:  [24446, 502, 922, 14030, 318, 257]     <span class="d-a">→</span> "Tell me about Python is a"
+  Output: next_token = 1029                      <span class="d-a">→</span> " high"
 
 ... continues until:
   - EOS token (end of sequence) is generated
@@ -3629,11 +3641,11 @@ Embedding shape: torch.Size([1, 4, 768])
 Logits shape: torch.Size([1, 4, 50257])
 
 Top 5 next-token predictions:
-  '.' → 0.0842 (8.4%)
-  ',' → 0.0623 (6.2%)
-  ' and' → 0.0587 (5.9%)
-  "'s" → 0.0401 (4.0%)
-  ' 3' → 0.0356 (3.6%)
+  '.' <span class="d-a">→</span> 0.0842 (8.4%)
+  ',' <span class="d-a">→</span> 0.0623 (6.2%)
+  ' and' <span class="d-a">→</span> 0.0587 (5.9%)
+  "'s" <span class="d-a">→</span> 0.0401 (4.0%)
+  ' 3' <span class="d-a">→</span> 0.0356 (3.6%)
 
 Generated:
 Tell me about Python and its features. Python is a high-level,
@@ -3657,13 +3669,13 @@ interpreted programming language known for its simplicity...</pre></div>
 Prompt: "Tell me about Python" (4 tokens)
 
 STEP                          SHAPE              COMPUTATION
-─────────────────────────────────────────────────────────────
+<span class="d-l">─────────────────────────────────────────────────────────────</span>
 Token IDs                     (4,)               tokenizer.encode()
 Token Embedding               (4, 768)           lookup from (50257, 768)
 Position Embedding             (4, 768)           lookup from (1024, 768)
 X = tok_emb + pos_emb          (4, 768)           element-wise add
                                                   
-── Layer 1 ──────────────────────────────────────────────────
+<span class="d-l">──</span> Layer 1 <span class="d-l">──────────────────────────────────────────────────</span>
 LayerNorm(X)                   (4, 768)           normalize
 Q = X·Wq                      (4, 768)           matmul with (768, 768)
 K = X·Wk                      (4, 768)           matmul with (768, 768)
@@ -3682,7 +3694,7 @@ FFN: W1                        (4, 3072)          matmul with (768, 3072)
      W2                        (4, 768)           matmul with (3072, 768)
 X = X + ffn_out                (4, 768)           residual connection
 
-── Layers 2-12 ─── same shapes, different weights ──────────
+<span class="d-l">──</span> Layers 2-12 <span class="d-l">───</span> same shapes, different weights <span class="d-l">──────────</span>
                                                   
 Final LayerNorm                (4, 768)           normalize
 LM Head (W_vocab)              (4, 50257)         matmul with (768, 50257)
@@ -3697,18 +3709,18 @@ sample                         (1,)               chosen next token ID</pre></di
           </div>
           <div class="q-a">
             <div class="diagram"><pre>WITHOUT KV-Cache (naive):
-  Step 1: process 4 tokens  → O(4²) attention
-  Step 2: process 5 tokens  → O(5²) attention  (recomputes everything!)
-  Step 3: process 6 tokens  → O(6²) attention
+  Step 1: process 4 tokens  <span class="d-a">→</span> O(4²) attention
+  Step 2: process 5 tokens  <span class="d-a">→</span> O(5²) attention  (recomputes everything!)
+  Step 3: process 6 tokens  <span class="d-a">→</span> O(6²) attention
   ...
-  Step n: O(n²) per step → total O(n³) for full generation
+  Step n: O(n²) per step <span class="d-a">→</span> total O(n³) for full generation
 
 WITH KV-Cache:
-  Step 1: process 4 tokens → cache K₁, V₁ for all layers
-  Step 2: process 1 NEW token → use cached K,V + new K,V → O(5)
-  Step 3: process 1 NEW token → O(6)
+  Step 1: process 4 tokens <span class="d-a">→</span> cache K₁, V₁ for all layers
+  Step 2: process 1 NEW token <span class="d-a">→</span> use cached K,V + new K,V <span class="d-a">→</span> O(5)
+  Step 3: process 1 NEW token <span class="d-a">→</span> O(6)
   ...
-  Step n: O(n) per step → total O(n²) for full generation
+  Step n: O(n) per step <span class="d-a">→</span> total O(n²) for full generation
 
   Memory trade-off: must store K,V tensors for all layers × all positions
   GPT-3: 96 layers × 2(K,V) × seq_len × 12288 × 2 bytes = ~4.5 GB for 2048 tokens</pre></div>
@@ -3720,33 +3732,33 @@ WITH KV-Cache:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>"Tell me about Python"
-       │
-       ▼
-  TOKENIZE ──► [24446, 502, 922, 14030]
-       │
-       ▼
-  EMBED ──► (4, 768) tensor
-       │
-       ▼
-  96× TRANSFORMER BLOCK ──► (4, 768) tensor (contextualized)
-       │
-       ▼
-  LM HEAD ──► (4, 50257) logits
-       │
-       ▼
-  TAKE LAST ──► (50257,) logits for next token
-       │
-       ▼
-  SAMPLE (temp=0.7, top_p=0.9) ──► token_id = 318 (" is")
-       │
-       ▼
-  APPEND ──► [24446, 502, 922, 14030, 318]
-       │
-       ▼
-  REPEAT until EOS ──► "Tell me about Python is a high-level..."
-       │
-       ▼
-  DETOKENIZE ──► Final human-readable response</pre></div>
+       <span class="d-l">│</span>
+       <span class="d-a">▼</span>
+  TOKENIZE <span class="d-l">──</span><span class="d-a">►</span> [24446, 502, 922, 14030]
+       <span class="d-l">│</span>
+       <span class="d-a">▼</span>
+  EMBED <span class="d-l">──</span><span class="d-a">►</span> (4, 768) tensor
+       <span class="d-l">│</span>
+       <span class="d-a">▼</span>
+  96× TRANSFORMER BLOCK <span class="d-l">──</span><span class="d-a">►</span> (4, 768) tensor (contextualized)
+       <span class="d-l">│</span>
+       <span class="d-a">▼</span>
+  LM HEAD <span class="d-l">──</span><span class="d-a">►</span> (4, 50257) logits
+       <span class="d-l">│</span>
+       <span class="d-a">▼</span>
+  TAKE LAST <span class="d-l">──</span><span class="d-a">►</span> (50257,) logits for next token
+       <span class="d-l">│</span>
+       <span class="d-a">▼</span>
+  SAMPLE (temp=0.7, top_p=0.9) <span class="d-l">──</span><span class="d-a">►</span> token_id = 318 (" is")
+       <span class="d-l">│</span>
+       <span class="d-a">▼</span>
+  APPEND <span class="d-l">──</span><span class="d-a">►</span> [24446, 502, 922, 14030, 318]
+       <span class="d-l">│</span>
+       <span class="d-a">▼</span>
+  REPEAT until EOS <span class="d-l">──</span><span class="d-a">►</span> "Tell me about Python is a high-level..."
+       <span class="d-l">│</span>
+       <span class="d-a">▼</span>
+  DETOKENIZE <span class="d-l">──</span><span class="d-a">►</span> Final human-readable response</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="f02Transformers-p19"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-message"/></svg>20. Multimodal Transformers</span><i></i>
@@ -3757,10 +3769,10 @@ WITH KV-Cache:
             <p><strong>Deep dive:</strong> See <a href="multimodal.html#f03MultimodalAI">Multimodal AI</a> for complete coverage of CLIP, VLMs, diffusion models, audio/speech, video understanding, multimodal <abbr title="retrieval-augmented generation">RAG</abbr>, and document AI.</p>
           </div>
           <div class="diagram"><pre>LLaVA Architecture:
-  Image → ViT encoder → Patch embeddings → Linear projection → Visual tokens
-  Text  → Tokenizer → Text embeddings → Text tokens
-                                          ↓
-  [Visual tokens | Text tokens] → LLM decoder → Response
+  Image <span class="d-a">→</span> ViT encoder <span class="d-a">→</span> Patch embeddings <span class="d-a">→</span> Linear projection <span class="d-a">→</span> Visual tokens
+  Text  <span class="d-a">→</span> Tokenizer <span class="d-a">→</span> Text embeddings <span class="d-a">→</span> Text tokens
+                                          <span class="d-a">↓</span>
+  [Visual tokens | Text tokens] <span class="d-a">→</span> LLM decoder <span class="d-a">→</span> Response
 
   This "visual token" approach is now standard:
   - GPT-4V, Claude 3, Gemini all use variants of this
@@ -4207,10 +4219,10 @@ WITH KV-Cache:
               3. <abbr title="key-value — the attention keys and values cached for tokens already generated">KV</abbr> blocks are passed around the ring — each device sends its KV to the next device and receives KV from the previous device.
               4. At each step, each device computes attention between its local Q and the currently held KV block.
               5. After $P$ steps, every Q block has attended to all KV blocks. Results are combined using the <abbr title="a fused attention kernel that never materialises the full attention matrix, cutting memory traffic">Flash Attention</abbr> online softmax trick (running max and sum statistics).</p>
-            <div class="diagram"><pre>Device 0: Q0  ←─ KV0 → KV3 → KV2 → KV1  (receives from ring)
-Device 1: Q1  ←─ KV1 → KV0 → KV3 → KV2
-Device 2: Q2  ←─ KV2 → KV1 → KV0 → KV3
-Device 3: Q3  ←─ KV3 → KV2 → KV1 → KV0</pre></div>
+            <div class="diagram"><pre>Device 0: Q0  <span class="d-a">←</span><span class="d-l">─</span> KV0 <span class="d-a">→</span> KV3 <span class="d-a">→</span> KV2 <span class="d-a">→</span> KV1  (receives from ring)
+Device 1: Q1  <span class="d-a">←</span><span class="d-l">─</span> KV1 <span class="d-a">→</span> KV0 <span class="d-a">→</span> KV3 <span class="d-a">→</span> KV2
+Device 2: Q2  <span class="d-a">←</span><span class="d-l">─</span> KV2 <span class="d-a">→</span> KV1 <span class="d-a">→</span> KV0 <span class="d-a">→</span> KV3
+Device 3: Q3  <span class="d-a">←</span><span class="d-l">─</span> KV3 <span class="d-a">→</span> KV2 <span class="d-a">→</span> KV1 <span class="d-a">→</span> KV0</pre></div>
             <p><strong>Key properties:</strong>
               - <strong>Memory per device</strong>: $O(N/P)$ — scales linearly with number of devices.
               - <strong>Communication</strong>: Overlapped with computation — while computing attention with current KV block, the next KV block is being transferred.
@@ -4312,23 +4324,23 @@ Device 3: Q3  ←─ KV3 → KV2 → KV1 → KV0</pre></div>
             <h4>How It Works</h4>
             <p>Each attention layer maintains three components that run in parallel:</p>
             <div class="diagram"><pre>Input Segment (length S)
-        │
-    ┌───┴───────────────────────────┐
-    │                               │
-    ▼                               ▼
-┌──────────────┐          ┌──────────────────────┐
-│ Local Causal │          │ Compressive Memory   │
-│ Attention    │          │ (Linear Attention)   │
-│ Standard     │          │ Retrieves from ALL   │
-│ dot-product  │          │ previous segments    │
-│ on segment   │          │ M_s, z_s updated     │
-└──────┬───────┘          └──────────┬───────────┘
-    │                               │
-       ▼                             ▼
+        <span class="d-l">│</span>
+    <span class="d-l">┌───┴───────────────────────────┐</span>
+    <span class="d-l">│</span>                               <span class="d-l">│</span>
+    <span class="d-a">▼</span>                               <span class="d-a">▼</span>
+<span class="d-l">┌──────────────┐</span>          <span class="d-l">┌──────────────────────┐</span>
+<span class="d-l">│</span> Local Causal <span class="d-l">│</span>          <span class="d-l">│</span> Compressive Memory   <span class="d-l">│</span>
+<span class="d-l">│</span> Attention    <span class="d-l">│</span>          <span class="d-l">│</span> (Linear Attention)   <span class="d-l">│</span>
+<span class="d-l">│</span> Standard     <span class="d-l">│</span>          <span class="d-l">│</span> Retrieves from ALL   <span class="d-l">│</span>
+<span class="d-l">│</span> dot-product  <span class="d-l">│</span>          <span class="d-l">│</span> previous segments    <span class="d-l">│</span>
+<span class="d-l">│</span> on segment   <span class="d-l">│</span>          <span class="d-l">│</span> M_s, z_s updated     <span class="d-l">│</span>
+<span class="d-l">└──────┬───────┘</span>          <span class="d-l">└──────────┬───────────┘</span>
+    <span class="d-l">│</span>                               <span class="d-l">│</span>
+       <span class="d-a">▼</span>                             <span class="d-a">▼</span>
    A_local                       A_memory
-    │                               │
-       └──────────┬─────────────────┘
-                  ▼
+    <span class="d-l">│</span>                               <span class="d-l">│</span>
+       <span class="d-l">└──────────┬─────────────────┘</span>
+                  <span class="d-a">▼</span>
             Learned Gating (σ(β))
             Output = σ(β) · A_memory + (1 - σ(β)) · A_local</pre></div>
             <p><strong>Step-by-step:</strong>
@@ -4408,8 +4420,8 @@ Device 3: Q3  ←─ KV3 → KV2 → KV1 → KV0</pre></div>
             <div class="diagram"><pre>AdamW (Loshchilov &amp; Hutter, 2019):
   The standard optimizer for Transformers. Decouples weight decay from gradient.
 
-  Standard Adam applies weight decay to gradient → biases regularization.
-  AdamW applies weight decay directly to weights → proper L2 regularization.
+  Standard Adam applies weight decay to gradient <span class="d-a">→</span> biases regularization.
+  AdamW applies weight decay directly to weights <span class="d-a">→</span> proper L2 regularization.
 
   Key hyperparameters:
     lr:          1e-4 to 3e-4 (pre-training), 1e-5 to 5e-5 (fine-tuning)
@@ -4440,18 +4452,18 @@ optimizer = torch.optim.<span class="fn">AdamW</span>(
             <div class="diagram"><pre>WARMUP + COSINE DECAY (most common):
 
   LR
-  ↑
-  │        ╱╲
-  │       ╱  ╲
-  │      ╱    ╲               ← peak LR
-  │     ╱      ╲
-  │    ╱        ╲
-  │   ╱          ╲╲
-  │  ╱             ╲╲
-  │ ╱                ╲╲╲╲╲╲   ← cosine decay to ~10% of peak
-  │╱                         ← warmup phase
-  └───────────────────────────► steps
-    ↑ warmup        ↑ training
+  <span class="d-a">↑</span>
+  <span class="d-l">│</span>        <span class="d-l">╱╲</span>
+  <span class="d-l">│</span>       <span class="d-l">╱</span>  <span class="d-l">╲</span>
+  <span class="d-l">│</span>      <span class="d-l">╱</span>    <span class="d-l">╲</span>               <span class="d-a">←</span> peak LR
+  <span class="d-l">│</span>     <span class="d-l">╱</span>      <span class="d-l">╲</span>
+  <span class="d-l">│</span>    <span class="d-l">╱</span>        <span class="d-l">╲</span>
+  <span class="d-l">│</span>   <span class="d-l">╱</span>          <span class="d-l">╲╲</span>
+  <span class="d-l">│</span>  <span class="d-l">╱</span>             <span class="d-l">╲╲</span>
+  <span class="d-l">│</span> <span class="d-l">╱</span>                <span class="d-l">╲╲╲╲╲╲</span>   <span class="d-a">←</span> cosine decay to ~10% of peak
+  <span class="d-l">│╱</span>                         <span class="d-a">←</span> warmup phase
+  <span class="d-l">└───────────────────────────</span><span class="d-a">►</span> steps
+    <span class="d-a">↑</span> warmup        <span class="d-a">↑</span> training
 
   Warmup: Linearly increase LR from 0 to peak over first 1-5% of steps.
     - Prevents large early gradients from destabilizing training
@@ -4496,9 +4508,9 @@ FP16 (16-bit):  Half precision. 2 bytes. 2× faster, but can overflow/underflow.
 BF16 (bfloat16): Same range as FP32 but less precision. Best of both worlds.
                  Supported on Ampere+ GPUs (A100, H100).
 
-  FP16: sign(1) + exponent(5) + mantissa(10)  → range ±65504
-  BF16: sign(1) + exponent(8) + mantissa(7)   → range ±3.4×10³⁸
-  FP32: sign(1) + exponent(8) + mantissa(23)  → range ±3.4×10³⁸
+  FP16: sign(1) + exponent(5) + mantissa(10)  <span class="d-a">→</span> range ±65504
+  BF16: sign(1) + exponent(8) + mantissa(7)   <span class="d-a">→</span> range ±3.4×10³⁸
+  FP32: sign(1) + exponent(8) + mantissa(23)  <span class="d-a">→</span> range ±3.4×10³⁸
 
   BF16 preferred for LLM training (no loss scaling needed).
   FP16 needs loss scaling to prevent gradient underflow.</pre></div>
@@ -4555,21 +4567,21 @@ GRADIENT CHECKPOINTING (activation checkpointing):
             <div class="keyterms"><span class="kt">Data Parallelism (DDP)</span><span class="kt">FSDP / DeepSpeed ZeRO</span><span class="kt">Tensor Parallelism</span><span class="kt">Pipeline Parallelism</span>
             </div>
             <div class="diagram"><pre>STRATEGY              WHAT IT PARALLELIZES       USE CASE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<span class="d-l">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
 Data Parallel (DDP)   Data (batches)             Model fits on 1 GPU
 FSDP (ZeRO)           Data + sharded params      Model barely fits / doesn't fit
 Tensor Parallel       Individual layers (cols)   Very large layers
 Pipeline Parallel     Groups of layers           Very deep models
 Sequence Parallel     Sequence dimension         Very long sequences
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</pre></div>
+<span class="d-l">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span></pre></div>
             <p><strong>Data Parallelism (DDP)</strong>:</p>
             <div class="diagram"><pre>  Each GPU has a full copy of the model.
   Data is split across GPUs (different mini-batches).
   Gradients are all-reduced (averaged) after backward pass.
   
-  GPU 0: model copy + batch 0 → gradients → all-reduce → update
-  GPU 1: model copy + batch 1 → gradients → all-reduce → update
-  GPU 2: model copy + batch 2 → gradients → all-reduce → update
+  GPU 0: model copy + batch 0 <span class="d-a">→</span> gradients <span class="d-a">→</span> all-reduce <span class="d-a">→</span> update
+  GPU 1: model copy + batch 1 <span class="d-a">→</span> gradients <span class="d-a">→</span> all-reduce <span class="d-a">→</span> update
+  GPU 2: model copy + batch 2 <span class="d-a">→</span> gradients <span class="d-a">→</span> all-reduce <span class="d-a">→</span> update
   
   Effective batch size = per_gpu_batch × num_gpus
   Limitation: Model must fit in single GPU memory.</pre></div>
@@ -4577,13 +4589,13 @@ Sequence Parallel     Sequence dimension         Very long sequences
             <div class="diagram"><pre>  ZeRO (Zero Redundancy Optimizer) — 3 stages:
   
   ZeRO-1: Shard optimizer states across GPUs
-           → ~4× memory reduction
+           <span class="d-a">→</span> ~4× memory reduction
   ZeRO-2: + Shard gradients
-           → ~8× memory reduction
+           <span class="d-a">→</span> ~8× memory reduction
   ZeRO-3: + Shard parameters (FSDP)
-           → ~N× reduction (N = num GPUs)
-           → Each GPU holds only 1/N of the model at any time
-           → Parameters gathered on-demand for forward/backward
+           <span class="d-a">→</span> ~N× reduction (N = num GPUs)
+           <span class="d-a">→</span> Each GPU holds only 1/N of the model at any time
+           <span class="d-a">→</span> Parameters gathered on-demand for forward/backward
   
   PyTorch FSDP = ZeRO-3 integrated into PyTorch.
   DeepSpeed = Microsoft's library implementing ZeRO + more optimizations.
@@ -4610,7 +4622,7 @@ model = <span class="fn">FSDP</span>(model, auto_wrap_policy=transformer_auto_wr
     GPU 2: W[:, 8192:12288]
     GPU 3: W[:, 12288:]
   
-  Each GPU computes partial output → all-reduce to combine.
+  Each GPU computes partial output <span class="d-a">→</span> all-reduce to combine.
   Very fast (within-node NVLink), but high communication.
   Used by: Megatron-LM, typically within a single node (8 GPUs).</pre></div>
             <p><strong><abbr title="splitting a model&#x27;s layers across GPUs, each handling one stage of the forward pass">Pipeline Parallelism</abbr></strong>:</p>
@@ -4633,13 +4645,13 @@ model = <span class="fn">FSDP</span>(model, auto_wrap_policy=transformer_auto_wr
           </div>
           <div class="q-a">
             <div class="diagram"><pre>MODEL SIZE    GPUs NEEDED    STRATEGY              EXAMPLE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<span class="d-l">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
 &lt;1B           1 GPU          DDP (optional)         BERT, DistilBERT
 1B-7B         1-4 GPUs       DDP + gradient ckpt    LLaMA 7B fine-tune
 7B-13B        2-8 GPUs       FSDP / ZeRO-3          LLaMA 13B
 13B-70B       8-64 GPUs      FSDP + TP              LLaMA 70B
 70B+          64-1000s GPUs  TP + PP + DP            GPT-4, Gemini
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<span class="d-l">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
 
 LLaMA 2 TRAINING RECIPE (7B):
   Optimizer:    AdamW (lr=3e-4, β=(0.9, 0.95), wd=0.1)
@@ -4731,7 +4743,7 @@ BERT FINE-TUNING RECIPE:
             </div>
             <p><strong>Our 6-word vocabulary</strong> (each word has an ID and a 4-number embedding vector):</p>
             <div class="diagram"><pre>ID  word     embedding (d_model = 4)
-─────────────────────────────────────
+<span class="d-l">─────────────────────────────────────</span>
  0  the      [1, 0, 1, 0]
  1  cat      [0, 1, 1, 0]
  2  sat      [1, 1, 0, 0]
@@ -4748,29 +4760,29 @@ BERT FINE-TUNING RECIPE:
             <div class="diagram"><pre>THE JOURNEY (what we'll compute):
 
   "the cat sat"
-       │  ① tokenize         text → IDs
-       ▼
+       <span class="d-l">│</span>  ① tokenize         text <span class="d-a">→</span> IDs
+       <span class="d-a">▼</span>
    [0, 1, 2]
-       │  ② embed            IDs → vectors (lookup)
-       ▼
+       <span class="d-l">│</span>  ② embed            IDs <span class="d-a">→</span> vectors (lookup)
+       <span class="d-a">▼</span>
    3 vectors of size 4
-       │  ③ + positions      inject word order
-       ▼
+       <span class="d-l">│</span>  ③ + positions      inject word order
+       <span class="d-a">▼</span>
    X  (3×4)
-       │  ④ self-attention   each word mixes in context
-       ▼
+       <span class="d-l">│</span>  ④ self-attention   each word mixes in context
+       <span class="d-a">▼</span>
    + ⑤ residual &amp; LayerNorm
-       │  ⑥ feed-forward     per-word transformation
-       ▼
+       <span class="d-l">│</span>  ⑥ feed-forward     per-word transformation
+       <span class="d-a">▼</span>
    + ⑦ residual &amp; LayerNorm
-       │  ⑧ LM head          hidden → score per vocab word
-       ▼
+       <span class="d-l">│</span>  ⑧ LM head          hidden <span class="d-a">→</span> score per vocab word
+       <span class="d-a">▼</span>
    logits (6 numbers)
-       │  ⑨ softmax          scores → probabilities
-       ▼
-   pick the most likely word  →  prediction
-       │  ⑩ repeat            append word, go again (autoregression)
-       ▼
+       <span class="d-l">│</span>  ⑨ softmax          scores <span class="d-a">→</span> probabilities
+       <span class="d-a">▼</span>
+   pick the most likely word  <span class="d-a">→</span>  prediction
+       <span class="d-l">│</span>  ⑩ repeat            append word, go again (autoregression)
+       <span class="d-a">▼</span>
    full sentence</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -4824,11 +4836,11 @@ pos 2:  [sin2,   cos2,   sin.02,  cos.02] = [0.91, -0.42, 0.02, 1.00]</code></pr
 z1 = E[cat] + PE(1) = [0,1,1,0] + [0.84, 0.54,0.01,1.00] = [0.84,  1.54, 1.01, 1.00]
 z2 = E[sat] + PE(2) = [1,1,0,0] + [0.91,-0.42,0.02,1.00] = [1.91,  0.58, 0.02, 1.00]
 
-        ┌                          ┐
-   X =  │ 1.00   1.00   1.00  1.00 │  ← "the"  (position 0)
-        │ 0.84   1.54   1.01  1.00 │  ← "cat"  (position 1)
-        │ 1.91   0.58   0.02  1.00 │  ← "sat"  (position 2)
-        └                          ┘   shape: (3 tokens × 4 dims)</pre></div>
+        <span class="d-l">┌</span>                          <span class="d-l">┐</span>
+   X =  <span class="d-l">│</span> 1.00   1.00   1.00  1.00 <span class="d-l">│</span>  <span class="d-a">←</span> "the"  (position 0)
+        <span class="d-l">│</span> 0.84   1.54   1.01  1.00 <span class="d-l">│</span>  <span class="d-a">←</span> "cat"  (position 1)
+        <span class="d-l">│</span> 1.91   0.58   0.02  1.00 <span class="d-l">│</span>  <span class="d-a">←</span> "sat"  (position 2)
+        <span class="d-l">└</span>                          <span class="d-l">┘</span>   shape: (3 tokens × 4 dims)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02aTransformer-92">
@@ -4888,14 +4900,14 @@ z2 = E[sat] + PE(2) = [1,1,0,0] + [0.91,-0.42,0.02,1.00] = [1.91,  0.58, 0.02, 1
             </div>
             <p>Concretely, here is how the last word <strong>"sat"</strong> builds its new vector (these are the actual numbers we compute below):</p>
             <div class="diagram"><pre>   "sat"
-     │
-     ├─①② SCORE:   sat's query · each word's key   →   the 1.76   cat 1.76   sat 2.49   (after scaling)
-     │
-     ├─③  WEIGHTS: softmax those scores             →   0.24       0.25       0.51       (sum = 1)
-     │
-     └─④  BLEND:   0.24·Value(the) + 0.25·Value(cat) + 0.51·Value(sat)
-                                        ↓
-                       new "sat" vector = [1.42, 0.92, 0.50, 1.00]   ← now context-aware</pre></div>
+     <span class="d-l">│</span>
+     <span class="d-l">├─</span>①② SCORE:   sat's query · each word's key   <span class="d-a">→</span>   the 1.76   cat 1.76   sat 2.49   (after scaling)
+     <span class="d-l">│</span>
+     <span class="d-l">├─</span>③  WEIGHTS: softmax those scores             <span class="d-a">→</span>   0.24       0.25       0.51       (sum = 1)
+     <span class="d-l">│</span>
+     <span class="d-l">└─</span>④  BLEND:   0.24·Value(the) + 0.25·Value(cat) + 0.51·Value(sat)
+                                        <span class="d-a">↓</span>
+                       new "sat" vector = [1.42, 0.92, 0.50, 1.00]   <span class="d-a">←</span> now context-aware</pre></div>
             <p>Every word does this at once (it's just matrix multiplication). Steps 4a–4e below are exactly these four stages, computed for <em>all three</em> words; we then follow "sat" through the blend.</p>
             <div class="note">
               <p>🔧 In <em>this</em> worked example the three matrices are the <strong>identity</strong>, so a word's query, key, and value are all <strong>just the word's own vector</strong> (<code>Q = K = V = X</code> — written <code>z</code> below). That keeps the arithmetic tiny. The real version, where query/key/value genuinely differ, is computed in <strong>§④½</strong> right after — start there if you want to see actual <code>W_Q/W_K/W_V</code>.</p>
@@ -4904,11 +4916,11 @@ z2 = E[sat] + PE(2) = [1,1,0,0] + [0.91,-0.42,0.02,1.00] = [1.91,  0.58, 0.02, 1
             <p>Dot every token's query with every token's key (high dot product = "similar / relevant"). <strong>Read the grid as: row = the word doing the looking, column = the word being looked at</strong>; cell <code>[i][j]</code> = how relevant word <em>j</em> is to word <em>i</em>.</p>
             <div class="diagram"><pre>score[i][j] = z_i · z_j          (here query = key = the word vector z)
 
-           the    cat    sat          ← being looked at (keys)
+           the    cat    sat          <span class="d-a">←</span> being looked at (keys)
    the  [  4.00   4.39   3.51 ]      e.g. z_the·z_cat =
    cat  [  4.39   5.10   3.52 ]        1·0.84+1·1.54+1·1.01+1·1.00 = 4.39
    sat  [  3.51   3.52   4.98 ]
-    ↑
+    <span class="d-a">↑</span>
   doing the looking (queries) — each row is one word's view of the sentence</pre></div>
             <h3>Step 4b — scale by √d_k</h3>
             <p><code>d_k = 4</code>, so divide by <code>√4 = 2</code> (keeps the numbers in softmax's sweet spot):</p>
@@ -4917,9 +4929,9 @@ z2 = E[sat] + PE(2) = [1,1,0,0] + [0.91,-0.42,0.02,1.00] = [1.91,  0.58, 0.02, 1
    sat  [ 1.76   1.76   2.49 ]</code></pre>
             <h3>Step 4c — causal mask (a word can't see the future)</h3>
             <p>Because we generate left-to-right, token <em>i</em> may only attend to tokens <code>≤ i</code>. Set the "future" cells to <strong>−∞</strong> (they'll become 0 after softmax):</p>
-            <div class="diagram"><pre>   the  [ 2.00    −∞     −∞  ]    ← "the" sees only itself
-   cat  [ 2.20   2.55    −∞  ]    ← "cat" sees the, cat
-   sat  [ 1.76   1.76   2.49 ]    ← "sat" sees the, cat, sat</pre></div>
+            <div class="diagram"><pre>   the  [ 2.00    −∞     −∞  ]    <span class="d-a">←</span> "the" sees only itself
+   cat  [ 2.20   2.55    −∞  ]    <span class="d-a">←</span> "cat" sees the, cat
+   sat  [ 1.76   1.76   2.49 ]    <span class="d-a">←</span> "sat" sees the, cat, sat</pre></div>
             <h3>Step 4d — softmax each row (→ attention weights)</h3>
             <p>Turn each row into probabilities that sum to 1:</p>
             <pre class="code"><code>   the  [ 1.000  0.000  0.000 ]   (only one option)
@@ -4986,22 +4998,22 @@ attn_sat = [1.42, 0.92, 0.50, 1.00]</code></pre>
             <p>The crucial point: <strong>Q, K, V are three different <em>views</em> of the same token.</strong> What a word <em>looks for</em> (query) is allowed to differ from what it <em>advertises</em> (key), which differs from what it <em>contributes</em> (value). Identity matrices collapse all three into one — which is why the simplified version above can't show this.</p>
             <h3>Step 1 — the three learned weight matrices</h3>
             <p>In a real model these are learned; here they're toy values. We also project from <code>d_model = 4</code> <strong>down to <code>d_k = 2</code></strong> (real heads shrink the dimension — that's why there are many of them). Each matrix is <code>4×2</code>:</p>
-            <div class="diagram"><pre>        ┌      ┐          ┌      ┐          ┌      ┐
-        │ 1  0 │          │ 0  1 │          │ 0  0 │
-  W_Q = │ 0  1 │    W_K = │ 1  0 │    W_V = │ 0  0 │
-        │ 0  0 │          │ 0  0 │          │ 1  0 │
-        │ 0  0 │          │ 0  0 │          │ 0  1 │
-        └      ┘          └      ┘          └      ┘
+            <div class="diagram"><pre>        <span class="d-l">┌</span>      <span class="d-l">┐</span>          <span class="d-l">┌</span>      <span class="d-l">┐</span>          <span class="d-l">┌</span>      <span class="d-l">┐</span>
+        <span class="d-l">│</span> 1  0 <span class="d-l">│</span>          <span class="d-l">│</span> 0  1 <span class="d-l">│</span>          <span class="d-l">│</span> 0  0 <span class="d-l">│</span>
+  W_Q = <span class="d-l">│</span> 0  1 <span class="d-l">│</span>    W_K = <span class="d-l">│</span> 1  0 <span class="d-l">│</span>    W_V = <span class="d-l">│</span> 0  0 <span class="d-l">│</span>
+        <span class="d-l">│</span> 0  0 <span class="d-l">│</span>          <span class="d-l">│</span> 0  0 <span class="d-l">│</span>          <span class="d-l">│</span> 1  0 <span class="d-l">│</span>
+        <span class="d-l">│</span> 0  0 <span class="d-l">│</span>          <span class="d-l">│</span> 0  0 <span class="d-l">│</span>          <span class="d-l">│</span> 0  1 <span class="d-l">│</span>
+        <span class="d-l">└</span>      <span class="d-l">┘</span>          <span class="d-l">└</span>      <span class="d-l">┘</span>          <span class="d-l">└</span>      <span class="d-l">┘</span>
    reads dims 0,1     reads dims 0,1     reads dims 2,3
    in order (0,1)     SWAPPED (1,0)      (the "content")</pre></div>
             <p>These are deliberately simple so you can see the multiply, but they are <strong>genuinely different matrices</strong> — that's all that matters.</p>
             <h3>Step 2 — project X into Q, K, V</h3>
             <p>Recall our layer input <code>X</code> (the "the cat sat" rows from §③):</p>
-            <div class="diagram"><pre>        ┌                          ┐
-   X =  │ 1.00   1.00   1.00  1.00 │  ← the
-        │ 0.84   1.54   1.01  1.00 │  ← cat
-        │ 1.91   0.58   0.02  1.00 │  ← sat
-        └                          ┘</pre></div>
+            <div class="diagram"><pre>        <span class="d-l">┌</span>                          <span class="d-l">┐</span>
+   X =  <span class="d-l">│</span> 1.00   1.00   1.00  1.00 <span class="d-l">│</span>  <span class="d-a">←</span> the
+        <span class="d-l">│</span> 0.84   1.54   1.01  1.00 <span class="d-l">│</span>  <span class="d-a">←</span> cat
+        <span class="d-l">│</span> 1.91   0.58   0.02  1.00 <span class="d-l">│</span>  <span class="d-a">←</span> sat
+        <span class="d-l">└</span>                          <span class="d-l">┘</span></pre></div>
             <p>Multiply each row by each weight matrix. For example, <strong>"sat" = [1.91, 0.58, 0.02, 1.00]</strong>:</p>
             <pre class="code"><code>q_sat = x_sat · W_Q = [1.91, 0.58]   (picks dims 0,1)
 k_sat = x_sat · W_K = [0.58, 1.91]   (picks dims 0,1 but swapped)
@@ -5013,9 +5025,9 @@ v_sat = x_sat · W_V = [0.02, 1.00]   (picks dims 2,3)</code></pre>
    sat [ 1.91  0.58 ]   sat [ 0.58  1.91 ]   sat [ 0.02  1.00 ]</code></pre>
             <h3>Step 3 — scores = Q·Kᵀ (query meets key)</h3>
             <p>Now the dot products are <strong>query·key</strong>, not token·token. Scoring the <strong>"sat" query</strong> against all three keys:</p>
-            <div class="diagram"><pre>score(sat→the) = q_sat · k_the = [1.91,0.58]·[1.00,1.00] = 1.91 + 0.58 = 2.49
-score(sat→cat) = q_sat · k_cat = [1.91,0.58]·[1.54,0.84] = 2.94 + 0.49 = 3.43  ◄ highest
-score(sat→sat) = q_sat · k_sat = [1.91,0.58]·[0.58,1.91] = 1.11 + 1.11 = 2.22</pre></div>
+            <div class="diagram"><pre>score(sat<span class="d-a">→</span>the) = q_sat · k_the = [1.91,0.58]·[1.00,1.00] = 1.91 + 0.58 = 2.49
+score(sat<span class="d-a">→</span>cat) = q_sat · k_cat = [1.91,0.58]·[1.54,0.84] = 2.94 + 0.49 = 3.43  <span class="d-a">◄</span> highest
+score(sat<span class="d-a">→</span>sat) = q_sat · k_sat = [1.91,0.58]·[0.58,1.91] = 1.11 + 1.11 = 2.22</pre></div>
             <h3>Step 4 — scale, mask, softmax</h3>
             <p>Divide by <code>√d_k = √2 ≈ 1.41</code>, keep the causal mask (sat sees all three), then softmax:</p>
             <pre class="code"><code>scaled:   [ 2.49,  3.43,  2.22 ] / 1.41  =  [ 1.76,  2.42,  1.57 ]
@@ -5034,10 +5046,10 @@ weights:  [ 5.82/21.91, 11.30/21.91, 4.79/21.91 ] = [ 0.266, 0.516, 0.219 ]</cod
 out_sat = [0.79, 1.00]</code></pre>
             <h3>Step 6 — back up to d_model (the output projection W_O)</h3>
             <p>The head produced a <code>d_k = 2</code> vector, but the residual stream is <code>d_model = 4</code>. A real layer concatenates all heads and applies an <strong>output projection <code>W_O</code></strong> to get back to <code>d_model</code>. With a toy <code>W_O</code> (2→4):</p>
-            <div class="diagram"><pre>            ┌              ┐
-out_sat ·   │ 1  0  1  0   │  = [0.79, 1.00, 0.79, 1.00]   ← now 4-dim, ready for §⑤'s residual
-            │ 0  1  0  1   │
-            └              ┘</pre></div>
+            <div class="diagram"><pre>            <span class="d-l">┌</span>              <span class="d-l">┐</span>
+out_sat ·   <span class="d-l">│</span> 1  0  1  0   <span class="d-l">│</span>  = [0.79, 1.00, 0.79, 1.00]   <span class="d-a">←</span> now 4-dim, ready for §⑤'s residual
+            <span class="d-l">│</span> 0  1  0  1   <span class="d-l">│</span>
+            <span class="d-l">└</span>              <span class="d-l">┘</span></pre></div>
             <p>With many heads, <code>W_O</code> is where their separate "opinions" get mixed back together.</p>
             <h3>Step 7 — residual + LayerNorm (same as §⑤, but from the <em>real</em> attention output)</h3>
             <p><code>attn_sat = [0.79, 1.00, 0.79, 1.00]</code> rejoins the residual stream — add the original <code>x_sat</code> back, then normalize:</p>
@@ -5047,19 +5059,19 @@ out_sat ·   │ 1  0  1  0   │  = [0.79, 1.00, 0.79, 1.00]   ← now 4-dim, r
 LayerNorm  (mean 1.77, std 0.68):
 n = [1.36, −0.28, −1.41, 0.33]</code></pre>
             <h3>Step 8 — feed-forward (the same toy FFN as §⑥: <code>ReLU(n + 0.5)</code>)</h3>
-            <div class="diagram"><pre>n + 0.5 = [1.86, 0.22, −0.91, 0.83]   →   ReLU   →   [1.86, 0.22, 0.00, 0.83]
-                                                              ↑ −0.91 clipped to 0</pre></div>
+            <div class="diagram"><pre>n + 0.5 = [1.86, 0.22, −0.91, 0.83]   <span class="d-a">→</span>   ReLU   <span class="d-a">→</span>   [1.86, 0.22, 0.00, 0.83]
+                                                              <span class="d-a">↑</span> −0.91 clipped to 0</pre></div>
             <h3>Step 9 — second residual + LayerNorm</h3>
             <div class="diagram"><pre>res' = n + ffn = [1.36,−0.28,−1.41,0.33] + [1.86,0.22,0.00,0.83]
                = [3.21, −0.06, −1.41, 1.16]
 
 LayerNorm  (mean 0.73, std 1.70):
-h = [1.46, −0.47, −1.26, 0.26]      ← final hidden state for "sat"</pre></div>
+h = [1.46, −0.47, −1.26, 0.26]      <span class="d-a">←</span> final hidden state for "sat"</pre></div>
             <h3>Step 10 — LM head + softmax → the prediction</h3>
             <p>Tie the LM head to the embeddings (logit = <code>h · E[word]</code>), then softmax over the 6-word vocab:</p>
             <div class="diagram"><pre>logits =  the 0.21   cat −1.72   sat 1.00   on −1.00   mat 1.72   &lt;eos&gt; −0.21
 
-  mat   ████████████████████████  51.3%   ◄ prediction
+  mat   ████████████████████████  51.3%   <span class="d-a">◄</span> prediction
   sat   ████████████              24.9%
   the   █████                     11.3%
   &lt;eos&gt; ███                        7.5%
@@ -5071,16 +5083,16 @@ h = [1.46, −0.47, −1.26, 0.26]      ← final hidden state for "sat"</pre></
             </div>
             <p><strong>The "sat" row, start to finish:</strong>
             </p>
-            <div class="diagram"><pre>x_sat [1.91,0.58,0.02,1.00] ─Q,K,V→ attends 27%/52%/22% to the/cat/sat
-   → attn [0.79,1.00] ─W_O→ [0.79,1.00,0.79,1.00] ─+res,LN→ [1.36,−0.28,−1.41,0.33]
-   → FFN [1.86,0.22,0,0.83] ─+res,LN→ h [1.46,−0.47,−1.26,0.26] ─LM head,softmax→ "mat" (51%)</pre></div>
+            <div class="diagram"><pre>x_sat [1.91,0.58,0.02,1.00] <span class="d-l">─</span>Q,K,V<span class="d-a">→</span> attends 27%/52%/22% to the/cat/sat
+   <span class="d-a">→</span> attn [0.79,1.00] <span class="d-l">─</span>W_O<span class="d-a">→</span> [0.79,1.00,0.79,1.00] <span class="d-l">─</span>+res,LN<span class="d-a">→</span> [1.36,−0.28,−1.41,0.33]
+   <span class="d-a">→</span> FFN [1.86,0.22,0,0.83] <span class="d-l">─</span>+res,LN<span class="d-a">→</span> h [1.46,−0.47,−1.26,0.26] <span class="d-l">─</span>LM head,softmax<span class="d-a">→</span> "mat" (51%)</pre></div>
             <h3>Why three matrices and not one? (the payoff)</h3>
             <div class="diagram"><pre>  IDENTITY (the §④ shortcut)          REAL W_Q, W_K, W_V (here)
-  ──────────────────────────          ─────────────────────────
-  q = k = v = the token itself        q = "what I seek"   ─┐
-  → a word can only "match" words     k = "what I offer"   ├ three independent roles
-    that look like itself, and can     v = "what I give"  ─┘
-    only pass on its raw self         → a verb can seek its subject, a pronoun can
+  <span class="d-l">──────────────────────────</span>          <span class="d-l">─────────────────────────</span>
+  q = k = v = the token itself        q = "what I seek"   <span class="d-l">─┐</span>
+  <span class="d-a">→</span> a word can only "match" words     k = "what I offer"   <span class="d-l">├</span> three independent roles
+    that look like itself, and can     v = "what I give"  <span class="d-l">─┘</span>
+    only pass on its raw self         <span class="d-a">→</span> a verb can seek its subject, a pronoun can
                                         seek its antecedent, etc. — and hand over
                                         something other than its surface form</pre></div>
             <p>That separation is what lets attention learn <em>relationships</em> (subject→verb, adjective→noun, "it"→the thing "it" refers to) instead of mere look-alike matching.</p>
@@ -5134,7 +5146,7 @@ p = np.<span class="fn">exp</span>(last - last.<span class="fn">max</span>()); p
                   = [3.33, 1.50, 0.52, 2.00]</code></pre>
             <p><strong>LayerNorm:</strong> rescale this vector to mean 0, variance 1 (then scale/shift by learned γ=1, β=0):</p>
             <div class="diagram"><pre>mean μ = (3.33+1.50+0.52+2.00)/4 = 1.84
-var  σ² = mean of (xᵢ−μ)² = ((1.49)²+(−0.34)²+(−1.32)²+(0.16)²)/4 = 1.03  → σ = 1.01
+var  σ² = mean of (xᵢ−μ)² = ((1.49)²+(−0.34)²+(−1.32)²+(0.16)²)/4 = 1.03  <span class="d-a">→</span> σ = 1.01
 
 n = (r − μ)/σ = [ (3.33−1.84)/1.01, (1.50−1.84)/1.01, (0.52−1.84)/1.01, (2.00−1.84)/1.01 ]
   = [1.47, −0.34, −1.30, 0.16]</pre></div>
@@ -5152,7 +5164,7 @@ n = (r − μ)/σ = [ (3.33−1.84)/1.01, (1.50−1.84)/1.01, (0.52−1.84)/1.01
             <div class="diagram"><pre>pre-activation = n + 0.5 = [1.97, 0.16, −0.80, 0.66]
 
 ReLU (clip negatives to 0):  [1.97, 0.16,  0.00, 0.66]
-                                          ↑ the −0.80 became 0
+                                          <span class="d-a">↑</span> the −0.80 became 0
 
 ffn_out = [1.97, 0.16, 0.00, 0.66]</pre></div>
             <p>This is exactly what ReLU does in a real FFN — it lets the network "switch off" features.</p>
@@ -5168,7 +5180,7 @@ ffn_out = [1.97, 0.16, 0.00, 0.66]</pre></div>
 
 LayerNorm:
   μ  = (3.44−0.18−1.30+0.82)/4 = 0.70
-  σ² = ((2.75)²+(−0.88)²+(−2.00)²+(0.13)²)/4 = 3.07  → σ = 1.75
+  σ² = ((2.75)²+(−0.88)²+(−2.00)²+(0.13)²)/4 = 3.07  <span class="d-a">→</span> σ = 1.75
   h  = (r'−μ)/σ = [1.57, −0.49, −1.14, 0.07]</pre></div>
             <p><code>h = [1.57, −0.49, −1.14, 0.07]</code> is the <strong>final hidden state</strong> for the "sat" position after one full transformer block. In a 96-layer model, steps ④–⑦ would repeat 96 times; here we have one layer, so we're done with the stack.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -5197,16 +5209,16 @@ logit("&lt;eos&gt;")= h·[0,1,0,1] = −0.49 + 0.07            = −0.42</code><
           <div class="q-a">
             <div class="diagram"><pre>p(word) = e^{logit} / Σ e^{logit}
 
-  the     e^0.43  = 1.54  →  0.142
-  cat     e^-1.63 = 0.20  →  0.018
-  sat     e^1.08  = 2.94  →  0.272
-  on      e^-1.07 = 0.34  →  0.032
-  mat     e^1.64  = 5.16  →  0.476   ◄── highest
-  &lt;eos&gt;   e^-0.42 = 0.66  →  0.061
+  the     e^0.43  = 1.54  <span class="d-a">→</span>  0.142
+  cat     e^-1.63 = 0.20  <span class="d-a">→</span>  0.018
+  sat     e^1.08  = 2.94  <span class="d-a">→</span>  0.272
+  on      e^-1.07 = 0.34  <span class="d-a">→</span>  0.032
+  mat     e^1.64  = 5.16  <span class="d-a">→</span>  0.476   <span class="d-a">◄</span><span class="d-l">──</span> highest
+  &lt;eos&gt;   e^-0.42 = 0.66  <span class="d-a">→</span>  0.061
                     Σ = 10.83</pre></div>
             <div class="diagram"><pre>PROBABILITY DISTRIBUTION over the next word:
 
-  mat   ████████████████████████  47.6%   ◄ prediction
+  mat   ████████████████████████  47.6%   <span class="d-a">◄</span> prediction
   sat   █████████████             27.2%
   the   ███████                   14.2%
   &lt;eos&gt; ███                        6.1%
@@ -5223,10 +5235,10 @@ logit("&lt;eos&gt;")= h·[0,1,0,1] = −0.49 + 0.07            = −0.42</code><
             <div class="keyterms"><span class="kt">one word at a time</span><span class="kt">KV-cache</span>
             </div>
             <p>The model generates <strong>one word at a time</strong>, feeding its own output back in:</p>
-            <div class="diagram"><pre>pass 1:  [the, cat, sat]              → predict "mat"
-pass 2:  [the, cat, sat, mat]         → (run all 10 steps again) → predict next…
-pass 3:  [the, cat, sat, mat, …]      → …
-   ⋮     continue until the model emits &lt;eos&gt; or hits a length limit</pre></div>
+            <div class="diagram"><pre>pass 1:  [the, cat, sat]              <span class="d-a">→</span> predict "mat"
+pass 2:  [the, cat, sat, mat]         <span class="d-a">→</span> (run all 10 steps again) <span class="d-a">→</span> predict next…
+pass 3:  [the, cat, sat, mat, …]      <span class="d-a">→</span> …
+   :     continue until the model emits &lt;eos&gt; or hits a length limit</pre></div>
             <p>Each new pass redoes steps ②–⑨ on the longer sequence. (Real models cache the K/V from previous steps — the <strong>KV-cache</strong> — so they don't recompute everything; see §19.12.)</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -5239,9 +5251,9 @@ pass 3:  [the, cat, sat, mat, …]      → …
             </div>
             <p>"the cat sat <strong>mat</strong>" isn't great English — we'd want "<strong>on</strong>". That's expected: <strong>our weights are made up, not trained.</strong> With random/untrained weights, the prediction is basically arbitrary.</p>
             <p><strong>Training</strong> is the process that fixes this. Suppose the correct next word is "on". We measure how wrong we were with <strong>cross-entropy loss</strong>:</p>
-            <div class="diagram"><pre>loss = −ln( p(correct word) ) = −ln( p("on") ) = −ln(0.032) = 3.44   ← high = bad</pre></div>
+            <div class="diagram"><pre>loss = −ln( p(correct word) ) = −ln( p("on") ) = −ln(0.032) = 3.44   <span class="d-a">←</span> high = bad</pre></div>
             <p>Then <strong>backpropagation</strong> computes how to nudge every number we used — the embeddings <code>E</code>, the (here identity) <code>W_Q/W_K/W_V</code>, the <abbr title="feed-forward network">FFN</abbr> weights, the LM head — a tiny bit so that next time <code>p("on")</code> goes <strong>up</strong> and <code>p("mat")</code> goes <strong>down</strong>. Repeat over billions of sentences and the weights organize themselves so real language gets high probability. That's the whole game.</p>
-            <div class="diagram"><pre>  predict → measure loss → backprop → update weights → predict better → …
+            <div class="diagram"><pre>  predict <span class="d-a">→</span> measure loss <span class="d-a">→</span> backprop <span class="d-a">→</span> update weights <span class="d-a">→</span> predict better <span class="d-a">→</span> …
   (forward pass = steps ①–⑨ above;  backward pass = the learning)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -5388,16 +5400,16 @@ probs = np.<span class="fn">exp</span>(last - last.<span class="fn">max</span>()
             <p>The original 2017 Transformer is an <strong>encoder–decoder</strong>:</p>
             <div class="diagram"><pre>                ENCODER (×N)                         DECODER (×N)
 Input tokens                              Output tokens (shifted right)
-   → Input Embedding                         → Output Embedding
-   → + Positional Encoding                    → + Positional Encoding
-   ┌─────────────────────┐                   ┌─────────────────────────────┐
-   │ Multi-Head Self-Attn │                   │ Masked Multi-Head Self-Attn│
-   │ Add &amp; Norm           │                   │ Add &amp; Norm                 │
-   │ Feed Forward         │   K,V             │ Cross-Attention (Q=dec,    │
-   │ Add &amp; Norm           │ ───────────────►  │   K,V=encoder)  Add &amp; Norm │
-   └─────────────────────┘                   │ Feed Forward   Add &amp; Norm   │
-                                              └────────────────────────────┘
-                                                → Linear → Softmax → P(next token)</pre></div>
+   <span class="d-a">→</span> Input Embedding                         <span class="d-a">→</span> Output Embedding
+   <span class="d-a">→</span> + Positional Encoding                    <span class="d-a">→</span> + Positional Encoding
+   <span class="d-l">┌─────────────────────┐</span>                   <span class="d-l">┌─────────────────────────────┐</span>
+   <span class="d-l">│</span> Multi-Head Self-Attn <span class="d-l">│</span>                   <span class="d-l">│</span> Masked Multi-Head Self-Attn<span class="d-l">│</span>
+   <span class="d-l">│</span> Add &amp; Norm           <span class="d-l">│</span>                   <span class="d-l">│</span> Add &amp; Norm                 <span class="d-l">│</span>
+   <span class="d-l">│</span> Feed Forward         <span class="d-l">│</span>   K,V             <span class="d-l">│</span> Cross-Attention (Q=dec,    <span class="d-l">│</span>
+   <span class="d-l">│</span> Add &amp; Norm           <span class="d-l">│</span> <span class="d-l">───────────────</span><span class="d-a">►</span>  <span class="d-l">│</span>   K,V=encoder)  Add &amp; Norm <span class="d-l">│</span>
+   <span class="d-l">└─────────────────────┘</span>                   <span class="d-l">│</span> Feed Forward   Add &amp; Norm   <span class="d-l">│</span>
+                                              <span class="d-l">└────────────────────────────┘</span>
+                                                <span class="d-a">→</span> Linear <span class="d-a">→</span> Softmax <span class="d-a">→</span> P(next token)</pre></div>
             <p><strong>Three flavors</strong> — the single most useful classification to remember:</p>
             <div class="tbl-wrap">
               <table class="t4">
@@ -5516,7 +5528,7 @@ Input tokens                              Output tokens (shifted right)
             <div class="note">
               <p><strong>When &amp; why (plain words):</strong> a model only does math on numbers, not letters. We <em>could</em> use whole words (vocab too huge, "running"/"runs"/"ran" all separate, and unknown words break) or single characters (sequences become very long). <strong>Sub-word</strong> tokenization is the sweet spot: frequent words stay whole, rare words split into reusable pieces, and there are <strong>no unknown words</strong> (worst case, fall back to bytes).</p>
             </div>
-            <div class="diagram"><pre>"Transformers are amazing!"  →  ["Transform","ers"," are"," amaz","ing","!"]  →  [8291, 364, 389, 6381, 278, 0]</pre></div>
+            <div class="diagram"><pre>"Transformers are amazing!"  <span class="d-a">→</span>  ["Transform","ers"," are"," amaz","ing","!"]  <span class="d-a">→</span>  [8291, 364, 389, 6381, 278, 0]</pre></div>
             <div class="tbl-wrap">
               <table class="t3">
                 <thead>
@@ -5861,9 +5873,9 @@ sat  [  ✓    ✓    ✓  ]</code></pre>
             <div class="keyterms"><span class="kt">decoder block (Pre-Norm)</span><span class="kt">Linear &quot;LM head&quot;</span><span class="kt">softmax</span><span class="kt">no causal mask</span><span class="kt">cross-attention</span>
             </div>
             <p>A modern <strong>decoder block (Pre-Norm)</strong> is just these parts wired up:</p>
-            <div class="diagram"><pre>x ─┬─────────────────────────────►(+)──┬─────────────────────────►(+)── out
-   │                                ▲   │                            ▲
-   └─ RMSNorm → Masked MH-Attn(GQA) ┘   └─ RMSNorm → SwiGLU FFN ─────┘
+            <div class="diagram"><pre>x <span class="d-l">─┬─────────────────────────────</span><span class="d-a">►</span>(+)<span class="d-l">──┬─────────────────────────</span><span class="d-a">►</span>(+)<span class="d-l">──</span> out
+   <span class="d-l">│</span>                                <span class="d-a">▲</span>   <span class="d-l">│</span>                            <span class="d-a">▲</span>
+   <span class="d-l">└─</span> RMSNorm <span class="d-a">→</span> Masked MH-Attn(GQA) <span class="d-l">┘</span>   <span class="d-l">└─</span> RMSNorm <span class="d-a">→</span> SwiGLU FFN <span class="d-l">─────┘</span>
         (mix across tokens)                  (think per token)</pre></div>
             <p>Stack <code>N</code> of these, then a final norm, a <strong>Linear "LM head"</strong> to vocab size, and <strong>softmax</strong> → next-token probabilities. An encoder block is identical but with <strong>no causal mask</strong> (bidirectional). The encoder-decoder adds a <strong>cross-attention</strong> sublayer in each decoder block.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -6196,7 +6208,7 @@ Q = X·W_Q =                      K = X·W_K =                      V = X =
             <div class="diagram"><pre>masked row "sat" = [7.026, 8.050, 6.170]
 subtract row-max (8.050):  [-1.024, 0.000, -1.880]
 exp():                     [ 0.359, 1.000,  0.153]   sum = 1.512
-÷ sum  → weights:          [ 0.238, 0.661,  0.101]</pre></div>
+÷ sum  <span class="d-a">→</span> weights:          [ 0.238, 0.661,  0.101]</pre></div>
             <p>Full attention-weight matrix <code>A</code> (each row sums to 1):</p>
             <pre class="code"><code>A =
 [[1.000, 0.000, 0.000],   # "the" can only see itself
@@ -6214,8 +6226,8 @@ exp():                     [ 0.359, 1.000,  0.153]   sum = 1.512
             <h3>Step 8 — Output projection, residual, norm</h3>
             <p>Mix heads with <code>W_O</code>, add the input back (residual), and LayerNorm. For the "sat" row:</p>
             <div class="diagram"><pre>O = Z·W_O      (sat) = [1.895, 2.223, 2.315, 1.987]
-X + O          (sat) = [3.804, 2.807, 2.335, 2.987]   ← residual "highway"
-LayerNorm            = [1.548, -0.333, -1.222, 0.007]  ← rescaled, stable</pre></div>
+X + O          (sat) = [3.804, 2.807, 2.335, 2.987]   <span class="d-a">←</span> residual "highway"
+LayerNorm            = [1.548, -0.333, -1.222, 0.007]  <span class="d-a">←</span> rescaled, stable</pre></div>
             <h3>Step 9 — Feed-Forward (per token), residual, norm</h3>
             <p><code>ReLU(H·W₁ + b₁)·W₂</code>, then add &amp; norm again. For "sat" the block output is:</p>
             <pre class="code"><code>block_out(sat) = [1.408, -0.994, -0.894, 0.480]</code></pre>
@@ -6224,7 +6236,7 @@ LayerNorm            = [1.548, -0.333, -1.222, 0.007]  ← rescaled, stable</pre
             <div class="diagram"><pre>logits = [0.514, -1.888, 0.414, -0.414, 1.888, -0.514]
           the    cat     sat    on      mat    &lt;eos&gt;
 
-softmax →  the 0.149 | cat 0.014 | sat 0.135 | on 0.059 | mat 0.590 | &lt;eos&gt; 0.053</pre></div>
+softmax <span class="d-a">→</span>  the 0.149 | cat 0.014 | sat 0.135 | on 0.059 | mat 0.590 | &lt;eos&gt; 0.053</pre></div>
             <p><strong>Prediction: "mat"</strong> (0.59). So <code>"the cat sat"</code> → <strong>"mat"</strong> — our toy weights happen to encode the <em>"… sat [on the] mat"</em> pattern. In a real model these matrices are <em>learned</em> so that the highest-probability token is the genuinely likely next word; generation then <strong>appends the predicted token and repeats</strong> (autoregression).</p>
             <h3>Reproduce it (NumPy)</h3>
             <pre class="code" data-lang="python"><code><span class="kw">import</span> numpy <span class="kw">as</span> np
@@ -6355,21 +6367,21 @@ p = np.<span class="fn">exp</span>(logits-logits.<span class="fn">max</span>());
             </ul>
             <p>That second look-up is the corridor — and it's the only place the two towers touch. Everything below is just these two questions, asked with dot products.</p>
             <div class="diagram"><pre> "I love AI"                                     "&lt;bos&gt; ich liebe"
-      │                                                 │
-      ▼                                                 ▼
- ┌─────────────┐                              ┌──────────────────┐
- │  ENCODER    │                              │  DECODER         │
- │  embed + PE │                              │  embed + PE      │
- │  self-attn  │        K, V (memory)         │  MASKED self-attn│
- │  add &amp; norm │ ───────────────────────────▶ │  CROSS-attn (Q)  │
- │  FFN        │      "the corridor"          │  add &amp; norm      │
- │  add &amp; norm │                              │  FFN, add &amp; norm │
- └─────────────┘                              │  linear → softmax│
-   reads once,                                └──────────────────┘
+      <span class="d-l">│</span>                                                 <span class="d-l">│</span>
+      <span class="d-a">▼</span>                                                 <span class="d-a">▼</span>
+ <span class="d-l">┌─────────────┐</span>                              <span class="d-l">┌──────────────────┐</span>
+ <span class="d-l">│</span>  ENCODER    <span class="d-l">│</span>                              <span class="d-l">│</span>  DECODER         <span class="d-l">│</span>
+ <span class="d-l">│</span>  embed + PE <span class="d-l">│</span>                              <span class="d-l">│</span>  embed + PE      <span class="d-l">│</span>
+ <span class="d-l">│</span>  self-attn  <span class="d-l">│</span>        K, V (memory)         <span class="d-l">│</span>  MASKED self-attn<span class="d-l">│</span>
+ <span class="d-l">│</span>  add &amp; norm <span class="d-l">│</span> <span class="d-l">───────────────────────────</span><span class="d-a">►</span> <span class="d-l">│</span>  CROSS-attn (Q)  <span class="d-l">│</span>
+ <span class="d-l">│</span>  FFN        <span class="d-l">│</span>      "the corridor"          <span class="d-l">│</span>  add &amp; norm      <span class="d-l">│</span>
+ <span class="d-l">│</span>  add &amp; norm <span class="d-l">│</span>                              <span class="d-l">│</span>  FFN, add &amp; norm <span class="d-l">│</span>
+ <span class="d-l">└─────────────┘</span>                              <span class="d-l">│</span>  linear <span class="d-a">→</span> softmax<span class="d-l">│</span>
+   reads once,                                <span class="d-l">└──────────────────┘</span>
    all words in                                 writes one word
    parallel                                     per step
-                                                      │
-                                                      ▼
+                                                      <span class="d-l">│</span>
+                                                      <span class="d-a">▼</span>
                                               "ich liebe KI"</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -6441,11 +6453,11 @@ AI    = [ 1,  1, -1,  0]        ich    = [ 1,  0,  0.5, -0.5]
             </div>
             <h3>Step 1 — Tokenize</h3>
             <p><strong>In one line:</strong> split the sentence into known units and swap each for its learned vector — text becomes a matrix of numbers.</p>
-            <div class="diagram"><pre>"I love AI"  →  [I] [love] [AI]  →  ids [0, 1, 2]  →  look up embeddings
+            <div class="diagram"><pre>"I love AI"  <span class="d-a">→</span>  [I] [love] [AI]  <span class="d-a">→</span>  ids [0, 1, 2]  <span class="d-a">→</span>  look up embeddings
 
-X = ⎡ 1   0   1   0 ⎤   ← I
-    ⎢ 0   1   0   1 ⎥   ← love
-    ⎣ 1   1  -1   0 ⎦   ← AI        shape (3 tokens × 4 dims)</pre></div>
+X = <span class="d-l">┌</span> 1   0   1   0 <span class="d-l">┐</span>   <span class="d-a">←</span> I
+    <span class="d-l">│</span> 0   1   0   1 <span class="d-l">│</span>   <span class="d-a">←</span> love
+    <span class="d-l">└</span> 1   1  -1   0 <span class="d-l">┘</span>   <span class="d-a">←</span> AI        shape (3 tokens × 4 dims)</pre></div>
             <h3>Step 2 — Positional encoding (sinusoidal)</h3>
             <p><strong>In one line:</strong> add a unique wave-pattern fingerprint to each position so the model can tell the first word from the last.</p>
             <p>Attention has no built-in notion of order — "I love AI" and "AI love I" would look identical. So we <em>add</em> a position fingerprint. The formula (from the paper):</p>
@@ -6457,13 +6469,13 @@ dim 1:  cos(1 / 10000^0)   = cos(1)    = 0.540
 dim 2:  sin(1 / 10000^0.5) = sin(0.01) = 0.010
 dim 3:  cos(1 / 10000^0.5) = cos(0.01) ≈ 1.000</code></pre>
             <p>All three positions:</p>
-            <div class="diagram"><pre>PE = ⎡ 0      1      0      1     ⎤   ← pos 0
-     ⎢ 0.841  0.540  0.010  1.000 ⎥   ← pos 1
-     ⎣ 0.909 -0.416  0.020  1.000 ⎦   ← pos 2
+            <div class="diagram"><pre>PE = <span class="d-l">┌</span> 0      1      0      1     <span class="d-l">┐</span>   <span class="d-a">←</span> pos 0
+     <span class="d-l">│</span> 0.841  0.540  0.010  1.000 <span class="d-l">│</span>   <span class="d-a">←</span> pos 1
+     <span class="d-l">└</span> 0.909 -0.416  0.020  1.000 <span class="d-l">┘</span>   <span class="d-a">←</span> pos 2
 
-X = X + PE = ⎡ 1      1      1      1     ⎤   ← "I @ pos0"
-             ⎢ 0.841  1.540  0.010  2.000 ⎥   ← "love @ pos1"
-             ⎣ 1.909  0.584 -0.980  1.000 ⎦   ← "AI @ pos2"</pre></div>
+X = X + PE = <span class="d-l">┌</span> 1      1      1      1     <span class="d-l">┐</span>   <span class="d-a">←</span> "I @ pos0"
+             <span class="d-l">│</span> 0.841  1.540  0.010  2.000 <span class="d-l">│</span>   <span class="d-a">←</span> "love @ pos1"
+             <span class="d-l">└</span> 1.909  0.584 -0.980  1.000 <span class="d-l">┘</span>   <span class="d-a">←</span> "AI @ pos2"</pre></div>
             <div class="note">
               <p>Low dims oscillate fast (word-by-word), high dims barely move (long-range) — like the second vs. hour hand of a clock. Any position becomes a unique combination.</p>
             </div>
@@ -6489,19 +6501,19 @@ X = X + PE = ⎡ 1      1      1      1     ⎤   ← "I @ pos0"
             <p><strong>In one line:</strong> dot every word's question against every word's label — a high score means "you're relevant to me."</p>
             <pre class="code"><code>scores = Q · Kᵀ / √d_model        (√4 = 2 — keeps dot products from exploding)</code></pre>
             <p>Hand-compute "I asks about AI" — <code>q_I · k_AI / 2</code>:</p>
-            <div class="diagram"><pre>[1,1,0,0]·[0.465, 1.445, 0.792, −0.208] = 0.465 + 1.445 = 1.910   → /2 = 0.955</pre></div>
+            <div class="diagram"><pre>[1,1,0,0]·[0.465, 1.445, 0.792, −0.208] = 0.465 + 1.445 = 1.910   <span class="d-a">→</span> /2 = 0.955</pre></div>
             <p>The full 3×3 score table (rows = who's asking, cols = who's being asked about):</p>
             <div class="diagram"><pre>              I      love    AI
-scores = ⎡  0.500  0.421  0.955 ⎤   ← I asks
-         ⎢  0.421  0.853  1.566 ⎥   ← love asks
-         ⎣  0.955  1.566  1.273 ⎦   ← AI asks</pre></div>
+scores = <span class="d-l">┌</span>  0.500  0.421  0.955 <span class="d-l">┐</span>   <span class="d-a">←</span> I asks
+         <span class="d-l">│</span>  0.421  0.853  1.566 <span class="d-l">│</span>   <span class="d-a">←</span> love asks
+         <span class="d-l">└</span>  0.955  1.566  1.273 <span class="d-l">┘</span>   <span class="d-a">←</span> AI asks</pre></div>
             <h3>Step 5 — Softmax → attention weights</h3>
             <p><strong>In one line:</strong> turn each word's raw scores into a <span class="mag">100%</span> attention budget split across the sentence.</p>
             <p>Each row becomes a probability distribution. Row "I": <code>exp(0.5)=1.649, exp(0.421)=1.523, exp(0.955)=2.599</code>, sum <code>5.771</code>:</p>
             <div class="diagram"><pre>              I      love    AI
-A       = ⎡ 0.286  0.264  0.450 ⎤   ← "I" spends 45% of its attention on AI
-          ⎢ 0.176  0.271  0.553 ⎥   ← "love" attends mostly to AI (its object!)
-          ⎣ 0.237  0.437  0.326 ⎦   ← "AI" attends mostly to love (its verb!)</pre></div>
+A       = <span class="d-l">┌</span> 0.286  0.264  0.450 <span class="d-l">┐</span>   <span class="d-a">←</span> "I" spends 45% of its attention on AI
+          <span class="d-l">│</span> 0.176  0.271  0.553 <span class="d-l">│</span>   <span class="d-a">←</span> "love" attends mostly to AI (its object!)
+          <span class="d-l">└</span> 0.237  0.437  0.326 <span class="d-l">┘</span>   <span class="d-a">←</span> "AI" attends mostly to love (its verb!)</pre></div>
             <p>Notice the structure appearing <strong>even with toy weights</strong>: verb↔object find each other. Training makes this sharp; the mechanism is already here.</p>
             <h3>Step 6 — Weighted sum of values</h3>
             <p><strong>In one line:</strong> each word rebuilds itself as a relevance-weighted blend of everyone's content.</p>
@@ -6514,16 +6526,16 @@ A       = ⎡ 0.286  0.264  0.450 ⎤   ← "I" spends 45% of its attention on A
             <p>Add the input back (residual: never lose the original word), then normalize each row to mean 0 / variance 1 (LayerNorm: keep the scale stable). Hand-compute row "I":</p>
             <div class="diagram"><pre>x + attn = [1,1,1,1] + [1.368, 0.955, −0.153, 1.264] = [2.368, 1.955, 0.847, 2.264]
 mean = 1.859     std = 0.603
-normalized: (2.368−1.859)/0.603 = 0.844,  …  → [0.844, 0.160, −1.676, 0.672]</pre></div>
+normalized: (2.368−1.859)/0.603 = 0.844,  …  <span class="d-a">→</span> [0.844, 0.160, −1.676, 0.672]</pre></div>
             <pre class="code"><code>Z = ⎡ 0.844  0.160 -1.676  0.672 ⎤
     ⎢ 0.281  0.395 -1.668  0.992 ⎥
     ⎣ 0.997  0.084 -1.639  0.557 ⎦</code></pre>
             <h3>Step 8 — <abbr title="feed-forward network">FFN</abbr> (per-token thinking) + second residual → encoder memory</h3>
             <p><strong>In one line:</strong> each word now thinks alone — a tiny 2-layer network digests what attention gathered, producing the frozen encoder memory.</p>
             <p><code>FFN(z) = ReLU(z·W₁)·W₂</code> — expand 4 → 8 dims, ReLU, compress back. Attention <em>mixed</em> the words; the FFN now <em>processes</em> each word alone.</p>
-            <div class="diagram"><pre>memory = ⎡ 0.574  0.465 -1.727  0.687 ⎤   ← "I", fully read
-         ⎢-0.178  0.790 -1.562  0.951 ⎥   ← "love", fully read
-         ⎣ 0.751  0.366 -1.716  0.599 ⎦   ← "AI", fully read</pre></div>
+            <div class="diagram"><pre>memory = <span class="d-l">┌</span> 0.574  0.465 -1.727  0.687 <span class="d-l">┐</span>   <span class="d-a">←</span> "I", fully read
+         <span class="d-l">│</span>-0.178  0.790 -1.562  0.951 <span class="d-l">│</span>   <span class="d-a">←</span> "love", fully read
+         <span class="d-l">└</span> 0.751  0.366 -1.716  0.599 <span class="d-l">┘</span>   <span class="d-a">←</span> "AI", fully read</pre></div>
             <p><strong>The encoder is done.</strong> This 3×4 matrix is the frozen "reading" of the English sentence. The decoder will consult it at every step but never change it. (A real model repeats Steps 3–8 six times before this point.)</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -6540,17 +6552,17 @@ normalized: (2.368−1.859)/0.603 = 0.844,  …  → [0.844, 0.160, −1.676, 0.
             <pre class="code"><code>decoder input :  &lt;bos&gt;   ich    liebe        (what it may look at)
 target output :  ich     liebe  KI           (what it must predict)</code></pre>
             <p>Embed + positional encoding (same PE table as the encoder):</p>
-            <div class="diagram"><pre>Y = ⎡ 0      1      0.5    1.5   ⎤   ← &lt;bos&gt; @ pos0
-    ⎢ 1.841  0.540  0.510  0.500 ⎥   ← ich   @ pos1
-    ⎣ 0.909  0.584 -0.480  1.500 ⎦   ← liebe @ pos2</pre></div>
+            <div class="diagram"><pre>Y = <span class="d-l">┌</span> 0      1      0.5    1.5   <span class="d-l">┐</span>   <span class="d-a">←</span> &lt;bos&gt; @ pos0
+    <span class="d-l">│</span> 1.841  0.540  0.510  0.500 <span class="d-l">│</span>   <span class="d-a">←</span> ich   @ pos1
+    <span class="d-l">└</span> 0.909  0.584 -0.480  1.500 <span class="d-l">┘</span>   <span class="d-a">←</span> liebe @ pos2</pre></div>
             <h3>Step 10 — MASKED self-attention: "what have I written so far?"</h3>
             <p><strong>In one line:</strong> the decoder looks back over its own words, with a mask that makes the future invisible (no cheating).</p>
             <p>Same Q/K/V dance as the encoder, but with a <strong>causal mask</strong>: position <em>i</em> may only attend to positions ≤ <em>i</em>. Otherwise position 0 would peek at "liebe" while predicting "ich" — cheating that collapses at inference time, when the future doesn't exist yet.</p>
             <p>The mask sets future scores to −∞ <strong>before</strong> softmax (so they get exactly 0 weight):</p>
             <div class="diagram"><pre>raw scores               masked                    softmax rows
-⎡-0.250  0.496  0.388⎤   ⎡-0.250   -∞     -∞  ⎤   ⎡ 1.000  0      0    ⎤
-⎢ 0.496  1.038  0.649⎥ → ⎢ 0.496  1.038   -∞  ⎥ → ⎢ 0.368  0.632  0    ⎥
-⎣ 0.388  0.649  0.852⎦   ⎣ 0.388  0.649  0.852⎦   ⎣ 0.257  0.334  0.409⎦</pre></div>
+<span class="d-l">┌</span>-0.250  0.496  0.388<span class="d-l">┐</span>   <span class="d-l">┌</span>-0.250   -∞     -∞  <span class="d-l">┐</span>   <span class="d-l">┌</span> 1.000  0      0    <span class="d-l">┐</span>
+<span class="d-l">│</span> 0.496  1.038  0.649<span class="d-l">│</span> <span class="d-a">→</span> <span class="d-l">│</span> 0.496  1.038   -∞  <span class="d-l">│</span> <span class="d-a">→</span> <span class="d-l">│</span> 0.368  0.632  0    <span class="d-l">│</span>
+<span class="d-l">└</span> 0.388  0.649  0.852<span class="d-l">┘</span>   <span class="d-l">└</span> 0.388  0.649  0.852<span class="d-l">┘</span>   <span class="d-l">└</span> 0.257  0.334  0.409<span class="d-l">┘</span></pre></div>
             <p>Check row 1 by hand: <code>exp(0.496)=1.642, exp(1.038)=2.823</code> → <code>1.642/4.465 = 0.368</code>. ✓
               The upper triangle is <em>exactly</em> zero — the future is invisible.</p>
             <p>After the weighted sum + residual + LayerNorm:</p>
@@ -6560,26 +6572,26 @@ target output :  ich     liebe  KI           (what it must predict)</code></pre>
             <h3>Step 11 — CROSS-ATTENTION: "what did the English say?" ★</h3>
             <p><strong>In one line:</strong> each German position asks the English sentence what it said — Q from the decoder, K and V from the encoder; the only bridge between the towers.</p>
             <p>This is the step that exists <strong>only</strong> in the encoder–decoder architecture, and the only place the towers touch:</p>
-            <div class="diagram"><pre>Q  =  Z₁ · W_Q         ← queries come from the DECODER (the German so far)
-K  =  memory · W_K     ← keys   come from the ENCODER  (the English reading)
-V  =  memory · W_V     ← values come from the ENCODER</pre></div>
+            <div class="diagram"><pre>Q  =  Z₁ · W_Q         <span class="d-a">←</span> queries come from the DECODER (the German so far)
+K  =  memory · W_K     <span class="d-a">←</span> keys   come from the ENCODER  (the English reading)
+V  =  memory · W_V     <span class="d-a">←</span> values come from the ENCODER</pre></div>
             <p>Same formula as always — <code>softmax(QKᵀ/√d)·V</code> — but now each German position is asking questions <strong>of the English sentence</strong>:</p>
             <div class="diagram"><pre>                       I      love    AI
-attention weights = ⎡ 0.347  0.300  0.353 ⎤   ← pos 0 (predicting "ich")
-                    ⎢ 0.313  0.391  0.296 ⎥   ← pos 1 (predicting "liebe") — leans on "love"
-                    ⎣ 0.328  0.360  0.312 ⎦   ← pos 2 (predicting "KI")</pre></div>
+attention weights = <span class="d-l">┌</span> 0.347  0.300  0.353 <span class="d-l">┐</span>   <span class="d-a">←</span> pos 0 (predicting "ich")
+                    <span class="d-l">│</span> 0.313  0.391  0.296 <span class="d-l">│</span>   <span class="d-a">←</span> pos 1 (predicting "liebe") — leans on "love"
+                    <span class="d-l">└</span> 0.328  0.360  0.312 <span class="d-l">┘</span>   <span class="d-a">←</span> pos 2 (predicting "KI")</pre></div>
             <p>In a <em>trained</em> translator these rows become nearly one-hot — the position writing "liebe" attends <span class="mag">~90%</span> to "love". That emergent word-to-word map is why cross-attention heatmaps were the original "alignment" visualizations. Untrained, ours is still fuzzy — that's what the loss below will fix.</p>
             <p>Weighted sum + residual + LayerNorm, then <abbr title="feed-forward network">FFN</abbr> + residual + LayerNorm (identical mechanics to Steps 6–8):</p>
-            <div class="diagram"><pre>H = ⎡-0.853  0.930 -1.135  1.058 ⎤   ← final hidden for pos 0
-    ⎢ 1.079  0.239 -1.636  0.318 ⎥   ← final hidden for pos 1
-    ⎣ 0.007  0.646 -1.624  0.971 ⎦   ← final hidden for pos 2</pre></div>
+            <div class="diagram"><pre>H = <span class="d-l">┌</span>-0.853  0.930 -1.135  1.058 <span class="d-l">┐</span>   <span class="d-a">←</span> final hidden for pos 0
+    <span class="d-l">│</span> 1.079  0.239 -1.636  0.318 <span class="d-l">│</span>   <span class="d-a">←</span> final hidden for pos 1
+    <span class="d-l">└</span> 0.007  0.646 -1.624  0.971 <span class="d-l">┘</span>   <span class="d-a">←</span> final hidden for pos 2</pre></div>
             <h3>Step 12 — Logits → softmax → predictions</h3>
             <p><strong>In one line:</strong> score every vocabulary word from the final hidden vector, softmax the scores, and the highest probability is the model's guess.</p>
             <p>Project each hidden vector onto the 5-word German vocab (<code>logits = H · W_out</code>), softmax each row:</p>
             <div class="diagram"><pre>              &lt;bos&gt;  &lt;eos&gt;   ich   liebe    KI
-probs = ⎡ 0.093  0.093  0.014  0.762  0.038 ⎤  → argmax: "liebe"  (target: ich)   ✗
-        ⎢ 0.035  0.035  0.143  0.436  0.351 ⎥  → argmax: "liebe"  (target: liebe) ✓
-        ⎣ 0.058  0.058  0.030  0.774  0.081 ⎦  → argmax: "liebe"  (target: KI)    ✗</pre></div>
+probs = <span class="d-l">┌</span> 0.093  0.093  0.014  0.762  0.038 <span class="d-l">┐</span>  <span class="d-a">→</span> argmax: "liebe"  (target: ich)   ×
+        <span class="d-l">│</span> 0.035  0.035  0.143  0.436  0.351 <span class="d-l">│</span>  <span class="d-a">→</span> argmax: "liebe"  (target: liebe) √
+        <span class="d-l">└</span> 0.058  0.058  0.030  0.774  0.081 <span class="d-l">┘</span>  <span class="d-a">→</span> argmax: "liebe"  (target: KI)    ×</pre></div>
             <p>Our untrained toy model says "liebe" for everything. <strong>This is exactly what a fresh transformer does</strong> — and it's the training signal's job to fix it.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -6592,8 +6604,8 @@ probs = ⎡ 0.093  0.093  0.014  0.762  0.038 ⎤  → argmax: "liebe"  (target:
             </div>
             <p><strong>In one line:</strong> the loss is −log of the probability given to the correct word — training is nothing more than pushing this number down.</p>
             <p>Cross-entropy = "negative log of the probability you gave the correct word", averaged over positions:</p>
-            <div class="diagram"><pre>pos 0:  target "ich"    p = 0.014   loss = −ln(0.014) = 4.25   ← very wrong, big push
-pos 1:  target "liebe"  p = 0.436   loss = −ln(0.436) = 0.83   ← okay, small push
+            <div class="diagram"><pre>pos 0:  target "ich"    p = 0.014   loss = −ln(0.014) = 4.25   <span class="d-a">←</span> very wrong, big push
+pos 1:  target "liebe"  p = 0.436   loss = −ln(0.436) = 0.83   <span class="d-a">←</span> okay, small push
 pos 2:  target "KI"     p = 0.081   loss = −ln(0.081) = 2.52
 
 mean loss L = 2.53</pre></div>
@@ -6710,9 +6722,9 @@ mean cross-entropy loss = 2.532</code></pre></div><button class="reveal">Reveal 
             <div class="note">
               <p>The whole forward pass in one continuous dump — every matrix from Steps 1–12, produced by the exact computation in the §6 script (add <code>print()</code>s after each line to regenerate it). Read it straight down: you're watching the sentence flow through the network. Sections above explain each block; this is the "x-ray view" for fast revision.</p>
             </div>
-            <div class="diagram"><pre>══════════════════════════════════════════════════════════════
+            <div class="diagram"><pre><span class="d-l">══════════════════════════════════════════════════════════════</span>
  ENCODER                                          "I love AI"
-══════════════════════════════════════════════════════════════
+<span class="d-l">══════════════════════════════════════════════════════════════</span>
 
 ▸ Words become vectors (table lookup).
 
@@ -6731,9 +6743,9 @@ positional encodings PE               rows = pos 0, 1, 2
 ▸ Word + position added — this is what the encoder actually sees.
 
 X + PE
-[[ 1.     1.     1.     1.   ]      ← "I @ pos0"
- [ 0.841  1.54   0.01   2.   ]      ← "love @ pos1"
- [ 1.909  0.584 -0.98   1.   ]]     ← "AI @ pos2"
+[[ 1.     1.     1.     1.   ]      <span class="d-a">←</span> "I @ pos0"
+ [ 0.841  1.54   0.01   2.   ]      <span class="d-a">←</span> "love @ pos1"
+ [ 1.909  0.584 -0.98   1.   ]]     <span class="d-a">←</span> "AI @ pos2"
 
 ▸ Every word gets its question (Q), its label (K), its content (V).
 
@@ -6762,9 +6774,9 @@ self-attn raw scores Q·Kᵀ/√d          rows ask, cols answer
 ▸ Softmax turns each row of scores into a 100% attention budget.
 
 self-attn weights                       I     love    AI
-[[ 0.286  0.264  0.45 ]             ← "I" spends 45% on AI
- [ 0.176  0.271  0.553]             ← "love" attends to AI (its object)
- [ 0.237  0.437  0.326]]            ← "AI" attends to love (its verb)
+[[ 0.286  0.264  0.45 ]             <span class="d-a">←</span> "I" spends 45% on AI
+ [ 0.176  0.271  0.553]             <span class="d-a">←</span> "love" attends to AI (its object)
+ [ 0.237  0.437  0.326]]            <span class="d-a">←</span> "AI" attends to love (its verb)
 
 ▸ Each word rebuilds itself as a weighted blend of all three words.
 
@@ -6787,16 +6799,16 @@ encoder FFN out
  [-0.333  1.104 -0.602  0.765]
  [ 0.063  0.484 -0.454  0.309]]
 
-▸ Second residual + norm → the finished reading, frozen for the decoder.
+▸ Second residual + norm <span class="d-a">→</span> the finished reading, frozen for the decoder.
 
 ENCODER MEMORY
-[[ 0.574  0.465 -1.727  0.687]      ← "I, fully read"
- [-0.178  0.79  -1.562  0.951]      ← "love, fully read"
- [ 0.751  0.366 -1.716  0.599]]     ← "AI, fully read"
+[[ 0.574  0.465 -1.727  0.687]      <span class="d-a">←</span> "I, fully read"
+ [-0.178  0.79  -1.562  0.951]      <span class="d-a">←</span> "love, fully read"
+ [ 0.751  0.366 -1.716  0.599]]     <span class="d-a">←</span> "AI, fully read"
 
-══════════════════════════════════════════════════════════════
+<span class="d-l">══════════════════════════════════════════════════════════════</span>
  DECODER              teacher forcing on "&lt;bos&gt; ich liebe"
-══════════════════════════════════════════════════════════════
+<span class="d-l">══════════════════════════════════════════════════════════════</span>
 
 ▸ The correct German, shifted one right, embedded.
 
@@ -6808,9 +6820,9 @@ tgt embeddings Y                      rows = [&lt;bos&gt;, ich, liebe]
 ▸ Same positional fingerprints added.
 
 Y + PE
-[[ 0.     1.     0.5    1.5  ]      ← "&lt;bos&gt; @ pos0"
- [ 1.841  0.54   0.51   0.5  ]      ← "ich @ pos1"
- [ 0.909  0.584 -0.48   1.5  ]]     ← "liebe @ pos2"
+[[ 0.     1.     0.5    1.5  ]      <span class="d-a">←</span> "&lt;bos&gt; @ pos0"
+ [ 1.841  0.54   0.51   0.5  ]      <span class="d-a">←</span> "ich @ pos1"
+ [ 0.909  0.584 -0.48   1.5  ]]     <span class="d-a">←</span> "liebe @ pos2"
 
 ▸ The decoder looks back at its own words — scores first…
 
@@ -6822,9 +6834,9 @@ masked self-attn raw scores
 ▸ …then the mask erases the future (−∞ before softmax).
 
 masked scores
-[[-0.25    -inf   -inf ]            ← pos0 may only see itself
- [ 0.496  1.038   -inf ]            ← pos1 sees pos0–1
- [ 0.388  0.649  0.852]]            ← pos2 sees all three
+[[-0.25    -inf   -inf ]            <span class="d-a">←</span> pos0 may only see itself
+ [ 0.496  1.038   -inf ]            <span class="d-a">←</span> pos1 sees pos0–1
+ [ 0.388  0.649  0.852]]            <span class="d-a">←</span> pos2 sees all three
 
 ▸ Softmax: the upper triangle is now EXACTLY zero — no cheating.
 
@@ -6847,7 +6859,7 @@ Z₁ = LN(Y + self-attn)
  [ 1.71  -0.521 -0.817 -0.371]
  [ 0.477 -0.09  -1.552  1.164]]
 
-──────────── CROSS-ATTENTION — the corridor ────────────
+<span class="d-l">────────────</span> CROSS-ATTENTION — the corridor <span class="d-l">────────────</span>
 
 ▸ The German asks: queries come from the DECODER.
 
@@ -6878,9 +6890,9 @@ cross-attn raw scores
 ▸ Each German position spreads its budget over the ENGLISH words.
 
 cross-attn weights                      I     love    AI
-[[ 0.347  0.3    0.353]             ← pos writing "ich"
- [ 0.313  0.391  0.296]             ← pos writing "liebe" leans on "love"
- [ 0.328  0.36   0.312]]            ← pos writing "KI"
+[[ 0.347  0.3    0.353]             <span class="d-a">←</span> pos writing "ich"
+ [ 0.313  0.391  0.296]             <span class="d-a">←</span> pos writing "liebe" leans on "love"
+ [ 0.328  0.36   0.312]]            <span class="d-a">←</span> pos writing "KI"
 
 ▸ English context flows into the German positions.
 
@@ -6910,9 +6922,9 @@ FINAL HIDDEN H = LN(Z₂ + FFN)
  [ 1.079  0.239 -1.636  0.318]
  [ 0.007  0.646 -1.624  0.971]]
 
-══════════════════════════════════════════════════════════════
+<span class="d-l">══════════════════════════════════════════════════════════════</span>
  OUTPUT HEAD + LOSS
-══════════════════════════════════════════════════════════════
+<span class="d-l">══════════════════════════════════════════════════════════════</span>
 
 ▸ Each hidden vector scores every vocabulary word.
 
@@ -6921,7 +6933,7 @@ logits = H·W_out         cols = [&lt;bos&gt;  &lt;eos&gt;   ich   liebe   KI ]
  [-1.318 -1.318  0.102  1.217  1.   ]
  [-0.653 -0.653 -1.291  1.944 -0.318]]
 
-▸ Softmax rows → next-word probabilities.
+▸ Softmax rows <span class="d-a">→</span> next-word probabilities.
 
 probs
 [[ 0.093  0.093  0.014  0.762  0.038]
@@ -6930,14 +6942,14 @@ probs
 
 ▸ Argmax per row = the model's guess.
 
-pos 0: predict 'liebe' (p=0.762)   target 'ich'    p(target)=0.014   ✗
-pos 1: predict 'liebe' (p=0.436)   target 'liebe'  p(target)=0.436   ✓
-pos 2: predict 'liebe' (p=0.774)   target 'KI'     p(target)=0.081   ✗
+pos 0: predict 'liebe' (p=0.762)   target 'ich'    p(target)=0.014   ×
+pos 1: predict 'liebe' (p=0.436)   target 'liebe'  p(target)=0.436   √
+pos 2: predict 'liebe' (p=0.774)   target 'KI'     p(target)=0.081   ×
 
 ▸ Punish each position by −log of the probability given to the right word.
 
 per-token loss  −log p(target):  [4.247  0.829  2.519]
-mean cross-entropy loss:          2.532     ← what backprop pushes down</pre></div>
+mean cross-entropy loss:          2.532     <span class="d-a">←</span> what backprop pushes down</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02cTransformer-127">

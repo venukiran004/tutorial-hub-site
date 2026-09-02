@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1224,11 +1236,11 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p>Core sampling parameters control how an <abbr title="large language model">LLM</abbr> selects the next token from its predicted probability distribution, fundamentally shaping the randomness, diversity, and quality of generated text. These parameters — temperature, top-p, top-k, and penalties — form a pipeline that transforms raw model logits into a final token selection.</p>
             <div class="diagram"><pre>HOW LLM GENERATION WORKS:
   1. Model produces logits (raw scores) for every token in vocabulary
-  2. Logits → softmax → probability distribution
+  2. Logits <span class="d-a">→</span> softmax <span class="d-a">→</span> probability distribution
   3. SAMPLING parameters modify this distribution before picking next token
   4. Chosen token is appended, process repeats (autoregressive)
 
-  logits → [temperature] → [top-k filter] → [top-p filter] → [penalties] → sample
+  logits <span class="d-a">→</span> [temperature] <span class="d-a">→</span> [top-k filter] <span class="d-a">→</span> [top-p filter] <span class="d-a">→</span> [penalties] <span class="d-a">→</span> sample
   
   GREEDY (temperature=0): Always pick highest probability token
   SAMPLING (temperature&gt;0): Randomly sample from modified distribution</pre></div>
@@ -1244,9 +1256,9 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
   Modifies the softmax distribution:
     P(token_i) = exp(logit_i / τ) / Σ exp(logit_j / τ)
   
-  τ → 0:   Distribution peaks sharply → deterministic (greedy)
+  τ <span class="d-a">→</span> 0:   Distribution peaks sharply <span class="d-a">→</span> deterministic (greedy)
   τ = 1:   Original distribution (no modification)
-  τ &gt; 1:   Flatter distribution → more random/creative
+  τ &gt; 1:   Flatter distribution <span class="d-a">→</span> more random/creative
   
   GUIDELINES:
     Code generation:       0.0 - 0.2  (precise, correct)
@@ -1281,11 +1293,11 @@ response = client.chat.completions.<span class="fn">create</span>(
   Keep only tokens whose cumulative probability ≥ p
   
   Example (top_p=0.9):
-    Token A: 0.50  ← include (cumsum = 0.50)
-    Token B: 0.25  ← include (cumsum = 0.75)
-    Token C: 0.15  ← include (cumsum = 0.90)
-    Token D: 0.05  ← excluded
-    Token E: 0.05  ← excluded
+    Token A: 0.50  <span class="d-a">←</span> include (cumsum = 0.50)
+    Token B: 0.25  <span class="d-a">←</span> include (cumsum = 0.75)
+    Token C: 0.15  <span class="d-a">←</span> include (cumsum = 0.90)
+    Token D: 0.05  <span class="d-a">←</span> excluded
+    Token E: 0.05  <span class="d-a">←</span> excluded
   
   top_p=1.0: Consider all tokens (no filtering)
   top_p=0.1: Only most probable tokens (very focused)
@@ -1356,7 +1368,7 @@ MAX_TOKENS (max_completion_tokens):
     - Control response length
     - Leave room for output: max_tokens ≤ context_window - input_tokens
     
-  If output hits max_tokens → response is truncated (finish_reason="length")</pre></div>
+  If output hits max_tokens <span class="d-a">→</span> response is truncated (finish_reason="length")</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01LLMParameter-6">
@@ -1531,7 +1543,7 @@ response = client.chat.completions.<span class="fn">create</span>(
   
   COST IMPLICATION:
     A simple question might use 500 reasoning tokens + 50 output tokens
-    → Billed for 550 output tokens even though user sees only 50</pre></div>
+    <span class="d-a">→</span> Billed for 550 output tokens even though user sees only 50</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01LLMParameter-11">
@@ -1672,26 +1684,26 @@ cost = (input_tokens * <span class="num">2.50</span> + output_tokens * <span cla
           </div>
           <div class="q-a">
             <p>Different <abbr title="large language model">LLM</abbr> providers (OpenAI, Anthropic, Google, HuggingFace) support varying subsets of generation parameters, making provider selection an important architectural decision that affects what controls are available at inference time. Understanding these differences is critical when building provider-agnostic applications or migrating between APIs.</p>
-            <div class="diagram"><pre>┌─────────────────────────────────────────────────────────────────────┐
-│                    PARAMETER SUPPORT BY PROVIDER                    │
-├────────────────────┬──────────┬───────────┬──────────┬──────────────┤
-│ Parameter          │ OpenAI  │ Anthropic│ Google  │ HuggingFace │
-├────────────────────┼──────────┼───────────┼──────────┼──────────────┤
-│ temperature        │ ✅       │ ✅        │ ✅       │ ✅           │
-│ top_p              │ ✅       │ ✅        │ ✅       │ ✅           │
-│ top_k              │ ❌       │ ✅        │ ✅       │ ✅           │
-│ frequency_penalty  │ ✅       │ ❌        │ ✅       │ ✅ (rep_pen) │
-│ presence_penalty   │ ✅       │ ❌        │ ✅       │ ❌           │
-│ max_tokens         │ ✅       │ ✅        │ ✅       │ ✅           │
-│ stop sequences     │ ✅       │ ✅        │ ✅       │ ✅           │
-│ seed               │ ✅       │ ❌        │ ✅       │ ✅           │
-│ JSON mode          │ ✅       │ ❌(tool)  │ ✅       │ ✅ (guided)  │
-│ streaming          │ ✅       │ ✅        │ ✅       │ ✅           │
-│ tool/function call │ ✅       │ ✅        │ ✅       │ varies      │
-│ vision             │ ✅       │ ✅        │ ✅       │ varies      │
-│ batch API          │ ✅       │ ✅        │ ❌       │ ✅ (TGI)     │
-│ caching            │ ✅(auto) │ ✅(manual)│ ✅       │ ❌           │
-└────────────────────┴──────────┴───────────┴──────────┴──────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌─────────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                    PARAMETER SUPPORT BY PROVIDER                    <span class="d-l">│</span>
+<span class="d-l">├────────────────────┬──────────┬───────────┬──────────┬──────────────┤</span>
+<span class="d-l">│</span> Parameter          <span class="d-l">│</span> OpenAI  <span class="d-l">│</span> Anthropic<span class="d-l">│</span> Google  <span class="d-l">│</span> HuggingFace <span class="d-l">│</span>
+<span class="d-l">├────────────────────┼──────────┼───────────┼──────────┼──────────────┤</span>
+<span class="d-l">│</span> temperature        <span class="d-l">│</span> √       <span class="d-l">│</span> √        <span class="d-l">│</span> √       <span class="d-l">│</span> √           <span class="d-l">│</span>
+<span class="d-l">│</span> top_p              <span class="d-l">│</span> √       <span class="d-l">│</span> √        <span class="d-l">│</span> √       <span class="d-l">│</span> √           <span class="d-l">│</span>
+<span class="d-l">│</span> top_k              <span class="d-l">│</span> ×       <span class="d-l">│</span> √        <span class="d-l">│</span> √       <span class="d-l">│</span> √           <span class="d-l">│</span>
+<span class="d-l">│</span> frequency_penalty  <span class="d-l">│</span> √       <span class="d-l">│</span> ×        <span class="d-l">│</span> √       <span class="d-l">│</span> √ (rep_pen) <span class="d-l">│</span>
+<span class="d-l">│</span> presence_penalty   <span class="d-l">│</span> √       <span class="d-l">│</span> ×        <span class="d-l">│</span> √       <span class="d-l">│</span> ×           <span class="d-l">│</span>
+<span class="d-l">│</span> max_tokens         <span class="d-l">│</span> √       <span class="d-l">│</span> √        <span class="d-l">│</span> √       <span class="d-l">│</span> √           <span class="d-l">│</span>
+<span class="d-l">│</span> stop sequences     <span class="d-l">│</span> √       <span class="d-l">│</span> √        <span class="d-l">│</span> √       <span class="d-l">│</span> √           <span class="d-l">│</span>
+<span class="d-l">│</span> seed               <span class="d-l">│</span> √       <span class="d-l">│</span> ×        <span class="d-l">│</span> √       <span class="d-l">│</span> √           <span class="d-l">│</span>
+<span class="d-l">│</span> JSON mode          <span class="d-l">│</span> √       <span class="d-l">│</span> ×(tool)  <span class="d-l">│</span> √       <span class="d-l">│</span> √ (guided)  <span class="d-l">│</span>
+<span class="d-l">│</span> streaming          <span class="d-l">│</span> √       <span class="d-l">│</span> √        <span class="d-l">│</span> √       <span class="d-l">│</span> √           <span class="d-l">│</span>
+<span class="d-l">│</span> tool/function call <span class="d-l">│</span> √       <span class="d-l">│</span> √        <span class="d-l">│</span> √       <span class="d-l">│</span> varies      <span class="d-l">│</span>
+<span class="d-l">│</span> vision             <span class="d-l">│</span> √       <span class="d-l">│</span> √        <span class="d-l">│</span> √       <span class="d-l">│</span> varies      <span class="d-l">│</span>
+<span class="d-l">│</span> batch API          <span class="d-l">│</span> √       <span class="d-l">│</span> √        <span class="d-l">│</span> ×       <span class="d-l">│</span> √ (TGI)     <span class="d-l">│</span>
+<span class="d-l">│</span> caching            <span class="d-l">│</span> √(auto) <span class="d-l">│</span> √(manual)<span class="d-l">│</span> √       <span class="d-l">│</span> ×           <span class="d-l">│</span>
+<span class="d-l">└────────────────────┴──────────┴───────────┴──────────┴──────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01LLMParameter-16">
@@ -1702,7 +1714,7 @@ cost = (input_tokens * <span class="num">2.50</span> + output_tokens * <span cla
             <h3>16.1 Model Selection Guide</h3>
             <p>Choosing the right model depends on task complexity, latency requirements, cost budget, and capability needs.</p>
             <div class="diagram"><pre>TASK TYPE                  RECOMMENDED MODEL                  WHY
-──────────────────────────────────────────────────────────────────────────
+<span class="d-l">──────────────────────────────────────────────────────────────────────────</span>
  Simple classification     GPT-4o-mini / Claude Haiku         Cheap, fast, sufficient
  Complex reasoning         Claude Opus / GPT-4o / o3          Best quality
  Code generation           Claude Sonnet / GPT-4o             Strong coding capability
@@ -1897,7 +1909,7 @@ cost = (usage.prompt_tokens * <span class="num">2.5</span> + usage.completion_to
   PROMPT = Instruction + Context + Input + Output Format
   
   PRINCIPLES:
-  1. Be specific and explicit (ambiguity → poor results)
+  1. Be specific and explicit (ambiguity <span class="d-a">→</span> poor results)
   2. Provide context (domain, constraints, audience)
   3. Show examples (few-shot teaches by demonstration)
   4. Request structured output (JSON, lists, tables)
@@ -1987,9 +1999,9 @@ Problem: {problem}"""</span></code></pre></div><button class="reveal">Reveal ans
             <div class="diagram"><pre>TREE-OF-THOUGHT (ToT):
   Generate multiple reasoning PATHS, evaluate each, pick the best.
   
-  Problem → Branch 1 → Evaluate → Score: 7/10
-          → Branch 2 → Evaluate → Score: 9/10 ← Pick this
-          → Branch 3 → Evaluate → Score: 5/10
+  Problem <span class="d-a">→</span> Branch 1 <span class="d-a">→</span> Evaluate <span class="d-a">→</span> Score: 7/10
+          <span class="d-a">→</span> Branch 2 <span class="d-a">→</span> Evaluate <span class="d-a">→</span> Score: 9/10 <span class="d-a">←</span> Pick this
+          <span class="d-a">→</span> Branch 3 <span class="d-a">→</span> Evaluate <span class="d-a">→</span> Score: 5/10
   
   Prompt pattern:
   "Consider 3 different approaches to solve this problem.
@@ -2000,12 +2012,12 @@ SELF-CONSISTENCY:
   Run the SAME CoT prompt N times (with temperature &gt; 0).
   Take the MAJORITY VOTE of the final answers.
   
-  Run 1 → Answer: 42
-  Run 2 → Answer: 42
-  Run 3 → Answer: 38
-  Run 4 → Answer: 42
-  Run 5 → Answer: 42
-  Majority → 42 (4/5 agreement = high confidence)
+  Run 1 <span class="d-a">→</span> Answer: 42
+  Run 2 <span class="d-a">→</span> Answer: 42
+  Run 3 <span class="d-a">→</span> Answer: 38
+  Run 4 <span class="d-a">→</span> Answer: 42
+  Run 5 <span class="d-a">→</span> Answer: 42
+  Majority <span class="d-a">→</span> 42 (4/5 agreement = high confidence)
   
   More expensive (N API calls) but significantly more accurate.</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -2226,7 +2238,7 @@ result = <span class="fn">optimized</span>(review=<span class="str">"This produc
             <div class="diagram"><pre>DSPy ADVANTAGES:
   - Modular prompt development (compose modules like functions)
   - Automatic prompt optimization (no manual prompt tuning)
-  - Works across models (switch GPT → Claude → local without rewriting)
+  - Works across models (switch GPT <span class="d-a">→</span> Claude <span class="d-a">→</span> local without rewriting)
   - Reproducible (version control modules, not prompt strings)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -2396,13 +2408,13 @@ Respond helpfully to the user's question above."""</span></code></pre></div><but
             <p>Production prompt management treats prompts as versioned, testable artifacts — stored in a registry, A/B tested against evaluation suites, monitored for quality and cost, and deployable with rollback capability. This discipline prevents the fragility of hardcoded prompt strings and enables systematic iteration at scale.</p>
             <div class="diagram"><pre>PROMPT VERSIONING:
   prompts/
-  ├── summarize/
-  │   ├── v1.txt          # Initial version
-  │   ├── v2.txt          # Improved formatting
-  │   └── v3.txt          # Added few-shot examples
-  └── classify/
-      ├── v1.txt
-      └── v2.txt
+  <span class="d-l">├──</span> summarize/
+  <span class="d-l">│</span>   <span class="d-l">├──</span> v1.txt          # Initial version
+  <span class="d-l">│</span>   <span class="d-l">├──</span> v2.txt          # Improved formatting
+  <span class="d-l">│</span>   <span class="d-l">└──</span> v3.txt          # Added few-shot examples
+  <span class="d-l">└──</span> classify/
+      <span class="d-l">├──</span> v1.txt
+      <span class="d-l">└──</span> v2.txt
   
   Track: version, author, date, A/B test results, model tested on
   
@@ -2412,14 +2424,14 @@ Respond helpfully to the user's question above."""</span></code></pre></div><but
   - Git (simple, works)
   
   PRODUCTION CHECKLIST:
-  ✅ Version-controlled prompts (not hardcoded strings)
-  ✅ A/B testing framework for new prompt versions
-  ✅ Evaluation suite (automated + human)
-  ✅ Monitoring (track quality metrics per prompt version)
-  ✅ Rollback capability (revert to previous prompt version)
-  ✅ Cost tracking per prompt (tokens used, API cost)
-  ✅ Prompt injection defense (input/output filtering)
-  ✅ Rate limiting on prompt-heavy endpoints</pre></div>
+  √ Version-controlled prompts (not hardcoded strings)
+  √ A/B testing framework for new prompt versions
+  √ Evaluation suite (automated + human)
+  √ Monitoring (track quality metrics per prompt version)
+  √ Rollback capability (revert to previous prompt version)
+  √ Cost tracking per prompt (tokens used, API cost)
+  √ Prompt injection defense (input/output filtering)
+  √ Rate limiting on prompt-heavy endpoints</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f04PromptEngine-36">
@@ -2428,13 +2440,13 @@ Respond helpfully to the user's question above."""</span></code></pre></div><but
           </div>
           <div class="q-a">
             <p>Ready-to-use prompt patterns for the most frequent <abbr title="large language model">LLM</abbr> tasks. Adapt the structure to your specific domain.</p>
-            <div class="diagram"><pre>── SUMMARIZATION ───────────────────────────────────────────
+            <div class="diagram"><pre><span class="d-l">──</span> SUMMARIZATION <span class="d-l">───────────────────────────────────────────</span>
 System: You are an expert summarizer. Provide concise, accurate summaries.
 User: Summarize the following text in {N} bullet points.
       Focus on key findings, decisions, and action items.
       Text: {document}
 
-── ENTITY EXTRACTION ───────────────────────────────────────
+<span class="d-l">──</span> ENTITY EXTRACTION <span class="d-l">───────────────────────────────────────</span>
 System: Extract structured information from the text. 
         Return JSON only, no explanation.
 User: Extract all persons, organizations, dates, and monetary amounts 
@@ -2442,13 +2454,13 @@ User: Extract all persons, organizations, dates, and monetary amounts
       {"persons": [], "orgs": [], "dates": [], "amounts": []}
       Text: {text}
 
-── CLASSIFICATION ──────────────────────────────────────────
+<span class="d-l">──</span> CLASSIFICATION <span class="d-l">──────────────────────────────────────────</span>
 System: Classify the user's message into exactly one category.
         Categories: [billing, technical_support, feature_request, bug_report, other]
         Respond with JSON: {"category": "...", "confidence": "high|medium|low"}
 User: {customer_message}
 
-── CODE GENERATION ─────────────────────────────────────────
+<span class="d-l">──</span> CODE GENERATION <span class="d-l">─────────────────────────────────────────</span>
 System: You are a senior {language} developer. Write clean, production-ready code.
         Include type hints, error handling, and docstrings.
         Do not explain unless asked — just output code.
@@ -2457,13 +2469,13 @@ User: Write a function that {task_description}.
       Output: {output_format}
       Edge cases to handle: {edge_cases}
 
-── COMPARISON / ANALYSIS ───────────────────────────────────
+<span class="d-l">──</span> COMPARISON / ANALYSIS <span class="d-l">───────────────────────────────────</span>
 System: You are a technical analyst. Compare the items objectively.
 User: Compare {item_A} and {item_B} across these dimensions:
       1. Performance  2. Cost  3. Ease of use  4. Scalability
       Format as a markdown table with a recommendation.
 
-── RAG ANSWER-FROM-CONTEXT ─────────────────────────────────
+<span class="d-l">──</span> RAG ANSWER-FROM-CONTEXT <span class="d-l">─────────────────────────────────</span>
 System: Answer the user's question using ONLY the provided context.
         If the context doesn't contain the answer, say "I don't have 
         enough information to answer this."
@@ -2479,7 +2491,7 @@ User: {question}</pre></div>
           <div class="q-a">
             <p>When prompts fail, diagnosing the root cause requires systematic analysis. Common failure modes and their fixes:</p>
             <div class="diagram"><pre>FAILURE MODE                    SYMPTOM                        FIX
-──────────────────────────────────────────────────────────────────────────────
+<span class="d-l">──────────────────────────────────────────────────────────────────────────────</span>
 Instruction not followed        Model ignores formatting        Move instruction to end; 
                                                                 use XML tags; add "IMPORTANT:"
 Format drift                    Correct at first, drifts        Add format reminder mid-prompt;

@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -2427,14 +2439,14 @@ text = <span class="str">"Line 1\nLine 2\nLine 3"</span>
           <h4>Internal Implementation (CPython)</h4>
           <p>Internally, a list is a <strong>dynamic array of pointers</strong> (C-level <code>PyObject *</code> references), not the objects themselves.</p>
           <div class="diagram"><pre>PyListObject
-┌────────────────┐
-│ ob_refcnt       │   Reference count
-│ ob_type         │   → list type
-│ ob_size         │   Number of elements currently in the list
-│ allocated       │   Total slots allocated (≥ ob_size)
-│ **ob_item       │──► [ ptr | ptr | ptr | ptr | ... | NULL | NULL ]
-└────────────────┘        │     │     │     │           ↑
-                          ▼     ▼     ▼     ▼     over-allocated slots
+<span class="d-l">┌────────────────┐</span>
+<span class="d-l">│</span> ob_refcnt       <span class="d-l">│</span>   Reference count
+<span class="d-l">│</span> ob_type         <span class="d-l">│</span>   <span class="d-a">→</span> list type
+<span class="d-l">│</span> ob_size         <span class="d-l">│</span>   Number of elements currently in the list
+<span class="d-l">│</span> allocated       <span class="d-l">│</span>   Total slots allocated (≥ ob_size)
+<span class="d-l">│</span> **ob_item       <span class="d-l">│──</span><span class="d-a">►</span> [ ptr | ptr | ptr | ptr | ... | NULL | NULL ]
+<span class="d-l">└────────────────┘</span>        <span class="d-l">│</span>     <span class="d-l">│</span>     <span class="d-l">│</span>     <span class="d-l">│</span>           <span class="d-a">↑</span>
+                          <span class="d-a">▼</span>     <span class="d-a">▼</span>     <span class="d-a">▼</span>     <span class="d-a">▼</span>     over-allocated slots
                         obj0  obj1  obj2  obj3</pre></div>
           <h4>Over-Allocation Strategy</h4>
           <p>When <code>append()</code> causes the array to exceed capacity, Python <strong>over-allocates</strong> a larger block:</p>
@@ -3055,9 +3067,9 @@ b = a[<span class="num">1</span>:<span class="num">4</span>]   <span class="cmt"
             <li>Copies the <strong>pointers</strong> (references) from the slice range into the new list</li>
             <li>Increments the <strong>reference count</strong> of each shared object</li>
           </ol>
-          <div class="diagram"><pre>a:  [ptr→10, ptr→20, ptr→30, ptr→40, ptr→50]
-                ↓        ↓        ↓
-b:            [ptr→20, ptr→30, ptr→40]  ← new list, shared objects</pre></div>
+          <div class="diagram"><pre>a:  [ptr<span class="d-a">→</span>10, ptr<span class="d-a">→</span>20, ptr<span class="d-a">→</span>30, ptr<span class="d-a">→</span>40, ptr<span class="d-a">→</span>50]
+                <span class="d-a">↓</span>        <span class="d-a">↓</span>        <span class="d-a">↓</span>
+b:            [ptr<span class="d-a">→</span>20, ptr<span class="d-a">→</span>30, ptr<span class="d-a">→</span>40]  <span class="d-a">←</span> new list, shared objects</pre></div>
           <h4>Key Points</h4>
           <ul>
             <li class="dl"><b class="dt">Time</b><span class="dd">O(k) where k = slice length (number of pointers copied)</span>
@@ -3333,19 +3345,19 @@ deep[<span class="num">0</span>][<span class="num">0</span>] = <span class="num"
 <span class="fn">print</span>(original[<span class="num">0</span>])   <span class="cmt"># [99, 2] ← NOT affected</span></code></pre>
           <h4>Visual Comparison</h4>
           <div class="diagram"><pre>SHALLOW COPY:
-original → [ptr_A, ptr_B, ptr_C]
-shallow  → [ptr_A, ptr_B, ptr_C]  ← different list, same inner objects
-                ↓       ↓       ↓
-             [1,2]   [3,4]   [5,6]  ← shared
+original <span class="d-a">→</span> [ptr_A, ptr_B, ptr_C]
+shallow  <span class="d-a">→</span> [ptr_A, ptr_B, ptr_C]  <span class="d-a">←</span> different list, same inner objects
+                <span class="d-a">↓</span>       <span class="d-a">↓</span>       <span class="d-a">↓</span>
+             [1,2]   [3,4]   [5,6]  <span class="d-a">←</span> shared
 
 DEEP COPY:
-original → [ptr_A,  ptr_B,  ptr_C]
-               ↓        ↓        ↓
+original <span class="d-a">→</span> [ptr_A,  ptr_B,  ptr_C]
+               <span class="d-a">↓</span>        <span class="d-a">↓</span>        <span class="d-a">↓</span>
             [1,2]    [3,4]    [5,6]
 
-deep     → [ptr_A', ptr_B', ptr_C']  ← different list AND different inner objects
-               ↓        ↓        ↓
-            [1,2]    [3,4]    [5,6]  ← independent copies</pre></div>
+deep     <span class="d-a">→</span> [ptr_A', ptr_B', ptr_C']  <span class="d-a">←</span> different list AND different inner objects
+               <span class="d-a">↓</span>        <span class="d-a">↓</span>        <span class="d-a">↓</span>
+            [1,2]    [3,4]    [5,6]  <span class="d-a">←</span> independent copies</pre></div>
           <h4>When to Use Which</h4>
           <div class="tbl-wrap">
             <table class="t2">
@@ -4079,12 +4091,12 @@ t[<span class="num">2</span>][<span class="str">"new"</span>] = <span class="str
             3. If the bucket is empty, the element is placed there.
             4. If there's a <strong>collision</strong> (another element has the same hash), Python uses <strong>open addressing</strong> (probing) to find the next available slot.
             5. For lookup, Python hashes the element, checks the computed bucket, and probes if necessary.</p>
-          <div class="diagram"><pre>Element → hash() → bucket index → store/lookup
+          <div class="diagram"><pre>Element <span class="d-a">→</span> hash() <span class="d-a">→</span> bucket index <span class="d-a">→</span> store/lookup
 
 {1, 2, 3}:
-  hash(1) → slot 1 → store 1
-  hash(2) → slot 2 → store 2
-  hash(3) → slot 3 → store 3</pre></div>
+  hash(1) <span class="d-a">→</span> slot 1 <span class="d-a">→</span> store 1
+  hash(2) <span class="d-a">→</span> slot 2 <span class="d-a">→</span> store 2
+  hash(3) <span class="d-a">→</span> slot 3 <span class="d-a">→</span> store 3</pre></div>
           <p><strong>Key implications:</strong>
             - Elements must be <strong>hashable</strong> (implement <code>__hash__</code> and <code>__eq__</code>).
             - Average O(1) for add, remove, and membership testing.
@@ -4816,15 +4828,15 @@ b = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3
             </table>
           </div>
           <div class="diagram"><pre>Index Table (sparse)        Entries Array (dense, ordered)
-┌─────┐                    ┌──────┬───────┬───────┐
-│  1  │───────────────────►│ hash │ "b"   │  2    │  entry 0
-├─────┤                    ├──────┼───────┼───────┤
-│  0  │───────────────────►│ hash │ "a"   │  1    │  entry 1
-├─────┤                    ├──────┼───────┼───────┤
-│ -1  │  (empty)           │ hash │ "c"   │  3    │  entry 2
-├─────┤                    └──────┴───────┴───────┘
-│  2  │───────────────────►
-└─────┘</pre></div>
+<span class="d-l">┌─────┐</span>                    <span class="d-l">┌──────┬───────┬───────┐</span>
+<span class="d-l">│</span>  1  <span class="d-l">│───────────────────</span><span class="d-a">►</span><span class="d-l">│</span> hash <span class="d-l">│</span> "b"   <span class="d-l">│</span>  2    <span class="d-l">│</span>  entry 0
+<span class="d-l">├─────┤</span>                    <span class="d-l">├──────┼───────┼───────┤</span>
+<span class="d-l">│</span>  0  <span class="d-l">│───────────────────</span><span class="d-a">►</span><span class="d-l">│</span> hash <span class="d-l">│</span> "a"   <span class="d-l">│</span>  1    <span class="d-l">│</span>  entry 1
+<span class="d-l">├─────┤</span>                    <span class="d-l">├──────┼───────┼───────┤</span>
+<span class="d-l">│</span> -1  <span class="d-l">│</span>  (empty)           <span class="d-l">│</span> hash <span class="d-l">│</span> "c"   <span class="d-l">│</span>  3    <span class="d-l">│</span>  entry 2
+<span class="d-l">├─────┤</span>                    <span class="d-l">└──────┴───────┴───────┘</span>
+<span class="d-l">│</span>  2  <span class="d-l">│───────────────────</span><span class="d-a">►</span>
+<span class="d-l">└─────┘</span></pre></div>
           <ul>
             <li><strong>Hash collision resolution:</strong> Open addressing with perturbation-based probing — not separate chaining.</li>
             <li><strong>Load factor:</strong> Table resizes when 2/3 full.</li>
@@ -5584,19 +5596,19 @@ timeit.<span class="fn">timeit</span>(<span class="kw">lambda</span>: {k: v <spa
           <p><strong>Python's open addressing vs Java's separate chaining:</strong>
           </p>
           <div class="diagram"><pre>Python (Open Addressing):
-┌───┬───┬───┬───┬───┬───┬───┬───┐
-│ A │   │ B │ C │   │   │ D │   │  ← Single flat array
-└───┴───┴───┴───┴───┴───┴───┴───┘
-  Collision → probe next slot
+<span class="d-l">┌───┬───┬───┬───┬───┬───┬───┬───┐</span>
+<span class="d-l">│</span> A <span class="d-l">│</span>   <span class="d-l">│</span> B <span class="d-l">│</span> C <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span> D <span class="d-l">│</span>   <span class="d-l">│</span>  <span class="d-a">←</span> Single flat array
+<span class="d-l">└───┴───┴───┴───┴───┴───┴───┴───┘</span>
+  Collision <span class="d-a">→</span> probe next slot
 
 Java (Separate Chaining):
-┌───┐
-│ → │ A → E → null                  ← Linked list / tree per bucket
-├───┤
-│ → │ B → null
-├───┤
-│ → │ C → F → G → null
-└───┘</pre></div>
+<span class="d-l">┌───┐</span>
+<span class="d-l">│</span> <span class="d-a">→</span> <span class="d-l">│</span> A <span class="d-a">→</span> E <span class="d-a">→</span> null                  <span class="d-a">←</span> Linked list / tree per bucket
+<span class="d-l">├───┤</span>
+<span class="d-l">│</span> <span class="d-a">→</span> <span class="d-l">│</span> B <span class="d-a">→</span> null
+<span class="d-l">├───┤</span>
+<span class="d-l">│</span> <span class="d-a">→</span> <span class="d-l">│</span> C <span class="d-a">→</span> F <span class="d-a">→</span> G <span class="d-a">→</span> null
+<span class="d-l">└───┘</span></pre></div>
           <p><strong>Practical differences:</strong>
             - Python's approach has better <strong>cache locality</strong> (fewer pointer chases).
             - Java's approach handles high load factors more gracefully (chains grow linearly).
@@ -15370,10 +15382,10 @@ L(B) = [B, A, object]
 L(C) = [C, A, object]
 
 merge([B, A, object], [C, A, object], [B, C])
- → take B (head of first list, not in tail of any)  → [D, B]
- → take C (head of second list)                      → [D, B, C]
- → take A                                            → [D, B, C, A]
- → take object                                       → [D, B, C, A, object]</pre></div>
+ <span class="d-a">→</span> take B (head of first list, not in tail of any)  <span class="d-a">→</span> [D, B]
+ <span class="d-a">→</span> take C (head of second list)                      <span class="d-a">→</span> [D, B, C]
+ <span class="d-a">→</span> take A                                            <span class="d-a">→</span> [D, B, C, A]
+ <span class="d-a">→</span> take object                                       <span class="d-a">→</span> [D, B, C, A, object]</pre></div>
             <p>If C3 cannot produce a consistent ordering, Python raises <code>TypeError</code> at class creation time. You can inspect the MRO with <code>ClassName.__mro__</code> or <code>ClassName.mro()</code>.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -19459,7 +19471,7 @@ pq.<span class="fn">get</span>()                       <span class="cmt"># (1, '
               So it is most accurately called "compiled-then-interpreted." The compile step is
               hidden and produces bytecode — an intermediate representation, <em>not</em> native machine
               code — which is why Python is popularly described as "interpreted."</p>
-            <div class="diagram"><pre>.py  ──[COMPILER]──►  bytecode (.pyc)  ──[PVM / INTERPRETER]──►  output</pre></div>
+            <div class="diagram"><pre>.py  <span class="d-l">──</span>[COMPILER]<span class="d-l">──</span><span class="d-a">►</span>  bytecode (.pyc)  <span class="d-l">──</span>[PVM / INTERPRETER]<span class="d-l">──</span><span class="d-a">►</span>  output</pre></div>
             <p><strong>Key takeaway:</strong> There is a real compiler inside CPython; it just targets bytecode, not the CPU.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -28633,12 +28645,12 @@ largest = -heapq.<span class="fn">heappop</span>(heap)</code></pre>
             <h3>How 01_Python connects to the rest of the hub</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f00RoleCoverage-581"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>01_Python  ──►  the language &amp; ecosystem you build everything with
-   │
-   ├─ Backend  ─► 11_System_Design, 10_MLOps (deploy), 03 (SQL)
-   ├─ AI Eng   ─► 06 NLP, 07 GenAI/RAG, 08 LangChain, 09 Agents
-   ├─ ML Eng   ─► 04 ML, 05 DL, 10 MLOps, 03 Data/Feature Eng
-   └─ Data Sci ─► 02 Stats, 03 Data Handling/EDA, 04 ML</pre></div>
+            <div class="diagram"><pre>01_Python  <span class="d-l">──</span><span class="d-a">►</span>  the language &amp; ecosystem you build everything with
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Backend  <span class="d-l">─</span><span class="d-a">►</span> 11_System_Design, 10_MLOps (deploy), 03 (SQL)
+   <span class="d-l">├─</span> AI Eng   <span class="d-l">─</span><span class="d-a">►</span> 06 NLP, 07 GenAI/RAG, 08 LangChain, 09 Agents
+   <span class="d-l">├─</span> ML Eng   <span class="d-l">─</span><span class="d-a">►</span> 04 ML, 05 DL, 10 MLOps, 03 Data/Feature Eng
+   <span class="d-l">└─</span> Data Sci <span class="d-l">─</span><span class="d-a">►</span> 02 Stats, 03 Data Handling/EDA, 04 ML</pre></div>
             <p>Master 01_Python first; it's the shared foundation every role builds on.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>

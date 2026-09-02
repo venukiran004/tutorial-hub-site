@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1799,19 +1811,19 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Step 1: Start with character-level vocabulary + end-of-word token
-        "low" → ['l', 'o', 'w', '&lt;/w&gt;']
+        "low" <span class="d-a">→</span> ['l', 'o', 'w', '&lt;/w&gt;']
         
 Step 2: Count all adjacent character pairs in corpus
         ('l', 'o'): 5, ('o', 'w'): 7, ('w', '&lt;/w&gt;'): 9, ...
 
 Step 3: Merge the most frequent pair into a new token
-        ('w', '&lt;/w&gt;') → 'w&lt;/w&gt;'
+        ('w', '&lt;/w&gt;') <span class="d-a">→</span> 'w&lt;/w&gt;'
 
 Step 4: Repeat steps 2-3 for desired vocabulary size (e.g., 32K, 50K)
 
 Result: Common words are single tokens, rare words are subword pieces
-        "unhappiness" → ["un", "happiness"] (2 tokens)
-        "electroencephalogram" → ["electro", "ence", "phal", "ogram"] (4 tokens)</pre></div>
+        "unhappiness" <span class="d-a">→</span> ["un", "happiness"] (2 tokens)
+        "electroencephalogram" <span class="d-a">→</span> ["electro", "ence", "phal", "ogram"] (4 tokens)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f06NLPInterview-27">
@@ -2072,11 +2084,11 @@ Final input = Token + Segment + Position (element-wise sum)</code></pre>
           </div>
           <div class="q-a">
             <p>T5 (Text-to-Text Transfer Transformer) converts every <abbr title="natural language processing">NLP</abbr> task to text-to-text format:</p>
-            <div class="diagram"><pre>Translation:     "translate English to French: The house is wonderful." → "La maison est merveilleuse."
-Summarization:   "summarize: &lt;long article&gt;" → "&lt;summary&gt;"
-Classification:  "sst2 sentence: This movie was great" → "positive"
-QA:              "question: What is the capital? context: ..." → "Paris"
-NER:             "ner: John went to Paris" → "John: PER, Paris: LOC"</pre></div>
+            <div class="diagram"><pre>Translation:     "translate English to French: The house is wonderful." <span class="d-a">→</span> "La maison est merveilleuse."
+Summarization:   "summarize: &lt;long article&gt;" <span class="d-a">→</span> "&lt;summary&gt;"
+Classification:  "sst2 sentence: This movie was great" <span class="d-a">→</span> "positive"
+QA:              "question: What is the capital? context: ..." <span class="d-a">→</span> "Paris"
+NER:             "ner: John went to Paris" <span class="d-a">→</span> "John: PER, Paris: LOC"</pre></div>
             <p><strong>Pre-training:</strong> Span corruption (mask random spans, predict them). Encoder-decoder architecture.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -2136,15 +2148,15 @@ NER:             "ner: John went to Paris" → "John: PER, Paris: LOC"</pre></di
           </div>
           <div class="q-a">
             <div class="diagram"><pre>DATA PIPELINE:
-  Raw Text → Language Detection → Encoding Normalization (UTF-8)
-  → PII Redaction → Deduplication → Quality Filtering
+  Raw Text <span class="d-a">→</span> Language Detection <span class="d-a">→</span> Encoding Normalization (UTF-8)
+  <span class="d-a">→</span> PII Redaction <span class="d-a">→</span> Deduplication <span class="d-a">→</span> Quality Filtering
 
 MODEL PIPELINE:
-  Text → Tokenizer → Model → Post-processing → Response
+  Text <span class="d-a">→</span> Tokenizer <span class="d-a">→</span> Model <span class="d-a">→</span> Post-processing <span class="d-a">→</span> Response
   
 SERVING:
-  HuggingFace Pipeline → ONNX export → TensorRT optimization
-  → Triton Inference Server → Load Balancer → API
+  HuggingFace Pipeline <span class="d-a">→</span> ONNX export <span class="d-a">→</span> TensorRT optimization
+  <span class="d-a">→</span> Triton Inference Server <span class="d-a">→</span> Load Balancer <span class="d-a">→</span> API
 
 MONITORING:
   - Token distribution shift (embedding drift)
@@ -2175,8 +2187,8 @@ MONITORING:
             </div>
             <p>Identifying all mentions in text that refer to the same entity:</p>
             <div class="diagram"><pre>"Alice went to the store. She bought milk. The woman then drove home."
- ───── ─────────────── ──── ──────────
-   └─────────────────┴──────┴─── All refer to "Alice"</pre></div>
+ <span class="d-l">─────</span> <span class="d-l">───────────────</span> <span class="d-l">────</span> <span class="d-l">──────────</span>
+   <span class="d-l">└─────────────────┴──────┴───</span> All refer to "Alice"</pre></div>
             <ul>
               <li><strong>Approaches:</strong> Mention-pair models, mention-ranking models, span-based (Lee et al.), LLM-based</li>
               <li><strong>Metrics:</strong> MUC, B³, CEAF, CoNLL average</li>
@@ -2304,12 +2316,12 @@ GPT-3 175B: L=96, d=12288, h=96, V=50257
           <div class="q-a">
             <div class="keyterms"><span class="kt">Sparse activation</span><span class="kt">Total params</span><span class="kt">Examples</span><span class="kt">Challenge</span>
             </div>
-            <div class="diagram"><pre>Input → Router (gating network) → selects top-k experts
-                                          ↓
-    ┌──────────┬──────────┬──────────┬──────────┐
-    │ Expert 1 │ Expert 2 │ Expert 3 │ Expert N │   (each = FFN)
-    └──────────┴──────────┴──────────┴──────────┘
-                      ↓
+            <div class="diagram"><pre>Input <span class="d-a">→</span> Router (gating network) <span class="d-a">→</span> selects top-k experts
+                                          <span class="d-a">↓</span>
+    <span class="d-l">┌──────────┬──────────┬──────────┬──────────┐</span>
+    <span class="d-l">│</span> Expert 1 <span class="d-l">│</span> Expert 2 <span class="d-l">│</span> Expert 3 <span class="d-l">│</span> Expert N <span class="d-l">│</span>   (each = FFN)
+    <span class="d-l">└──────────┴──────────┴──────────┴──────────┘</span>
+                      <span class="d-a">↓</span>
               Weighted sum of selected experts' outputs</pre></div>
             <ul>
               <li><strong>Sparse activation:</strong> Only top-$k$ experts (typically <span class="mth"><i>k</i><span class="mth-op">=</span>2</span>) are activated per token</li>
@@ -2326,14 +2338,14 @@ GPT-3 175B: L=96, d=12288, h=96, V=50257
           <div class="q-a">
             <div class="diagram"><pre>BIDIRECTIONAL (BERT):           CAUSAL (GPT):
   T1 T2 T3 T4                    T1 T2 T3 T4
-T1 ✓  ✓  ✓  ✓                 T1 ✓  ✗  ✗  ✗
-T2 ✓  ✓  ✓  ✓                 T2 ✓  ✓  ✗  ✗
-T3 ✓  ✓  ✓  ✓                 T3 ✓  ✓  ✓  ✗
-T4 ✓  ✓  ✓  ✓                 T4 ✓  ✓  ✓  ✓
+T1 √  √  √  √                 T1 √  ×  ×  ×
+T2 √  √  √  √                 T2 √  √  ×  ×
+T3 √  √  √  √                 T3 √  √  √  ×
+T4 √  √  √  √                 T4 √  √  √  √
 
 PREFIX-LM (T5 encoder):        CAUSAL achieves this by setting
   Like bidirectional but         masked positions to -∞ before
-  only for the prefix            softmax → attention weight = 0</pre></div>
+  only for the prefix            softmax <span class="d-a">→</span> attention weight = 0</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f06NLPInterview-44">
@@ -2378,14 +2390,14 @@ PREFIX-LM (T5 encoder):        CAUSAL achieves this by setting
   Request 1: ████████████████████ (done)
   Request 2: ████████████████████████████ (done)
   Request 3: ████████████████ (done, but waited for longest)
-  ← All requests wait for longest to finish →
+  <span class="d-a">←</span> All requests wait for longest to finish <span class="d-a">→</span>
 
 CONTINUOUS BATCHING (vLLM, TGI):
-  Request 1: ████████ (done → slot freed)
+  Request 1: ████████ (done <span class="d-a">→</span> slot freed)
   Request 4: ··········████████ (starts immediately in freed slot)
   Request 2: ████████████████ (done)
   Request 3: ████████████ (done)
-  ← New requests start as old ones finish →</pre></div>
+  <span class="d-a">←</span> New requests start as old ones finish <span class="d-a">→</span></pre></div>
             <ul>
               <li><strong>Result:</strong> <span class="mag">2-5×</span> throughput improvement</li>
               <li><strong>Implementation:</strong> Iteration-level scheduling, not request-level</li>
@@ -2398,9 +2410,9 @@ CONTINUOUS BATCHING (vLLM, TGI):
           </div>
           <div class="q-a">
             <p>If multiple requests share the same system prompt or prefix:</p>
-            <div class="diagram"><pre>Request 1: [System prompt] + "What is Python?"    → cache system prompt KV
-Request 2: [System prompt] + "What is Java?"      → reuse cached KV, only compute new tokens
-Request 3: [System prompt] + "What is Rust?"      → reuse cached KV</pre></div>
+            <div class="diagram"><pre>Request 1: [System prompt] + "What is Python?"    <span class="d-a">→</span> cache system prompt KV
+Request 2: [System prompt] + "What is Java?"      <span class="d-a">→</span> reuse cached KV, only compute new tokens
+Request 3: [System prompt] + "What is Rust?"      <span class="d-a">→</span> reuse cached KV</pre></div>
             <ul>
               <li>Saves redundant computation for shared prefixes</li>
               <li>Implemented in vLLM (automatic <abbr title="reusing the computed KV cache of a shared prompt prefix across requests, so prefill is not repeated">prefix caching</abbr>), SGLang (RadixAttention)</li>
@@ -2498,10 +2510,10 @@ Request 3: [System prompt] + "What is Rust?"      → reuse cached KV</pre></div
             <div class="keyterms"><span class="kt">Alternatives</span><span class="kt">ORPO</span>
             </div>
             <div class="diagram"><pre>Step 1: SFT (Supervised Fine-Tuning)
-  Pre-trained LLM → fine-tune on (prompt, good_response) pairs
+  Pre-trained LLM <span class="d-a">→</span> fine-tune on (prompt, good_response) pairs
 
 Step 2: Reward Model Training
-  Human ranks multiple responses → train reward model to predict ranking
+  Human ranks multiple responses <span class="d-a">→</span> train reward model to predict ranking
 
 Step 3: PPO (Proximal Policy Optimization)
   RL optimizes: maximize reward while staying close to SFT policy (KL penalty)
@@ -2526,7 +2538,7 @@ LoRA adapters:   A (d × r) and B (r × d), where r &lt;&lt; d
 Forward pass:    y = Wx + BAx
 
 Trainable params: 2 × d × r  (vs d² for full fine-tuning)
-Example: d=4096, r=16 → 131K vs 16.7M parameters (128× reduction)</pre></div>
+Example: d=4096, r=16 <span class="d-a">→</span> 131K vs 16.7M parameters (128× reduction)</pre></div>
             <ul>
               <li><strong><abbr title="quantized low-rank adaptation">QLoRA</abbr>:</strong> Quantize base model to 4-bit + <abbr title="low-rank adaptation">LoRA</abbr> → fine-tune 70B model on single <span class="mag">48GB</span> GPU</li>
               <li><strong>Rank $r$:</strong> Typically 8-64. Higher = more capacity but more memory</li>
@@ -2602,10 +2614,10 @@ Example: d=4096, r=16 → 131K vs 16.7M parameters (128× reduction)</pre></div>
           <div class="q-a">
             <div class="keyterms"><span class="kt">Why</span><span class="kt">Components</span><span class="kt">Advanced</span>
             </div>
-            <div class="diagram"><pre>Query → Embed query → Search vector DB → Retrieve top-k chunks
-                                               ↓
+            <div class="diagram"><pre>Query <span class="d-a">→</span> Embed query <span class="d-a">→</span> Search vector DB <span class="d-a">→</span> Retrieve top-k chunks
+                                               <span class="d-a">↓</span>
                                     Augment prompt with retrieved context
-                                               ↓
+                                               <span class="d-a">↓</span>
                                     LLM generates grounded response</pre></div>
             <ul>
               <li><strong>Why:</strong> LLMs have knowledge cutoffs and hallucinate. <abbr title="retrieval-augmented generation">RAG</abbr> provides up-to-date, verifiable facts.</li>
@@ -3025,7 +3037,7 @@ trainer.<span class="fn">train</span>()</code></pre></div><button class="reveal"
 
 SEMANTIC SEARCH:
   Query: "How to fix Python memory leak"
-  Embeds query → finds nearest embeddings in vector DB
+  Embeds query <span class="d-a">→</span> finds nearest embeddings in vector DB
   Finds: Both exact matches AND semantic equivalents
   Also finds: "debugging RAM issues", "Python garbage collection problems"</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -3184,8 +3196,8 @@ SEMANTIC SEARCH:
           <div class="q-a">
             <div class="keyterms"><span class="kt">Models</span><span class="kt">Custom pipeline</span>
             </div>
-            <div class="diagram"><pre>Text → Tokenizer → Tagger → Parser → NER → ...
-       ↓           ↓         ↓        ↓
+            <div class="diagram"><pre>Text <span class="d-a">→</span> Tokenizer <span class="d-a">→</span> Tagger <span class="d-a">→</span> Parser <span class="d-a">→</span> NER <span class="d-a">→</span> ...
+       <span class="d-a">↓</span>           <span class="d-a">↓</span>         <span class="d-a">↓</span>        <span class="d-a">↓</span>
        tokens      POS tags   deps    entities
 
 nlp = spacy.load("en_core_web_trf")  # Transformer-based
@@ -3205,7 +3217,7 @@ for ent in doc.ents:
             <h3>Q74. What is the attention pattern in different NLP tasks?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f06NLPInterview-73"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>CLASSIFICATION: [CLS] attends to important tokens → class label
+            <div class="diagram"><pre>CLASSIFICATION: [CLS] attends to important tokens <span class="d-a">→</span> class label
 TRANSLATION:    Encoder attends globally, decoder cross-attends to source
 QA:             Query tokens attend to passage, answer span highlighted  
 SUMMARIZATION:  Attention concentrates on salient sentences
@@ -3218,7 +3230,7 @@ NER:            Entity tokens attend to context for disambiguation</pre></div>
           </div>
           <div class="q-a">
             <div class="diagram"><pre>OPTIMIZATION PIPELINE:
-  PyTorch model → ONNX export → TensorRT/OpenVINO optimization
+  PyTorch model <span class="d-a">→</span> ONNX export <span class="d-a">→</span> TensorRT/OpenVINO optimization
   
 SERVING OPTIONS:
   1. HuggingFace Inference Endpoints (managed)
@@ -3228,8 +3240,8 @@ SERVING OPTIONS:
   5. AWS SageMaker endpoint (cloud-managed)
 
 LATENCY OPTIMIZATION:
-  - Quantization (FP16 → INT8 → INT4)
-  - Knowledge distillation (BERT → DistilBERT)
+  - Quantization (FP16 <span class="d-a">→</span> INT8 <span class="d-a">→</span> INT4)
+  - Knowledge distillation (BERT <span class="d-a">→</span> DistilBERT)
   - Dynamic batching
   - Speculative decoding (for LLMs)
   - KV-cache optimization</pre></div>
@@ -3268,8 +3280,8 @@ Candidate: "A cat was sitting on a mat"
 
 1. Embed each token through BERT
 2. Compute cosine similarity between every pair of (ref_token, cand_token)
-3. Precision: For each cand token, max similarity to any ref token → average
-4. Recall:    For each ref token, max similarity to any cand token → average
+3. Precision: For each cand token, max similarity to any ref token <span class="d-a">→</span> average
+4. Recall:    For each ref token, max similarity to any cand token <span class="d-a">→</span> average
 5. F1:        Harmonic mean of precision and recall</pre></div>
             <ul>
               <li>More robust than ROUGE (handles synonyms, paraphrases)</li>
@@ -3597,7 +3609,7 @@ GENERATIVE QA (LLM-based):
   Model: GPT-4, LLaMA with RAG
   
 OPEN-DOMAIN QA:
-  Query → Retriever (BM25/Dense) → Top-k passages → Reader (BERT/LLM) → Answer</pre></div>
+  Query <span class="d-a">→</span> Retriever (BM25/Dense) <span class="d-a">→</span> Top-k passages <span class="d-a">→</span> Reader (BERT/LLM) <span class="d-a">→</span> Answer</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f06NLPInterview-89">
@@ -3742,13 +3754,13 @@ FIXES: Retrain model, expand training data, update embeddings</code></pre></div>
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Original Transformer Layer:
-  Input → MultiHeadAttn → LayerNorm → FFN → LayerNorm → Output
+  Input <span class="d-a">→</span> MultiHeadAttn <span class="d-a">→</span> LayerNorm <span class="d-a">→</span> FFN <span class="d-a">→</span> LayerNorm <span class="d-a">→</span> Output
 
 With Adapters:
-  Input → MultiHeadAttn → [Adapter] → LayerNorm → FFN → [Adapter] → LayerNorm → Output
+  Input <span class="d-a">→</span> MultiHeadAttn <span class="d-a">→</span> [Adapter] <span class="d-a">→</span> LayerNorm <span class="d-a">→</span> FFN <span class="d-a">→</span> [Adapter] <span class="d-a">→</span> LayerNorm <span class="d-a">→</span> Output
 
 Adapter architecture:
-  Input (d) → Down-project (d→r) → NonLinearity → Up-project (r→d) → + Input
+  Input (d) <span class="d-a">→</span> Down-project (d<span class="d-a">→</span>r) <span class="d-a">→</span> NonLinearity <span class="d-a">→</span> Up-project (r<span class="d-a">→</span>d) <span class="d-a">→</span> + Input
   
   Trainable params per layer: 2 × d × r (e.g., 2 × 768 × 64 = 98K vs 7M for full layer)</pre></div>
             <ul>
@@ -3933,15 +3945,15 @@ model = AutoModelForSequenceClassification.<span class="fn">from_pretrained</spa
             <div class="diagram"><pre>REQUIREMENTS: Route incoming tickets to correct department (billing, technical, returns, general)
 
 ARCHITECTURE:
-  ┌─────────────┐     ┌──────────────┐     ┌─────────────┐     ┌──────────────┐
-  │ Ticket Input │────→│ Preprocessor │────→│ Classifier  │────→│ Router/Queue│
-  │ (API/email)  │     │ (clean, PII) │     │ (BERT/LLM)  │     │ (Kafka)     │
-  └─────────────┘     └──────────────┘     └─────────────┘     └──────────────┘
-                                                  ↓
-                                           ┌─────────────┐
-                                           │ Confidence  │
-                                           │ Check (&lt;0.7) │──→ Human review
-                                           └─────────────┘
+  <span class="d-l">┌─────────────┐</span>     <span class="d-l">┌──────────────┐</span>     <span class="d-l">┌─────────────┐</span>     <span class="d-l">┌──────────────┐</span>
+  <span class="d-l">│</span> Ticket Input <span class="d-l">│────</span><span class="d-a">→</span><span class="d-l">│</span> Preprocessor <span class="d-l">│────</span><span class="d-a">→</span><span class="d-l">│</span> Classifier  <span class="d-l">│────</span><span class="d-a">→</span><span class="d-l">│</span> Router/Queue<span class="d-l">│</span>
+  <span class="d-l">│</span> (API/email)  <span class="d-l">│</span>     <span class="d-l">│</span> (clean, PII) <span class="d-l">│</span>     <span class="d-l">│</span> (BERT/LLM)  <span class="d-l">│</span>     <span class="d-l">│</span> (Kafka)     <span class="d-l">│</span>
+  <span class="d-l">└─────────────┘</span>     <span class="d-l">└──────────────┘</span>     <span class="d-l">└─────────────┘</span>     <span class="d-l">└──────────────┘</span>
+                                                  <span class="d-a">↓</span>
+                                           <span class="d-l">┌─────────────┐</span>
+                                           <span class="d-l">│</span> Confidence  <span class="d-l">│</span>
+                                           <span class="d-l">│</span> Check (&lt;0.7) <span class="d-l">│──</span><span class="d-a">→</span> Human review
+                                           <span class="d-l">└─────────────┘</span>
 
 MODEL CHOICES:
   - DistilBERT fine-tuned (fast, 95%+ accuracy with good data)

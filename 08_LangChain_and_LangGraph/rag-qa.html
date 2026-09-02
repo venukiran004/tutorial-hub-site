@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1236,15 +1248,15 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
               <p><em>"Nine stages, split offline/online. Offline: ingest the raw document, chunk it into retrievable units, embed each chunk, and write it to the index. Online: understand the query — maybe rewrite it — retrieve candidates, rerank them for precision, assemble them into a token-budgeted prompt, generate the answer, and run it through delivery checks like citation gating before it ships. The thing I'd emphasize in an interview is that most of these stages fail </em><em>silently</em><em> — nothing throws an exception, the pipeline just produces a worse answer — so every stage needs its own detection signal, not just a try/except around the whole thing."</em>
               </p>
             </div>
-            <div class="diagram"><pre>A. Ingest &amp; parse      → per-doc parse status, DLQ for failures
-B. Chunk                → structure-aware split + overlap
-C. Embed                → batched, model+version stamped in metadata
-D. Index                → HNSW/IVF, sharded/replicated
-E. Query understanding  → rewrite/decompose if needed
-F. Retrieve             → hybrid (dense+sparse), relevance threshold
-G. Rerank                → cross-encoder, bounded candidate count
-H. Assemble context      → token budget, dedupe, recency
-I. Generate + deliver    → groundedness check, citation gating</pre></div>
+            <div class="diagram"><pre>A. Ingest &amp; parse      <span class="d-a">→</span> per-doc parse status, DLQ for failures
+B. Chunk                <span class="d-a">→</span> structure-aware split + overlap
+C. Embed                <span class="d-a">→</span> batched, model+version stamped in metadata
+D. Index                <span class="d-a">→</span> HNSW/IVF, sharded/replicated
+E. Query understanding  <span class="d-a">→</span> rewrite/decompose if needed
+F. Retrieve             <span class="d-a">→</span> hybrid (dense+sparse), relevance threshold
+G. Rerank                <span class="d-a">→</span> cross-encoder, bounded candidate count
+H. Assemble context      <span class="d-a">→</span> token budget, dedupe, recency
+I. Generate + deliver    <span class="d-a">→</span> groundedness check, citation gating</pre></div>
             <p>Full per-stage "what breaks / detect / fix / speed up / scale" treatment: <a href="production.html#f47ScalingOptim">Scaling Optimization RAG</a>; step-by-step recovery code (retry/circuit-breaker/<abbr title="dead-letter queue">DLQ</abbr>): <a href="production.html#f45RAGandAgentS">RAG and Agent Stepwise Failure Handling</a>.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1922,8 +1934,8 @@ Decide per check, ahead of time:  safety checks FAIL CLOSED (block) · quality c
               <p><em>"Updates and deletes both need to be first-class parts of the ingestion pipeline, not an afterthought, because a stale or wrongly-still-present document is often a </em><em>worse</em><em> failure than a missing one — think a deleted contract still being retrievable. For an update, I don't try to patch a vector in place — I re-chunk and re-embed the changed document, and upsert with the same doc-id key, using a content hash so unchanged documents are skipped, not re-processed. For a delete, I propagate it from the source system as an explicit </em><em>tombstone</em><em> — a deletion event that removes the chunks from the index — and I run a periodic audit that diffs the source system against the index to catch anything that fell through, because if delete propagation ever breaks silently, that's a compliance problem, not just a staleness one."</em>
               </p>
             </div>
-            <div class="diagram"><pre>Update:  source doc changes → content hash changes → re-chunk + re-embed changed doc → upsert(doc_id) — old chunks for that doc-id are replaced, not just added to
-Delete:  source doc removed → tombstone event → remove/mark-deleted its chunks in the index
+            <div class="diagram"><pre>Update:  source doc changes <span class="d-a">→</span> content hash changes <span class="d-a">→</span> re-chunk + re-embed changed doc <span class="d-a">→</span> upsert(doc_id) — old chunks for that doc-id are replaced, not just added to
+Delete:  source doc removed <span class="d-a">→</span> tombstone event <span class="d-a">→</span> remove/mark-deleted its chunks in the index
 Audit:   periodic diff of source system vs. index — catches any update/delete that silently failed to propagate</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -2086,7 +2098,7 @@ Audit:   periodic diff of source system vs. index — catches any update/delete 
               </p>
             </div>
             <div class="diagram"><pre>PROMPT ENGINEERING          CONTEXT ENGINEERING
-─────────────────           ───────────────────
+<span class="d-l">─────────────────</span>           <span class="d-l">───────────────────</span>
 how you ASK                 what the model SEES
 static, authored            dynamic, assembled per step
 words, examples, format     retrieval, memory, history, tool results, tool defs
@@ -2172,13 +2184,13 @@ optimise wording            optimise the ALLOCATION</pre></div>
               </p>
             </div>
             <div class="diagram"><pre>128k model, ~30k target fill:
-  system + rules ......  1,500   ← fixed, cacheable
-  tool definitions ....  2,000   ← fixed, cacheable  (audit this! 20 tools ≈ 5k)
-  long-term memory ....  1,000   ← selected per user
-  retrieved context ...  8,000   ← selected per query, AFTER reranking
-  history .............  4,000   ← compaction triggers here
+  system + rules ......  1,500   <span class="d-a">←</span> fixed, cacheable
+  tool definitions ....  2,000   <span class="d-a">←</span> fixed, cacheable  (audit this! 20 tools ≈ 5k)
+  long-term memory ....  1,000   <span class="d-a">←</span> selected per user
+  retrieved context ...  8,000   <span class="d-a">←</span> selected per query, AFTER reranking
+  history .............  4,000   <span class="d-a">←</span> compaction triggers here
   user message ........    500
-  ───────────────────────────
+  <span class="d-l">───────────────────────────</span>
   input ............... 17,000
   output reserve ......  4,000</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -2211,10 +2223,10 @@ optimise wording            optimise the ALLOCATION</pre></div>
               </p>
             </div>
             <div class="diagram"><pre>WITHOUT isolation                    WITH isolation
-─────────────────                    ──────────────
-main agent reads 40 docs             main agent ─┬─► sub-agent A: 40 docs → 300-token finding
-context = 80k, polluted                          ├─► sub-agent B: 40 docs → 300-token finding
-every later turn pays for it                     └─► main context = 2k, clean</pre></div>
+<span class="d-l">─────────────────</span>                    <span class="d-l">──────────────</span>
+main agent reads 40 docs             main agent <span class="d-l">─┬─</span><span class="d-a">►</span> sub-agent A: 40 docs <span class="d-a">→</span> 300-token finding
+context = 80k, polluted                          <span class="d-l">├─</span><span class="d-a">►</span> sub-agent B: 40 docs <span class="d-a">→</span> 300-token finding
+every later turn pays for it                     <span class="d-l">└─</span><span class="d-a">►</span> main context = 2k, clean</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f27ContextEngin-35">
@@ -2243,9 +2255,9 @@ every later turn pays for it                     └─► main context = 2k, cl
               <p><em>"<abbr title="caching the response or KV state for a repeated prompt">Prompt caching</abbr> works on a </em><em>prefix</em><em> — the provider caches a fixed leading segment, so repeated calls sharing that prefix are much cheaper and faster on the input side. The design consequence is that context ordering stops being arbitrary and becomes an optimisation: put everything </em><em>stable</em><em> at the front and everything </em><em>variable</em><em> at the back. So system prompt first, then tool definitions, then any long fixed reference material — those are identical across calls and cache well. Then retrieved context, then history, then the user's message, which change every time. The failure mode is subtle: if you inject something variable early — a timestamp in the system prompt, a session ID, a user's name — you invalidate the cache for every single call and lose the entire benefit while everything still </em>works<em>, so nothing alerts. I've seen that quietly cost a lot of money. So the rule is: never let a variable token appear before a stable one, and monitor the cache-hit rate as a first-class metric rather than assuming it's working."</em>
               </p>
             </div>
-            <div class="diagram"><pre>❌  [timestamp][system][tools][docs][history][question]   → cache never hits
-✅  [system][tools][stable refs] | [docs][history][question]
-     └──────── cached prefix ────┘  └──── varies per call ────┘</pre></div>
+            <div class="diagram"><pre>×  [timestamp][system][tools][docs][history][question]   <span class="d-a">→</span> cache never hits
+√  [system][tools][stable refs] | [docs][history][question]
+     <span class="d-l">└────────</span> cached prefix <span class="d-l">────┘</span>  <span class="d-l">└────</span> varies per call <span class="d-l">────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="f27ContextEngin-p1"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>B — Advanced Retrieval</span><i></i>
@@ -2262,9 +2274,9 @@ every later turn pays for it                     └─► main context = 2k, cl
               <p><em>"<abbr title="hypothetical document embeddings">HyDE</abbr> is Hypothetical Document Embeddings. The problem it solves is that a question and its answer often don't look alike in <abbr title="a dense numeric vector representing text so that similar meanings sit close together">embedding</abbr> space — a short question like 'why did Q3 margins fall?' has very different vocabulary and shape from the paragraph that answers it. So instead of embedding the question, you ask the <abbr title="large language model">LLM</abbr> to </em><em>write a fake answer</em><em> — a plausible passage that </em>would<em> answer the question — and embed </em><em>that</em><em>, then search with it. You're matching answer-shaped text against answer-shaped documents, so the geometry lines up. It doesn't matter that the hypothetical answer is factually wrong; you never show it to the user, you only use its embedding. Where it helps most is short, vague, or jargon-light queries over a technical corpus. Where it hurts: it adds a full LLM call of latency to every query, and on queries that are already keyword-rich it can </em>reduce<em> precision by hallucinating terms that pull retrieval off-target. So I'd treat it as a targeted fix for a measured recall problem on hard queries, not a default — and I'd usually reach for <abbr title="fusing keyword (BM25) and dense vector results, usually with reciprocal rank fusion">hybrid search</abbr> plus <abbr title="a cross-encoder rescoring the top-k candidates and keeping only the best few">reranking</abbr> first, because those are cheaper and help more broadly."</em>
               </p>
             </div>
-            <div class="diagram"><pre>Standard:  "why did Q3 margins fall?"  ──embed──►  search
-HyDE:      "why did Q3 margins fall?"  ──LLM──►  "Q3 margins declined due to
-                                                   increased input costs and…"  ──embed──► search</pre></div>
+            <div class="diagram"><pre>Standard:  "why did Q3 margins fall?"  <span class="d-l">──</span>embed<span class="d-l">──</span><span class="d-a">►</span>  search
+HyDE:      "why did Q3 margins fall?"  <span class="d-l">──</span>LLM<span class="d-l">──</span><span class="d-a">►</span>  "Q3 margins declined due to
+                                                   increased input costs and…"  <span class="d-l">──</span>embed<span class="d-l">──</span><span class="d-a">►</span> search</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f27ContextEngin-38">
@@ -2443,15 +2455,15 @@ HyDE:      "why did Q3 margins fall?"  ──LLM──►  "Q3 margins declined 
               <p><em>"I choose by diagnosing which stage is failing, not by picking favourites. So first I split the metric: is the right document being </em><em>retrieved</em><em> at all, and separately, given the right document, is the answer </em><em>faithful</em><em>? Those have completely different fixes and conflating them wastes weeks. If retrieval recall is the problem, I look at why. Wrong vocabulary between question and answer — <abbr title="hypothetical document embeddings">HyDE</abbr>, or <abbr title="reformulating a user query before retrieval so it stands alone">query rewriting</abbr>. Chunks that lost their meaning when split — <abbr title="prepending document-level context to each chunk at ingest time so chunks stay meaningful alone">contextual retrieval</abbr> or <abbr title="embedding the whole document first, then pooling per-chunk vectors so each chunk keeps document context">late chunking</abbr>. Exact terms like error codes or part numbers not matching — <abbr title="fusing keyword (BM25) and dense vector results, usually with reciprocal rank fusion">hybrid search</abbr> with <abbr title="Best Match 25, the classic keyword-ranking function">BM25</abbr>, which is the highest-value fix in most enterprise corpora and it's the first thing I'd add. Multi-part or over-specific queries — decomposition or step-back. Relational or global questions — that's the GraphRAG case. If recall is fine but the answer is bad, the fix is downstream: rerank to fewer, better chunks; expand to parent documents so the model sees whole thoughts; tighten the <abbr title="tying a generated answer to retrieved evidence rather than model memory">grounding</abbr> prompt; add a citation check. The ordering principle is </em><em>cheapest and broadest first</em><em> — hybrid search and <abbr title="a cross-encoder rescoring the top-k candidates and keeping only the best few">reranking</abbr> help almost every corpus and cost almost nothing, while GraphRAG helps a narrow query class and costs a lot. And every one of these ships behind an eval on a golden set, because they all sound good and about half of them make things worse on any given corpus."</em>
               </p>
             </div>
-            <div class="diagram"><pre>Recall@k low?  ──┬─ vocabulary mismatch ......... HyDE / query rewrite
-                 ├─ chunks lost context ......... contextual retrieval / late chunking
-                 ├─ exact terms missed .......... HYBRID (BM25) ← try this first
-                 ├─ multi-part / too specific ... decomposition / step-back
-                 └─ relational or global ........ GraphRAG (last resort, high cost)
+            <div class="diagram"><pre>Recall@k low?  <span class="d-l">──┬─</span> vocabulary mismatch ......... HyDE / query rewrite
+                 <span class="d-l">├─</span> chunks lost context ......... contextual retrieval / late chunking
+                 <span class="d-l">├─</span> exact terms missed .......... HYBRID (BM25) <span class="d-a">←</span> try this first
+                 <span class="d-l">├─</span> multi-part / too specific ... decomposition / step-back
+                 <span class="d-l">└─</span> relational or global ........ GraphRAG (last resort, high cost)
 
-Recall fine, answer bad? ──┬─ too many chunks ... rerank to fewer
-                           ├─ fragments ......... small-to-big / parent doc
-                           └─ ungrounded ........ grounding prompt + citation check</pre></div>
+Recall fine, answer bad? <span class="d-l">──┬─</span> too many chunks ... rerank to fewer
+                           <span class="d-l">├─</span> fragments ......... small-to-big / parent doc
+                           <span class="d-l">└─</span> ungrounded ........ grounding prompt + citation check</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="f27ContextEngin-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-cpu"/></svg>C — Interoperability &amp; Memory</span><i></i>
@@ -2468,13 +2480,13 @@ Recall fine, answer bad? ──┬─ too many chunks ... rerank to fewer
               <p><em>"They sit at three different layers and people conflate them. </em><em>Function/<abbr title="the model emitting a structured request for a function the application then executes">tool calling</abbr></em><em> is the model-level primitive: the <abbr title="large language model">LLM</abbr> emits a structured request to run something, and your application executes it. That's provider-specific and lives inside one app. </em><em><abbr title="Model Context Protocol">MCP</abbr></em><em> standardises the layer below that — how an application discovers and connects to tool </em>providers<em>. Instead of writing a custom integration per app per tool, a tool exposes an MCP server once and any MCP-capable client can use it, which turns an N×M integration problem into N+M. MCP tools still ultimately become function calls when they reach the model; MCP is about the plumbing and discovery, not about how the model decides. </em><em><abbr title="agent-to-agent protocol">A2A</abbr></em><em> is a layer up again: agent-to-agent, how one </em>autonomous agent<em> delegates a task to another agent it doesn't own — capability advertisement, task lifecycle, negotiation. The clean summary is that MCP connects an agent to its </em><em>tools</em><em>, A2A connects an agent to other </em><em>agents</em><em>, and <abbr title="the model emitting a structured request for a function the application then executes">function calling</abbr> is how the model expresses intent within either. In a real system I'd expect all three: my LangGraph agent calls tools via function calling, sources several of those tools from MCP servers, and if it needs a capability owned by another team's agent, that's the A2A boundary."</em>
               </p>
             </div>
-            <div class="diagram"><pre>        ┌─────────────────────────────────────────────┐
-A2A     │  my agent  ◄──────────────►  another team's agent   │  ← agent ↔ agent
-        └───────┬─────────────────────────────────────┘
-                │
-MCP             ├──► MCP server (GitHub)  ──► MCP server (Postgres)   ← agent ↔ tools
-                │
-tool calling    └──► the LLM emits {"name": "...", "args": {...}}     ← model ↔ intent</pre></div>
+            <div class="diagram"><pre>        <span class="d-l">┌─────────────────────────────────────────────┐</span>
+A2A     <span class="d-l">│</span>  my agent  <span class="d-a">◄</span><span class="d-l">──────────────</span><span class="d-a">►</span>  another team's agent   <span class="d-l">│</span>  <span class="d-a">←</span> agent ↔ agent
+        <span class="d-l">└───────┬─────────────────────────────────────┘</span>
+                <span class="d-l">│</span>
+MCP             <span class="d-l">├──</span><span class="d-a">►</span> MCP server (GitHub)  <span class="d-l">──</span><span class="d-a">►</span> MCP server (Postgres)   <span class="d-a">←</span> agent ↔ tools
+                <span class="d-l">│</span>
+tool calling    <span class="d-l">└──</span><span class="d-a">►</span> the LLM emits {"name": "...", "args": {...}}     <span class="d-a">←</span> model ↔ intent</pre></div>
             <div class="note">
               <p>Depth: <a href="../09_MCP/reference.html#f01MCPNotesmd">MCP Notes</a> · <a href="patterns.html#f11AgenticSyste">Agentic Systems and Patterns</a>.</p>
             </div>

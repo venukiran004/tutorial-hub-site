@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1233,11 +1245,11 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p><strong>Definition.</strong> The foundational model of the web. A <strong>client</strong> (browser, mobile app, IoT device)
               <strong>sends requests</strong>; a <strong>server</strong> <strong>processes</strong> them and <strong>returns responses</strong>.</p>
-            <div class="diagram"><pre>   ┌──────────┐    1. REQUEST  ("GET me the homepage")   ┌──────────┐
-   │  CLIENT  │  ─────────────────────────────────────▶  │  SERVER  │
-   │ (browser)│                                          │ (your    │
-   │          │  ◀─────────────────────────────────────  │  code)   │
-   └──────────┘    2. RESPONSE (HTML / JSON / image)      └─────────┘</pre></div>
+            <div class="diagram"><pre>   <span class="d-l">┌──────────┐</span>    1. REQUEST  ("GET me the homepage")   <span class="d-l">┌──────────┐</span>
+   <span class="d-l">│</span>  CLIENT  <span class="d-l">│</span>  <span class="d-l">─────────────────────────────────────</span><span class="d-a">►</span>  <span class="d-l">│</span>  SERVER  <span class="d-l">│</span>
+   <span class="d-l">│</span> (browser)<span class="d-l">│</span>                                          <span class="d-l">│</span> (your    <span class="d-l">│</span>
+   <span class="d-l">│</span>          <span class="d-l">│</span>  <span class="d-a">◄</span><span class="d-l">─────────────────────────────────────</span>  <span class="d-l">│</span>  code)   <span class="d-l">│</span>
+   <span class="d-l">└──────────┘</span>    2. RESPONSE (HTML / JSON / image)     <span class="d-l">└──────────┘</span></pre></div>
             <p><strong>Why it matters.</strong> It cleanly separates concerns:
               - The <strong>client</strong> handles presentation and user interaction.
               - The <strong>server</strong> owns business logic, data, and security.</p>
@@ -1265,8 +1277,8 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p><strong>Definition.</strong> <em>"The internet's phone numbers."</em> A unique numerical identifier for every device
               reachable on a network. Every deployed server has a <strong>public IP</strong> so clients can find it.</p>
-            <div class="diagram"><pre>   algomaster.io  ─────resolves to────▶  192.168.1.1
-                                          └── the server's address on the network</pre></div>
+            <div class="diagram"><pre>   algomaster.io  <span class="d-l">─────</span>resolves to<span class="d-l">────</span><span class="d-a">►</span>  192.168.1.1
+                                          <span class="d-l">└──</span> the server's address on the network</pre></div>
             <p><strong>Detail:</strong>
               - <strong>IPv4</strong> — <code>192.168.1.1</code> style (32-bit, ~4.3 billion addresses — now exhausted).
               - <strong>IPv6</strong> — <code>2001:0db8:85a3::8a2e:0370:7334</code> (128-bit, effectively unlimited).
@@ -1288,12 +1300,12 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p><strong>Definition.</strong> The internet's phone book. <abbr title="domain name system">DNS</abbr> <strong>translates human-friendly domain names</strong>
               (<code>algomaster.io</code>) <strong>into machine-readable IP addresses</strong> (<code>192.168.1.1</code>).</p>
             <div class="diagram"><pre>                          DNS RESOLUTION (simplified)
-   ┌────────┐   "where is algomaster.io?"   ┌───────────────────────┐
-   │ CLIENT │ ────────────────────────────▶ │  DNS RESOLVER         │
-   │        │                               │  (asks the hierarchy) │
-   │        │ ◀──────────────────────────── │   Root → .io TLD →    │
-   └────────┘     "it's at 192.168.1.1"      │   authoritative NS   │
-                                             └──────────────────────┘</pre></div>
+   <span class="d-l">┌────────┐</span>   "where is algomaster.io?"   <span class="d-l">┌───────────────────────┐</span>
+   <span class="d-l">│</span> CLIENT <span class="d-l">│</span> <span class="d-l">────────────────────────────</span><span class="d-a">►</span> <span class="d-l">│</span>  DNS RESOLVER         <span class="d-l">│</span>
+   <span class="d-l">│</span>        <span class="d-l">│</span>                               <span class="d-l">│</span>  (asks the hierarchy) <span class="d-l">│</span>
+   <span class="d-l">│</span>        <span class="d-l">│</span> <span class="d-a">◄</span><span class="d-l">────────────────────────────</span> <span class="d-l">│</span>   Root <span class="d-a">→</span> .io TLD <span class="d-a">→</span>    <span class="d-l">│</span>
+   <span class="d-l">└────────┘</span>     "it's at 192.168.1.1"      <span class="d-l">│</span>   authoritative NS   <span class="d-l">│</span>
+                                             <span class="d-l">└──────────────────────┘</span></pre></div>
             <p><strong>The resolution chain (what actually happens):</strong>
               1. <strong>Browser/OS cache</strong> — checked first (fastest).
               2. <strong>Recursive resolver</strong> (your ISP or <code>8.8.8.8</code>) — does the legwork.
@@ -1320,9 +1332,9 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p><strong>Definition.</strong> <em>Data is bound by physics.</em> Physical distance creates <strong>roundtrip delay (latency)</strong> —
               light/electricity simply takes time to travel. A request from India to a server in New York must
               physically cross the planet and come back.</p>
-            <div class="diagram"><pre>   Client(India) ───────────────── Server(New York) ───────────────── back to India
+            <div class="diagram"><pre>   Client(India) <span class="d-l">─────────────────</span> Server(New York) <span class="d-l">─────────────────</span> back to India
    0ms        50ms       100ms       150ms        200ms+
-   |───────────|───────────|───────────|───────────|──────────▶ ROUNDTRIP LATENCY</pre></div>
+   |<span class="d-l">───────────</span>|<span class="d-l">───────────</span>|<span class="d-l">───────────</span>|<span class="d-l">───────────</span>|<span class="d-l">──────────</span><span class="d-a">►</span> ROUNDTRIP LATENCY</pre></div>
             <p><strong>Why every architect memorizes these numbers:</strong>
             </p>
             <div class="tbl-wrap">
@@ -1379,13 +1391,13 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p>Both are intermediaries that sit <em>between</em> client and server — but they protect <strong>opposite sides</strong>.</p>
             <h3>Forward Proxy (protects the client)</h3>
             <p><strong>Sits in front of the client. Hides the client's IP and identity</strong> from the destination server.</p>
-            <div class="diagram"><pre>   CLIENT ──▶ [ FORWARD PROXY ] ──▶ INTERNET / SERVER
+            <div class="diagram"><pre>   CLIENT <span class="d-l">──</span><span class="d-a">►</span> [ FORWARD PROXY ] <span class="d-l">──</span><span class="d-a">►</span> INTERNET / SERVER
               (acts on behalf of the client)</pre></div>
             <p><strong>Use cases:</strong> corporate egress filtering, anonymity (VPNs), bypassing geo-restrictions,
               client-side caching, content filtering.</p>
             <h3>Reverse Proxy (protects the server)</h3>
             <p><strong>Sits in front of the server. Intercepts and routes incoming traffic</strong>, hiding the backend.</p>
-            <div class="diagram"><pre>   INTERNET ──▶ [ REVERSE PROXY ] ──▶ SERVER(s)
+            <div class="diagram"><pre>   INTERNET <span class="d-l">──</span><span class="d-a">►</span> [ REVERSE PROXY ] <span class="d-l">──</span><span class="d-a">►</span> SERVER(s)
                 (acts on behalf of the server)</pre></div>
             <p><strong>Use cases:</strong> load balancing, SSL/<abbr title="transport layer security">TLS</abbr> termination, caching, compression, hiding internal topology,
               <abbr title="web application firewall">WAF</abbr> / <abbr title="distributed denial of service">DDoS</abbr> protection. Tools: <strong>NGINX, HAProxy, Envoy, Cloudflare</strong>.</p>
@@ -1482,8 +1494,8 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
               Anyone on the network path can read the packet → <strong>vulnerable to interception</strong>.</p>
             <p><strong>HTTPS</strong> — HTTP wrapped in an <strong>encrypted transport layer (SSL/<abbr title="transport layer security">TLS</abbr>)</strong>. The same messages, but
               unreadable to eavesdroppers.</p>
-            <div class="diagram"><pre>   HTTP  packet:  [ GET /login  user=alice  pass=1234 ]   ← readable by anyone
-   HTTPS packet:  [ ░░░░ encrypted via TLS ░░░░ ] 🔒        ← gibberish without the key</pre></div>
+            <div class="diagram"><pre>   HTTP  packet:  [ GET /login  user=alice  pass=1234 ]   <span class="d-a">←</span> readable by anyone
+   HTTPS packet:  [ ░░░░ encrypted via TLS ░░░░ ] *        <span class="d-a">←</span> gibberish without the key</pre></div>
             <p><strong>How HTTPS works (the TLS handshake, simplified):</strong>
               1. Client says hello, lists supported ciphers.
               2. Server presents its <strong>TLS certificate</strong> (proves identity, signed by a Certificate Authority).
@@ -1504,10 +1516,10 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p><strong>Definition.</strong> An <strong>API (Application Programming Interface)</strong> is the contract through which clients
               talk to your system. It <strong>processes the request, interacts with databases, and returns data in a
               structured format</strong> (usually <strong>JSON</strong>, sometimes XML).</p>
-            <div class="diagram"><pre>   ┌────────┐  RAW REQUEST   ┌──────────────────┐   query    ┌──────────┐
-   │ CLIENT │ ─────────────▶ │       API        │ ─────────▶ │ DATABASE │
-   │        │ ◀───────────── │ (business logic) │ ◀───────── │          │
-   └────────┘  STRUCTURED    └──────────────────┘   rows     └──────────┘
+            <div class="diagram"><pre>   <span class="d-l">┌────────┐</span>  RAW REQUEST   <span class="d-l">┌──────────────────┐</span>   query    <span class="d-l">┌──────────┐</span>
+   <span class="d-l">│</span> CLIENT <span class="d-l">│</span> <span class="d-l">─────────────</span><span class="d-a">►</span> <span class="d-l">│</span>       API        <span class="d-l">│</span> <span class="d-l">─────────</span><span class="d-a">►</span> <span class="d-l">│</span> DATABASE <span class="d-l">│</span>
+   <span class="d-l">│</span>        <span class="d-l">│</span> <span class="d-a">◄</span><span class="d-l">─────────────</span> <span class="d-l">│</span> (business logic) <span class="d-l">│</span> <span class="d-a">◄</span><span class="d-l">─────────</span> <span class="d-l">│</span>          <span class="d-l">│</span>
+   <span class="d-l">└────────┘</span>  STRUCTURED    <span class="d-l">└──────────────────┘</span>   rows     <span class="d-l">└──────────┘</span>
                 DATA (JSON)</pre></div>
             <p><strong>The API is where the "work" happens:</strong> validation, authentication, business rules, talking to the
               database/other services, and shaping the response. The client never touches the database directly —
@@ -1531,9 +1543,9 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
               <li><strong>Drawback — over-fetching / under-fetching:</strong> each resource is its own endpoint, so building one
                   screen often requires <strong>multiple round trips</strong> to gather related data.</li>
             </ul>
-            <div class="diagram"><pre>   CLIENT ──GET /users──▶  /users
-   CLIENT ──GET /orders─▶  /orders     ← 3 separate trips to assemble one view
-   CLIENT ──GET /posts──▶  /posts</pre></div>
+            <div class="diagram"><pre>   CLIENT <span class="d-l">──</span>GET /users<span class="d-l">──</span><span class="d-a">►</span>  /users
+   CLIENT <span class="d-l">──</span>GET /orders<span class="d-l">─</span><span class="d-a">►</span>  /orders     <span class="d-a">←</span> 3 separate trips to assemble one view
+   CLIENT <span class="d-l">──</span>GET /posts<span class="d-l">──</span><span class="d-a">►</span>  /posts</pre></div>
             <h3>GraphQL</h3>
             <ul>
               <li><strong>A single endpoint + query language.</strong> The client asks for <strong>exactly the fields it needs</strong> and
@@ -1541,10 +1553,10 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
               <li><strong>Drawback — complexity:</strong> harder to cache (everything is a <code>POST</code> to one URL), requires heavier
                   server-side processing (resolvers), and risks expensive/abusive queries (need depth limiting).</li>
             </ul>
-            <div class="diagram"><pre>   CLIENT ── one query ──▶  ┌──────────────────┐
-            { user {        │  GRAPHQL ENDPOINT │  ← assembles user+orders+posts
-               orders       │  (resolvers)      │     in a single response
-               posts } }    └──────────────────┘</pre></div>
+            <div class="diagram"><pre>   CLIENT <span class="d-l">──</span> one query <span class="d-l">──</span><span class="d-a">►</span>  <span class="d-l">┌──────────────────┐</span>
+            { user {        <span class="d-l">│</span>  GRAPHQL ENDPOINT <span class="d-l">│</span>  <span class="d-a">←</span> assembles user+orders+posts
+               orders       <span class="d-l">│</span>  (resolvers)      <span class="d-l">│</span>     in a single response
+               posts } }    <span class="d-l">└──────────────────┘</span></pre></div>
             <div class="tbl-wrap">
               <table class="t3">
                 <thead>
@@ -1675,10 +1687,10 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <div class="keyterms"><span class="kt">Definition</span><span class="kt">CPU/RAM</span><span class="kt">one machine</span><span class="kt">Hard limits on capacity</span><span class="kt">Expensive</span><span class="kt">Single point of failure</span>
             </div>
             <p><strong>Definition.</strong> Add more <strong>CPU/RAM</strong> to <strong>one machine</strong> — make the single box bigger.</p>
-            <div class="diagram"><pre>        ┌──────┐                 ┌──────────┐
-        │ 4 CPU│   scale up  ▶   │  64 CPU  │
-        │ 8 GB │                 │  512 GB  │
-        └──────┘                 └──────────┘</pre></div>
+            <div class="diagram"><pre>        <span class="d-l">┌──────┐</span>                 <span class="d-l">┌──────────┐</span>
+        <span class="d-l">│</span> 4 CPU<span class="d-l">│</span>   scale up  <span class="d-a">►</span>   <span class="d-l">│</span>  64 CPU  <span class="d-l">│</span>
+        <span class="d-l">│</span> 8 GB <span class="d-l">│</span>                 <span class="d-l">│</span>  512 GB  <span class="d-l">│</span>
+        <span class="d-l">└──────┘</span>                 <span class="d-l">└──────────┘</span></pre></div>
             <ul>
               <li>✅ Simple — no code changes, no distribution logic.</li>
               <li>❌ <strong>Hard limits on capacity</strong> — you can only buy so big a machine.</li>
@@ -1695,9 +1707,9 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <div class="keyterms"><span class="kt">Definition</span><span class="kt">across multiple machines</span><span class="kt">Effectively infinite capacity</span><span class="kt">Highly fault-tolerant</span><span class="kt">stateless servers</span><span class="kt">distribute traffic</span>
             </div>
             <p><strong>Definition.</strong> Distribute the workload <strong>across multiple machines</strong> — add more boxes.</p>
-            <div class="diagram"><pre>        ┌──────┐   scale out  ▶   ┌──┐ ┌──┐ ┌──┐ ┌──┐
-        │ 1 box│                  │  │ │  │ │  │ │  │   ... add as many as needed
-        └──────┘                  └──┘ └──┘ └──┘ └──┘</pre></div>
+            <div class="diagram"><pre>        <span class="d-l">┌──────┐</span>   scale out  <span class="d-a">►</span>   <span class="d-l">┌──┐</span> <span class="d-l">┌──┐</span> <span class="d-l">┌──┐</span> <span class="d-l">┌──┐</span>
+        <span class="d-l">│</span> 1 box<span class="d-l">│</span>                  <span class="d-l">│</span>  <span class="d-l">│</span> <span class="d-l">│</span>  <span class="d-l">│</span> <span class="d-l">│</span>  <span class="d-l">│</span> <span class="d-l">│</span>  <span class="d-l">│</span>   ... add as many as needed
+        <span class="d-l">└──────┘</span>                  <span class="d-l">└──┘</span> <span class="d-l">└──┘</span> <span class="d-l">└──┘</span> <span class="d-l">└──┘</span></pre></div>
             <ul>
               <li>✅ <strong>Effectively infinite capacity</strong> — keep adding nodes.</li>
               <li>✅ <strong>Highly fault-tolerant</strong> — one node dies, the rest keep serving.</li>
@@ -1719,11 +1731,11 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p><strong>Definition.</strong> The <strong>traffic manager</strong> that sits in front of your fleet of horizontally-scaled
               servers and <strong>routes incoming traffic to healthy nodes</strong>.</p>
-            <div class="diagram"><pre>                          ┌──▶ [Server 1] ✅
-   INCOMING   ┌────────┐  ├──▶ [Server 2] ✅
-   TRAFFIC ──▶│  LOAD  │──┼──▶ [Server 3] ❌ (failed → removed from rotation)
-              │BALANCER│  └──▶ [Server 4] ✅
-              └────────┘</pre></div>
+            <div class="diagram"><pre>                          <span class="d-l">┌──</span><span class="d-a">►</span> [Server 1] √
+   INCOMING   <span class="d-l">┌────────┐</span>  <span class="d-l">├──</span><span class="d-a">►</span> [Server 2] √
+   TRAFFIC <span class="d-l">──</span><span class="d-a">►</span><span class="d-l">│</span>  LOAD  <span class="d-l">│──┼──</span><span class="d-a">►</span> [Server 3] × (failed <span class="d-a">→</span> removed from rotation)
+              <span class="d-l">│</span>BALANCER<span class="d-l">│</span>  <span class="d-l">└──</span><span class="d-a">►</span> [Server 4] √
+              <span class="d-l">└────────┘</span></pre></div>
             <p><strong>Routing algorithms:</strong>
               - <strong>Round Robin</strong> — each server in turn (simple, even).
               - <strong>Least Connections</strong> — send to the server with the fewest active connections (good for
@@ -1751,19 +1763,19 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p>Combining everything so far gives a <strong>battle-tested core</strong> capable of reliably handling <strong>thousands
               of concurrent users without a single point of failure</strong>:</p>
-            <div class="diagram"><pre>                                          ┌─────────────────┐
-                                     ┌───▶│  Server 1  │────┐
-  ┌──────┐   ┌─────┐   ┌─────────┐   │    │ (app)      │    │
-  │CLIENT│──▶│ DNS │──▶│   API    │   │    └────────────┘   │   ┌──────────────┐
-  │      │   │     │   │ GATEWAY/ │   │    ┌────────────┐   ├──▶│   PRIMARY    │
-  └──────┘   └─────┘   │ REVERSE  │──▶│───▶│  Server 2  │───┤   │ SQL DATABASE │
-                       │  PROXY   │   │    │ (app)      │   │   └──────────────┘
-                       └─────┬────┘   │    └────────────┘   │
-                             │        │    ┌────────────┐   │
-                       ┌─────▼────┐   └───▶│  Server 3  │───┘
-                       │  LOAD    │        │ (app)          │
-                       │ BALANCER │        └────────────────┘
-                       └──────────┘     (stateless, horizontally scaled)</pre></div>
+            <div class="diagram"><pre>                                          <span class="d-l">┌─────────────────┐</span>
+                                     <span class="d-l">┌───</span><span class="d-a">►</span><span class="d-l">│</span>  Server 1  <span class="d-l">│────┐</span>
+  <span class="d-l">┌──────┐</span>   <span class="d-l">┌─────┐</span>   <span class="d-l">┌─────────┐</span>   <span class="d-l">│</span>    <span class="d-l">│</span> (app)      <span class="d-l">│</span>    <span class="d-l">│</span>
+  <span class="d-l">│</span>CLIENT<span class="d-l">│──</span><span class="d-a">►</span><span class="d-l">│</span> DNS <span class="d-l">│──</span><span class="d-a">►</span><span class="d-l">│</span>   API    <span class="d-l">│</span>   <span class="d-l">│</span>    <span class="d-l">└────────────┘</span>   <span class="d-l">│</span>   <span class="d-l">┌──────────────┐</span>
+  <span class="d-l">│</span>      <span class="d-l">│</span>   <span class="d-l">│</span>     <span class="d-l">│</span>   <span class="d-l">│</span> GATEWAY/ <span class="d-l">│</span>   <span class="d-l">│</span>    <span class="d-l">┌────────────┐</span>   <span class="d-l">├──</span><span class="d-a">►</span><span class="d-l">│</span>   PRIMARY    <span class="d-l">│</span>
+  <span class="d-l">└──────┘</span>   <span class="d-l">└─────┘</span>   <span class="d-l">│</span> REVERSE  <span class="d-l">│──</span><span class="d-a">►</span><span class="d-l">│───</span><span class="d-a">►</span><span class="d-l">│</span>  Server 2  <span class="d-l">│───┤</span>   <span class="d-l">│</span> SQL DATABASE <span class="d-l">│</span>
+                       <span class="d-l">│</span>  PROXY   <span class="d-l">│</span>   <span class="d-l">│</span>    <span class="d-l">│</span> (app)      <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">└──────────────┘</span>
+                       <span class="d-l">└─────┬────┘</span>   <span class="d-l">│</span>    <span class="d-l">└────────────┘</span>   <span class="d-l">│</span>
+                             <span class="d-l">│</span>        <span class="d-l">│</span>    <span class="d-l">┌────────────┐</span>   <span class="d-l">│</span>
+                       <span class="d-l">┌─────</span><span class="d-a">▼</span><span class="d-l">────┐</span>   <span class="d-l">└───</span><span class="d-a">►</span><span class="d-l">│</span>  Server 3  <span class="d-l">│───┘</span>
+                       <span class="d-l">│</span>  LOAD    <span class="d-l">│</span>        <span class="d-l">│</span> (app)          <span class="d-l">│</span>
+                       <span class="d-l">│</span> BALANCER <span class="d-l">│</span>        <span class="d-l">└────────────┘</span>
+                       <span class="d-l">└──────────┘</span>     (stateless, horizontally scaled)</pre></div>
             <p><strong>Flow:</strong> Client → <abbr title="domain name system">DNS</abbr> resolves the domain → request hits the <strong>API Gateway / Reverse Proxy</strong>
               (security hatch) → <strong>Load Balancer</strong> distributes across <strong>stateless app servers</strong> → all read/write
               to a <strong>primary SQL database</strong>.</p>
@@ -1788,12 +1800,12 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p><strong>Definition.</strong> A <strong>super-efficient lookup table</strong> that lets the database <strong>locate data directly
               without scanning every row</strong>.</p>
-            <div class="diagram"><pre>   WITHOUT INDEX:  scan all 10,000,000 rows  → O(n)   😱
-   WITH INDEX:     jump straight to the row   → O(log n) 🚀
+            <div class="diagram"><pre>   WITHOUT INDEX:  scan all 10,000,000 rows  <span class="d-a">→</span> O(n)   *
+   WITH INDEX:     jump straight to the row   <span class="d-a">→</span> O(log n) *
 
-   USER_ID INDEX ──▶ ┌──────────────────────────────┐
-                     │ ...........  TARGET ROW  ....│
-                     └──────────────────────────────┘</pre></div>
+   USER_ID INDEX <span class="d-l">──</span><span class="d-a">►</span> <span class="d-l">┌──────────────────────────────┐</span>
+                     <span class="d-l">│</span> ...........  TARGET ROW  ....<span class="d-l">│</span>
+                     <span class="d-l">└──────────────────────────────┘</span></pre></div>
             <ul>
               <li><strong>Speeds up reads</strong> dramatically (the #1 first-line fix for slow queries).</li>
               <li class="dl"><b class="dt">Slows down writes</b><span class="dd">every <code>INSERT</code>/<code>UPDATE</code>/<code>DELETE</code> must also update the index.</span>
@@ -1820,16 +1832,16 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p><strong>Definition.</strong> Keep <strong>copies of the database</strong>. The <strong>primary handles all writes</strong>; <strong>replicas
               handle reads</strong>. This spreads read load and ensures high availability.</p>
             <div class="diagram"><pre>                       WRITE PATH
-                          │
-                          ▼
-                  ┌─────────────────┐
-                  │ PRIMARY (writes)│
-                  └───────┬─────────┘
-       data sync ┌────────┼────────┐ data sync
-                 ▼        ▼        ▼
-           ┌─────────┐┌─────────┐┌──┐
-           │ REPLICA ││ REPLICA ││ REPLICA │   ← all serve READS
-           └─────────┘└─────────┘└──┘</pre></div>
+                          <span class="d-l">│</span>
+                          <span class="d-a">▼</span>
+                  <span class="d-l">┌─────────────────┐</span>
+                  <span class="d-l">│</span> PRIMARY (writes)<span class="d-l">│</span>
+                  <span class="d-l">└───────┬─────────┘</span>
+       data sync <span class="d-l">┌────────┼────────┐</span> data sync
+                 <span class="d-a">▼</span>        <span class="d-a">▼</span>        <span class="d-a">▼</span>
+           <span class="d-l">┌─────────┐┌─────────┐┌──┐</span>
+           <span class="d-l">│</span> REPLICA <span class="d-l">││</span> REPLICA <span class="d-l">││</span> REPLICA <span class="d-l">│</span>   <span class="d-a">←</span> all serve READS
+           <span class="d-l">└─────────┘└─────────┘└──┘</span></pre></div>
             <p><strong>Why it works:</strong> most applications are <strong>read-heavy</strong> (think <span class="mag">90%</span> reads, <span class="mag">10%</span> writes). Offloading
               reads to replicas frees the primary to focus on writes.</p>
             <p><strong>Key concepts:</strong>
@@ -1857,14 +1869,14 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p><strong>Definition.</strong> <strong>Split database rows across multiple servers</strong> based on a <strong><abbr title="splitting one dataset across machines by a partition key">sharding</abbr> key</strong>
               (e.g., User IDs 1–1M on Shard A, 1M–2M on Shard B...). <strong>Distributes the heavy load</strong> — each shard
               holds only a <em>slice</em> of the data and handles only a <em>slice</em> of the traffic.</p>
-            <div class="diagram"><pre>   ┌──────────────────────────── ALL USERS ───────────────────────────┐
-   │ User IDs 1–1M │ User IDs 1M–2M │ User IDs 2M–3M │ ...            │
-   └───────┬───────────────┬───────────────┬──────────────────────────┘
-           ▼               ▼               ▼
-      ┌─────────┐     ┌─────────┐     ┌─────────┐
-      │ SHARD A │     │ SHARD B │     │ SHARD C │   ← each on its own SERVER
-      │(Server 1)     │(Server 2)     │(Server 3)
-      └─────────┘     └─────────┘     └─────────┘</pre></div>
+            <div class="diagram"><pre>   <span class="d-l">┌────────────────────────────</span> ALL USERS <span class="d-l">───────────────────────────┐</span>
+   <span class="d-l">│</span> User IDs 1–1M <span class="d-l">│</span> User IDs 1M–2M <span class="d-l">│</span> User IDs 2M–3M <span class="d-l">│</span> ...            <span class="d-l">│</span>
+   <span class="d-l">└───────┬───────────────┬───────────────┬──────────────────────────┘</span>
+           <span class="d-a">▼</span>               <span class="d-a">▼</span>               <span class="d-a">▼</span>
+      <span class="d-l">┌─────────┐</span>     <span class="d-l">┌─────────┐</span>     <span class="d-l">┌─────────┐</span>
+      <span class="d-l">│</span> SHARD A <span class="d-l">│</span>     <span class="d-l">│</span> SHARD B <span class="d-l">│</span>     <span class="d-l">│</span> SHARD C <span class="d-l">│</span>   <span class="d-a">←</span> each on its own SERVER
+      <span class="d-l">│</span>(Server 1)     <span class="d-l">│</span>(Server 2)     <span class="d-l">│</span>(Server 3)
+      <span class="d-l">└─────────┘</span>     <span class="d-l">└─────────┘</span>     <span class="d-l">└─────────┘</span></pre></div>
             <p><strong>This is the answer to the write/size bottleneck:</strong> replication copies the <em>whole</em> DB; sharding
               <em>splits</em> it, so each shard handles independent writes and stores less data.</p>
             <p><strong>Sharding strategies:</strong>
@@ -1892,13 +1904,13 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p><strong>Definition.</strong> Split a <strong>massive table by columns</strong> based on access patterns. <strong>Reduces
               unnecessary disk I/O</strong> by scanning only the relevant fields.</p>
-            <div class="diagram"><pre>   ONE WIDE "users" TABLE  →  split by COLUMN GROUPS by how often they're accessed
+            <div class="diagram"><pre>   ONE WIDE "users" TABLE  <span class="d-a">→</span>  split by COLUMN GROUPS by how often they're accessed
 
-   ┌──────────── PROFILE (hot) ────────────┐   ┌───────── BILLING (cold) ────────┐
-   │ User_ID │ Name │ Email │ Settings      │   │ User_ID │ Payment │ TX history │
-   │ (frequently accessed data)             │   │ (less-frequently accessed)     │
-   └────────────────────────────────────────┘   └────────────────────────────────┘
-            shares the same User_ID  ◀───────────────────────────────────────────┘</pre></div>
+   <span class="d-l">┌────────────</span> PROFILE (hot) <span class="d-l">────────────┐</span>   <span class="d-l">┌─────────</span> BILLING (cold) <span class="d-l">────────┐</span>
+   <span class="d-l">│</span> User_ID <span class="d-l">│</span> Name <span class="d-l">│</span> Email <span class="d-l">│</span> Settings      <span class="d-l">│</span>   <span class="d-l">│</span> User_ID <span class="d-l">│</span> Payment <span class="d-l">│</span> TX history <span class="d-l">│</span>
+   <span class="d-l">│</span> (frequently accessed data)             <span class="d-l">│</span>   <span class="d-l">│</span> (less-frequently accessed)     <span class="d-l">│</span>
+   <span class="d-l">└────────────────────────────────────────┘</span>   <span class="d-l">└────────────────────────────────┘</span>
+            shares the same User_ID  <span class="d-a">◄</span><span class="d-l">───────────────────────────────────────────┘</span></pre></div>
             <p><strong>Difference from <abbr title="splitting one dataset across machines by a partition key">sharding</abbr>:</strong> sharding splits <strong>rows</strong> (same columns, different rows on each server);
               vertical partitioning splits <strong>columns</strong> (different columns grouped by access frequency).</p>
             <p><strong>Why do it:</strong>
@@ -1922,18 +1934,18 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p><strong>Definition.</strong> Store <strong>frequently accessed data in RAM</strong> instead of fetching it from disk every
               time. Uses a <strong><abbr title="time to live">TTL</abbr> (Time To Live)</strong> to expire stale data. This is the single biggest speed hack —
               remember RAM is <span class="mag">~100,000×</span> faster than a cross-continent disk/network fetch (<a href="javascript:void(0)">§4</a>).</p>
-            <div class="diagram"><pre>                 ┌──────────────────────────────┐
-                 │ App requests data.           │
-                 │ Checks CACHE (RAM) first.    │
-                 └───────────────┬──────────────┘
-                  CACHE HIT ◀────┴────▶ CACHE MISS
-                 │                              │
-                      ▼                     ▼
-              ┌──────────────┐    ┌─────────────────────────────┐
-              │ Return data  │    │ Fetch from DATABASE (disk)  │
-              │ INSTANTLY 🚀 │    │ Save a copy to cache        │
-              └──────────────┘    │ Return data                 │
-                                  └─────────────────────────────┘</pre></div>
+            <div class="diagram"><pre>                 <span class="d-l">┌──────────────────────────────┐</span>
+                 <span class="d-l">│</span> App requests data.           <span class="d-l">│</span>
+                 <span class="d-l">│</span> Checks CACHE (RAM) first.    <span class="d-l">│</span>
+                 <span class="d-l">└───────────────┬──────────────┘</span>
+                  CACHE HIT <span class="d-a">◄</span><span class="d-l">────┴────</span><span class="d-a">►</span> CACHE MISS
+                 <span class="d-l">│</span>                              <span class="d-l">│</span>
+                      <span class="d-a">▼</span>                     <span class="d-a">▼</span>
+              <span class="d-l">┌──────────────┐</span>    <span class="d-l">┌─────────────────────────────┐</span>
+              <span class="d-l">│</span> Return data  <span class="d-l">│</span>    <span class="d-l">│</span> Fetch from DATABASE (disk)  <span class="d-l">│</span>
+              <span class="d-l">│</span> INSTANTLY * <span class="d-l">│</span>    <span class="d-l">│</span> Save a copy to cache        <span class="d-l">│</span>
+              <span class="d-l">└──────────────┘</span>    <span class="d-l">│</span> Return data                 <span class="d-l">│</span>
+                                  <span class="d-l">└─────────────────────────────┘</span></pre></div>
             <p><strong>Where caches live (multiple layers):</strong>
               - <strong>Client / browser cache</strong> (closest, free).
               - <strong><abbr title="content delivery network">CDN</abbr> cache</strong> (edge, for static assets — see <a href="javascript:void(0)">§22</a>).
@@ -1964,18 +1976,18 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p>Data stored efficiently <strong>without redundancy</strong>. Requires expensive <strong>JOIN operations</strong> to assemble
               a complete record.</p>
             <div class="diagram"><pre>   USERS                       ORDERS
-   ┌────────┬──────┬───────┐   ┌─────────┬────────┬─────────┬────────┐
-   │User_ID │ Name │ Email │   │Order_ID │User_ID │ Product │ Amount │
-   └────────┴──────┴───────┘   └─────────┴────────┴─────────┴────────┘
-            └──────────  JOIN on User_ID  ──────────┘   ← work on every read</pre></div>
+   <span class="d-l">┌────────┬──────┬───────┐</span>   <span class="d-l">┌─────────┬────────┬─────────┬────────┐</span>
+   <span class="d-l">│</span>User_ID <span class="d-l">│</span> Name <span class="d-l">│</span> Email <span class="d-l">│</span>   <span class="d-l">│</span>Order_ID <span class="d-l">│</span>User_ID <span class="d-l">│</span> Product <span class="d-l">│</span> Amount <span class="d-l">│</span>
+   <span class="d-l">└────────┴──────┴───────┘</span>   <span class="d-l">└─────────┴────────┴─────────┴────────┘</span>
+            <span class="d-l">└──────────</span>  JOIN on User_ID  <span class="d-l">──────────┘</span>   <span class="d-a">←</span> work on every read</pre></div>
             <h3>After (Denormalized)</h3>
             <p>Related data is <strong>pre-assembled into one table</strong>. Eliminates JOINs for <strong>lightning-fast reads</strong>, but
               introduces <strong>data duplication</strong> and <strong>complex/heavier writes</strong>.</p>
             <div class="diagram"><pre>   USER_ORDERS  (everything pre-joined)
-   ┌─────────┬────────┬──────┬───────┬─────────┬────────┐
-   │Order_ID │User_ID │ Name │ Email │ Product │ Amount │   ← read in one shot 🚀
-   └─────────┴────────┴──────┴───────┴─────────┴────────┘
-                      ▲ Name/Email duplicated for every order</pre></div>
+   <span class="d-l">┌─────────┬────────┬──────┬───────┬─────────┬────────┐</span>
+   <span class="d-l">│</span>Order_ID <span class="d-l">│</span>User_ID <span class="d-l">│</span> Name <span class="d-l">│</span> Email <span class="d-l">│</span> Product <span class="d-l">│</span> Amount <span class="d-l">│</span>   <span class="d-a">←</span> read in one shot *
+   <span class="d-l">└─────────┴────────┴──────┴───────┴─────────┴────────┘</span>
+                      <span class="d-a">▲</span> Name/Email duplicated for every order</pre></div>
             <p><strong>Trade-off summary:</strong>
             </p>
             <div class="tbl-wrap">
@@ -2035,14 +2047,14 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <div class="diagram"><pre>                         CONSISTENCY (C)
                     "every read gets the
                       most recent write"
-                            ▲
-                           ╱ ╲
-                          ╱   ╲
-                         ╱     ╲
-                        ╱       ╲
-       PARTITION       ╱─────────╲   AVAILABILITY (A)
-       TOLERANCE (P)  ╱           ╲  "every request gets a
-   "works despite    ╱             ╲  non-error response"
+                            <span class="d-a">▲</span>
+                           <span class="d-l">╱</span> <span class="d-l">╲</span>
+                          <span class="d-l">╱</span>   <span class="d-l">╲</span>
+                         <span class="d-l">╱</span>     <span class="d-l">╲</span>
+                        <span class="d-l">╱</span>       <span class="d-l">╲</span>
+       PARTITION       <span class="d-l">╱─────────╲</span>   AVAILABILITY (A)
+       TOLERANCE (P)  <span class="d-l">╱</span>           <span class="d-l">╲</span>  "every request gets a
+   "works despite    <span class="d-l">╱</span>             <span class="d-l">╲</span>  non-error response"
    network failures"</pre></div>
             <ul>
               <li class="dl"><b class="dt">Consistency (C)</b><span class="dd">every read receives the most recent write (or an error).</span>
@@ -2102,11 +2114,11 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p><strong>Definition.</strong> <strong>Highly scalable, unstructured storage for large media files</strong> (images, video, PDFs,
               backups). Each file — a <strong>BLOB (Binary Large OBject)</strong> — gets a <strong>unique URL</strong>.</p>
-            <div class="diagram"><pre>   ┌───────────── OBJECT STORAGE (unlimited capacity) ─────────────┐
-   │   🎞 video.mp4   →  blob_id: 0-2024-X1Q, 120GB → unique URL    │
-   │   🖼 image.jpeg  →  blob_id: 1-2024-Y34, 5MB  → unique URL     │
-   │   📄 doc.pdf     →  blob_id: 1-2024-734, 12GB → unique URL     │
-   └───────────────────────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre>   <span class="d-l">┌─────────────</span> OBJECT STORAGE (unlimited capacity) <span class="d-l">─────────────┐</span>
+   <span class="d-l">│</span>   * video.mp4   <span class="d-a">→</span>  blob_id: 0-2024-X1Q, 120GB <span class="d-a">→</span> unique URL    <span class="d-l">│</span>
+   <span class="d-l">│</span>   * image.jpeg  <span class="d-a">→</span>  blob_id: 1-2024-Y34, 5MB  <span class="d-a">→</span> unique URL     <span class="d-l">│</span>
+   <span class="d-l">│</span>   * doc.pdf     <span class="d-a">→</span>  blob_id: 1-2024-734, 12GB <span class="d-a">→</span> unique URL     <span class="d-l">│</span>
+   <span class="d-l">└───────────────────────────────────────────────────────────────┘</span></pre></div>
             <p><strong>Why not store media in the database?</strong> Databases are terrible at large binaries — they bloat,
               slow down backups, and waste expensive DB I/O. Instead:
               - Store the <strong>file in blob storage</strong> (S3, Google Cloud Storage, Azure Blob).
@@ -2125,14 +2137,14 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p><strong>Definition.</strong> A <strong>global network of edge servers</strong> that <strong>caches static content geographically
               close to users</strong> to eliminate latency and buffering.</p>
-            <div class="diagram"><pre>                       ┌──────── ORIGIN (blob storage / your server) ────────┐
-                       │              content pushed/pulled to edges         │
-                       └───────────────────────┬─────────────────────────────┘
-       ┌───────────────┬───────────────────────┼───────────────┬─────────────┐
-       ▼               ▼                        ▼               ▼               ▼
+            <div class="diagram"><pre>                       <span class="d-l">┌────────</span> ORIGIN (blob storage / your server) <span class="d-l">────────┐</span>
+                       <span class="d-l">│</span>              content pushed/pulled to edges         <span class="d-l">│</span>
+                       <span class="d-l">└───────────────────────┬─────────────────────────────┘</span>
+       <span class="d-l">┌───────────────┬───────────────────────┼───────────────┬─────────────┐</span>
+       <span class="d-a">▼</span>               <span class="d-a">▼</span>                        <span class="d-a">▼</span>               <span class="d-a">▼</span>               <span class="d-a">▼</span>
    [Edge: N.America] [Edge: S.America]   [Edge: Europe]   [Edge: Asia]   [Edge: Australia]
-       ▲                                                       ▲
-   user gets content from the NEAREST edge → low latency, fast load times</pre></div>
+       <span class="d-a">▲</span>                                                       <span class="d-a">▲</span>
+   user gets content from the NEAREST edge <span class="d-a">→</span> low latency, fast load times</pre></div>
             <p><strong>How it solves the <a href="javascript:void(0)">latency problem</a>:</strong> instead of every user in
               India fetching a video from New York, the video is cached on an edge node <em>in India</em>. The bytes
               travel a few hundred km, not 12,000.</p>
@@ -2150,26 +2162,26 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p>Add the media + data-scaling layers to the resilient core and you get a <strong>globally distributed data
               layer optimized for extreme read/write volumes and low latency</strong>:</p>
-            <div class="diagram"><pre>   ┌──────┐   static media    ┌───────────┐  direct pull   ┌──────────────┐
-   │CLIENT│ ─────────────────▶│ CDN EDGE  │───────────────▶│ BLOB STORAGE │ (videos/images)
-   │           │      │   NODE                                                             │                └──────────────┘
-   └──┬───┘                   └───────────┘
-      │ dynamic requests
-      ▼
-   ┌───────────┐      ┌───────────────────────── DISTRIBUTED DATA LAYER ───────────────────┐
-   │APP SERVERS│◀────▶│  ┌───────────┐                                                     │
-   │  (scaled  │      │  │   CACHE   │  ← checked first (Redis)                            │
-   │   out)    │      │  └─────┬─────┘                                                     │
-   └───────────┘      │        ▼                                                           │
-                      │  ┌──────────────┐   reads   ┌─────────┐┌─────────┐┌─────────┐      │
-                      │  │   PRIMARY    │◀─────────▶│ REPLICA ││ REPLICA ││ REPLICA │      │
-                      │  │   DATABASE   │           └─────────┘└─────────┘└─────────┘      │
-                      │  └──────┬───────┘                                                  │
-                      │         ▼  writes distributed by shard key                         │
-                      │  ┌─────────┐┌─────────┐┌─────────┐                                 │
-                      │  │ SHARD 1 ││ SHARD 2 ││ SHARD 3 │  ← data segments                │
-                      │  └─────────┘└─────────┘└─────────┘                                 │
-                      └────────────────────────────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre>   <span class="d-l">┌──────┐</span>   static media    <span class="d-l">┌───────────┐</span>  direct pull   <span class="d-l">┌──────────────┐</span>
+   <span class="d-l">│</span>CLIENT<span class="d-l">│</span> <span class="d-l">─────────────────</span><span class="d-a">►</span><span class="d-l">│</span> CDN EDGE  <span class="d-l">│───────────────</span><span class="d-a">►</span><span class="d-l">│</span> BLOB STORAGE <span class="d-l">│</span> (videos/images)
+   <span class="d-l">│</span>           <span class="d-l">│</span>      <span class="d-l">│</span>   NODE                                                             <span class="d-l">│</span>                <span class="d-l">└──────────────┘</span>
+   <span class="d-l">└──┬───┘</span>                   <span class="d-l">└───────────┘</span>
+      <span class="d-l">│</span> dynamic requests
+      <span class="d-a">▼</span>
+   <span class="d-l">┌───────────┐</span>      <span class="d-l">┌─────────────────────────</span> DISTRIBUTED DATA LAYER <span class="d-l">───────────────────┐</span>
+   <span class="d-l">│</span>APP SERVERS<span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">────</span><span class="d-a">►</span><span class="d-l">│</span>  <span class="d-l">┌───────────┐</span>                                                     <span class="d-l">│</span>
+   <span class="d-l">│</span>  (scaled  <span class="d-l">│</span>      <span class="d-l">│</span>  <span class="d-l">│</span>   CACHE   <span class="d-l">│</span>  <span class="d-a">←</span> checked first (Redis)                            <span class="d-l">│</span>
+   <span class="d-l">│</span>   out)    <span class="d-l">│</span>      <span class="d-l">│</span>  <span class="d-l">└─────┬─────┘</span>                                                     <span class="d-l">│</span>
+                         <span class="d-l">└───────────┘</span>      <span class="d-l">│</span>        <span class="d-a">▼</span>                                                           <span class="d-l">│</span>
+                      <span class="d-l">│</span>  <span class="d-l">┌──────────────┐</span>   reads   <span class="d-l">┌─────────┐┌─────────┐┌─────────┐</span>      <span class="d-l">│</span>
+                      <span class="d-l">│</span>  <span class="d-l">│</span>   PRIMARY    <span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">─────────</span><span class="d-a">►</span><span class="d-l">│</span> REPLICA <span class="d-l">││</span> REPLICA <span class="d-l">││</span> REPLICA <span class="d-l">│</span>      <span class="d-l">│</span>
+                      <span class="d-l">│</span>  <span class="d-l">│</span>   DATABASE   <span class="d-l">│</span>           <span class="d-l">└─────────┘└─────────┘└─────────┘</span>      <span class="d-l">│</span>
+                      <span class="d-l">│</span>  <span class="d-l">└──────┬───────┘</span>                                                  <span class="d-l">│</span>
+                      <span class="d-l">│</span>         <span class="d-a">▼</span>  writes distributed by shard key                         <span class="d-l">│</span>
+                      <span class="d-l">│</span>  <span class="d-l">┌─────────┐┌─────────┐┌─────────┐</span>                                 <span class="d-l">│</span>
+                      <span class="d-l">│</span>  <span class="d-l">│</span> SHARD 1 <span class="d-l">││</span> SHARD 2 <span class="d-l">││</span> SHARD 3 <span class="d-l">│</span>  <span class="d-a">←</span> data segments                <span class="d-l">│</span>
+                      <span class="d-l">│</span>  <span class="d-l">└─────────┘└─────────┘└─────────┘</span>                                 <span class="d-l">│</span>
+                      <span class="d-l">└────────────────────────────────────────────────────────────────────┘</span></pre></div>
             <p><strong>Reading the diagram:</strong> static media bypasses your servers entirely (<abbr title="content delivery network">CDN</abbr> → blob storage). Dynamic
               requests hit scaled-out app servers, which check the <strong>cache</strong> first, fall back to a <strong>primary +
               read replicas</strong>, and the data itself is <strong>sharded</strong> across segments. Every bottleneck from Part E is
@@ -2195,18 +2207,18 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <h3>WebSockets (Client ↔ Server)</h3>
             <p>A <strong>persistent, two-way (full-duplex) connection.</strong> The server can <strong>push updates to the client
               instantly</strong> without waiting for a request.</p>
-            <div class="diagram"><pre>   CLIENT  ◀═══════ persistent two-way connection ═══════▶  SERVER
+            <div class="diagram"><pre>   CLIENT  <span class="d-a">◄</span><span class="d-l">═══════</span> persistent two-way connection <span class="d-l">═══════</span><span class="d-a">►</span>  SERVER
                  (push updates anytime, low latency)</pre></div>
             <p><strong>Use cases:</strong> live chat, multiplayer games, real-time dashboards, collaborative editing, live
               sports scores, trading tickers.</p>
             <h3>Webhooks (Server → Server)</h3>
             <p><strong>Event-driven HTTP triggers.</strong> A provider <strong>instantly sends a <code>POST</code> request to a registered URL
               when an event occurs</strong> — "don't call us, we'll call you."</p>
-            <div class="diagram"><pre>   ⚡ EVENT     HTTP POST payload (JSON: event id + data + timestamp)
-   ┌──────────┐ ───────────────────────────────────────────▶ ┌───────────┐
-   │ SERVER A │                                               │ SERVER B │
-   │(provider)│            one-way notification               │(subscriber)
-   └──────────┘                                               └──────────┘</pre></div>
+            <div class="diagram"><pre>   ! EVENT     HTTP POST payload (JSON: event id + data + timestamp)
+   <span class="d-l">┌──────────┐</span> <span class="d-l">───────────────────────────────────────────</span><span class="d-a">►</span> <span class="d-l">┌───────────┐</span>
+   <span class="d-l">│</span> SERVER A <span class="d-l">│</span>                                               <span class="d-l">│</span> SERVER B <span class="d-l">│</span>
+   <span class="d-l">│</span>(provider)<span class="d-l">│</span>            one-way notification               <span class="d-l">│</span>(subscriber)
+   <span class="d-l">└──────────┘</span>                                              <span class="d-l">└───────────┘</span></pre></div>
             <p><strong>Use cases:</strong> payment gateway notifications (Stripe "payment succeeded"), CI/CD triggers, GitHub
               push events, Slack integrations.</p>
             <div class="tbl-wrap">
@@ -2254,10 +2266,10 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <h3>The Monolith</h3>
             <p><strong>All features in one codebase</strong>, deployed as a single unit.</p>
-            <div class="diagram"><pre>   ┌────────────── ONE DEPLOYABLE APP ─────────────┐
-   │   [ AUTH ]   [ BILLING ]                      │
-   │   [ CATALOG ]                                 │
-   └───────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre>   <span class="d-l">┌──────────────</span> ONE DEPLOYABLE APP <span class="d-l">─────────────┐</span>
+   <span class="d-l">│</span>   [ AUTH ]   [ BILLING ]                      <span class="d-l">│</span>
+   <span class="d-l">│</span>   [ CATALOG ]                                 <span class="d-l">│</span>
+   <span class="d-l">└───────────────────────────────────────────────┘</span></pre></div>
             <ul>
               <li>✅ Simple to start, easy local dev, no network between components, simple transactions.</li>
               <li>❌ <strong>Hard to scale</strong> (must scale the whole thing even if only one part is hot), <strong>slow to deploy</strong>
@@ -2268,13 +2280,13 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p><strong>Independent services, each handling a single responsibility.</strong> They <strong>scale independently, deploy
               safely, and communicate via APIs</strong> (REST/<abbr title="Google Remote Procedure Call">gRPC</abbr>/messaging). Often each owns its <strong>own database</strong>
               (database-per-service).</p>
-            <div class="diagram"><pre>   ┌────────┐     ┌──────────┐     ┌──────────┐
-   │  AUTH  │     │ BILLING  │     │ CATALOG  │   ← deploy &amp; scale independently
-   └───┬────┘     └────┬─────┘     └────┬─────┘
-       ▼               ▼                ▼
-   ┌────────┐     ┌──────────┐     ┌──────────┐
-   │ AUTH DB│     │BILLING DB│     │CATALOG DB│   ← database per service
-   └────────┘     └──────────┘     └──────────┘</pre></div>
+            <div class="diagram"><pre>   <span class="d-l">┌────────┐</span>     <span class="d-l">┌──────────┐</span>     <span class="d-l">┌──────────┐</span>
+   <span class="d-l">│</span>  AUTH  <span class="d-l">│</span>     <span class="d-l">│</span> BILLING  <span class="d-l">│</span>     <span class="d-l">│</span> CATALOG  <span class="d-l">│</span>   <span class="d-a">←</span> deploy &amp; scale independently
+   <span class="d-l">└───┬────┘</span>     <span class="d-l">└────┬─────┘</span>     <span class="d-l">└────┬─────┘</span>
+       <span class="d-a">▼</span>               <span class="d-a">▼</span>                <span class="d-a">▼</span>
+   <span class="d-l">┌────────┐</span>     <span class="d-l">┌──────────┐</span>     <span class="d-l">┌──────────┐</span>
+   <span class="d-l">│</span> AUTH DB<span class="d-l">│</span>     <span class="d-l">│</span>BILLING DB<span class="d-l">│</span>     <span class="d-l">│</span>CATALOG DB<span class="d-l">│</span>   <span class="d-a">←</span> database per service
+   <span class="d-l">└────────┘</span>     <span class="d-l">└──────────┘</span>     <span class="d-l">└──────────┘</span></pre></div>
             <div class="tbl-wrap">
               <table class="t3">
                 <thead>
@@ -2339,9 +2351,9 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p><strong>The solution.</strong> <strong>Asynchronous decoupling.</strong> A <strong>producer drops tasks into a queue</strong>; a
               <strong>consumer processes them at its own pace.</strong>
             </p>
-            <div class="diagram"><pre>   ┌──────────┐  enqueue  ┌──────────── MESSAGE QUEUE ────────────┐  dequeue  ┌────────────┐
-   │ PRODUCER │ ─────────▶│  ✉ ✉ ✉ ✉ ✉  (durable buffer)  ✉ ✉ ✉ │ ─────────▶│ CONSUMER     │
-   └──────────┘           └─────────────────────────────────────────┘           └──────────┘</pre></div>
+            <div class="diagram"><pre>   <span class="d-l">┌──────────┐</span>  enqueue  <span class="d-l">┌────────────</span> MESSAGE QUEUE <span class="d-l">────────────┐</span>  dequeue  <span class="d-l">┌────────────┐</span>
+   <span class="d-l">│</span> PRODUCER <span class="d-l">│</span> <span class="d-l">─────────</span><span class="d-a">►</span><span class="d-l">│</span>  @ @ @ @ @  (durable buffer)  @ @ @ <span class="d-l">│</span> <span class="d-l">─────────</span><span class="d-a">►</span><span class="d-l">│</span> CONSUMER     <span class="d-l">│</span>
+   <span class="d-l">└──────────┘</span>           <span class="d-l">└─────────────────────────────────────────┘</span>           <span class="d-l">└──────────┘</span></pre></div>
             <p><strong>What it buys you:</strong>
               - <strong>Absorbs massive traffic spikes</strong> — the queue buffers a surge; consumers drain it steadily
                 (load leveling). Prevents internal system overloads.
@@ -2372,11 +2384,11 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <h3>API Gateway</h3>
             <p>The <strong>single entry point for all client requests.</strong> It <strong>centralizes routing, authentication, and
               logging — hiding internal microservice complexity</strong> behind one clean facade.</p>
-            <div class="diagram"><pre>   BOTS 🤖🤖                       ┌──────────────┐
-   NORMAL USERS 👥 ──── traffic ──▶│ API GATEWAY  │── routes ──▶ [ internal microservices ]
-   BOTS 🤖🤖                       │ auth/route/  │             [ auth | billing | catalog ]
-                                   │ log/limit    │
-                                   └──────────────┘</pre></div>
+            <div class="diagram"><pre>   BOTS **                       <span class="d-l">┌──────────────┐</span>
+   NORMAL USERS * <span class="d-l">────</span> traffic <span class="d-l">──</span><span class="d-a">►</span><span class="d-l">│</span> API GATEWAY  <span class="d-l">│──</span> routes <span class="d-l">──</span><span class="d-a">►</span> [ internal microservices ]
+   BOTS **                       <span class="d-l">│</span> auth/route/  <span class="d-l">│</span>             [ auth | billing | catalog ]
+                                   <span class="d-l">│</span> log/limit    <span class="d-l">│</span>
+                                 <span class="d-l">└──────────────┘</span></pre></div>
             <p><strong>Responsibilities:</strong> request routing, authentication/authorization, <strong>rate limiting</strong>, request/
               response transformation, SSL termination, logging/metrics, API versioning, and aggregation. It means
               clients deal with <strong>one</strong> endpoint instead of dozens of services.</p>
@@ -2405,16 +2417,16 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p><strong>Why it's needed.</strong> Networks are unreliable. A client sends "Charge $50," the server <strong>processes it
               successfully</strong>, but the <strong>success response is lost</strong> to a network failure. The client doesn't know
               it worked, so it <strong>retries</strong>. Without idempotency, the customer is <strong>charged twice</strong>.</p>
-            <div class="diagram"><pre>   1) CLIENT ──Charge $50 (ID:123A)──▶ SERVER   ✅ processes
-      CLIENT ◀──✗ response lost (network failure)── SERVER
+            <div class="diagram"><pre>   1) CLIENT <span class="d-l">──</span>Charge $50 (ID:123A)<span class="d-l">──</span><span class="d-a">►</span> SERVER   √ processes
+      CLIENT <span class="d-a">◄</span><span class="d-l">──</span>× response lost (network failure)<span class="d-l">──</span> SERVER
 
-   2) CLIENT ──RETRY: Charge $50 (ID:123A)──▶ SERVER
-                                              ┌──────────────────────────┐
-                                              │ DUPLICATE CHECK:         │
-                                              │ "123A already processed" │
-                                              │ → ignore duplicate logic │
-                                              └──────────────────────────┘
-      CLIENT ◀────────── ✅ Success (no double charge) ──────────────────</pre></div>
+   2) CLIENT <span class="d-l">──</span>RETRY: Charge $50 (ID:123A)<span class="d-l">──</span><span class="d-a">►</span> SERVER
+                                              <span class="d-l">┌──────────────────────────┐</span>
+                                              <span class="d-l">│</span> DUPLICATE CHECK:         <span class="d-l">│</span>
+                                              <span class="d-l">│</span> "123A already processed" <span class="d-l">│</span>
+                                              <span class="d-l">│</span> <span class="d-a">→</span> ignore duplicate logic <span class="d-l">│</span>
+                                              <span class="d-l">└──────────────────────────┘</span>
+      CLIENT <span class="d-a">◄</span><span class="d-l">──────────</span> √ Success (no double charge) <span class="d-l">──────────────────</span></pre></div>
             <p><strong>How to implement it:</strong>
               - The client generates a unique <strong>idempotency key</strong> (e.g., a UUID like <code>123A</code>) per logical operation
                 and sends it with the request (commonly an <code>Idempotency-Key</code> header — this is exactly how Stripe
@@ -2440,27 +2452,27 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p><em>From a single computer to a global architecture.</em> Every concept assembled into the foundational
               blueprint of modern system design:</p>
-            <div class="diagram"><pre>                 ┌──────── EDGE / ENTRY ────────┐   ┌───────────────── COMPUTE: MICROSERVICES ────────────┐
-   ┌──────┐ DNS  │  ┌─────┐    ┌──────────────┐ │   │  [user svc] [order svc] [payment svc] [inventory]   │
-   │CLIENT│─────▶│  │ CDN │    │ API GATEWAY  │ │   │       │          │           │           │          │
-   │      │ HTTP │  └──┬──┘    │ + RATE LIMIT │ │   │       └────┬─────┴───────────┘           │          │
-   └──────┘      │     │       └──────┬───────┘ │   │            ▼   MESSAGE QUEUE (MQ)        │          │
-                 └─────┼──────────────┼─────────┘   │      ✉ ✉ ✉ (async, decoupled) ✉ ✉ ✉     │           │
-                       │              ▼             └─────────────┬────────────────────────────┘          │
-                       │      ┌──────────────┐    │                                                       │
-                       │      │ LOAD BALANCER│──────▶ app/service fleet (stateless, scaled out)           │
-                       │      │ (×N, HA)     │                   │                                        │
-                                                  │      └──────────────┘                   ▼             │
-                       │                          ┌──────────────────── DATA LAYER ───────────────────────┐
-                       │                          │  ┌───────┐   ┌──────────┐  ┌─────────┐  ┌──────────┐  │
-                       └─────────────────────────▶│  │ CACHE │   │ SQL PRI- │  │ SQL     │  │ SHARDED  │  │
-                          static media            │  │(Redis)│   │ MARY     │─▶│ REPLICA │  │ NoSQL    │  │
-                                                  │  └───────┘   └──────────┘  └─────────┘  │ CLUSTER  │  │
-                                                  │                                          └──────────┘ │
-                                                  │  ┌──────────────┐                                     │
-                       │      │ BLOB STORAGE │ ◀── CDN pulls media from here                              │
-                                                  │  └──────────────┘                                     │
-                                                  └───────────────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre>                 <span class="d-l">┌────────</span> EDGE / ENTRY <span class="d-l">────────┐</span>   <span class="d-l">┌─────────────────</span> COMPUTE: MICROSERVICES <span class="d-l">────────────┐</span>
+   <span class="d-l">┌──────┐</span> DNS  <span class="d-l">│</span>  <span class="d-l">┌─────┐</span>    <span class="d-l">┌──────────────┐</span> <span class="d-l">│</span>   <span class="d-l">│</span>  [user svc] [order svc] [payment svc] [inventory]   <span class="d-l">│</span>
+   <span class="d-l">│</span>CLIENT<span class="d-l">│─────</span><span class="d-a">►</span><span class="d-l">│</span>  <span class="d-l">│</span> CDN <span class="d-l">│</span>    <span class="d-l">│</span> API GATEWAY  <span class="d-l">│</span> <span class="d-l">│</span>   <span class="d-l">│</span>       <span class="d-l">│</span>          <span class="d-l">│</span>           <span class="d-l">│</span>           <span class="d-l">│</span>          <span class="d-l">│</span>
+   <span class="d-l">│</span>      <span class="d-l">│</span> HTTP <span class="d-l">│</span>  <span class="d-l">└──┬──┘</span>    <span class="d-l">│</span> + RATE LIMIT <span class="d-l">│</span> <span class="d-l">│</span>   <span class="d-l">│</span>       <span class="d-l">└────┬─────┴───────────┘</span>           <span class="d-l">│</span>          <span class="d-l">│</span>
+   <span class="d-l">└──────┘</span>      <span class="d-l">│</span>     <span class="d-l">│</span>       <span class="d-l">└──────┬───────┘</span> <span class="d-l">│</span>   <span class="d-l">│</span>            <span class="d-a">▼</span>   MESSAGE QUEUE (MQ)        <span class="d-l">│</span>          <span class="d-l">│</span>
+                 <span class="d-l">└─────┼──────────────┼─────────┘</span>   <span class="d-l">│</span>      @ @ @ (async, decoupled) @ @ @     <span class="d-l">│</span>           <span class="d-l">│</span>
+                       <span class="d-l">│</span>              <span class="d-a">▼</span>             <span class="d-l">└─────────────┬────────────────────────────┘</span>          <span class="d-l">│</span>
+                       <span class="d-l">│</span>      <span class="d-l">┌──────────────┐</span>    <span class="d-l">│</span>                                                       <span class="d-l">│</span>
+                       <span class="d-l">│</span>      <span class="d-l">│</span> LOAD BALANCER<span class="d-l">│──────</span><span class="d-a">►</span> app/service fleet (stateless, scaled out)           <span class="d-l">│</span>
+                       <span class="d-l">│</span>      <span class="d-l">│</span> (×N, HA)     <span class="d-l">│</span>                   <span class="d-l">│</span>                                        <span class="d-l">│</span>
+                                                  <span class="d-l">│</span>      <span class="d-l">└──────────────┘</span>                   <span class="d-a">▼</span>             <span class="d-l">│</span>
+                       <span class="d-l">│</span>                          <span class="d-l">┌────────────────────</span> DATA LAYER <span class="d-l">───────────────────────┐</span>
+                       <span class="d-l">│</span>                          <span class="d-l">│</span>  <span class="d-l">┌───────┐</span>   <span class="d-l">┌──────────┐</span>  <span class="d-l">┌─────────┐</span>  <span class="d-l">┌──────────┐</span>  <span class="d-l">│</span>
+                       <span class="d-l">└─────────────────────────</span><span class="d-a">►</span><span class="d-l">│</span>  <span class="d-l">│</span> CACHE <span class="d-l">│</span>   <span class="d-l">│</span> SQL PRI- <span class="d-l">│</span>  <span class="d-l">│</span> SQL     <span class="d-l">│</span>  <span class="d-l">│</span> SHARDED  <span class="d-l">│</span>  <span class="d-l">│</span>
+                          static media            <span class="d-l">│</span>  <span class="d-l">│</span>(Redis)<span class="d-l">│</span>   <span class="d-l">│</span> MARY     <span class="d-l">│─</span><span class="d-a">►</span><span class="d-l">│</span> REPLICA <span class="d-l">│</span>  <span class="d-l">│</span> NoSQL    <span class="d-l">│</span>  <span class="d-l">│</span>
+                                                  <span class="d-l">│</span>  <span class="d-l">└───────┘</span>   <span class="d-l">└──────────┘</span>  <span class="d-l">└─────────┘</span>  <span class="d-l">│</span> CLUSTER  <span class="d-l">│</span>  <span class="d-l">│</span>
+                                                  <span class="d-l">│</span>                                          <span class="d-l">└──────────┘</span> <span class="d-l">│</span>
+                                                  <span class="d-l">│</span>  <span class="d-l">┌──────────────┐</span>                                     <span class="d-l">│</span>
+                       <span class="d-l">│</span>      <span class="d-l">│</span> BLOB STORAGE <span class="d-l">│</span> <span class="d-a">◄</span><span class="d-l">──</span> CDN pulls media from here                              <span class="d-l">│</span>
+                                                  <span class="d-l">│</span>  <span class="d-l">└──────────────┘</span>                                     <span class="d-l">│</span>
+                                                  <span class="d-l">└───────────────────────────────────────────────────────┘</span></pre></div>
             <p><strong>End-to-end request walkthrough:</strong>
               1. <strong>Client → <abbr title="domain name system">DNS</abbr></strong> resolves your domain to an entry IP.
               2. <strong>Static assets</strong> (images/video/CSS/JS) are served from the <strong><abbr title="content delivery network">CDN</abbr> edge</strong> (pulling from
@@ -2812,46 +2824,46 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
   UTILIZATION: How busy resources are (CPU, memory, I/O, network)
 
   THE PERFORMANCE TRIANGLE:
-  ┌─────────────────────────────────────────────────────────────┐
-  │ You can optimize for TWO of THREE:                          │
-  │                                                             │
-  │   Throughput ←──────→ Latency ←──────→ Resource Cost        │
-  │                                                             │
-  │ High throughput + low latency  = expensive (more hardware)  │
-  │ High throughput + low cost     = higher latency (batching)  │
-  │ Low latency    + low cost      = low throughput (few reqs)  │
-  └─────────────────────────────────────────────────────────────┘
+  <span class="d-l">┌─────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> You can optimize for TWO of THREE:                          <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span>   Throughput <span class="d-a">←</span><span class="d-l">──────</span><span class="d-a">→</span> Latency <span class="d-a">←</span><span class="d-l">──────</span><span class="d-a">→</span> Resource Cost        <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> High throughput + low latency  = expensive (more hardware)  <span class="d-l">│</span>
+  <span class="d-l">│</span> High throughput + low cost     = higher latency (batching)  <span class="d-l">│</span>
+  <span class="d-l">│</span> Low latency    + low cost      = low throughput (few reqs)  <span class="d-l">│</span>
+  <span class="d-l">└─────────────────────────────────────────────────────────────┘</span>
 
   KEY NUMBERS EVERY ARCHITECT MUST KNOW:
-  ┌──────────────────────────────┬──────────────────────────────┐
-  │ L1 cache reference           │ 0.5 ns                       │
-  │ L2 cache reference           │ 7 ns                         │
-  │ Main memory reference        │ 100 ns                       │
-  │ SSD random read              │ 150 μs                       │
-  │ SSD sequential read 1MB      │ 1 ms                         │
-  │ HDD seek                     │ 10 ms                        │
-  │ Network round trip (same DC) │ 0.5 ms                       │
-  │ Network round trip (same AZ) │ 1 ms                         │
-  │ Network round trip (cross DC)│ 50-150 ms                    │
-  │ Mutex lock/unlock            │ 25 ns                        │
-  │ Send 2K over 1 Gbps network  │ 20 μs                        │
-  │ Read 1 MB from memory        │ 250 μs                       │
-  │ Read 1 MB from SSD           │ 1 ms                         │
-  │ Read 1 MB from HDD           │ 20 ms                        │
-  │ TCP handshake                │ ~1ms (same DC)               │
-  │ TLS handshake                │ ~5ms (same DC)               │
-  └──────────────────────────────┴──────────────────────────────┘
+  <span class="d-l">┌──────────────────────────────┬──────────────────────────────┐</span>
+  <span class="d-l">│</span> L1 cache reference           <span class="d-l">│</span> 0.5 ns                       <span class="d-l">│</span>
+  <span class="d-l">│</span> L2 cache reference           <span class="d-l">│</span> 7 ns                         <span class="d-l">│</span>
+  <span class="d-l">│</span> Main memory reference        <span class="d-l">│</span> 100 ns                       <span class="d-l">│</span>
+  <span class="d-l">│</span> SSD random read              <span class="d-l">│</span> 150 μs                       <span class="d-l">│</span>
+  <span class="d-l">│</span> SSD sequential read 1MB      <span class="d-l">│</span> 1 ms                         <span class="d-l">│</span>
+  <span class="d-l">│</span> HDD seek                     <span class="d-l">│</span> 10 ms                        <span class="d-l">│</span>
+  <span class="d-l">│</span> Network round trip (same DC) <span class="d-l">│</span> 0.5 ms                       <span class="d-l">│</span>
+  <span class="d-l">│</span> Network round trip (same AZ) <span class="d-l">│</span> 1 ms                         <span class="d-l">│</span>
+  <span class="d-l">│</span> Network round trip (cross DC)<span class="d-l">│</span> 50-150 ms                    <span class="d-l">│</span>
+  <span class="d-l">│</span> Mutex lock/unlock            <span class="d-l">│</span> 25 ns                        <span class="d-l">│</span>
+  <span class="d-l">│</span> Send 2K over 1 Gbps network  <span class="d-l">│</span> 20 μs                        <span class="d-l">│</span>
+  <span class="d-l">│</span> Read 1 MB from memory        <span class="d-l">│</span> 250 μs                       <span class="d-l">│</span>
+  <span class="d-l">│</span> Read 1 MB from SSD           <span class="d-l">│</span> 1 ms                         <span class="d-l">│</span>
+  <span class="d-l">│</span> Read 1 MB from HDD           <span class="d-l">│</span> 20 ms                        <span class="d-l">│</span>
+  <span class="d-l">│</span> TCP handshake                <span class="d-l">│</span> ~1ms (same DC)               <span class="d-l">│</span>
+  <span class="d-l">│</span> TLS handshake                <span class="d-l">│</span> ~5ms (same DC)               <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────┴──────────────────────────────┘</span>
 
   SERVER CAPACITY RULES OF THUMB:
-  ┌──────────────────────────────┬──────────────────────────────┐
-  │ REST API server              │ 1K-10K QPS                   │
-  │ PostgreSQL (single node)     │ 5K-20K QPS (depends on query)│
-  │ Redis (single node)          │ 100K-500K QPS                │
-  │ Kafka broker                 │ 100K-1M messages/sec         │
-  │ Elasticsearch node           │ 1K-10K search QPS            │
-  │ Nginx (reverse proxy)        │ 50K-100K RPS                 │
-  │ Single gRPC server           │ 10K-100K RPS                 │
-  └──────────────────────────────┴──────────────────────────────┘</pre></div>
+  <span class="d-l">┌──────────────────────────────┬──────────────────────────────┐</span>
+  <span class="d-l">│</span> REST API server              <span class="d-l">│</span> 1K-10K QPS                   <span class="d-l">│</span>
+  <span class="d-l">│</span> PostgreSQL (single node)     <span class="d-l">│</span> 5K-20K QPS (depends on query)<span class="d-l">│</span>
+  <span class="d-l">│</span> Redis (single node)          <span class="d-l">│</span> 100K-500K QPS                <span class="d-l">│</span>
+  <span class="d-l">│</span> Kafka broker                 <span class="d-l">│</span> 100K-1M messages/sec         <span class="d-l">│</span>
+  <span class="d-l">│</span> Elasticsearch node           <span class="d-l">│</span> 1K-10K search QPS            <span class="d-l">│</span>
+  <span class="d-l">│</span> Nginx (reverse proxy)        <span class="d-l">│</span> 50K-100K RPS                 <span class="d-l">│</span>
+  <span class="d-l">│</span> Single gRPC server           <span class="d-l">│</span> 10K-100K RPS                 <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────┴──────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f08Scalabilitya-34">
@@ -2863,47 +2875,47 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
 demand at a target performance level.
 
   STEP-BY-STEP:
-  ┌───────────────────────────────────────────────────────────┐
-  │ 1. TRAFFIC ESTIMATION                                     │
-  │    DAU → QPS: QPS = DAU × actions_per_user / 86400        │
-  │    Peak QPS ≈ 2-3× average QPS                            │
-  │    Growth: plan for 2-3× current peak                     │
-  │                                                           │
-  │    Example: 10M DAU, 20 actions/day                       │
-  │    Avg QPS = 10M × 20 / 86400 ≈ 2,300 QPS                 │
-  │    Peak QPS ≈ 2,300 × 3 = 6,900 QPS                       │
-  │    Plan for = 6,900 × 2 = 13,800 QPS                      │
-  │                                                           │
-  │ 2. STORAGE ESTIMATION                                     │
-  │    Daily new data = new_records × avg_record_size         │
-  │    Include: indexes (2-3× data), replicas, backups        │
-  │    Retention: how long to keep data                       │
-  │                                                           │
-  │    Example: 10M new records/day × 500 bytes = 5 GB/day    │
-  │    + indexes (2×) = 15 GB/day                             │
-  │    × 365 days × 3 replicas = 16.4 TB/year                 │
-  │                                                           │
-  │ 3. BANDWIDTH ESTIMATION                                   │
-  │    Ingress = QPS_write × avg_request_size                 │
-  │    Egress = QPS_read × avg_response_size                  │
-  │                                                           │
-  │ 4. COMPUTE ESTIMATION                                     │
-  │    Servers = Peak QPS / QPS_per_server                    │
-  │    Add 30-40% headroom for spikes and failures            │
-  │    Rule: never run above 70% CPU utilization              │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> 1. TRAFFIC ESTIMATION                                     <span class="d-l">│</span>
+  <span class="d-l">│</span>    DAU <span class="d-a">→</span> QPS: QPS = DAU × actions_per_user / 86400        <span class="d-l">│</span>
+  <span class="d-l">│</span>    Peak QPS ≈ 2-3× average QPS                            <span class="d-l">│</span>
+  <span class="d-l">│</span>    Growth: plan for 2-3× current peak                     <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span>    Example: 10M DAU, 20 actions/day                       <span class="d-l">│</span>
+  <span class="d-l">│</span>    Avg QPS = 10M × 20 / 86400 ≈ 2,300 QPS                 <span class="d-l">│</span>
+  <span class="d-l">│</span>    Peak QPS ≈ 2,300 × 3 = 6,900 QPS                       <span class="d-l">│</span>
+  <span class="d-l">│</span>    Plan for = 6,900 × 2 = 13,800 QPS                      <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 2. STORAGE ESTIMATION                                     <span class="d-l">│</span>
+  <span class="d-l">│</span>    Daily new data = new_records × avg_record_size         <span class="d-l">│</span>
+  <span class="d-l">│</span>    Include: indexes (2-3× data), replicas, backups        <span class="d-l">│</span>
+  <span class="d-l">│</span>    Retention: how long to keep data                       <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span>    Example: 10M new records/day × 500 bytes = 5 GB/day    <span class="d-l">│</span>
+  <span class="d-l">│</span>    + indexes (2×) = 15 GB/day                             <span class="d-l">│</span>
+  <span class="d-l">│</span>    × 365 days × 3 replicas = 16.4 TB/year                 <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 3. BANDWIDTH ESTIMATION                                   <span class="d-l">│</span>
+  <span class="d-l">│</span>    Ingress = QPS_write × avg_request_size                 <span class="d-l">│</span>
+  <span class="d-l">│</span>    Egress = QPS_read × avg_response_size                  <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 4. COMPUTE ESTIMATION                                     <span class="d-l">│</span>
+  <span class="d-l">│</span>    Servers = Peak QPS / QPS_per_server                    <span class="d-l">│</span>
+  <span class="d-l">│</span>    Add 30-40% headroom for spikes and failures            <span class="d-l">│</span>
+  <span class="d-l">│</span>    Rule: never run above 70% CPU utilization              <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   SCALING THRESHOLDS:
-  ┌──────────────────┬────────────────────────────────────────┐
-  │ CPU &gt; 70%        │ Scale out compute                      │
-  │ Memory &gt; 80%     │ Scale up or optimize memory usage      │
-  │ Disk I/O &gt; 80%   │ Move to SSD, add read replicas         │
-  │ Network &gt; 60%    │ Add bandwidth, optimize payloads       │
-  │ DB connections   │ Add connection pooling, read replicas  │
-  │ &gt; 80% pool       │                                        │
-  │ Queue depth      │ Add consumers, scale workers           │
-  │ growing          │                                        │
-  └──────────────────┴────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌──────────────────┬────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> CPU &gt; 70%        <span class="d-l">│</span> Scale out compute                      <span class="d-l">│</span>
+  <span class="d-l">│</span> Memory &gt; 80%     <span class="d-l">│</span> Scale up or optimize memory usage      <span class="d-l">│</span>
+  <span class="d-l">│</span> Disk I/O &gt; 80%   <span class="d-l">│</span> Move to SSD, add read replicas         <span class="d-l">│</span>
+  <span class="d-l">│</span> Network &gt; 60%    <span class="d-l">│</span> Add bandwidth, optimize payloads       <span class="d-l">│</span>
+  <span class="d-l">│</span> DB connections   <span class="d-l">│</span> Add connection pooling, read replicas  <span class="d-l">│</span>
+  <span class="d-l">│</span> &gt; 80% pool       <span class="d-l">│</span>                                        <span class="d-l">│</span>
+  <span class="d-l">│</span> Queue depth      <span class="d-l">│</span> Add consumers, scale workers           <span class="d-l">│</span>
+  <span class="d-l">│</span> growing          <span class="d-l">│</span>                                        <span class="d-l">│</span>
+  <span class="d-l">└──────────────────┴────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f08Scalabilitya-35">
@@ -2919,44 +2931,44 @@ demand at a target performance level.
   W = Average time each item spends in the system
 
   APPLICATIONS:
-  ┌───────────────────────────────────────────────────────────┐
-  │ How many concurrent connections?                          │
-  │   λ = 1000 QPS, W = 200ms (0.2s)                          │
-  │   L = 1000 × 0.2 = 200 concurrent connections             │
-  │                                                           │
-  │ What thread pool size do I need?                          │
-  │   λ = 500 QPS, W = 100ms per request                      │
-  │   L = 500 × 0.1 = 50 threads minimum                      │
-  │                                                           │
-  │ How many servers for target latency?                      │
-  │   Target: 5000 QPS, 100ms latency, 50 QPS/server          │
-  │   Servers = 5000 / 50 = 100 servers                       │
-  │   But: include queuing delay!                             │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> How many concurrent connections?                          <span class="d-l">│</span>
+  <span class="d-l">│</span>   λ = 1000 QPS, W = 200ms (0.2s)                          <span class="d-l">│</span>
+  <span class="d-l">│</span>   L = 1000 × 0.2 = 200 concurrent connections             <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> What thread pool size do I need?                          <span class="d-l">│</span>
+  <span class="d-l">│</span>   λ = 500 QPS, W = 100ms per request                      <span class="d-l">│</span>
+  <span class="d-l">│</span>   L = 500 × 0.1 = 50 threads minimum                      <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> How many servers for target latency?                      <span class="d-l">│</span>
+  <span class="d-l">│</span>   Target: 5000 QPS, 100ms latency, 50 QPS/server          <span class="d-l">│</span>
+  <span class="d-l">│</span>   Servers = 5000 / 50 = 100 servers                       <span class="d-l">│</span>
+  <span class="d-l">│</span>   But: include queuing delay!                             <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   QUEUING THEORY KEY INSIGHTS:
-  ┌───────────────────────────────────────────────────────────┐
-  │ 1. Latency grows NON-LINEARLY with utilization            │
-  │                                                           │
-  │    Utilization:   Latency multiplier:                     │
-  │    50%            2× service time                         │
-  │    80%            5× service time                         │
-  │    90%            10× service time                        │
-  │    95%            20× service time                        │
-  │    99%            100× service time                       │
-  │                                                           │
-  │    → NEVER run services above 70-80% utilization!         │
-  │                                                           │
-  │ 2. VARIANCE KILLS PERFORMANCE                             │
-  │    Even at low average utilization, high variance in      │
-  │    processing time causes queuing spikes.                 │
-  │    → Reduce processing time variance (consistent perf)    │
-  │                                                           │
-  │ 3. QUEUES ABSORB BURSTS but amplify SUSTAINED overload    │
-  │    Short burst → queue absorbs, processes later           │
-  │    Sustained overload → queue grows → OOM → crash         │
-  │    → Always have backpressure (bounded queues)            │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> 1. Latency grows NON-LINEARLY with utilization            <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span>    Utilization:   Latency multiplier:                     <span class="d-l">│</span>
+  <span class="d-l">│</span>    50%            2× service time                         <span class="d-l">│</span>
+  <span class="d-l">│</span>    80%            5× service time                         <span class="d-l">│</span>
+  <span class="d-l">│</span>    90%            10× service time                        <span class="d-l">│</span>
+  <span class="d-l">│</span>    95%            20× service time                        <span class="d-l">│</span>
+  <span class="d-l">│</span>    99%            100× service time                       <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span>    <span class="d-a">→</span> NEVER run services above 70-80% utilization!         <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 2. VARIANCE KILLS PERFORMANCE                             <span class="d-l">│</span>
+  <span class="d-l">│</span>    Even at low average utilization, high variance in      <span class="d-l">│</span>
+  <span class="d-l">│</span>    processing time causes queuing spikes.                 <span class="d-l">│</span>
+  <span class="d-l">│</span>    <span class="d-a">→</span> Reduce processing time variance (consistent perf)    <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 3. QUEUES ABSORB BURSTS but amplify SUSTAINED overload    <span class="d-l">│</span>
+  <span class="d-l">│</span>    Short burst <span class="d-a">→</span> queue absorbs, processes later           <span class="d-l">│</span>
+  <span class="d-l">│</span>    Sustained overload <span class="d-a">→</span> queue grows <span class="d-a">→</span> OOM <span class="d-a">→</span> crash         <span class="d-l">│</span>
+  <span class="d-l">│</span>    <span class="d-a">→</span> Always have backpressure (bounded queues)            <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   M/M/c QUEUE MODEL (most practical):
   - Poisson arrivals (M)
@@ -2981,27 +2993,27 @@ demand at a target performance level.
   1-S = fraction that is parallelizable
 
   IMPLICATIONS:
-  ┌──────────────────────────────────────────────────────────┐
-  │ Serial %  │ Max speedup with ∞ processors                │
-  │ 1%        │ 100×                                         │
-  │ 5%        │ 20×                                          │
-  │ 10%       │ 10×                                          │
-  │ 25%       │ 4×                                           │
-  │ 50%       │ 2×                                           │
-  │                                                          │
-  │ Even 5% serial code limits you to 20× speedup!           │
-  │ → Optimize the serial parts first                        │
-  └──────────────────────────────────────────────────────────┘
+  <span class="d-l">┌──────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Serial %  <span class="d-l">│</span> Max speedup with ∞ processors                <span class="d-l">│</span>
+  <span class="d-l">│</span> 1%        <span class="d-l">│</span> 100×                                         <span class="d-l">│</span>
+  <span class="d-l">│</span> 5%        <span class="d-l">│</span> 20×                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> 10%       <span class="d-l">│</span> 10×                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> 25%       <span class="d-l">│</span> 4×                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 50%       <span class="d-l">│</span> 2×                                           <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> Even 5% serial code limits you to 20× speedup!           <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-a">→</span> Optimize the serial parts first                        <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────────────────────────────────┘</span>
 
   SERIAL BOTTLENECKS IN DISTRIBUTED SYSTEMS:
-  ┌──────────────────┬───────────────────────────────────────┐
-  │ Database locks    │ Contention on hot rows/tables        │
-  │ Leader node       │ All writes go through one node       │
-  │ Sequence gen      │ Auto-increment ID generation         │
-  │ Global cache      │ Single cache server for popular keys │
-  │ Queue consumer    │ Single-threaded consumer             │
-  │ Aggregation       │ Fan-out results collected at one node│
-  └──────────────────┴───────────────────────────────────────┘
+  <span class="d-l">┌──────────────────┬───────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Database locks    <span class="d-l">│</span> Contention on hot rows/tables        <span class="d-l">│</span>
+  <span class="d-l">│</span> Leader node       <span class="d-l">│</span> All writes go through one node       <span class="d-l">│</span>
+  <span class="d-l">│</span> Sequence gen      <span class="d-l">│</span> Auto-increment ID generation         <span class="d-l">│</span>
+  <span class="d-l">│</span> Global cache      <span class="d-l">│</span> Single cache server for popular keys <span class="d-l">│</span>
+  <span class="d-l">│</span> Queue consumer    <span class="d-l">│</span> Single-threaded consumer             <span class="d-l">│</span>
+  <span class="d-l">│</span> Aggregation       <span class="d-l">│</span> Fan-out results collected at one node<span class="d-l">│</span>
+  <span class="d-l">└──────────────────┴───────────────────────────────────────┘</span>
 
   UNIVERSAL SCALABILITY LAW (USL):
   Extension of Amdahl's adding COHERENCY penalty:
@@ -3012,18 +3024,18 @@ demand at a target performance level.
   β = coherency (communication overhead between nodes)
   
   When β &gt; 0, throughput actually DECREASES after a point!
-  → This is why adding more microservices can slow things down
-  → Network overhead, distributed locks, cross-service calls
+  <span class="d-a">→</span> This is why adding more microservices can slow things down
+  <span class="d-a">→</span> Network overhead, distributed locks, cross-service calls
 
   ARCHITECT INSIGHT:
-  ┌──────────────────────────────────────────────────────────┐
-  │ Before adding servers:                                   │
-  │ 1. Profile: where is the actual bottleneck?              │
-  │ 2. Optimize: can the serial part be made parallel?       │
-  │ 3. Cache: can we avoid the bottleneck entirely?          │
-  │ 4. Partition: can we shard the hot resource?             │
-  │ 5. Then scale: add servers for the parallel parts        │
-  └──────────────────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌──────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Before adding servers:                                   <span class="d-l">│</span>
+  <span class="d-l">│</span> 1. Profile: where is the actual bottleneck?              <span class="d-l">│</span>
+  <span class="d-l">│</span> 2. Optimize: can the serial part be made parallel?       <span class="d-l">│</span>
+  <span class="d-l">│</span> 3. Cache: can we avoid the bottleneck entirely?          <span class="d-l">│</span>
+  <span class="d-l">│</span> 4. Partition: can we shard the hot resource?             <span class="d-l">│</span>
+  <span class="d-l">│</span> 5. Then scale: add servers for the parallel parts        <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f08Scalabilitya-37">
@@ -3039,27 +3051,27 @@ demand at a target performance level.
   P99.9: 1 in 1000 is slower
 
   WHY TAIL LATENCY MATTERS:
-  ┌──────────────────────────────────────────────────────────┐
-  │ A single user request may fan out to 100 backend calls.  │
-  │ The SLOWEST call determines user-perceived latency.      │
-  │                                                          │
-  │ If P99 = 1 second, and user request touches 100 services:│
-  │ P(at least one &gt; 1s) = 1 - (0.99)^100 = 63%!             │
-  │                                                          │
-  │ → At scale, tail latency BECOMES the user experience     │
-  │ → Always measure and optimize P99, not just P50          │
-  └──────────────────────────────────────────────────────────┘
+  <span class="d-l">┌──────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> A single user request may fan out to 100 backend calls.  <span class="d-l">│</span>
+  <span class="d-l">│</span> The SLOWEST call determines user-perceived latency.      <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> If P99 = 1 second, and user request touches 100 services:<span class="d-l">│</span>
+  <span class="d-l">│</span> P(at least one &gt; 1s) = 1 - (0.99)^100 = 63%!             <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-a">→</span> At scale, tail latency BECOMES the user experience     <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-a">→</span> Always measure and optimize P99, not just P50          <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────────────────────────────────┘</span>
 
   TAIL LATENCY CAUSES:
-  ┌──────────────────┬───────────────────────────────────────┐
-  │ GC pauses        │ Java/Go: 10-100ms+ pauses             │
-  │ Resource contention│ CPU scheduling, disk I/O, network   │
-  │ Head-of-line     │ Slow request blocks fast ones in queue│
-  │ Cold cache       │ First request after cache eviction    │
-  │ Background tasks │ Compaction, snapshots, log rotation   │
-  │ Kernel interrupts│ Network interrupts, context switches  │
-  │ Noisy neighbors  │ Shared infrastructure (cloud VMs)     │
-  └──────────────────┴───────────────────────────────────────┘
+  <span class="d-l">┌──────────────────┬───────────────────────────────────────┐</span>
+  <span class="d-l">│</span> GC pauses        <span class="d-l">│</span> Java/Go: 10-100ms+ pauses             <span class="d-l">│</span>
+  <span class="d-l">│</span> Resource contention<span class="d-l">│</span> CPU scheduling, disk I/O, network   <span class="d-l">│</span>
+  <span class="d-l">│</span> Head-of-line     <span class="d-l">│</span> Slow request blocks fast ones in queue<span class="d-l">│</span>
+  <span class="d-l">│</span> Cold cache       <span class="d-l">│</span> First request after cache eviction    <span class="d-l">│</span>
+  <span class="d-l">│</span> Background tasks <span class="d-l">│</span> Compaction, snapshots, log rotation   <span class="d-l">│</span>
+  <span class="d-l">│</span> Kernel interrupts<span class="d-l">│</span> Network interrupts, context switches  <span class="d-l">│</span>
+  <span class="d-l">│</span> Noisy neighbors  <span class="d-l">│</span> Shared infrastructure (cloud VMs)     <span class="d-l">│</span>
+  <span class="d-l">└──────────────────┴───────────────────────────────────────┘</span>
 
   TAIL LATENCY MITIGATION:
   1. HEDGED REQUESTS: Send same request to 2 replicas,
@@ -3069,25 +3081,25 @@ demand at a target performance level.
   3. DEADLINE PROPAGATION: Propagate request deadline
      through call chain; services abort if deadline passed
   4. LATENCY BUDGET: Allocate budget per stage:
-     Total: 200ms → Network: 20ms → Cache: 30ms →
-     Compute: 50ms → DB: 50ms → Buffer: 50ms
+     Total: 200ms <span class="d-a">→</span> Network: 20ms <span class="d-a">→</span> Cache: 30ms <span class="d-a">→</span>
+     Compute: 50ms <span class="d-a">→</span> DB: 50ms <span class="d-a">→</span> Buffer: 50ms
   5. LOAD SHEDDING: Drop requests when overloaded
      rather than making everyone slow
 
   LATENCY BUDGETING:
-  ┌──────────────────────────────────────────────────────────┐
-  │ Total budget: 200ms                                      │
-  │ ├── API Gateway:    10ms                                 │
-  │ ├── Auth check:     15ms (cached JWT validation)         │
-  │ ├── Feature fetch:  30ms (Redis, parallel)               │
-  │ ├── Model inference: 50ms                                │
-  │ ├── Business logic: 20ms                                 │
-  │ ├── DB write:       40ms                                 │
-  │ └── Buffer:         35ms (for variance)                  │
-  │                                                          │
-  │ Rule: Each component's P99 should be within its budget   │
-  │ Alert when P95 approaches budget (early warning)         │
-  └──────────────────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌──────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Total budget: 200ms                                      <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">├──</span> API Gateway:    10ms                                 <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">├──</span> Auth check:     15ms (cached JWT validation)         <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">├──</span> Feature fetch:  30ms (Redis, parallel)               <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">├──</span> Model inference: 50ms                                <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">├──</span> Business logic: 20ms                                 <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">├──</span> DB write:       40ms                                 <span class="d-l">│</span>
+  <span class="d-l">│</span> <span class="d-l">└──</span> Buffer:         35ms (for variance)                  <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                          <span class="d-l">│</span>
+  <span class="d-l">│</span> Rule: Each component's P99 should be within its budget   <span class="d-l">│</span>
+  <span class="d-l">│</span> Alert when P95 approaches budget (early warning)         <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f08Scalabilitya-38">
@@ -3097,63 +3109,63 @@ demand at a target performance level.
           <div class="q-a">
             <div class="diagram"><pre>MULTI-TIER CACHING:
 
-  Browser → CDN Edge → API Gateway → App Cache → DB Cache → DB
+  Browser <span class="d-a">→</span> CDN Edge <span class="d-a">→</span> API Gateway <span class="d-a">→</span> App Cache <span class="d-a">→</span> DB Cache <span class="d-a">→</span> DB
   
-  ┌──────────────┬──────────┬───────────┬─────────────────────┐
-  │ Layer        │ Latency  │ Hit Rate  │ What to cache       │
-  ├──────────────┼──────────┼───────────┼─────────────────────┤
-  │ Browser      │ 0ms      │ Varies    │ Static assets, API  │
-  │ CDN          │ 1-30ms   │ 95-99%    │ Static, semi-static │
-  │ API Gateway  │ 1-5ms    │ 30-60%    │ Auth tokens, routes │
-  │ Application  │ 1-5ms    │ 80-95%    │ Session, hot data   │
-  │ (Redis)      │          │           │                     │
-  │ DB Query     │ varies   │ 20-40%    │ Prepared statements │
-  │ Cache        │          │           │                     │
-  └──────────────┴──────────┴───────────┴─────────────────────┘
+  <span class="d-l">┌──────────────┬──────────┬───────────┬─────────────────────┐</span>
+  <span class="d-l">│</span> Layer        <span class="d-l">│</span> Latency  <span class="d-l">│</span> Hit Rate  <span class="d-l">│</span> What to cache       <span class="d-l">│</span>
+  <span class="d-l">├──────────────┼──────────┼───────────┼─────────────────────┤</span>
+  <span class="d-l">│</span> Browser      <span class="d-l">│</span> 0ms      <span class="d-l">│</span> Varies    <span class="d-l">│</span> Static assets, API  <span class="d-l">│</span>
+  <span class="d-l">│</span> CDN          <span class="d-l">│</span> 1-30ms   <span class="d-l">│</span> 95-99%    <span class="d-l">│</span> Static, semi-static <span class="d-l">│</span>
+  <span class="d-l">│</span> API Gateway  <span class="d-l">│</span> 1-5ms    <span class="d-l">│</span> 30-60%    <span class="d-l">│</span> Auth tokens, routes <span class="d-l">│</span>
+  <span class="d-l">│</span> Application  <span class="d-l">│</span> 1-5ms    <span class="d-l">│</span> 80-95%    <span class="d-l">│</span> Session, hot data   <span class="d-l">│</span>
+  <span class="d-l">│</span> (Redis)      <span class="d-l">│</span>          <span class="d-l">│</span>           <span class="d-l">│</span>                     <span class="d-l">│</span>
+  <span class="d-l">│</span> DB Query     <span class="d-l">│</span> varies   <span class="d-l">│</span> 20-40%    <span class="d-l">│</span> Prepared statements <span class="d-l">│</span>
+  <span class="d-l">│</span> Cache        <span class="d-l">│</span>          <span class="d-l">│</span>           <span class="d-l">│</span>                     <span class="d-l">│</span>
+  <span class="d-l">└──────────────┴──────────┴───────────┴─────────────────────┘</span>
 
   CACHE TOPOLOGY PATTERNS:
-  ┌───────────────────────────────────────────────────────────┐
-  │ LOCAL CACHE (in-process):                                 │
-  │   - Fastest (no network hop)                              │
-  │   - Per-instance (not shared)                             │
-  │   - Inconsistent across instances                         │
-  │   - Use for: immutable data, config, feature flags        │
-  │   - Tools: Caffeine (Java), lru-cache (Python)            │
-  │                                                           │
-  │ DISTRIBUTED CACHE (Redis/Memcached):                      │
-  │   - Shared across all instances                           │
-  │   - Network hop (1-5ms)                                   │
-  │   - Single source of truth for cached data                │
-  │   - Use for: session, hot data, rate limiting             │
-  │                                                           │
-  │ TWO-TIER CACHE (Local + Distributed):                     │
-  │   - Local cache with short TTL (10-60 seconds)            │
-  │   - Distributed cache as fallback                         │
-  │   - Best of both worlds                                   │
-  │   - Complexity: invalidation across tiers                 │
-  │                                                           │
-  │ NEAR CACHE (e.g., Hazelcast):                             │
-  │   - Local copy of distributed cache entries               │
-  │   - Automatically synced with distributed cache           │
-  │   - Managed by the caching framework                      │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> LOCAL CACHE (in-process):                                 <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Fastest (no network hop)                              <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Per-instance (not shared)                             <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Inconsistent across instances                         <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Use for: immutable data, config, feature flags        <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Tools: Caffeine (Java), lru-cache (Python)            <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> DISTRIBUTED CACHE (Redis/Memcached):                      <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Shared across all instances                           <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Network hop (1-5ms)                                   <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Single source of truth for cached data                <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Use for: session, hot data, rate limiting             <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> TWO-TIER CACHE (Local + Distributed):                     <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Local cache with short TTL (10-60 seconds)            <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Distributed cache as fallback                         <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Best of both worlds                                   <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Complexity: invalidation across tiers                 <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> NEAR CACHE (e.g., Hazelcast):                             <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Local copy of distributed cache entries               <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Automatically synced with distributed cache           <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Managed by the caching framework                      <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   CACHE INVALIDATION PATTERNS:
-  ┌───────────────────────────────────────────────────────────┐
-  │ TTL-based: Set expiry on cache entries                    │
-  │   Simple, eventual consistency (stale for TTL duration)   │
-  │                                                           │
-  │ Event-driven: DB change → event → invalidate cache        │
-  │   More complex, near-real-time consistency                │
-  │   Implementation: CDC (Debezium) → Kafka → cache updater  │
-  │                                                           │
-  │ Version-based: Include version in cache key               │
-  │   cache_key = f"user:{user_id}:v{version}"                │
-  │   Increment version on write → old cache ignored          │
-  │                                                           │
-  │ Write-through: Write to cache AND DB simultaneously       │
-  │   Strong consistency, higher write latency                │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> TTL-based: Set expiry on cache entries                    <span class="d-l">│</span>
+  <span class="d-l">│</span>   Simple, eventual consistency (stale for TTL duration)   <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Event-driven: DB change <span class="d-a">→</span> event <span class="d-a">→</span> invalidate cache        <span class="d-l">│</span>
+  <span class="d-l">│</span>   More complex, near-real-time consistency                <span class="d-l">│</span>
+  <span class="d-l">│</span>   Implementation: CDC (Debezium) <span class="d-a">→</span> Kafka <span class="d-a">→</span> cache updater  <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Version-based: Include version in cache key               <span class="d-l">│</span>
+  <span class="d-l">│</span>   cache_key = f"user:{user_id}:v{version}"                <span class="d-l">│</span>
+  <span class="d-l">│</span>   Increment version on write <span class="d-a">→</span> old cache ignored          <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Write-through: Write to cache AND DB simultaneously       <span class="d-l">│</span>
+  <span class="d-l">│</span>   Strong consistency, higher write latency                <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   CACHE WARMING STRATEGIES:
   - Pre-populate on deploy (for predictable hot data)
@@ -3171,56 +3183,56 @@ demand at a target performance level.
 instead of creating new ones per request.
 
   WHY IT MATTERS:
-  ┌─────────────────────────────────────────────────────────────┐
-  │ Creating a PostgreSQL connection:                           │
-  │   TCP handshake:       1ms                                  │
-  │   TLS handshake:       5ms                                  │
-  │   Auth + session init: 10ms                                 │
-  │   Total: ~16ms per connection                               │
-  │                                                             │
-  │ With pool: Borrow from pool → 0.01ms                        │
-  │ 1600× faster!                                               │
-  └─────────────────────────────────────────────────────────────┘
+  <span class="d-l">┌─────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Creating a PostgreSQL connection:                           <span class="d-l">│</span>
+  <span class="d-l">│</span>   TCP handshake:       1ms                                  <span class="d-l">│</span>
+  <span class="d-l">│</span>   TLS handshake:       5ms                                  <span class="d-l">│</span>
+  <span class="d-l">│</span>   Auth + session init: 10ms                                 <span class="d-l">│</span>
+  <span class="d-l">│</span>   Total: ~16ms per connection                               <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> With pool: Borrow from pool <span class="d-a">→</span> 0.01ms                        <span class="d-l">│</span>
+  <span class="d-l">│</span> 1600× faster!                                               <span class="d-l">│</span>
+  <span class="d-l">└─────────────────────────────────────────────────────────────┘</span>
 
   CONNECTION POOL SIZING:
-  ┌─────────────────────────────────────────────────────────────┐
-  │ FORMULA (for databases):                                    │
-  │ pool_size = num_physical_cores × 2 + effective_spindle_count│
-  │                                                             │
-  │ For SSD (spindle_count ≈ 0):                                │
-  │   pool_size ≈ cores × 2                                     │
-  │                                                             │
-  │ Example: 8-core DB server                                   │
-  │   pool_size = 8 × 2 = 16 connections                        │
-  │                                                             │
-  │ COMMON MISTAKE: Setting pool too large!                     │
-  │   100 connections per app × 10 app instances                │
-  │   = 1000 connections to DB!                                 │
-  │   → Context switching overhead kills DB performance         │
-  │   → Use PgBouncer/ProxySQL between app and DB               │
-  │                                                             │
-  │ CONFIGURATION PARAMETERS:                                   │
-  │   min_pool_size:    Minimum connections kept open           │
-  │   max_pool_size:    Maximum connections allowed             │
-  │   idle_timeout:     Close idle connections after duration   │
-  │   max_lifetime:     Recycle connection after duration       │
-  │   connection_timeout: Wait time for available connection    │
-  │   validation_query: Test connection health ("SELECT 1")     │
-  └─────────────────────────────────────────────────────────────┘
+  <span class="d-l">┌─────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> FORMULA (for databases):                                    <span class="d-l">│</span>
+  <span class="d-l">│</span> pool_size = num_physical_cores × 2 + effective_spindle_count<span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> For SSD (spindle_count ≈ 0):                                <span class="d-l">│</span>
+  <span class="d-l">│</span>   pool_size ≈ cores × 2                                     <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> Example: 8-core DB server                                   <span class="d-l">│</span>
+  <span class="d-l">│</span>   pool_size = 8 × 2 = 16 connections                        <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> COMMON MISTAKE: Setting pool too large!                     <span class="d-l">│</span>
+  <span class="d-l">│</span>   100 connections per app × 10 app instances                <span class="d-l">│</span>
+  <span class="d-l">│</span>   = 1000 connections to DB!                                 <span class="d-l">│</span>
+  <span class="d-l">│</span>   <span class="d-a">→</span> Context switching overhead kills DB performance         <span class="d-l">│</span>
+  <span class="d-l">│</span>   <span class="d-a">→</span> Use PgBouncer/ProxySQL between app and DB               <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> CONFIGURATION PARAMETERS:                                   <span class="d-l">│</span>
+  <span class="d-l">│</span>   min_pool_size:    Minimum connections kept open           <span class="d-l">│</span>
+  <span class="d-l">│</span>   max_pool_size:    Maximum connections allowed             <span class="d-l">│</span>
+  <span class="d-l">│</span>   idle_timeout:     Close idle connections after duration   <span class="d-l">│</span>
+  <span class="d-l">│</span>   max_lifetime:     Recycle connection after duration       <span class="d-l">│</span>
+  <span class="d-l">│</span>   connection_timeout: Wait time for available connection    <span class="d-l">│</span>
+  <span class="d-l">│</span>   validation_query: Test connection health ("SELECT 1")     <span class="d-l">│</span>
+  <span class="d-l">└─────────────────────────────────────────────────────────────┘</span>
 
   CONNECTION POOL FOR MICROSERVICES:
-  ┌─────────────────────────────────────────────────────────────┐
-  │                                                             │
-  │ App Instance 1 ──(pool: 20)──┐                              │
-  │ App Instance 2 ──(pool: 20)──┤                              │
-  │ App Instance 3 ──(pool: 20)──├────→ PgBouncer ──→ PostgreSQL│
-  │ App Instance 4 ──(pool: 20)──┤    (pool: 30)   (max: 30)    │
-  │ App Instance 5 ──(pool: 20)──┘                              │
-  │                                                             │
-  │ Without PgBouncer: 100 connections to DB!                   │
-  │ With PgBouncer: 30 connections to DB, 100 to PgBouncer      │
-  │ PgBouncer multiplexes using transaction-level pooling       │
-  └─────────────────────────────────────────────────────────────┘
+  <span class="d-l">┌─────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> App Instance 1 <span class="d-l">──</span>(pool: 20)<span class="d-l">──┐</span>                              <span class="d-l">│</span>
+  <span class="d-l">│</span> App Instance 2 <span class="d-l">──</span>(pool: 20)<span class="d-l">──┤</span>                              <span class="d-l">│</span>
+  <span class="d-l">│</span> App Instance 3 <span class="d-l">──</span>(pool: 20)<span class="d-l">──├────</span><span class="d-a">→</span> PgBouncer <span class="d-l">──</span><span class="d-a">→</span> PostgreSQL<span class="d-l">│</span>
+  <span class="d-l">│</span> App Instance 4 <span class="d-l">──</span>(pool: 20)<span class="d-l">──┤</span>    (pool: 30)   (max: 30)    <span class="d-l">│</span>
+  <span class="d-l">│</span> App Instance 5 <span class="d-l">──</span>(pool: 20)<span class="d-l">──┘</span>                              <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> Without PgBouncer: 100 connections to DB!                   <span class="d-l">│</span>
+  <span class="d-l">│</span> With PgBouncer: 30 connections to DB, 100 to PgBouncer      <span class="d-l">│</span>
+  <span class="d-l">│</span> PgBouncer multiplexes using transaction-level pooling       <span class="d-l">│</span>
+  <span class="d-l">└─────────────────────────────────────────────────────────────┘</span>
 
   HTTP CONNECTION POOLING:
   - HTTP/1.1 Keep-Alive: reuse TCP connections
@@ -3238,57 +3250,57 @@ instead of creating new ones per request.
             <div class="diagram"><pre>DATABASE PERFORMANCE OPTIMIZATION:
 
   QUERY OPTIMIZATION:
-  ┌───────────────────────────────────────────────────────────┐
-  │ 1. EXPLAIN ANALYZE every slow query                       │
-  │    Look for: Sequential Scans, Nested Loops, Sort on disk │
-  │                                                           │
-  │ 2. INDEX STRATEGY:                                        │
-  │    - Index WHERE, JOIN, ORDER BY columns                  │
-  │    - Composite index: (a, b, c) serves queries on         │
-  │      (a), (a,b), (a,b,c) — NOT (b), (c), (b,c)            │
-  │    - Covering index: includes all SELECT columns          │
-  │      (index-only scan, no table lookup)                   │
-  │    - Partial index: WHERE is_active = true                │
-  │    - Expression index: ON (lower(email))                  │
-  │                                                           │
-  │ 3. QUERY PATTERNS TO AVOID:                               │
-  │    ✗ SELECT * (fetch only needed columns)                 │
-  │    ✗ N+1 queries (use JOINs or batch fetches)             │
-  │    ✗ OFFSET-based pagination (use cursor/keyset)          │
-  │    ✗ Functions in WHERE (prevents index use)              │
-  │    ✗ LIKE '%prefix' (can't use B-tree index)              │
-  │    ✗ OR on different columns (use UNION instead)          │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> 1. EXPLAIN ANALYZE every slow query                       <span class="d-l">│</span>
+  <span class="d-l">│</span>    Look for: Sequential Scans, Nested Loops, Sort on disk <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 2. INDEX STRATEGY:                                        <span class="d-l">│</span>
+  <span class="d-l">│</span>    - Index WHERE, JOIN, ORDER BY columns                  <span class="d-l">│</span>
+  <span class="d-l">│</span>    - Composite index: (a, b, c) serves queries on         <span class="d-l">│</span>
+  <span class="d-l">│</span>      (a), (a,b), (a,b,c) — NOT (b), (c), (b,c)            <span class="d-l">│</span>
+  <span class="d-l">│</span>    - Covering index: includes all SELECT columns          <span class="d-l">│</span>
+  <span class="d-l">│</span>      (index-only scan, no table lookup)                   <span class="d-l">│</span>
+  <span class="d-l">│</span>    - Partial index: WHERE is_active = true                <span class="d-l">│</span>
+  <span class="d-l">│</span>    - Expression index: ON (lower(email))                  <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 3. QUERY PATTERNS TO AVOID:                               <span class="d-l">│</span>
+  <span class="d-l">│</span>    × SELECT * (fetch only needed columns)                 <span class="d-l">│</span>
+  <span class="d-l">│</span>    × N+1 queries (use JOINs or batch fetches)             <span class="d-l">│</span>
+  <span class="d-l">│</span>    × OFFSET-based pagination (use cursor/keyset)          <span class="d-l">│</span>
+  <span class="d-l">│</span>    × Functions in WHERE (prevents index use)              <span class="d-l">│</span>
+  <span class="d-l">│</span>    × LIKE '%prefix' (can't use B-tree index)              <span class="d-l">│</span>
+  <span class="d-l">│</span>    × OR on different columns (use UNION instead)          <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   PAGINATION STRATEGIES:
-  ┌───────────────────────────────────────────────────────────┐
-  │ OFFSET (bad for large offsets):                           │
-  │   SELECT * FROM items OFFSET 10000 LIMIT 20               │
-  │   DB scans 10020 rows, returns 20. Gets slower with page. │
-  │                                                           │
-  │ KEYSET / CURSOR (good):                                   │
-  │   SELECT * FROM items WHERE id &gt; :last_seen_id LIMIT 20   │
-  │   Uses index, constant performance regardless of page.    │
-  │   Limitation: can't jump to page N directly.              │
-  │                                                           │
-  │ CURSOR-BASED (opaque token):                              │
-  │   Encode (last_id, last_sort_value) into opaque token     │
-  │   Client passes cursor, server decodes and queries.       │
-  │   Used by: GraphQL Relay, Facebook Graph API              │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> OFFSET (bad for large offsets):                           <span class="d-l">│</span>
+  <span class="d-l">│</span>   SELECT * FROM items OFFSET 10000 LIMIT 20               <span class="d-l">│</span>
+  <span class="d-l">│</span>   DB scans 10020 rows, returns 20. Gets slower with page. <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> KEYSET / CURSOR (good):                                   <span class="d-l">│</span>
+  <span class="d-l">│</span>   SELECT * FROM items WHERE id &gt; :last_seen_id LIMIT 20   <span class="d-l">│</span>
+  <span class="d-l">│</span>   Uses index, constant performance regardless of page.    <span class="d-l">│</span>
+  <span class="d-l">│</span>   Limitation: can't jump to page N directly.              <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> CURSOR-BASED (opaque token):                              <span class="d-l">│</span>
+  <span class="d-l">│</span>   Encode (last_id, last_sort_value) into opaque token     <span class="d-l">│</span>
+  <span class="d-l">│</span>   Client passes cursor, server decodes and queries.       <span class="d-l">│</span>
+  <span class="d-l">│</span>   Used by: GraphQL Relay, Facebook Graph API              <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   DATABASE SCALING PATTERNS:
-  ┌───────────────────────────────────────────────────────────┐
-  │ 1. Optimize queries and indexes (first!)                  │
-  │ 2. Add read replicas (read scaling)                       │
-  │ 3. Connection pooling (PgBouncer, ProxySQL)               │
-  │ 4. Caching layer (Redis for hot data)                     │
-  │ 5. Vertical partitioning (split tables by column)         │
-  │ 6. Horizontal sharding (split by shard key)               │
-  │ 7. Move to distributed DB (CockroachDB, Spanner)          │
-  │                                                           │
-  │ Each step adds complexity. Only proceed when needed.      │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> 1. Optimize queries and indexes (first!)                  <span class="d-l">│</span>
+  <span class="d-l">│</span> 2. Add read replicas (read scaling)                       <span class="d-l">│</span>
+  <span class="d-l">│</span> 3. Connection pooling (PgBouncer, ProxySQL)               <span class="d-l">│</span>
+  <span class="d-l">│</span> 4. Caching layer (Redis for hot data)                     <span class="d-l">│</span>
+  <span class="d-l">│</span> 5. Vertical partitioning (split tables by column)         <span class="d-l">│</span>
+  <span class="d-l">│</span> 6. Horizontal sharding (split by shard key)               <span class="d-l">│</span>
+  <span class="d-l">│</span> 7. Move to distributed DB (CockroachDB, Spanner)          <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Each step adds complexity. Only proceed when needed.      <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   HOT SPOT MITIGATION:
   - Shard key selection: avoid sequential keys (timestamps)
@@ -3304,45 +3316,45 @@ instead of creating new ones per request.
           </div>
           <div class="q-a">
             <div class="diagram"><pre>CDN ARCHITECTURE:
-  ┌──────────────────────────────────────────────────────────────┐
-  │ Client → Nearest Edge POP → Origin (if cache miss)           │
-  │                                                              │
-  │ POP = Point of Presence (data center with cache servers)     │
-  │ Global CDNs: 200-300+ POPs worldwide                         │
-  │                                                              │
-  │ TYPES:                                                       │
-  │ Pull CDN: Edge fetches from origin on cache miss             │
-  │   Pros: No pre-warming needed                                │
-  │   Cons: First request is slow (cache miss)                   │
-  │                                                              │
-  │ Push CDN: Content pre-pushed to all edges                    │
-  │   Pros: First request is fast                                │
-  │   Cons: Storage cost, must know what to push                 │
-  └──────────────────────────────────────────────────────────────┘
+  <span class="d-l">┌──────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Client <span class="d-a">→</span> Nearest Edge POP <span class="d-a">→</span> Origin (if cache miss)           <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                              <span class="d-l">│</span>
+  <span class="d-l">│</span> POP = Point of Presence (data center with cache servers)     <span class="d-l">│</span>
+  <span class="d-l">│</span> Global CDNs: 200-300+ POPs worldwide                         <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                              <span class="d-l">│</span>
+  <span class="d-l">│</span> TYPES:                                                       <span class="d-l">│</span>
+  <span class="d-l">│</span> Pull CDN: Edge fetches from origin on cache miss             <span class="d-l">│</span>
+  <span class="d-l">│</span>   Pros: No pre-warming needed                                <span class="d-l">│</span>
+  <span class="d-l">│</span>   Cons: First request is slow (cache miss)                   <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                              <span class="d-l">│</span>
+  <span class="d-l">│</span> Push CDN: Content pre-pushed to all edges                    <span class="d-l">│</span>
+  <span class="d-l">│</span>   Pros: First request is fast                                <span class="d-l">│</span>
+  <span class="d-l">│</span>   Cons: Storage cost, must know what to push                 <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────────────────────────────────────┘</span>
 
   WHAT TO CACHE AT CDN:
-  ┌──────────────────┬───────────────────────────────────────────┐
-  │ Static assets    │ JS, CSS, images, fonts (long TTL, hash)   │
-  │ API responses    │ GET endpoints with cache headers          │
-  │ HTML pages       │ SSR/SSG pages (short TTL)                 │
-  │ Video chunks     │ HLS/DASH segments (long TTL)              │
-  │ Edge compute     │ Cloudflare Workers, Lambda@Edge           │
-  └──────────────────┴───────────────────────────────────────────┘
+  <span class="d-l">┌──────────────────┬───────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Static assets    <span class="d-l">│</span> JS, CSS, images, fonts (long TTL, hash)   <span class="d-l">│</span>
+  <span class="d-l">│</span> API responses    <span class="d-l">│</span> GET endpoints with cache headers          <span class="d-l">│</span>
+  <span class="d-l">│</span> HTML pages       <span class="d-l">│</span> SSR/SSG pages (short TTL)                 <span class="d-l">│</span>
+  <span class="d-l">│</span> Video chunks     <span class="d-l">│</span> HLS/DASH segments (long TTL)              <span class="d-l">│</span>
+  <span class="d-l">│</span> Edge compute     <span class="d-l">│</span> Cloudflare Workers, Lambda@Edge           <span class="d-l">│</span>
+  <span class="d-l">└──────────────────┴───────────────────────────────────────────┘</span>
 
   CACHE HEADERS:
-  ┌──────────────────────────────────────────────────────────────┐
-  │ Cache-Control: public, max-age=31536000, immutable           │
-  │   (static assets with hash in filename)                      │
-  │                                                              │
-  │ Cache-Control: public, max-age=60, stale-while-revalidate=300│
-  │   (API responses: serve stale while fetching fresh)          │
-  │                                                              │
-  │ Cache-Control: private, no-cache                             │
-  │   (user-specific data: CDN doesn't cache, browser may)       │
-  │                                                              │
-  │ Cache-Control: no-store                                      │
-  │   (never cache: PII, authentication responses)               │
-  └──────────────────────────────────────────────────────────────┘
+  <span class="d-l">┌──────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Cache-Control: public, max-age=31536000, immutable           <span class="d-l">│</span>
+  <span class="d-l">│</span>   (static assets with hash in filename)                      <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                              <span class="d-l">│</span>
+  <span class="d-l">│</span> Cache-Control: public, max-age=60, stale-while-revalidate=300<span class="d-l">│</span>
+  <span class="d-l">│</span>   (API responses: serve stale while fetching fresh)          <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                              <span class="d-l">│</span>
+  <span class="d-l">│</span> Cache-Control: private, no-cache                             <span class="d-l">│</span>
+  <span class="d-l">│</span>   (user-specific data: CDN doesn't cache, browser may)       <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                              <span class="d-l">│</span>
+  <span class="d-l">│</span> Cache-Control: no-store                                      <span class="d-l">│</span>
+  <span class="d-l">│</span>   (never cache: PII, authentication responses)               <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────────────────────────────────────┘</span>
 
   EDGE COMPUTE:
   - Run code at CDN edge (close to users)
@@ -3361,65 +3373,65 @@ instead of creating new ones per request.
 based on demand.
 
   SCALING DIMENSIONS:
-  ┌──────────────────┬────────────────────────────────────────┐
-  │ Horizontal       │ Add/remove instances (most common)     │
-  │ Vertical         │ Resize instance (limited, downtime)    │
-  │ Functional       │ Scale different functions independently│
-  │ Database         │ Read replicas (auto), shards (manual)  │
-  └──────────────────┴────────────────────────────────────────┘
+  <span class="d-l">┌──────────────────┬────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Horizontal       <span class="d-l">│</span> Add/remove instances (most common)     <span class="d-l">│</span>
+  <span class="d-l">│</span> Vertical         <span class="d-l">│</span> Resize instance (limited, downtime)    <span class="d-l">│</span>
+  <span class="d-l">│</span> Functional       <span class="d-l">│</span> Scale different functions independently<span class="d-l">│</span>
+  <span class="d-l">│</span> Database         <span class="d-l">│</span> Read replicas (auto), shards (manual)  <span class="d-l">│</span>
+  <span class="d-l">└──────────────────┴────────────────────────────────────────┘</span>
 
   SCALING POLICIES:
-  ┌───────────────────────────────────────────────────────────┐
-  │ TARGET TRACKING:                                          │
-  │   Maintain metric at target value                         │
-  │   Example: Keep avg CPU at 60%                            │
-  │   Simplest, self-adjusting                                │
-  │                                                           │
-  │ STEP SCALING:                                             │
-  │   CPU 60-70% → add 1 instance                             │
-  │   CPU 70-80% → add 2 instances                            │
-  │   CPU &gt; 80%  → add 3 instances                            │
-  │   More control, requires tuning                           │
-  │                                                           │
-  │ SCHEDULED SCALING:                                        │
-  │   Scale up at 9am, scale down at 6pm (known patterns)     │
-  │   Pre-warm for expected traffic spikes                    │
-  │                                                           │
-  │ PREDICTIVE SCALING:                                       │
-  │   ML model predicts traffic based on historical patterns  │
-  │   Scales proactively (before spike arrives)               │
-  │   AWS Predictive Scaling, GCP Predictive Autoscaling      │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> TARGET TRACKING:                                          <span class="d-l">│</span>
+  <span class="d-l">│</span>   Maintain metric at target value                         <span class="d-l">│</span>
+  <span class="d-l">│</span>   Example: Keep avg CPU at 60%                            <span class="d-l">│</span>
+  <span class="d-l">│</span>   Simplest, self-adjusting                                <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> STEP SCALING:                                             <span class="d-l">│</span>
+  <span class="d-l">│</span>   CPU 60-70% <span class="d-a">→</span> add 1 instance                             <span class="d-l">│</span>
+  <span class="d-l">│</span>   CPU 70-80% <span class="d-a">→</span> add 2 instances                            <span class="d-l">│</span>
+  <span class="d-l">│</span>   CPU &gt; 80%  <span class="d-a">→</span> add 3 instances                            <span class="d-l">│</span>
+  <span class="d-l">│</span>   More control, requires tuning                           <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> SCHEDULED SCALING:                                        <span class="d-l">│</span>
+  <span class="d-l">│</span>   Scale up at 9am, scale down at 6pm (known patterns)     <span class="d-l">│</span>
+  <span class="d-l">│</span>   Pre-warm for expected traffic spikes                    <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> PREDICTIVE SCALING:                                       <span class="d-l">│</span>
+  <span class="d-l">│</span>   ML model predicts traffic based on historical patterns  <span class="d-l">│</span>
+  <span class="d-l">│</span>   Scales proactively (before spike arrives)               <span class="d-l">│</span>
+  <span class="d-l">│</span>   AWS Predictive Scaling, GCP Predictive Autoscaling      <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   SCALING METRICS:
-  ┌───────────────────────────────────────────────────────────┐
-  │ CPU Utilization:     Most common, simple, but lagging     │
-  │ Request Count (RPS): Direct traffic metric                │
-  │ Queue Depth:         For async workers                    │
-  │ Latency (P95/P99):   Scale based on user experience       │
-  │ Custom Metrics:      Active users, ML inference queue     │
-  │ Concurrent Requests: For connection-heavy workloads       │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> CPU Utilization:     Most common, simple, but lagging     <span class="d-l">│</span>
+  <span class="d-l">│</span> Request Count (RPS): Direct traffic metric                <span class="d-l">│</span>
+  <span class="d-l">│</span> Queue Depth:         For async workers                    <span class="d-l">│</span>
+  <span class="d-l">│</span> Latency (P95/P99):   Scale based on user experience       <span class="d-l">│</span>
+  <span class="d-l">│</span> Custom Metrics:      Active users, ML inference queue     <span class="d-l">│</span>
+  <span class="d-l">│</span> Concurrent Requests: For connection-heavy workloads       <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   SCALING BEST PRACTICES:
-  ┌───────────────────────────────────────────────────────────┐
-  │ 1. Scale out faster than scaling in (asymmetric timing)   │
-  │    Scale out: 1 minute cooldown                           │
-  │    Scale in: 5-10 minute cooldown (avoid flapping)        │
-  │                                                           │
-  │ 2. Use multiple metrics (CPU AND request count)           │
-  │                                                           │
-  │ 3. Set minimum instances ≥ 2 (always available)           │
-  │                                                           │
-  │ 4. Pre-warm on deploy (health check before receiving      │
-  │    traffic: load caches, warm JIT, establish connections) │
-  │                                                           │
-  │ 5. Design for sudden scale: stateless services,           │
-  │    externalized state, fast startup time                  │
-  │                                                           │
-  │ 6. Test scaling: simulate traffic spikes, measure time    │
-  │    to scale and impact on latency                         │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> 1. Scale out faster than scaling in (asymmetric timing)   <span class="d-l">│</span>
+  <span class="d-l">│</span>    Scale out: 1 minute cooldown                           <span class="d-l">│</span>
+  <span class="d-l">│</span>    Scale in: 5-10 minute cooldown (avoid flapping)        <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 2. Use multiple metrics (CPU AND request count)           <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 3. Set minimum instances ≥ 2 (always available)           <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 4. Pre-warm on deploy (health check before receiving      <span class="d-l">│</span>
+  <span class="d-l">│</span>    traffic: load caches, warm JIT, establish connections) <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 5. Design for sudden scale: stateless services,           <span class="d-l">│</span>
+  <span class="d-l">│</span>    externalized state, fast startup time                  <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 6. Test scaling: simulate traffic spikes, measure time    <span class="d-l">│</span>
+  <span class="d-l">│</span>    to scale and impact on latency                         <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   KUBERNETES HPA (Horizontal Pod Autoscaler):
   - Scales pods based on metrics (CPU, memory, custom)
@@ -3434,25 +3446,25 @@ based on demand.
           </div>
           <div class="q-a">
             <div class="diagram"><pre>PERFORMANCE TESTING TYPES:
-  ┌──────────────────┬──────────────────────────────────────────┐
-  │ Load Testing     │ Expected load, measure performance       │
-  │                  │ "Can we handle normal traffic?"          │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Stress Testing   │ Beyond expected load, find breaking point│
-  │                  │ "When does it break?"                    │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Spike Testing    │ Sudden traffic burst                     │
-  │                  │ "How does it handle a flash sale?"       │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Soak Testing     │ Normal load for extended time (hours)    │
-  │                  │ "Memory leaks? Resource exhaustion?"     │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Capacity Testing │ Find max throughput within SLA           │
-  │                  │ "What's our actual capacity?"            │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Breakpoint Test  │ Gradually increase until failure         │
-  │                  │ "What's the absolute maximum?"           │
-  └──────────────────┴──────────────────────────────────────────┘
+  <span class="d-l">┌──────────────────┬──────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Load Testing     <span class="d-l">│</span> Expected load, measure performance       <span class="d-l">│</span>
+  <span class="d-l">│</span>                  <span class="d-l">│</span> "Can we handle normal traffic?"          <span class="d-l">│</span>
+  <span class="d-l">├──────────────────┼──────────────────────────────────────────┤</span>
+  <span class="d-l">│</span> Stress Testing   <span class="d-l">│</span> Beyond expected load, find breaking point<span class="d-l">│</span>
+  <span class="d-l">│</span>                  <span class="d-l">│</span> "When does it break?"                    <span class="d-l">│</span>
+  <span class="d-l">├──────────────────┼──────────────────────────────────────────┤</span>
+  <span class="d-l">│</span> Spike Testing    <span class="d-l">│</span> Sudden traffic burst                     <span class="d-l">│</span>
+  <span class="d-l">│</span>                  <span class="d-l">│</span> "How does it handle a flash sale?"       <span class="d-l">│</span>
+  <span class="d-l">├──────────────────┼──────────────────────────────────────────┤</span>
+  <span class="d-l">│</span> Soak Testing     <span class="d-l">│</span> Normal load for extended time (hours)    <span class="d-l">│</span>
+  <span class="d-l">│</span>                  <span class="d-l">│</span> "Memory leaks? Resource exhaustion?"     <span class="d-l">│</span>
+  <span class="d-l">├──────────────────┼──────────────────────────────────────────┤</span>
+  <span class="d-l">│</span> Capacity Testing <span class="d-l">│</span> Find max throughput within SLA           <span class="d-l">│</span>
+  <span class="d-l">│</span>                  <span class="d-l">│</span> "What's our actual capacity?"            <span class="d-l">│</span>
+  <span class="d-l">├──────────────────┼──────────────────────────────────────────┤</span>
+  <span class="d-l">│</span> Breakpoint Test  <span class="d-l">│</span> Gradually increase until failure         <span class="d-l">│</span>
+  <span class="d-l">│</span>                  <span class="d-l">│</span> "What's the absolute maximum?"           <span class="d-l">│</span>
+  <span class="d-l">└──────────────────┴──────────────────────────────────────────┘</span>
 
   TOOLS:
   - k6 (JavaScript-based, modern, cloud-capable)
@@ -3464,20 +3476,20 @@ based on demand.
   - Artillery (Node.js, YAML config)
 
   PERFORMANCE TEST CHECKLIST:
-  ┌─────────────────────────────────────────────────────────────┐
-  │ 1. Test in production-like environment                      │
-  │ 2. Use realistic data (size, distribution)                  │
-  │ 3. Include warm-up period (caches, JIT, pools)              │
-  │ 4. Run for sufficient duration (&gt;10 minutes)                │
-  │ 5. Measure: P50, P95, P99, error rate, throughput           │
-  │ 6. Monitor: CPU, memory, disk, network, DB connections      │
-  │ 7. Test with realistic user patterns (not just GET /)       │
-  │ 8. Include write operations (not just reads)                │
-  │ 9. Run multiple times (results should be reproducible)      │
-  │ 10. Compare with baseline (previous run)                    │
-  │ 11. Test auto-scaling behavior                              │
-  │ 12. Include performance tests in CI/CD pipeline             │
-  └─────────────────────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌─────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> 1. Test in production-like environment                      <span class="d-l">│</span>
+  <span class="d-l">│</span> 2. Use realistic data (size, distribution)                  <span class="d-l">│</span>
+  <span class="d-l">│</span> 3. Include warm-up period (caches, JIT, pools)              <span class="d-l">│</span>
+  <span class="d-l">│</span> 4. Run for sufficient duration (&gt;10 minutes)                <span class="d-l">│</span>
+  <span class="d-l">│</span> 5. Measure: P50, P95, P99, error rate, throughput           <span class="d-l">│</span>
+  <span class="d-l">│</span> 6. Monitor: CPU, memory, disk, network, DB connections      <span class="d-l">│</span>
+  <span class="d-l">│</span> 7. Test with realistic user patterns (not just GET /)       <span class="d-l">│</span>
+  <span class="d-l">│</span> 8. Include write operations (not just reads)                <span class="d-l">│</span>
+  <span class="d-l">│</span> 9. Run multiple times (results should be reproducible)      <span class="d-l">│</span>
+  <span class="d-l">│</span> 10. Compare with baseline (previous run)                    <span class="d-l">│</span>
+  <span class="d-l">│</span> 11. Test auto-scaling behavior                              <span class="d-l">│</span>
+  <span class="d-l">│</span> 12. Include performance tests in CI/CD pipeline             <span class="d-l">│</span>
+  <span class="d-l">└─────────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f08Scalabilitya-44">
@@ -3488,11 +3500,11 @@ based on demand.
             <div class="diagram"><pre>PERFORMANCE ANTI-PATTERNS:
 
   1. N+1 QUERY:
-     Fetch 100 users → 100 queries for their orders
+     Fetch 100 users <span class="d-a">→</span> 100 queries for their orders
      Fix: JOIN or batch fetch (WHERE user_id IN (...))
 
   2. CHATTY SERVICE CALLS:
-     Service A → 50 sequential calls to Service B
+     Service A <span class="d-a">→</span> 50 sequential calls to Service B
      Fix: Batch API, parallel calls, denormalize data
 
   3. SYNCHRONOUS EVERYTHING:
@@ -3508,7 +3520,7 @@ based on demand.
      Fix: Modular monolith until scale warrants decomposition
 
   6. CACHE STAMPEDE:
-     Popular key expires → 10K requests hit DB
+     Popular key expires <span class="d-a">→</span> 10K requests hit DB
      Fix: Single-flight pattern, staggered TTLs
 
   7. HOT PARTITION:
@@ -3533,20 +3545,20 @@ based on demand.
       Fix: gzip/br compression, binary protocols (protobuf)
 
   12. MISSING TIMEOUTS:
-      No timeout on HTTP/DB calls → thread pool exhaustion
+      No timeout on HTTP/DB calls <span class="d-a">→</span> thread pool exhaustion
       Fix: Set timeout on EVERY external call
 
   OPTIMIZATION ORDER OF OPERATIONS:
-  ┌──────────────────────────────────────────────────────────┐
-  │ 1. Measure (can't optimize what you can't measure)       │
-  │ 2. Find the bottleneck (profiling, tracing)              │
-  │ 3. Fix algorithmic issues (O(n²) → O(n log n))           │
-  │ 4. Reduce I/O (caching, batching, connection pooling)    │
-  │ 5. Parallelize (async, concurrent, distributed)          │
-  │ 6. Scale out (more instances, replicas)                  │
-  │ 7. Optimize hot paths (JIT, compiled, native)            │
-  │ NEVER start at step 6!                                   │
-  └──────────────────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌──────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> 1. Measure (can't optimize what you can't measure)       <span class="d-l">│</span>
+  <span class="d-l">│</span> 2. Find the bottleneck (profiling, tracing)              <span class="d-l">│</span>
+  <span class="d-l">│</span> 3. Fix algorithmic issues (O(n²) <span class="d-a">→</span> O(n log n))           <span class="d-l">│</span>
+  <span class="d-l">│</span> 4. Reduce I/O (caching, batching, connection pooling)    <span class="d-l">│</span>
+  <span class="d-l">│</span> 5. Parallelize (async, concurrent, distributed)          <span class="d-l">│</span>
+  <span class="d-l">│</span> 6. Scale out (more instances, replicas)                  <span class="d-l">│</span>
+  <span class="d-l">│</span> 7. Optimize hot paths (JIT, compiled, native)            <span class="d-l">│</span>
+  <span class="d-l">│</span> NEVER start at step 6!                                   <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f08Scalabilitya-45">
@@ -3559,43 +3571,43 @@ production (or staging) to discover weaknesses before
 they cause outages.
 
   PRINCIPLES (from Netflix):
-  ┌────────────────────────────────────────────────────────────┐
-  │ 1. Define steady state (normal behavior metrics)           │
-  │ 2. Hypothesize: "System will remain in steady state        │
-  │    when [failure] occurs"                                  │
-  │ 3. Introduce real-world failures                           │
-  │ 4. Disprove the hypothesis (find weaknesses)               │
-  │ 5. Fix and improve                                         │
-  │                                                            │
-  │ Start small, in staging. Graduate to production.           │
-  │ Always have a STOP button (blast radius control).          │
-  └────────────────────────────────────────────────────────────┘
+  <span class="d-l">┌────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> 1. Define steady state (normal behavior metrics)           <span class="d-l">│</span>
+  <span class="d-l">│</span> 2. Hypothesize: "System will remain in steady state        <span class="d-l">│</span>
+  <span class="d-l">│</span>    when [failure] occurs"                                  <span class="d-l">│</span>
+  <span class="d-l">│</span> 3. Introduce real-world failures                           <span class="d-l">│</span>
+  <span class="d-l">│</span> 4. Disprove the hypothesis (find weaknesses)               <span class="d-l">│</span>
+  <span class="d-l">│</span> 5. Fix and improve                                         <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                            <span class="d-l">│</span>
+  <span class="d-l">│</span> Start small, in staging. Graduate to production.           <span class="d-l">│</span>
+  <span class="d-l">│</span> Always have a STOP button (blast radius control).          <span class="d-l">│</span>
+  <span class="d-l">└────────────────────────────────────────────────────────────┘</span>
 
   CHAOS EXPERIMENTS:
-  ┌──────────────────────────┬─────────────────────────────────┐
-  │ INFRASTRUCTURE           │                                 │
-  │ Kill random instances    │ Test auto-recovery, scaling     │
-  │ Kill entire AZ           │ Test multi-AZ resilience        │
-  │ Fill disk space          │ Test alerting, log rotation     │
-  │ CPU/memory stress        │ Test degradation behavior       │
-  ├──────────────────────────┼─────────────────────────────────┤
-  │ NETWORK                  │                                 │
-  │ Add latency (100-500ms)  │ Test timeout handling           │
-  │ Drop packets (10-50%)    │ Test retry logic                │
-  │ Partition between services│ Test circuit breakers          │
-  │ DNS failure              │ Test DNS caching, fallbacks     │
-  ├──────────────────────────┼─────────────────────────────────┤
-  │ APPLICATION              │                                 │
-  │ Return errors from deps  │ Test error handling             │
-  │ Slow responses from deps │ Test timeout + circuit breaker  │
-  │ Inject malformed data    │ Test input validation           │
-  │ Clock skew               │ Test time-dependent logic       │
-  ├──────────────────────────┼─────────────────────────────────┤
-  │ STATE                    │                                 │
-  │ Delete cache keys        │ Test cache miss handling        │
-  │ Corrupt data             │ Test data validation            │
-  │ Database failover        │ Test replica promotion          │
-  └──────────────────────────┴─────────────────────────────────┘
+  <span class="d-l">┌──────────────────────────┬─────────────────────────────────┐</span>
+  <span class="d-l">│</span> INFRASTRUCTURE           <span class="d-l">│</span>                                 <span class="d-l">│</span>
+  <span class="d-l">│</span> Kill random instances    <span class="d-l">│</span> Test auto-recovery, scaling     <span class="d-l">│</span>
+  <span class="d-l">│</span> Kill entire AZ           <span class="d-l">│</span> Test multi-AZ resilience        <span class="d-l">│</span>
+  <span class="d-l">│</span> Fill disk space          <span class="d-l">│</span> Test alerting, log rotation     <span class="d-l">│</span>
+  <span class="d-l">│</span> CPU/memory stress        <span class="d-l">│</span> Test degradation behavior       <span class="d-l">│</span>
+  <span class="d-l">├──────────────────────────┼─────────────────────────────────┤</span>
+  <span class="d-l">│</span> NETWORK                  <span class="d-l">│</span>                                 <span class="d-l">│</span>
+  <span class="d-l">│</span> Add latency (100-500ms)  <span class="d-l">│</span> Test timeout handling           <span class="d-l">│</span>
+  <span class="d-l">│</span> Drop packets (10-50%)    <span class="d-l">│</span> Test retry logic                <span class="d-l">│</span>
+  <span class="d-l">│</span> Partition between services<span class="d-l">│</span> Test circuit breakers          <span class="d-l">│</span>
+  <span class="d-l">│</span> DNS failure              <span class="d-l">│</span> Test DNS caching, fallbacks     <span class="d-l">│</span>
+  <span class="d-l">├──────────────────────────┼─────────────────────────────────┤</span>
+  <span class="d-l">│</span> APPLICATION              <span class="d-l">│</span>                                 <span class="d-l">│</span>
+  <span class="d-l">│</span> Return errors from deps  <span class="d-l">│</span> Test error handling             <span class="d-l">│</span>
+  <span class="d-l">│</span> Slow responses from deps <span class="d-l">│</span> Test timeout + circuit breaker  <span class="d-l">│</span>
+  <span class="d-l">│</span> Inject malformed data    <span class="d-l">│</span> Test input validation           <span class="d-l">│</span>
+  <span class="d-l">│</span> Clock skew               <span class="d-l">│</span> Test time-dependent logic       <span class="d-l">│</span>
+  <span class="d-l">├──────────────────────────┼─────────────────────────────────┤</span>
+  <span class="d-l">│</span> STATE                    <span class="d-l">│</span>                                 <span class="d-l">│</span>
+  <span class="d-l">│</span> Delete cache keys        <span class="d-l">│</span> Test cache miss handling        <span class="d-l">│</span>
+  <span class="d-l">│</span> Corrupt data             <span class="d-l">│</span> Test data validation            <span class="d-l">│</span>
+  <span class="d-l">│</span> Database failover        <span class="d-l">│</span> Test replica promotion          <span class="d-l">│</span>
+  <span class="d-l">└──────────────────────────┴─────────────────────────────────┘</span>
 
   TOOLS:
   - Chaos Monkey (Netflix): Random instance termination
@@ -3621,49 +3633,49 @@ they cause outages.
 operating reliable, scalable production systems.
 
   SLI / SLO / SLA:
-  ┌─────────────────────────────────────────────────────────────┐
-  │ SLI (Service Level Indicator):                              │
-  │   The metric you measure                                    │
-  │   Examples:                                                 │
-  │   - Request latency (P99 &lt; 200ms)                           │
-  │   - Error rate (% of 5xx responses)                         │
-  │   - Availability (% of successful requests)                 │
-  │   - Throughput (requests successfully served per second)    │
-  │   - Freshness (data staleness in read replicas)             │
-  │                                                             │
-  │ SLO (Service Level Objective):                              │
-  │   The target value for the SLI                              │
-  │   "99.9% of requests will complete within 200ms"            │
-  │   "99.95% availability over 30 days"                        │
-  │   Internal promise (to your team/organization)              │
-  │                                                             │
-  │ SLA (Service Level Agreement):                              │
-  │   The contract with customers, with consequences            │
-  │   "99.9% uptime or we credit 10% of monthly fee"            │
-  │   SLA should be LESS strict than SLO (buffer)               │
-  └─────────────────────────────────────────────────────────────┘
+  <span class="d-l">┌─────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> SLI (Service Level Indicator):                              <span class="d-l">│</span>
+  <span class="d-l">│</span>   The metric you measure                                    <span class="d-l">│</span>
+  <span class="d-l">│</span>   Examples:                                                 <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Request latency (P99 &lt; 200ms)                           <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Error rate (% of 5xx responses)                         <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Availability (% of successful requests)                 <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Throughput (requests successfully served per second)    <span class="d-l">│</span>
+  <span class="d-l">│</span>   - Freshness (data staleness in read replicas)             <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> SLO (Service Level Objective):                              <span class="d-l">│</span>
+  <span class="d-l">│</span>   The target value for the SLI                              <span class="d-l">│</span>
+  <span class="d-l">│</span>   "99.9% of requests will complete within 200ms"            <span class="d-l">│</span>
+  <span class="d-l">│</span>   "99.95% availability over 30 days"                        <span class="d-l">│</span>
+  <span class="d-l">│</span>   Internal promise (to your team/organization)              <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> SLA (Service Level Agreement):                              <span class="d-l">│</span>
+  <span class="d-l">│</span>   The contract with customers, with consequences            <span class="d-l">│</span>
+  <span class="d-l">│</span>   "99.9% uptime or we credit 10% of monthly fee"            <span class="d-l">│</span>
+  <span class="d-l">│</span>   SLA should be LESS strict than SLO (buffer)               <span class="d-l">│</span>
+  <span class="d-l">└─────────────────────────────────────────────────────────────┘</span>
 
   ERROR BUDGET:
-  ┌─────────────────────────────────────────────────────────────┐
-  │ Error budget = 1 - SLO                                      │
-  │                                                             │
-  │ SLO = 99.9% → Error budget = 0.1%                           │
-  │   Per month (30 days): 43.2 minutes of downtime             │
-  │   Per quarter: 2.16 hours of downtime                       │
-  │                                                             │
-  │ SLO = 99.95% → Error budget = 0.05%                         │
-  │   Per month: 21.6 minutes                                   │
-  │                                                             │
-  │ SLO = 99.99% → Error budget = 0.01%                         │
-  │   Per month: 4.3 minutes                                    │
-  │                                                             │
-  │ HOW TO USE ERROR BUDGET:                                    │
-  │ Budget remaining? → Ship features, experiment, deploy.      │
-  │ Budget spent? → STOP feature work. Focus on reliability.    │
-  │                                                             │
-  │ This creates alignment between dev (speed) and ops          │
-  │ (reliability). Both teams share the same metric.            │
-  └─────────────────────────────────────────────────────────────┘
+  <span class="d-l">┌─────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Error budget = 1 - SLO                                      <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> SLO = 99.9% <span class="d-a">→</span> Error budget = 0.1%                           <span class="d-l">│</span>
+  <span class="d-l">│</span>   Per month (30 days): 43.2 minutes of downtime             <span class="d-l">│</span>
+  <span class="d-l">│</span>   Per quarter: 2.16 hours of downtime                       <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> SLO = 99.95% <span class="d-a">→</span> Error budget = 0.05%                         <span class="d-l">│</span>
+  <span class="d-l">│</span>   Per month: 21.6 minutes                                   <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> SLO = 99.99% <span class="d-a">→</span> Error budget = 0.01%                         <span class="d-l">│</span>
+  <span class="d-l">│</span>   Per month: 4.3 minutes                                    <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> HOW TO USE ERROR BUDGET:                                    <span class="d-l">│</span>
+  <span class="d-l">│</span> Budget remaining? <span class="d-a">→</span> Ship features, experiment, deploy.      <span class="d-l">│</span>
+  <span class="d-l">│</span> Budget spent? <span class="d-a">→</span> STOP feature work. Focus on reliability.    <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> This creates alignment between dev (speed) and ops          <span class="d-l">│</span>
+  <span class="d-l">│</span> (reliability). Both teams share the same metric.            <span class="d-l">│</span>
+  <span class="d-l">└─────────────────────────────────────────────────────────────┘</span>
 
   TOIL:
   - Manual, repetitive, automatable operational work
@@ -3672,44 +3684,44 @@ operating reliable, scalable production systems.
   - Track and report toil to justify automation investment
 
   INCIDENT MANAGEMENT:
-  ┌─────────────────────────────────────────────────────────────┐
-  │ SEVERITY LEVELS:                                            │
-  │ P0 / SEV-1: Revenue impact, data loss, full outage          │
-  │ P1 / SEV-2: Significant degradation, partial outage         │
-  │ P2 / SEV-3: Minor impact, workaround available              │
-  │ P3 / SEV-4: Cosmetic, low priority                          │
-  │                                                             │
-  │ INCIDENT LIFECYCLE:                                         │
-  │ Detection → Triage → Mitigation → Resolution → Postmortem   │
-  │                                                             │
-  │ BLAMELESS POSTMORTEM:                                       │
-  │ - What happened (timeline)                                  │
-  │ - Root cause analysis (5 whys)                              │
-  │ - Impact (duration, users affected, revenue)                │
-  │ - Action items (with owners and deadlines)                  │
-  │ - What went well                                            │
-  │ - What could be improved                                    │
-  │ - NO blame. Focus on system improvements.                   │
-  └─────────────────────────────────────────────────────────────┘
+  <span class="d-l">┌─────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> SEVERITY LEVELS:                                            <span class="d-l">│</span>
+  <span class="d-l">│</span> P0 / SEV-1: Revenue impact, data loss, full outage          <span class="d-l">│</span>
+  <span class="d-l">│</span> P1 / SEV-2: Significant degradation, partial outage         <span class="d-l">│</span>
+  <span class="d-l">│</span> P2 / SEV-3: Minor impact, workaround available              <span class="d-l">│</span>
+  <span class="d-l">│</span> P3 / SEV-4: Cosmetic, low priority                          <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> INCIDENT LIFECYCLE:                                         <span class="d-l">│</span>
+  <span class="d-l">│</span> Detection <span class="d-a">→</span> Triage <span class="d-a">→</span> Mitigation <span class="d-a">→</span> Resolution <span class="d-a">→</span> Postmortem   <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                             <span class="d-l">│</span>
+  <span class="d-l">│</span> BLAMELESS POSTMORTEM:                                       <span class="d-l">│</span>
+  <span class="d-l">│</span> - What happened (timeline)                                  <span class="d-l">│</span>
+  <span class="d-l">│</span> - Root cause analysis (5 whys)                              <span class="d-l">│</span>
+  <span class="d-l">│</span> - Impact (duration, users affected, revenue)                <span class="d-l">│</span>
+  <span class="d-l">│</span> - Action items (with owners and deadlines)                  <span class="d-l">│</span>
+  <span class="d-l">│</span> - What went well                                            <span class="d-l">│</span>
+  <span class="d-l">│</span> - What could be improved                                    <span class="d-l">│</span>
+  <span class="d-l">│</span> - NO blame. Focus on system improvements.                   <span class="d-l">│</span>
+  <span class="d-l">└─────────────────────────────────────────────────────────────┘</span>
 
   OBSERVABILITY STACK:
-  ┌──────────────────┬──────────────────────────────────────────┐
-  │ Metrics          │ Prometheus + Grafana, Datadog            │
-  │                  │ RED: Rate, Errors, Duration              │
-  │                  │ USE: Utilization, Saturation, Errors     │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Logs             │ ELK, Loki, CloudWatch Logs               │
-  │                  │ Structured JSON, correlation IDs         │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Traces           │ Jaeger, Zipkin, OpenTelemetry            │
-  │                  │ Distributed request tracing              │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Profiling        │ Continuous profiling (Pyroscope, Parca)  │
-  │                  │ CPU, memory, goroutine profiles          │
-  ├──────────────────┼──────────────────────────────────────────┤
-  │ Alerting         │ PagerDuty, OpsGenie, AlertManager        │
-  │                  │ Alert on SLO burn rate, not raw metrics  │
-  └──────────────────┴──────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌──────────────────┬──────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Metrics          <span class="d-l">│</span> Prometheus + Grafana, Datadog            <span class="d-l">│</span>
+  <span class="d-l">│</span>                  <span class="d-l">│</span> RED: Rate, Errors, Duration              <span class="d-l">│</span>
+  <span class="d-l">│</span>                  <span class="d-l">│</span> USE: Utilization, Saturation, Errors     <span class="d-l">│</span>
+  <span class="d-l">├──────────────────┼──────────────────────────────────────────┤</span>
+  <span class="d-l">│</span> Logs             <span class="d-l">│</span> ELK, Loki, CloudWatch Logs               <span class="d-l">│</span>
+  <span class="d-l">│</span>                  <span class="d-l">│</span> Structured JSON, correlation IDs         <span class="d-l">│</span>
+  <span class="d-l">├──────────────────┼──────────────────────────────────────────┤</span>
+  <span class="d-l">│</span> Traces           <span class="d-l">│</span> Jaeger, Zipkin, OpenTelemetry            <span class="d-l">│</span>
+  <span class="d-l">│</span>                  <span class="d-l">│</span> Distributed request tracing              <span class="d-l">│</span>
+  <span class="d-l">├──────────────────┼──────────────────────────────────────────┤</span>
+  <span class="d-l">│</span> Profiling        <span class="d-l">│</span> Continuous profiling (Pyroscope, Parca)  <span class="d-l">│</span>
+  <span class="d-l">│</span>                  <span class="d-l">│</span> CPU, memory, goroutine profiles          <span class="d-l">│</span>
+  <span class="d-l">├──────────────────┼──────────────────────────────────────────┤</span>
+  <span class="d-l">│</span> Alerting         <span class="d-l">│</span> PagerDuty, OpsGenie, AlertManager        <span class="d-l">│</span>
+  <span class="d-l">│</span>                  <span class="d-l">│</span> Alert on SLO burn rate, not raw metrics  <span class="d-l">│</span>
+  <span class="d-l">└──────────────────┴──────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f08Scalabilitya-47">
@@ -3720,51 +3732,51 @@ operating reliable, scalable production systems.
             <div class="diagram"><pre>CLOUD COST OPTIMIZATION:
 
   COMPUTE:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Right-sizing: Match instance type to actual usage         │
-  │   Monitor CPU/memory for 2 weeks → resize accordingly     │
-  │                                                           │
-  │ Reserved instances: 1-3 year commitment → 30-70% savings  │
-  │   Use for: stable, predictable workloads (databases, base │
-  │   load API servers)                                       │
-  │                                                           │
-  │ Spot/Preemptible: Up to 90% cheaper, can be interrupted   │
-  │   Use for: batch processing, CI/CD, stateless workers     │
-  │   NOT for: databases, stateful services                   │
-  │                                                           │
-  │ Serverless (Lambda/Cloud Functions): Pay per invocation   │
-  │   Best for: infrequent, bursty, event-driven workloads    │
-  │   Beware: cold starts, execution time limits              │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Right-sizing: Match instance type to actual usage         <span class="d-l">│</span>
+  <span class="d-l">│</span>   Monitor CPU/memory for 2 weeks <span class="d-a">→</span> resize accordingly     <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Reserved instances: 1-3 year commitment <span class="d-a">→</span> 30-70% savings  <span class="d-l">│</span>
+  <span class="d-l">│</span>   Use for: stable, predictable workloads (databases, base <span class="d-l">│</span>
+  <span class="d-l">│</span>   load API servers)                                       <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Spot/Preemptible: Up to 90% cheaper, can be interrupted   <span class="d-l">│</span>
+  <span class="d-l">│</span>   Use for: batch processing, CI/CD, stateless workers     <span class="d-l">│</span>
+  <span class="d-l">│</span>   NOT for: databases, stateful services                   <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Serverless (Lambda/Cloud Functions): Pay per invocation   <span class="d-l">│</span>
+  <span class="d-l">│</span>   Best for: infrequent, bursty, event-driven workloads    <span class="d-l">│</span>
+  <span class="d-l">│</span>   Beware: cold starts, execution time limits              <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   STORAGE:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Tiered storage: Hot → Warm → Cold → Archive               │
-  │   S3 Standard → S3 IA → S3 Glacier → Glacier Deep Archive │
-  │   Automate with lifecycle policies                        │
-  │                                                           │
-  │ Data lifecycle: Don't keep data you don't need            │
-  │   Set retention policies, delete old logs/backups         │
-  │                                                           │
-  │ Compression: Store compressed data (Parquet &gt; CSV)        │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Tiered storage: Hot <span class="d-a">→</span> Warm <span class="d-a">→</span> Cold <span class="d-a">→</span> Archive               <span class="d-l">│</span>
+  <span class="d-l">│</span>   S3 Standard <span class="d-a">→</span> S3 IA <span class="d-a">→</span> S3 Glacier <span class="d-a">→</span> Glacier Deep Archive <span class="d-l">│</span>
+  <span class="d-l">│</span>   Automate with lifecycle policies                        <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Data lifecycle: Don't keep data you don't need            <span class="d-l">│</span>
+  <span class="d-l">│</span>   Set retention policies, delete old logs/backups         <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                           <span class="d-l">│</span>
+  <span class="d-l">│</span> Compression: Store compressed data (Parquet &gt; CSV)        <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   NETWORK:
-  ┌───────────────────────────────────────────────────────────┐
-  │ Data transfer: Cross-region and egress are expensive      │
-  │   Keep traffic within same AZ when possible               │
-  │   Use VPC endpoints for AWS service access                │
-  │   Cache at edge (CDN) to reduce origin traffic            │
-  │   Compress API responses (gzip/br)                        │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> Data transfer: Cross-region and egress are expensive      <span class="d-l">│</span>
+  <span class="d-l">│</span>   Keep traffic within same AZ when possible               <span class="d-l">│</span>
+  <span class="d-l">│</span>   Use VPC endpoints for AWS service access                <span class="d-l">│</span>
+  <span class="d-l">│</span>   Cache at edge (CDN) to reduce origin traffic            <span class="d-l">│</span>
+  <span class="d-l">│</span>   Compress API responses (gzip/br)                        <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   DATABASE:
-  ┌───────────────────────────────────────────────────────────┐
-  │ RDS: Use reserved instances for production DBs            │
-  │ Serverless DB: Aurora Serverless for variable workloads   │
-  │ Read replicas: Scale reads without upgrading primary      │
-  │ Connection pooling: Fewer connections = smaller instance  │
-  └───────────────────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span> RDS: Use reserved instances for production DBs            <span class="d-l">│</span>
+  <span class="d-l">│</span> Serverless DB: Aurora Serverless for variable workloads   <span class="d-l">│</span>
+  <span class="d-l">│</span> Read replicas: Scale reads without upgrading primary      <span class="d-l">│</span>
+  <span class="d-l">│</span> Connection pooling: Fewer connections = smaller instance  <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────────────────┘</span>
 
   FinOps PRACTICES:
   1. Tag all resources (team, project, environment)

@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1245,14 +1257,14 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
     Each app is an MCP client.
     N apps × M tools = N + M implementations + everyone connects.
   
-  ┌─────────────┐     MCP Protocol    ┌──────────────────┐
-  │  MCP Client  │◄──────────────────►│  MCP Server      │
-  │  (LLM App)   │    JSON-RPC 2.0    │  (Tool/Data)     │
-  │              │                    │                  │
-  │  - Claude    │    Resources ◄──── │  - Database      │
-  │  - VS Code   │    Tools    ◄────  │  - File system   │
-  │  - Custom    │    Prompts  ◄────  │  - API wrapper   │
-  └─────────────┘                    └───────────────────┘</pre></div>
+  <span class="d-l">┌─────────────┐</span>     MCP Protocol    <span class="d-l">┌──────────────────┐</span>
+  <span class="d-l">│</span>  MCP Client  <span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">──────────────────</span><span class="d-a">►</span><span class="d-l">│</span>  MCP Server      <span class="d-l">│</span>
+  <span class="d-l">│</span>  (LLM App)   <span class="d-l">│</span>    JSON-RPC 2.0    <span class="d-l">│</span>  (Tool/Data)     <span class="d-l">│</span>
+  <span class="d-l">│</span>              <span class="d-l">│</span>                    <span class="d-l">│</span>                  <span class="d-l">│</span>
+  <span class="d-l">│</span>  - Claude    <span class="d-l">│</span>    Resources <span class="d-a">◄</span><span class="d-l">────</span> <span class="d-l">│</span>  - Database      <span class="d-l">│</span>
+  <span class="d-l">│</span>  - VS Code   <span class="d-l">│</span>    Tools    <span class="d-a">◄</span><span class="d-l">────</span>  <span class="d-l">│</span>  - File system   <span class="d-l">│</span>
+  <span class="d-l">│</span>  - Custom    <span class="d-l">│</span>    Prompts  <span class="d-a">◄</span><span class="d-l">────</span>  <span class="d-l">│</span>  - API wrapper   <span class="d-l">│</span>
+  <span class="d-l">└─────────────┘</span>                     <span class="d-l">└──────────────────┘</span></pre></div>
             <h3>MCP at a glance (visual)</h3>
             <p><strong>One host runs many clients; each client keeps a dedicated 1:1 connection to one server.</strong> That's how the N×M integration mess collapses into N + M:</p>
             <figure class="viz mermaid">
@@ -1270,25 +1282,25 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
           <div class="q-a">
             <p><abbr title="Model Context Protocol">MCP</abbr> and <abbr title="the model emitting a structured request for a function the application then executes">function calling</abbr> both enable LLMs to interact with external tools, but serve different architectural roles. Function calling is provider-specific and embedded in API calls for simple one-off tool use, while MCP is an open standard with built-in discovery, multi-capability support (tools, resources, prompts), and cross-client reusability.</p>
             <div class="diagram"><pre>COMPARISON:
-  Feature              │ Function Calling    │ MCP
-  ─────────────────────┼─────────────────────┼──────────────────
-  Standard             │ Provider-specific   │ Open standard
-  Server discovery     │ Manual              │ Built-in
-  Transport            │ HTTP/SDK            │ stdio/SSE/HTTP
-  Capabilities         │ Tools only          │ Tools + Resources + Prompts
-  Reusability          │ Per-app integration │ Any client can connect
-  State management     │ App handles it      │ Protocol supports it
-  Best for             │ Simple tool calls   │ Complex integrations
+  Feature              <span class="d-l">│</span> Function Calling    <span class="d-l">│</span> MCP
+  <span class="d-l">─────────────────────┼─────────────────────┼──────────────────</span>
+  Standard             <span class="d-l">│</span> Provider-specific   <span class="d-l">│</span> Open standard
+  Server discovery     <span class="d-l">│</span> Manual              <span class="d-l">│</span> Built-in
+  Transport            <span class="d-l">│</span> HTTP/SDK            <span class="d-l">│</span> stdio/SSE/HTTP
+  Capabilities         <span class="d-l">│</span> Tools only          <span class="d-l">│</span> Tools + Resources + Prompts
+  Reusability          <span class="d-l">│</span> Per-app integration <span class="d-l">│</span> Any client can connect
+  State management     <span class="d-l">│</span> App handles it      <span class="d-l">│</span> Protocol supports it
+  Best for             <span class="d-l">│</span> Simple tool calls   <span class="d-l">│</span> Complex integrations
   
   WHEN TO USE WHAT:
-  - Simple API call from LLM → Function calling (less overhead)
-  - Reusable tool server, multiple clients → MCP
-  - Complex data access with context → MCP (Resources)
-  - IDE integration → MCP (designed for it)
+  - Simple API call from LLM <span class="d-a">→</span> Function calling (less overhead)
+  - Reusable tool server, multiple clients <span class="d-a">→</span> MCP
+  - Complex data access with context <span class="d-a">→</span> MCP (Resources)
+  - IDE integration <span class="d-a">→</span> MCP (designed for it)
   
   THEY'RE COMPLEMENTARY:
   MCP servers often use function calling internally.
-  LangChain converts MCP tools → LLM function calls automatically.</pre></div>
+  LangChain converts MCP tools <span class="d-a">→</span> LLM function calls automatically.</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01MCPNotesmd-3">
@@ -1298,36 +1310,36 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
           <div class="q-a">
             <p><abbr title="Model Context Protocol">MCP</abbr>'s architecture consists of three layers: the transport layer (stdio, SSE, Streamable HTTP), the message layer (JSON-RPC 2.0 request/response/notification), and the application layer (Resources, Tools, Prompts). This layered design separates communication concerns from business logic, enabling the same server to work across different deployment environments.</p>
             <div class="diagram"><pre>MCP PROTOCOL LAYERS:
-  ┌───────────────────────────────────────────────┐
-  │              Application Layer                │
-  │  Resources, Tools, Prompts, Sampling          │
-  ├───────────────────────────────────────────────┤
-  │              Message Layer                    │
-  │  JSON-RPC 2.0 (request/response/notify)       │
-  ├───────────────────────────────────────────────┤
-  │              Transport Layer                  │
-  │  stdio, SSE, Streamable HTTP                  │
-  └───────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span>              Application Layer                <span class="d-l">│</span>
+  <span class="d-l">│</span>  Resources, Tools, Prompts, Sampling          <span class="d-l">│</span>
+  <span class="d-l">├───────────────────────────────────────────────┤</span>
+  <span class="d-l">│</span>              Message Layer                    <span class="d-l">│</span>
+  <span class="d-l">│</span>  JSON-RPC 2.0 (request/response/notify)       <span class="d-l">│</span>
+  <span class="d-l">├───────────────────────────────────────────────┤</span>
+  <span class="d-l">│</span>              Transport Layer                  <span class="d-l">│</span>
+  <span class="d-l">│</span>  stdio, SSE, Streamable HTTP                  <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────┘</span>
 
   THREE PRIMITIVES:
-  ┌───────────────────────────────────────────────┐
-  │  RESOURCES                                    │
-  │  Data the server exposes (read-only context)  │
-  │  URI-based: "file:///path", "db://table"      │
-  │  Example: database schemas, file contents     │
-  └───────────────────────────────────────────────┘
-  ┌───────────────────────────────────────────────┐
-  │  TOOLS                                        │
-  │  Actions the server can perform (side effects)│
-  │  Have input schema (JSON Schema)              │
-  │  Example: run SQL, create file, send email    │
-  └───────────────────────────────────────────────┘
-  ┌───────────────────────────────────────────────┐
-  │  PROMPTS                                      │
-  │  Reusable prompt templates                    │
-  │  Can include dynamic arguments                │
-  │  Example: "summarize-code", "review-pr"       │
-  └───────────────────────────────────────────────┘
+  <span class="d-l">┌───────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span>  RESOURCES                                    <span class="d-l">│</span>
+  <span class="d-l">│</span>  Data the server exposes (read-only context)  <span class="d-l">│</span>
+  <span class="d-l">│</span>  URI-based: "file:///path", "db://table"      <span class="d-l">│</span>
+  <span class="d-l">│</span>  Example: database schemas, file contents     <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────┘</span>
+  <span class="d-l">┌───────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span>  TOOLS                                        <span class="d-l">│</span>
+  <span class="d-l">│</span>  Actions the server can perform (side effects)<span class="d-l">│</span>
+  <span class="d-l">│</span>  Have input schema (JSON Schema)              <span class="d-l">│</span>
+  <span class="d-l">│</span>  Example: run SQL, create file, send email    <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────┘</span>
+  <span class="d-l">┌───────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span>  PROMPTS                                      <span class="d-l">│</span>
+  <span class="d-l">│</span>  Reusable prompt templates                    <span class="d-l">│</span>
+  <span class="d-l">│</span>  Can include dynamic arguments                <span class="d-l">│</span>
+  <span class="d-l">│</span>  Example: "summarize-code", "review-pr"       <span class="d-l">│</span>
+  <span class="d-l">└───────────────────────────────────────────────┘</span>
 
   JSON-RPC 2.0 MESSAGE FORMAT:
   Request:  {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {...}}
@@ -1356,12 +1368,12 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <h3>4.1 The four message shapes</h3>
             <div class="diagram"><pre>JSON-RPC 2.0 has FOUR message types — that's the whole protocol:
 
- ┌──────────────────────────────────────────────────────────────────┐
- │ 1. REQUEST        has id + method (+params)   → expects a reply  │
- │ 2. SUCCESS REPLY  has id + result             → answers a request│
- │ 3. ERROR REPLY    has id + error              → answers a request│
- │ 4. NOTIFICATION   has method (+params), NO id → fire-and-forget  │
- └──────────────────────────────────────────────────────────────────┘
+ <span class="d-l">┌──────────────────────────────────────────────────────────────────┐</span>
+ <span class="d-l">│</span> 1. REQUEST        has id + method (+params)   <span class="d-a">→</span> expects a reply  <span class="d-l">│</span>
+ <span class="d-l">│</span> 2. SUCCESS REPLY  has id + result             <span class="d-a">→</span> answers a request<span class="d-l">│</span>
+ <span class="d-l">│</span> 3. ERROR REPLY    has id + error              <span class="d-a">→</span> answers a request<span class="d-l">│</span>
+ <span class="d-l">│</span> 4. NOTIFICATION   has method (+params), NO id <span class="d-a">→</span> fire-and-forget  <span class="d-l">│</span>
+ <span class="d-l">└──────────────────────────────────────────────────────────────────┘</span>
 
   Rules that trip people up:
    • Every message MUST carry  "jsonrpc": "2.0"  (literal string).
@@ -1375,19 +1387,19 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <h3>4.2 Anatomy of every field</h3>
             <div class="diagram"><pre>REQUEST                          RESPONSE (success)
 {                                {
-  "jsonrpc": "2.0",  ← required    "jsonrpc": "2.0",  ← required
-  "id": 7,           ← correlate   "id": 7,           ← SAME id echoed
-  "method": "tools/call", ← what   "result": { ... }  ← method's payload
-  "params": { ... }  ← by-name    }
+  "jsonrpc": "2.0",  <span class="d-a">←</span> required    "jsonrpc": "2.0",  <span class="d-a">←</span> required
+  "id": 7,           <span class="d-a">←</span> correlate   "id": 7,           <span class="d-a">←</span> SAME id echoed
+  "method": "tools/call", <span class="d-a">←</span> what   "result": { ... }  <span class="d-a">←</span> method's payload
+  "params": { ... }  <span class="d-a">←</span> by-name    }
 }                                
                                  RESPONSE (error)
 NOTIFICATION                     {
 {                                  "jsonrpc": "2.0",
-  "jsonrpc": "2.0",                "id": 7,           ← SAME id echoed
+  "jsonrpc": "2.0",                "id": 7,           <span class="d-a">←</span> SAME id echoed
   "method": "notifications/...",   "error": {
-  "params": { ... }   ← no id!       "code": -32602,  ← integer
-}                                    "message": "...", ← human string
-                                     "data": { ... }   ← optional detail
+  "params": { ... }   <span class="d-a">←</span> no id!       "code": -32602,  <span class="d-a">←</span> integer
+}                                    "message": "...", <span class="d-a">←</span> human string
+                                     "data": { ... }   <span class="d-a">←</span> optional detail
                                    }
                                  }</pre></div>
             <div class="tbl-wrap">
@@ -1703,12 +1715,12 @@ MCP-specific (outside the reserved block — apps may define their own):
   { <span class="str">"jsonrpc"</span>: <span class="str">"2.0"</span>, <span class="str">"id"</span>: <span class="num">2</span>, <span class="str">"method"</span>: <span class="str">"resources/list"</span> } ]</code></pre>
             <h3>4.9 How JSON-RPC rides each transport</h3>
             <p>The <em>messages</em> above are identical everywhere; only the <strong>framing</strong> differs per transport (see <a href="javascript:void(0)">§10 Transports</a>):</p>
-            <div class="diagram"><pre> stdio            → one JSON object per line (newline-delimited) on stdin/stdout.
+            <div class="diagram"><pre> stdio            <span class="d-a">→</span> one JSON object per line (newline-delimited) on stdin/stdout.
                     stderr is for logs ONLY — never put protocol messages there.
- Streamable HTTP  → JSON object in the POST body; reply is a single JSON
+ Streamable HTTP  <span class="d-a">→</span> JSON object in the POST body; reply is a single JSON
                     response OR an SSE stream of messages; GET opens an SSE
-                    channel for server→client messages.
- SSE (legacy)     → POST /message to send; GET /sse receives an event stream.</pre></div>
+                    channel for server<span class="d-a">→</span>client messages.
+ SSE (legacy)     <span class="d-a">→</span> POST /message to send; GET /sse receives an event stream.</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01MCPNotesmd-5">
@@ -1891,11 +1903,11 @@ server_params = <span class="fn">StdioServerParameters</span>(
           <div class="q-a">
             <p>Transports define how <abbr title="Model Context Protocol">MCP</abbr> clients and servers communicate at the network level, with each option suited to different deployment scenarios. stdio is the fastest option for local subprocess communication, SSE uses HTTP/1.1 Server-Sent Events for remote servers, and Streamable HTTP provides a modern single-endpoint alternative for new deployments.</p>
             <div class="diagram"><pre>TRANSPORT COMPARISON:
-  Transport       │ Use Case              │ Latency │ Setup
-  ────────────────┼───────────────────────┼─────────┼──────────
-  stdio           │ Local process         │ Lowest  │ Simplest
-  SSE             │ Remote, HTTP/1.1      │ Medium  │ Medium
-  Streamable HTTP │ Remote, modern        │ Medium  │ Medium
+  Transport       <span class="d-l">│</span> Use Case              <span class="d-l">│</span> Latency <span class="d-l">│</span> Setup
+  <span class="d-l">────────────────┼───────────────────────┼─────────┼──────────</span>
+  stdio           <span class="d-l">│</span> Local process         <span class="d-l">│</span> Lowest  <span class="d-l">│</span> Simplest
+  SSE             <span class="d-l">│</span> Remote, HTTP/1.1      <span class="d-l">│</span> Medium  <span class="d-l">│</span> Medium
+  Streamable HTTP <span class="d-l">│</span> Remote, modern        <span class="d-l">│</span> Medium  <span class="d-l">│</span> Medium
   
   stdio:  Server runs as subprocess, communicates via stdin/stdout
           Best for: IDE plugins, local tools, CLI tools
@@ -2200,10 +2212,10 @@ tenant_limiters: dict[str, RateLimiter] = {}
             </div>
             <p><strong>Sampling</strong> allows <abbr title="Model Context Protocol">MCP</abbr> servers to request <abbr title="large language model">LLM</abbr> completions from the host/client. Instead of the server calling an LLM API directly (which would require API keys), it asks the client to handle the LLM call. This enables agentic flows where tools can reason, while keeping API keys and model choice with the client.</p>
             <div class="diagram"><pre>Flow:
-  Server → "sampling/createMessage" request → Client
-  Client → routes to LLM (GPT-4o, Claude, etc.) → gets response
-  Client → returns completion to Server
-  Server → uses the LLM output in its tool logic
+  Server <span class="d-a">→</span> "sampling/createMessage" request <span class="d-a">→</span> Client
+  Client <span class="d-a">→</span> routes to LLM (GPT-4o, Claude, etc.) <span class="d-a">→</span> gets response
+  Client <span class="d-a">→</span> returns completion to Server
+  Server <span class="d-a">→</span> uses the LLM output in its tool logic
 
 Use cases:
   - Code review tool asks LLM to analyze code
@@ -2236,7 +2248,7 @@ Example:
       description="Delete a file",
       annotations={
           "readOnlyHint": False,
-          "destructiveHint": True,    ← Client should confirm before calling
+          "destructiveHint": True,    <span class="d-a">←</span> Client should confirm before calling
           "idempotentHint": True,
           "openWorldHint": False
       }
@@ -2259,13 +2271,13 @@ Clients can use annotations to:
             <p><strong>Added in spec <code>2025-06-18</code>.</strong> Sampling (§17) lets a server borrow the host's <em><abbr title="large language model">LLM</abbr></em>. Elicitation lets a server borrow the host's <em>user</em> — pausing mid-tool-call to ask for missing information.</p>
             <p><strong>The problem it solves:</strong> a <code>book_flight</code> tool needs a seat preference the user never mentioned. Without elicitation your only options are to fail, to guess, or to make the <em>model</em> hallucinate a value. With elicitation the server asks, structured and typed, and the host renders a real form.</p>
             <h3>The flow</h3>
-            <div class="diagram"><pre>Client ──── tools/call {book_flight, date: "2026-08-14"} ────► Server
-                                                                 │ needs seat preference
-Client ◄─── elicitation/create {message, requestedSchema} ───────┘
-   │ host renders a form / prompt — THE USER decides, not the LLM
-   └──────► {action: "accept", content: {seat: "aisle"}} ───────► Server
-                                                                 │ completes the booking
-Client ◄─── tools/call result ───────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre>Client <span class="d-l">────</span> tools/call {book_flight, date: "2026-08-14"} <span class="d-l">────</span><span class="d-a">►</span> Server
+                                                                 <span class="d-l">│</span> needs seat preference
+Client <span class="d-a">◄</span><span class="d-l">───</span> elicitation/create {message, requestedSchema} <span class="d-l">───────┘</span>
+   <span class="d-l">│</span> host renders a form / prompt — THE USER decides, not the LLM
+   <span class="d-l">└──────</span><span class="d-a">►</span> {action: "accept", content: {seat: "aisle"}} <span class="d-l">───────</span><span class="d-a">►</span> Server
+                                                                 <span class="d-l">│</span> completes the booking
+Client <span class="d-a">◄</span><span class="d-l">───</span> tools/call result <span class="d-l">───────────────────────────────────┘</span></pre></div>
             <h3>The wire message</h3>
             <pre class="code" data-lang="jsonc"><code><span class="cmt">// Server → Client</span>
 { <span class="str">"jsonrpc"</span>: <span class="str">"2.0"</span>, <span class="str">"id"</span>: <span class="num">42</span>, <span class="str">"method"</span>: <span class="str">"elicitation/create"</span>,
@@ -2491,22 +2503,22 @@ mcp = <span class="fn">FastMCP</span>(<span class="str">"travel"</span>)
               <p><strong>stdio servers are out of scope.</strong> A local subprocess inherits credentials from the environment — there's no network boundary to authorise across. This applies to Streamable HTTP / SSE.</p>
             </div>
             <h3>The role split (the thing to get right)</h3>
-            <div class="diagram"><pre>        ┌──────────────┐  1. tools/call (no token)                ┌─────────────────────┐
-        │  MCP Client  │ ───────────────────────────────────────► │     MCP Server      │
-        │ (host app)   │ ◄─────────────────────────────────────── │  = RESOURCE SERVER  │
-        └──────┬───────┘  2. 401 + WWW-Authenticate: ...          │  (validates tokens, │
-               │             resource_metadata="…/.well-known/    │   never issues them)│
-               │             oauth-protected-resource"            └─────────────────────┘
-               │ 3. GET that URL → Protected Resource Metadata (RFC 9728)
-               │    → tells the client WHICH authorization server to use
-               ▼
-        ┌────────────────────────┐   4. discover metadata (RFC 8414)
-        │  Authorization Server  │   5. dynamic client registration (RFC 7591, optional)
-        │  (Auth0/Entra/Okta/…)  │   6. authorization code + PKCE (RFC 7636)
-        │  ISSUES tokens         │   7. token request WITH resource=… (RFC 8707)
-        └────────────────────────┘
-               │ 8. access token bound to THIS MCP server (aud claim)
-               ▼
+            <div class="diagram"><pre>        <span class="d-l">┌──────────────┐</span>  1. tools/call (no token)                <span class="d-l">┌─────────────────────┐</span>
+        <span class="d-l">│</span>  MCP Client  <span class="d-l">│</span> <span class="d-l">───────────────────────────────────────</span><span class="d-a">►</span> <span class="d-l">│</span>     MCP Server      <span class="d-l">│</span>
+        <span class="d-l">│</span> (host app)   <span class="d-l">│</span> <span class="d-a">◄</span><span class="d-l">───────────────────────────────────────</span> <span class="d-l">│</span>  = RESOURCE SERVER  <span class="d-l">│</span>
+        <span class="d-l">└──────┬───────┘</span>  2. 401 + WWW-Authenticate: ...          <span class="d-l">│</span>  (validates tokens, <span class="d-l">│</span>
+               <span class="d-l">│</span>             resource_metadata="…/.well-known/    <span class="d-l">│</span>   never issues them)<span class="d-l">│</span>
+               <span class="d-l">│</span>             oauth-protected-resource"            <span class="d-l">└─────────────────────┘</span>
+               <span class="d-l">│</span> 3. GET that URL <span class="d-a">→</span> Protected Resource Metadata (RFC 9728)
+               <span class="d-l">│</span>    <span class="d-a">→</span> tells the client WHICH authorization server to use
+               <span class="d-a">▼</span>
+        <span class="d-l">┌────────────────────────┐</span>   4. discover metadata (RFC 8414)
+        <span class="d-l">│</span>  Authorization Server  <span class="d-l">│</span>   5. dynamic client registration (RFC 7591, optional)
+        <span class="d-l">│</span>  (Auth0/Entra/Okta/…)  <span class="d-l">│</span>   6. authorization code + PKCE (RFC 7636)
+        <span class="d-l">│</span>  ISSUES tokens         <span class="d-l">│</span>   7. token request WITH resource=… (RFC 8707)
+        <span class="d-l">└────────────────────────┘</span>
+               <span class="d-l">│</span> 8. access token bound to THIS MCP server (aud claim)
+               <span class="d-a">▼</span>
         Client retries tools/call with  Authorization: Bearer &lt;token&gt;</pre></div>
             <p><strong>The headline:</strong> the MCP server is an OAuth 2.1 <strong>Resource Server</strong>, <em>not</em> an Authorization Server. It validates tokens; it does not issue them. You delegate issuance to a real IdP. This split is what makes MCP auth reviewable by a security team.</p>
             <h3>The RFCs, and what each one is actually for</h3>
@@ -2589,17 +2601,17 @@ UNAUTHORIZED_HEADERS = {
   <span class="str">"scopes_supported"</span>: [<span class="str">"mcp:tools:read"</span>, <span class="str">"mcp:tools:write"</span>],
   <span class="str">"bearer_methods_supported"</span>: [<span class="str">"header"</span>] }</code></pre>
             <h3>Checklist</h3>
-            <div class="diagram"><pre>✅ HTTPS everywhere (tokens in headers, never in query strings)
-✅ Serve /.well-known/oauth-protected-resource; reference it from every 401
-✅ Validate signature + issuer + expiry + AUDIENCE on every request
-✅ Enforce PKCE; reject public clients without it
-✅ Send/require the `resource` parameter (RFC 8707)
-✅ Short-lived access tokens + rotating refresh tokens
-✅ Map OAuth scopes → per-tool permissions (a read scope must not reach a destructive tool)
-✅ Fresh user consent per dynamically registered client
-❌ NEVER forward the caller's token to a downstream API
-❌ NEVER accept a token whose `aud` isn't you
-❌ NEVER let the MCP server double as the authorization server "just for now"</pre></div>
+            <div class="diagram"><pre>√ HTTPS everywhere (tokens in headers, never in query strings)
+√ Serve /.well-known/oauth-protected-resource; reference it from every 401
+√ Validate signature + issuer + expiry + AUDIENCE on every request
+√ Enforce PKCE; reject public clients without it
+√ Send/require the `resource` parameter (RFC 8707)
+√ Short-lived access tokens + rotating refresh tokens
+√ Map OAuth scopes <span class="d-a">→</span> per-tool permissions (a read scope must not reach a destructive tool)
+√ Fresh user consent per dynamically registered client
+× NEVER forward the caller's token to a downstream API
+× NEVER accept a token whose `aud` isn't you
+× NEVER let the MCP server double as the authorization server "just for now"</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01MCPNotesmd-23">
@@ -2743,10 +2755,10 @@ UNAUTHORIZED_HEADERS = {
               <p><strong>One-sentence idea:</strong> Before <abbr title="Model Context Protocol">MCP</abbr>, every agent app re-implemented its <em>own</em> connector to every tool and data source — <strong>M apps × N tools = M×N</strong> bespoke, incompatible integrations. <strong>MCP</strong> is a single open protocol (think "<strong>USB-C for AI</strong> tools," or LSP for editors): a tool is wrapped <strong>once</strong> as an MCP <strong>server</strong>, and <strong>any</strong> MCP-speaking app can use it — turning M×N into <strong>M+N</strong>.</p>
             </div>
             <div class="diagram"><pre>Without MCP (M×N):                         With MCP (M+N):
- app1 ─┬─ custom→ GitHub                    app1 ─┐                ┌─ GitHub server
- app2 ─┼─ custom→ Slack                     app2 ─┤  speak  MCP    ├─ Slack server
- app3 ─┴─ custom→ Postgres                  app3 ─┘   ▲     ▲      └─ Postgres server
-   (every line is bespoke glue)                       └─────┘  one protocol, reusable servers</pre></div>
+ app1 <span class="d-l">─┬─</span> custom<span class="d-a">→</span> GitHub                    app1 <span class="d-l">─┐</span>                <span class="d-l">┌─</span> GitHub server
+ app2 <span class="d-l">─┼─</span> custom<span class="d-a">→</span> Slack                     app2 <span class="d-l">─┤</span>  speak  MCP    <span class="d-l">├─</span> Slack server
+ app3 <span class="d-l">─┴─</span> custom<span class="d-a">→</span> Postgres                  app3 <span class="d-l">─┘</span>   <span class="d-a">▲</span>     <span class="d-a">▲</span>      <span class="d-l">└─</span> Postgres server
+   (every line is bespoke glue)                       <span class="d-l">└─────┘</span>  one protocol, reusable servers</pre></div>
             <div class="note">
               <p><strong>Where it fits in this folder:</strong> MCP is the <em>plumbing layer under tool-calling</em>. Everything in <a href="../08_LangChain_and_LangGraph/production.html#f40AgenticAIFai">Agentic AI Failure Modes</a> (loop limits, validate tool I/O, untrusted tool output, <abbr title="human in the loop">HITL</abbr> on dangerous actions) <strong>still applies</strong> — MCP standardizes <em>how</em> tools are exposed; it does <strong>not</strong> make them safe. It also <em>widens</em> the attack surface, which is the second half of this file.</p>
             </div>
@@ -2852,16 +2864,16 @@ UNAUTHORIZED_HEADERS = {
           <div class="q-a">
             <div class="keyterms"><span class="kt">host</span><span class="kt">approval/HITL</span><span class="kt">Discovery is dynamic</span>
             </div>
-            <div class="diagram"><pre>┌───────────────────────── HOST (your agent / IDE / chat app) ────────────────────────┐
-│   owns the LLM + orchestration + the SECURITY BOUNDARY (approvals, which tools run) │
-│                                                                                     │
-│   ┌─ Client A ─┐        ┌─ Client B ─┐        ┌─ Client C ─┐   (one client/server)  │
-└───┼────────────┼────────┼────────────┼────────┼────────────┼────────────────────────┘
-    │ stdio      │        │ HTTP        │       │ HTTP                                │
- ┌──▼──────────┐ │     ┌──▼──────────┐  │    ┌──▼──────────┐                          │
- │ Filesystem  │ │     │ GitHub      │  │    │ Postgres    │  │   MCP SERVERS
- │ server      │ │     │ server (SaaS)│ │    │ server      │  │   expose tools/
- └─────────────┘ │     └─────────────┘  │    └─────────────┘  │   resources/prompts</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌─────────────────────────</span> HOST (your agent / IDE / chat app) <span class="d-l">────────────────────────┐</span>
+<span class="d-l">│</span>   owns the LLM + orchestration + the SECURITY BOUNDARY (approvals, which tools run) <span class="d-l">│</span>
+<span class="d-l">│</span>                                                                                     <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">┌─</span> Client A <span class="d-l">─┐</span>        <span class="d-l">┌─</span> Client B <span class="d-l">─┐</span>        <span class="d-l">┌─</span> Client C <span class="d-l">─┐</span>   (one client/server)  <span class="d-l">│</span>
+<span class="d-l">└───┼────────────┼────────┼────────────┼────────┼────────────┼────────────────────────┘</span>
+    <span class="d-l">│</span> stdio      <span class="d-l">│</span>        <span class="d-l">│</span> HTTP        <span class="d-l">│</span>       <span class="d-l">│</span> HTTP                                <span class="d-l">│</span>
+ <span class="d-l">┌──</span><span class="d-a">▼</span><span class="d-l">──────────┐</span> <span class="d-l">│</span>     <span class="d-l">┌──</span><span class="d-a">▼</span><span class="d-l">──────────┐</span>  <span class="d-l">│</span>    <span class="d-l">┌──</span><span class="d-a">▼</span><span class="d-l">──────────┐</span>                          <span class="d-l">│</span>
+ <span class="d-l">│</span> Filesystem  <span class="d-l">│</span> <span class="d-l">│</span>     <span class="d-l">│</span> GitHub      <span class="d-l">│</span>  <span class="d-l">│</span>    <span class="d-l">│</span> Postgres    <span class="d-l">│</span>  <span class="d-l">│</span>   MCP SERVERS
+ <span class="d-l">│</span> server      <span class="d-l">│</span> <span class="d-l">│</span>     <span class="d-l">│</span> server (SaaS)<span class="d-l">│</span> <span class="d-l">│</span>    <span class="d-l">│</span> server      <span class="d-l">│</span>  <span class="d-l">│</span>   expose tools/
+ <span class="d-l">└─────────────┘</span> <span class="d-l">│</span>     <span class="d-l">└─────────────┘</span>  <span class="d-l">│</span>    <span class="d-l">└─────────────┘</span>  <span class="d-l">│</span>   resources/prompts</pre></div>
             <ul>
               <li>The <strong>host</strong> is the trust authority: it decides which servers to connect, surfaces tool calls for <strong>approval/<abbr title="human in the loop">HITL</abbr></strong> (<a href="../08_LangChain_and_LangGraph/production.html#f40AgenticAIFai">10</a> §7), and enforces budgets/limits. Servers never talk to each other; everything routes through the host.</li>
               <li><strong>Discovery is dynamic:</strong> the agent learns the available tools at runtime from each server — great for extensibility, but it means <strong>new, unvetted capabilities can appear</strong> (see security).</li>
@@ -3081,14 +3093,14 @@ result = <span class="kw">await</span> session.<span class="fn">call_tool</span>
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Need to give an agent a capability?
-   │
-   ├─ Is it a REUSABLE integration (shared across apps/teams), or does a vetted server already exist?
-   │     └─ YES → use/expose an MCP SERVER (write once, any host uses it)
-   │
-   ├─ A couple of bespoke, in-process tools for ONE app?
-   │     └─ Raw provider function-calling is simpler (file 18) — skip the protocol hop
-   │
-   └─ Whichever you pick, the guardrails are STILL yours:
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Is it a REUSABLE integration (shared across apps/teams), or does a vetted server already exist?
+   <span class="d-l">│</span>     <span class="d-l">└─</span> YES <span class="d-a">→</span> use/expose an MCP SERVER (write once, any host uses it)
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> A couple of bespoke, in-process tools for ONE app?
+   <span class="d-l">│</span>     <span class="d-l">└─</span> Raw provider function-calling is simpler (file 18) — skip the protocol hop
+   <span class="d-l">│</span>
+   <span class="d-l">└─</span> Whichever you pick, the guardrails are STILL yours:
          allow-list + pin servers · least-privilege scoped creds · validate tool I/O
          · treat descriptions + results as untrusted · HITL dangerous tools · trace + eval
          (files 10, 15, 17, 18, 19)</pre></div>

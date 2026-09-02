@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1125,21 +1137,21 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
           <div class="q-a">
             <p>The Linux file system follows a hierarchical directory structure rooted at <code>/</code>, with standardized paths for binaries (<code>/bin</code>, <code>/usr/bin</code>), configuration (<code>/etc</code>), user data (<code>/home</code>), logs (<code>/var/log</code>), and temporary files (<code>/tmp</code>). Understanding this layout and the essential navigation commands is fundamental to working effectively in any Linux-based development or production environment.</p>
             <div class="diagram"><pre>/               Root of everything
-├── bin/        Essential binaries (ls, cp, mv)
-├── etc/        Configuration files
-├── home/       User home directories
-├── var/        Variable data (logs, databases)
-│   ├── log/    System logs
-│   └── tmp/    Temporary files (persist across reboot)
-├── tmp/        Temporary files (cleared on reboot)
-├── usr/        User programs and data
-│   ├── bin/    User binaries
-│   ├── lib/    Libraries
-│   └── local/  Locally installed software
-├── opt/        Optional/third-party packages
-├── proc/       Virtual filesystem (process info)
-├── dev/        Device files
-└── mnt/        Mount points
+<span class="d-l">├──</span> bin/        Essential binaries (ls, cp, mv)
+<span class="d-l">├──</span> etc/        Configuration files
+<span class="d-l">├──</span> home/       User home directories
+<span class="d-l">├──</span> var/        Variable data (logs, databases)
+<span class="d-l">│</span>   <span class="d-l">├──</span> log/    System logs
+<span class="d-l">│</span>   <span class="d-l">└──</span> tmp/    Temporary files (persist across reboot)
+<span class="d-l">├──</span> tmp/        Temporary files (cleared on reboot)
+<span class="d-l">├──</span> usr/        User programs and data
+<span class="d-l">│</span>   <span class="d-l">├──</span> bin/    User binaries
+<span class="d-l">│</span>   <span class="d-l">├──</span> lib/    Libraries
+<span class="d-l">│</span>   <span class="d-l">└──</span> local/  Locally installed software
+<span class="d-l">├──</span> opt/        Optional/third-party packages
+<span class="d-l">├──</span> proc/       Virtual filesystem (process info)
+<span class="d-l">├──</span> dev/        Device files
+<span class="d-l">└──</span> mnt/        Mount points
 
 KEY COMMANDS:
   pwd                       # Print working directory
@@ -1649,10 +1661,10 @@ fi</code></pre></div><button class="reveal">Reveal answer</button>
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <p>Docker is a platform that packages applications and their dependencies into <strong>containers</strong> — lightweight, portable, self-sufficient units that run consistently anywhere.</p>
-          <div class="diagram"><pre>"It works on my machine"          →  "It works in a container"
+          <div class="diagram"><pre>"It works on my machine"          <span class="d-a">→</span>  "It works in a container"
                                        (which runs ANYWHERE)
 
-Developer's Laptop  →  Container  →  CI/CD Server  →  Production Server
+Developer's Laptop  <span class="d-a">→</span>  Container  <span class="d-a">→</span>  CI/CD Server  <span class="d-a">→</span>  Production Server
      Same container, same behavior, everywhere.</pre></div>
           <h3>Why Docker?</h3>
           <div class="tbl-wrap">
@@ -1692,22 +1704,22 @@ Developer's Laptop  →  Container  →  CI/CD Server  →  Production Server
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <div class="diagram"><pre>Virtual Machine:                     Docker Container:
-┌─────────────────┐                  ┌─────────────────┐
-│     App A       │                  │     App A       │
-│   Libraries     │                  │   Libraries     │
-│   Guest OS      │  ← Full OS      ├──────────────────┤
-│   (2+ GB)       │                  │     App B       │
-├─────────────────┤                  │   Libraries     │
-│     App B       │                  ├─────────────────┤
-│   Libraries     │                  │  Docker Engine  │ ← Shared
-│   Guest OS      │  ← Another OS   ├──────────────────┤
-├─────────────────┤                  │   Host OS       │ ← Single OS
-│   Hypervisor    │                  ├─────────────────┤
-├─────────────────┤                  │   Hardware      │
-│   Host OS       │                  └─────────────────┘
-├─────────────────┤
-│   Hardware      │
-└─────────────────┘</pre></div>
+<span class="d-l">┌─────────────────┐</span>                  <span class="d-l">┌─────────────────┐</span>
+<span class="d-l">│</span>     App A       <span class="d-l">│</span>                  <span class="d-l">│</span>     App A       <span class="d-l">│</span>
+<span class="d-l">│</span>   Libraries     <span class="d-l">│</span>                  <span class="d-l">│</span>   Libraries     <span class="d-l">│</span>
+<span class="d-l">│</span>   Guest OS      <span class="d-l">│</span>  <span class="d-a">←</span> Full OS      <span class="d-l">├──────────────────┤</span>
+<span class="d-l">│</span>   (2+ GB)       <span class="d-l">│</span>                  <span class="d-l">│</span>     App B       <span class="d-l">│</span>
+<span class="d-l">├─────────────────┤</span>                  <span class="d-l">│</span>   Libraries     <span class="d-l">│</span>
+<span class="d-l">│</span>     App B       <span class="d-l">│</span>                  <span class="d-l">├─────────────────┤</span>
+<span class="d-l">│</span>   Libraries     <span class="d-l">│</span>                  <span class="d-l">│</span>  Docker Engine  <span class="d-l">│</span> <span class="d-a">←</span> Shared
+<span class="d-l">│</span>   Guest OS      <span class="d-l">│</span>  <span class="d-a">←</span> Another OS   <span class="d-l">├──────────────────┤</span>
+<span class="d-l">├─────────────────┤</span>                  <span class="d-l">│</span>   Host OS       <span class="d-l">│</span> <span class="d-a">←</span> Single OS
+<span class="d-l">│</span>   Hypervisor    <span class="d-l">│</span>                  <span class="d-l">├─────────────────┤</span>
+<span class="d-l">├─────────────────┤</span>                  <span class="d-l">│</span>   Hardware      <span class="d-l">│</span>
+<span class="d-l">│</span>   Host OS       <span class="d-l">│</span>                  <span class="d-l">└─────────────────┘</span>
+<span class="d-l">├─────────────────┤</span>
+<span class="d-l">│</span>   Hardware      <span class="d-l">│</span>
+<span class="d-l">└─────────────────┘</span></pre></div>
           <div class="tbl-wrap">
             <table class="t3">
               <thead>
@@ -1761,22 +1773,22 @@ Developer's Laptop  →  Container  →  CI/CD Server  →  Production Server
         <div class="parthead" id="fdockeranddocke-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-code"/></svg>3. Core Concepts</span><i></i>
         </div>
         <div class="q-a" style="margin:0 0 12px">
-          <div class="diagram"><pre>┌──────────────────────────────────────────────┐
-│                  Docker Hub                   │  ← Public registry
-│              (registry.hub.docker.com)        │     (like npm/PyPI for images)
-└──────────────────────┬───────────────────────┘
-                       │ docker pull / push
-                       ▼
-┌──────────────────────────────────────────────┐
-│              Docker Image                     │  ← Blueprint / Template
-│  (Read-only layers: OS + deps + code)         │     (like a class)
-└──────────────────────┬───────────────────────┘
-                       │ docker run
-                       ▼
-┌──────────────────────────────────────────────┐
-│             Docker Container                  │  ← Running instance
-│  (Writable layer on top of image)             │     (like an object)
-└──────────────────────────────────────────────┘</pre></div>
+          <div class="diagram"><pre><span class="d-l">┌──────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                  Docker Hub                   <span class="d-l">│</span>  <span class="d-a">←</span> Public registry
+<span class="d-l">│</span>              (registry.hub.docker.com)        <span class="d-l">│</span>     (like npm/PyPI for images)
+<span class="d-l">└──────────────────────┬───────────────────────┘</span>
+                       <span class="d-l">│</span> docker pull / push
+                       <span class="d-a">▼</span>
+<span class="d-l">┌──────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>              Docker Image                     <span class="d-l">│</span>  <span class="d-a">←</span> Blueprint / Template
+<span class="d-l">│</span>  (Read-only layers: OS + deps + code)         <span class="d-l">│</span>     (like a class)
+<span class="d-l">└──────────────────────┬───────────────────────┘</span>
+                       <span class="d-l">│</span> docker run
+                       <span class="d-a">▼</span>
+<span class="d-l">┌──────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>             Docker Container                  <span class="d-l">│</span>  <span class="d-a">←</span> Running instance
+<span class="d-l">│</span>  (Writable layer on top of image)             <span class="d-l">│</span>     (like an object)
+<span class="d-l">└──────────────────────────────────────────────┘</span></pre></div>
           <h3>Key Terminology</h3>
           <div class="tbl-wrap">
             <table class="t3">
@@ -1876,12 +1888,12 @@ docker pull python:latest        <span class="cmt"># Latest version (avoid in pr
           <h3>5.3 Image Layers</h3>
           <div class="diagram"><pre>Image = Stack of read-only layers
 
-Layer 4: COPY . /app            ← Your application code
-Layer 3: RUN pip install -r ...  ← Python packages
-Layer 2: RUN apt-get install ... ← System packages
-Layer 1: FROM python:3.11-slim   ← Base OS + Python
+Layer 4: COPY . /app            <span class="d-a">←</span> Your application code
+Layer 3: RUN pip install -r ...  <span class="d-a">←</span> Python packages
+Layer 2: RUN apt-get install ... <span class="d-a">←</span> System packages
+Layer 1: FROM python:3.11-slim   <span class="d-a">←</span> Base OS + Python
 
-Each layer is cached! Change in Layer 4 → only rebuilds Layer 4.</pre></div>
+Each layer is cached! Change in Layer 4 <span class="d-a">→</span> only rebuilds Layer 4.</pre></div>
           <h3>5.4 Managing Images</h3>
           <pre class="code" data-lang="bash"><code><span class="cmt"># Remove an image</span>
 docker rmi python:<span class="num">3</span>.<span class="num">11</span>-slim
@@ -2258,9 +2270,9 @@ docker run -d \
           <h3>10.1 What Is Docker Compose?</h3>
           <p>Docker Compose defines and runs <strong>multi-container applications</strong> using a single YAML file.</p>
           <div class="diagram"><pre>Without Compose:                    With Compose:
-─────────────────                   ─────────────
+<span class="d-l">─────────────────</span>                   <span class="d-l">─────────────</span>
 docker network create ...           docker compose up
-docker run postgres ...                 ↓
+docker run postgres ...                 <span class="d-a">↓</span>
 docker run redis ...                Starts ALL services
 docker run api ...                  with networking,
 docker run nginx ...                volumes, env vars
@@ -3162,7 +3174,7 @@ message UserResponse {
             <div class="diagram"><pre>Benchmark (typical):
   REST  (JSON/HTTP1.1) : ~10ms avg latency, ~5,000 req/sec
   gRPC  (Proto/HTTP2)  : ~2ms avg latency, ~20,000 req/sec
-                                          ↑ ~4× throughput gain</pre></div>
+                                          <span class="d-a">↑</span> ~4× throughput gain</pre></div>
             <div class="note n-good">
               <p><strong>Rule of thumb:</strong> gRPC is typically <strong><span class="mag">2–5×</span> faster</strong> than REST for equivalent operations.</p>
             </div>
@@ -3281,15 +3293,15 @@ service DataService {
           <div class="q-a">
             <p>A typical production system uses <strong>both</strong>:</p>
             <div class="diagram"><pre>[Browser / Mobile App]
-               │
-         │  REST (HTTP/JSON) — public, flexible, browser-native
-         ▼
+               <span class="d-l">│</span>
+         <span class="d-l">│</span>  REST (HTTP/JSON) — public, flexible, browser-native
+         <span class="d-a">▼</span>
 [API Gateway / Backend for Frontend]
-               │
-         │  gRPC (Protobuf/HTTP2) — fast, streaming, typed
-         ▼
+               <span class="d-l">│</span>
+         <span class="d-l">│</span>  gRPC (Protobuf/HTTP2) — fast, streaming, typed
+         <span class="d-a">▼</span>
 [Internal Microservices]
-    ┌────┴─────┐
+    <span class="d-l">┌────┴─────┐</span>
 [Model Server] [Auth Service] [Data Service]</pre></div>
             <div class="note">
               <p>Expose REST externally for compatibility. Use <abbr title="Google Remote Procedure Call">gRPC</abbr> internally for performance.</p>
@@ -3401,24 +3413,24 @@ app = <span class="fn">Flask</span>(__name__)
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Is your consumer a browser or unknown third party?
-  → YES → Use REST
+  <span class="d-a">→</span> YES <span class="d-a">→</span> Use REST
 
 Do you need streaming (tokens, events, live data)?
-  → YES → Use gRPC
+  <span class="d-a">→</span> YES <span class="d-a">→</span> Use gRPC
 
 Is this internal service-to-service communication?
-  → YES → Use gRPC
+  <span class="d-a">→</span> YES <span class="d-a">→</span> Use gRPC
 
 Do you need human-readable payloads for easy debugging?
-  → YES → Use REST
+  <span class="d-a">→</span> YES <span class="d-a">→</span> Use REST
 
 Is latency or throughput critical (&gt;10k req/sec)?
-  → YES → Use gRPC
+  <span class="d-a">→</span> YES <span class="d-a">→</span> Use gRPC
 
 Building a public API others will integrate with?
-  → YES → Use REST
+  <span class="d-a">→</span> YES <span class="d-a">→</span> Use REST
 
-Not sure? → Use REST externally + gRPC internally</pre></div>
+Not sure? <span class="d-a">→</span> Use REST externally + gRPC internally</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f07gRPCvsRESTmd-45">

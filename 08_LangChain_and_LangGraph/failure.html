@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1513,20 +1525,20 @@ tool_node = <span class="fn">ToolNode</span>(
             <p>This is the heart of the question: <em>in a multi-agent orchestrator, if an agent fails, what do you do?</em> A sub-agent is a compiled graph used as a node, so it can fail in <strong>agent-specific</strong> ways beyond a plain exception: it can return a low-confidence/empty answer, get stuck in a loop, exceed its budget, or drift off-task.</p>
             <p><strong>The orchestrator's decision ladder for a failed worker</strong> (try in order, stop at first success):</p>
             <div class="diagram"><pre>   worker fails
-        │
-        ▼
+        <span class="d-l">│</span>
+        <span class="d-a">▼</span>
   1. RETRY same worker      (transient? bounded attempts, backoff)
-        │ still failing
-        ▼
+        <span class="d-l">│</span> still failing
+        <span class="d-a">▼</span>
   2. FALLBACK worker/path   (different agent, cheaper model, cached/canned answer)
-        │ still failing
-        ▼
+        <span class="d-l">│</span> still failing
+        <span class="d-a">▼</span>
   3. DEGRADE                (drop this worker's contribution, continue with the rest)
-        │ can't degrade (this result is essential)
-        ▼
+        <span class="d-l">│</span> can't degrade (this result is essential)
+        <span class="d-a">▼</span>
   4. ESCALATE               (human-in-the-loop / dead-letter with full state)
-        │ unrecoverable + side-effects exist
-        ▼
+        <span class="d-l">│</span> unrecoverable + side-effects exist
+        <span class="d-a">▼</span>
   5. ABORT + COMPENSATE     (roll back, return a clean, safe failure)</pre></div>
             <p>Encoded as a <abbr title="an agent that routes work to other agents and owns the overall plan">supervisor</abbr> that tracks attempts and a <strong>per-task failure budget</strong>:</p>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> langgraph.graph <span class="kw">import</span> StateGraph, END
@@ -1866,21 +1878,21 @@ app.<span class="fn">invoke</span>(<span class="kw">None</span>, config)      <s
           </div>
           <div class="q-a">
             <p>How the pieces compose in one <abbr title="an agent that routes work to other agents and owns the overall plan">supervisor</abbr> graph:</p>
-            <div class="diagram"><pre>                       ┌─────────────────────────────────────────┐
-                       │            SUPERVISOR (router)          │
-                       │  reads state.error → picks a verb:      │
-                       │  retry · fallback · degrade · escalate  │
-                       └─────────────────────────────────────────┘
-      ┌───────────────┬──────────────┴───────┬──────────────┬────┐
-      ▼               ▼                      ▼              ▼              ▼
- ┌─────────┐    ┌─────────┐            ┌─────────┐   ┌──────────┐   ┌──────────┐
- │worker A │    │worker B │  …fan-out  │worker N │   │  human   │   │ aggregate│
- │(bulkhead│    │(bulkhead│            │(bulkhead│   │  review  │   │ (quorum/ │
- │ budget) │    │ budget) │            │ budget) │   │ (HITL)   │   │ degrade) │
- └────┬────┘    └────┬────┘            └────┬────┘   └────┬─────┘   └────┬─────┘
-      │  each: safe_node (catch→error), RetryPolicy,      │                    │
-      │  timeout, circuit breaker, idempotent side-effects│              ▼
-      └──────────── all write to shared state ────────────┘            END
+            <div class="diagram"><pre>                       <span class="d-l">┌─────────────────────────────────────────┐</span>
+                       <span class="d-l">│</span>            SUPERVISOR (router)          <span class="d-l">│</span>
+                       <span class="d-l">│</span>  reads state.error <span class="d-a">→</span> picks a verb:      <span class="d-l">│</span>
+                       <span class="d-l">│</span>  retry · fallback · degrade · escalate  <span class="d-l">│</span>
+                       <span class="d-l">└─────────────────────────────────────────┘</span>
+      <span class="d-l">┌───────────────┬──────────────┴───────┬──────────────┬────┐</span>
+      <span class="d-a">▼</span>               <span class="d-a">▼</span>                      <span class="d-a">▼</span>              <span class="d-a">▼</span>              <span class="d-a">▼</span>
+ <span class="d-l">┌─────────┐</span>    <span class="d-l">┌─────────┐</span>            <span class="d-l">┌─────────┐</span>   <span class="d-l">┌──────────┐</span>   <span class="d-l">┌──────────┐</span>
+ <span class="d-l">│</span>worker A <span class="d-l">│</span>    <span class="d-l">│</span>worker B <span class="d-l">│</span>  …fan-out  <span class="d-l">│</span>worker N <span class="d-l">│</span>   <span class="d-l">│</span>  human   <span class="d-l">│</span>   <span class="d-l">│</span> aggregate<span class="d-l">│</span>
+ <span class="d-l">│</span>(bulkhead<span class="d-l">│</span>    <span class="d-l">│</span>(bulkhead<span class="d-l">│</span>            <span class="d-l">│</span>(bulkhead<span class="d-l">│</span>   <span class="d-l">│</span>  review  <span class="d-l">│</span>   <span class="d-l">│</span> (quorum/ <span class="d-l">│</span>
+ <span class="d-l">│</span> budget) <span class="d-l">│</span>    <span class="d-l">│</span> budget) <span class="d-l">│</span>            <span class="d-l">│</span> budget) <span class="d-l">│</span>   <span class="d-l">│</span> (HITL)   <span class="d-l">│</span>   <span class="d-l">│</span> degrade) <span class="d-l">│</span>
+ <span class="d-l">└────┬────┘</span>    <span class="d-l">└────┬────┘</span>            <span class="d-l">└────┬────┘</span>   <span class="d-l">└────┬─────┘</span>   <span class="d-l">└────┬─────┘</span>
+      <span class="d-l">│</span>  each: safe_node (catch<span class="d-a">→</span>error), RetryPolicy,      <span class="d-l">│</span>                    <span class="d-l">│</span>
+      <span class="d-l">│</span>  timeout, circuit breaker, idempotent side-effects<span class="d-l">│</span>              <span class="d-a">▼</span>
+      <span class="d-l">└────────────</span> all write to shared state <span class="d-l">────────────┘</span>            END
    Cross-cutting: checkpointer (resume-after-crash) · budget_guard · observability</pre></div>
             <p>Wiring highlights (each maps to a surface above):</p>
             <pre class="code" data-lang="python"><code>graph = <span class="fn">StateGraph</span>(OrchState)
@@ -1971,7 +1983,7 @@ app = graph.<span class="fn">compile</span>(checkpointer=checkpointer)          
               <p><strong>One-sentence idea:</strong> A LangChain chain is a pipeline of <code>Runnable</code>s wired with <code>|</code>, and <strong>any step can fail</strong> — so resilience is built by <em>decorating each step</em> with retry/fallback/timeout, and by turning "fragile free-text parsing" into "validated structured output or a clean error," rather than hoping the happy path holds.</p>
             </div>
             <p>The instinct is to write <code>prompt | model | parser</code> and move on. Production is what happens when <code>model</code> rate-limits, <code>parser</code> chokes on malformed JSON, or a tool raises. The reframe:</p>
-            <div class="diagram"><pre>DON'T think:  "prompt | model | parser  →  answer"
+            <div class="diagram"><pre>DON'T think:  "prompt | model | parser  <span class="d-a">→</span>  answer"
 DO think:     "each | is a boundary where the left side can be slow, error,
                rate-limit, or return something the right side can't handle —
                and every boundary needs a decided behavior."</pre></div>
@@ -2555,7 +2567,7 @@ chain.<span class="fn">invoke</span>(payload, config={<span class="str">"callbac
               <p><strong>One-sentence idea:</strong> <abbr title="retrieval-augmented generation">RAG</abbr>'s promise is "ground the answer in retrieved facts," but <strong>every RAG failure is a variation of "the model answered from the wrong context — or no context — and you didn't notice."</strong> Resilience means (a) <em>detecting</em> bad/empty retrieval before generation, and (b) <em>degrading honestly</em> — say "I don't know," retrieve differently, or escalate — instead of confidently hallucinating.</p>
             </div>
             <p>The dangerous thing about RAG failures is they're <strong>silent</strong>: retrieval returns <em>something</em> (just irrelevant), the <abbr title="large language model">LLM</abbr> dutifully writes a fluent answer from it, and nothing errors. The reframe:</p>
-            <div class="diagram"><pre>DON'T think:  "retrieve top-k  →  stuff into prompt  →  grounded answer"
+            <div class="diagram"><pre>DON'T think:  "retrieve top-k  <span class="d-a">→</span>  stuff into prompt  <span class="d-a">→</span>  grounded answer"
 DO think:     "retrieval can return nothing, wrong chunks, stale chunks, or
                poisoned chunks — and the LLM will confidently answer from
                whatever it gets. GUARD the boundary between retrieval and

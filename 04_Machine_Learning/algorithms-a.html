@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1647,8 +1659,8 @@ ada.<span class="fn">fit</span>(X_train, y_train)</code></pre></div><button clas
               majority territory — and concentrates new synthetic samples there.</p>
             <div class="diagram"><pre>SMOTE: equal synthesis per minority point
 ADASYN: more synthesis where minority is outnumbered (boundary), fewer in safe interior
-   majority ████████ | ● ●  ← boundary minority gets MANY synthetics
-                       ●●●●  ← interior minority gets FEW</pre></div>
+   majority ████████ | ● ●  <span class="d-a">←</span> boundary minority gets MANY synthetics
+                       ●●●●  <span class="d-a">←</span> interior minority gets FEW</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fadasynmd-18">
@@ -5291,11 +5303,11 @@ gb.<span class="fn">fit</span>(X_train, y_train)</code></pre>
               leaves are points, the root is everything. The <strong>height</strong> of a merge encodes how
               dissimilar the merged clusters were.</p>
             <div class="diagram"><pre>distance
-  │        ┌──────┐         cut here ─ ─ ─ ─ ─ ─ → 2 clusters
-  │     ┌──┘        │
-  │   ┌─┘       ┌─┴─┐
-  │  ┌┴┐       ┌┴┐  │
-  └──A B───────C D──E   (leaves = data points)</pre></div>
+  <span class="d-l">│</span>        <span class="d-l">┌──────┐</span>         cut here <span class="d-l">─</span> <span class="d-l">─</span> <span class="d-l">─</span> <span class="d-l">─</span> <span class="d-l">─</span> <span class="d-l">─</span> <span class="d-a">→</span> 2 clusters
+  <span class="d-l">│</span>     <span class="d-l">┌──┘</span>        <span class="d-l">│</span>
+  <span class="d-l">│</span>   <span class="d-l">┌─┘</span>       <span class="d-l">┌─┴─┐</span>
+  <span class="d-l">│</span>  <span class="d-l">┌┴┐</span>       <span class="d-l">┌┴┐</span>  <span class="d-l">│</span>
+  <span class="d-l">└──</span>A B<span class="d-l">───────</span>C D<span class="d-l">──</span>E   (leaves = data points)</pre></div>
             <p>To get clusters, <strong>cut horizontally</strong>: the number of vertical lines crossed = the number
               of clusters. Lower cut → more clusters.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -5746,7 +5758,7 @@ labels = hc.<span class="fn">fit_predict</span>(X)
               a dense cluster needs <strong>many</strong> splits to peel away from its neighbors; an outlier sitting
               off on its own gets isolated in <strong>a few</strong>. Short average path = anomaly.</p>
             <div class="diagram"><pre>normal point (deep leaf)        anomaly (shallow leaf)
-  o─o─o─o─o─o─o (many splits)      o─o (isolated fast)</pre></div>
+  o<span class="d-l">─</span>o<span class="d-l">─</span>o<span class="d-l">─</span>o<span class="d-l">─</span>o<span class="d-l">─</span>o<span class="d-l">─</span>o (many splits)      o<span class="d-l">─</span>o (isolated fast)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fisolationfores-154">
@@ -6167,9 +6179,9 @@ score = -iso.<span class="fn">score_samples</span>(X_test)   <span class="cmt">#
               <li><strong>Update:</strong> each centroid moves to the mean of its assigned points.</li>
             </ol>
             <div class="diagram"><pre>init        assign         update         converged
- ×  ·        ×→a ·→a        a,b move        stable
-   ·  ×        ·→b ×→b      to means of    clusters
- ·    ·      ·→a   ·→b      their points</pre></div>
+ ×  ·        ×<span class="d-a">→</span>a ·<span class="d-a">→</span>a        a,b move        stable
+   ·  ×        ·<span class="d-a">→</span>b ×<span class="d-a">→</span>b      to means of    clusters
+ ·    ·      ·<span class="d-a">→</span>a   ·<span class="d-a">→</span>b      their points</pre></div>
             <p><strong>Worked iteration.</strong> 1-D points <span class="mth">{1,2,10,11}</span>, <span class="mth"><i>k</i><span class="mth-op">=</span>2</span>, init <span class="mth"><span class="mth-gr">μ</span><sub>1</sub><span class="mth-op">=</span>1,<span class="mth-gr">μ</span><sub>2</sub><span class="mth-op">=</span>2</span>.
               - <em>Assign:</em> 1→μ1; 2,10,11→μ2. <em>Update:</em> μ1=1, μ2=mean(2,10,11)=7.67.
               - <em>Assign:</em> 1,2→μ1; 10,11→μ2. <em>Update:</em> μ1=1.5, μ2=10.5. <em>Assign again:</em> unchanged →
@@ -6759,7 +6771,7 @@ labels = km.<span class="fn">fit_predict</span>(X)
               you've seen and go with the majority. "Similar" = small distance in feature space.</p>
             <div class="diagram"><pre>      ×  ×            ? = new point (query)
    ×   (?)  ○         circle = its k nearest neighbors
-        ○  ○          → vote among the circled points</pre></div>
+        ○  ○          <span class="d-a">→</span> vote among the circled points</pre></div>
             <ul>
               <li>Small <strong>k</strong> → flexible, jagged boundary (low bias, <strong>high variance</strong>, noise-sensitive).</li>
               <li>Large <strong>k</strong> → smooth boundary (<strong>high bias</strong>, low variance); at <span class="mth"><i>k</i><span class="mth-op">=</span><i>n</i></span> it predicts

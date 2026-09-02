@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1352,16 +1364,16 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <h3>Prompting technique ladder (intuition → when to reach for it)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f19ClientRoundP-2"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>zero-shot            "just ask"                         → simple, well-known tasks
-few-shot / ICL        add 2-5 examples                   → format control, edge-case shaping
-CoT                    "think step by step"               → arithmetic, multi-hop, logic
-self-consistency       CoT × N samples + vote             → CoT still flaky, cost tolerable
-ReAct                  thought → act → observe loop       → needs tools/external info
-Tree-of-Thought (ToT)  branch + evaluate + backtrack       → search-like problems, planning
-Reflexion              act → self-critique → retry         → agent needs to learn within an episode
-Least-to-most          decompose into ordered subproblems  → hard tasks with dependency chains
-Program-aided (PAL)    LLM writes code, executor computes  → precise math/logic, avoid LLM arithmetic errors
-Meta-prompting / APE    LLM writes/optimizes the prompt itself → prompt not yet good enough by hand</pre></div>
+            <div class="diagram"><pre>zero-shot            "just ask"                         <span class="d-a">→</span> simple, well-known tasks
+few-shot / ICL        add 2-5 examples                   <span class="d-a">→</span> format control, edge-case shaping
+CoT                    "think step by step"               <span class="d-a">→</span> arithmetic, multi-hop, logic
+self-consistency       CoT × N samples + vote             <span class="d-a">→</span> CoT still flaky, cost tolerable
+ReAct                  thought <span class="d-a">→</span> act <span class="d-a">→</span> observe loop       <span class="d-a">→</span> needs tools/external info
+Tree-of-Thought (ToT)  branch + evaluate + backtrack       <span class="d-a">→</span> search-like problems, planning
+Reflexion              act <span class="d-a">→</span> self-critique <span class="d-a">→</span> retry         <span class="d-a">→</span> agent needs to learn within an episode
+Least-to-most          decompose into ordered subproblems  <span class="d-a">→</span> hard tasks with dependency chains
+Program-aided (PAL)    LLM writes code, executor computes  <span class="d-a">→</span> precise math/logic, avoid LLM arithmetic errors
+Meta-prompting / APE    LLM writes/optimizes the prompt itself <span class="d-a">→</span> prompt not yet good enough by hand</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f19ClientRoundP-3">
@@ -1388,14 +1400,14 @@ Meta-prompting / APE    LLM writes/optimizes the prompt itself → prompt not ye
             <div class="keyterms"><span class="kt">scarce, contested resource budget</span><span class="kt">Write</span><span class="kt">Select</span><span class="kt">Compress</span><span class="kt">Isolate</span><span class="kt">Order for recency bias</span>
             </div>
             <p>Think of the <abbr title="the total number of tokens a model can attend to in a single call">context window</abbr> as a <strong>scarce, contested resource budget</strong>, not free real estate:</p>
-            <div class="diagram"><pre>┌────────────────────────────── context window ──────────────────────────────────┐
-│ system prompt (role, rules, tool schemas)      ← static, cached prefix         │
-│ long-term memory recall (user prefs, facts)    ← retrieved, small              │
-│ RAG-retrieved chunks                            ← dynamic, reranked, capped    │
-│ tool outputs from this episode                  ← pruned/summarized as it grows│
-│ conversation history                            ← windowed / summarized        │
-│ current user turn                               ← always present, near the end │
-└────────────────────────────────────────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌──────────────────────────────</span> context window <span class="d-l">──────────────────────────────────┐</span>
+<span class="d-l">│</span> system prompt (role, rules, tool schemas)      <span class="d-a">←</span> static, cached prefix         <span class="d-l">│</span>
+<span class="d-l">│</span> long-term memory recall (user prefs, facts)    <span class="d-a">←</span> retrieved, small              <span class="d-l">│</span>
+<span class="d-l">│</span> RAG-retrieved chunks                            <span class="d-a">←</span> dynamic, reranked, capped    <span class="d-l">│</span>
+<span class="d-l">│</span> tool outputs from this episode                  <span class="d-a">←</span> pruned/summarized as it grows<span class="d-l">│</span>
+<span class="d-l">│</span> conversation history                            <span class="d-a">←</span> windowed / summarized        <span class="d-l">│</span>
+<span class="d-l">│</span> current user turn                               <span class="d-a">←</span> always present, near the end <span class="d-l">│</span>
+<span class="d-l">└────────────────────────────────────────────────────────────────────────────────┘</span></pre></div>
             <p>Core moves an interviewer expects you to name:
               - <strong>Write</strong> — persist information outside the window (scratchpad file, memory store) instead of keeping it all in-context.
               - <strong>Select</strong> — retrieve only the relevant slice back in (<abbr title="retrieval-augmented generation">RAG</abbr>, memory search, tool-result filtering) rather than dumping everything.
@@ -1694,7 +1706,7 @@ Last paragraph: invents a "termination penalty of $50,000" not in the contract.<
     }</code></pre>
             <p><strong>Worked example.</strong> Answer has 4 sentences; the context supports 3 of them; one ("termination penalty of $50,000") is not entailed:</p>
             <div class="diagram"><pre>claims      = 4
-unsupported = 1   → ["...termination penalty of $50,000..."]
+unsupported = 1   <span class="d-a">→</span> ["...termination penalty of $50,000..."]
 score       = 1 - 1/4 = 0.75</pre></div>
             <p>A 0.75 <abbr title="whether an answer is actually supported by the context it was given">faithfulness</abbr> means <strong>a quarter of the answer is ungrounded</strong> — below a 0.9 gate you'd block, regenerate, or flag for review.</p>
             <h3>2. LLM-as-judge (groundedness grader)</h3>
@@ -1853,18 +1865,18 @@ Rules:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>User question
-   │
-   ├─ Closed-book (no retrieval)?  → high hallucination risk
-   │     └─ prefer RAG; if impossible, self-consistency + low temp + abstain on disagreement
-   │
-   └─ RAG path
-        ├─ Retrieve → did we get relevant chunks? (log chunk ids + scores)
-        │     └─ No  → fix retrieval (hybrid + rerank); abstain rather than guess
-        ├─ Generate with grounded+abstention prompt, cite chunk ids, low temp, capped length
-        ├─ Faithfulness gate (NLI / judge): score ≥ threshold?
-        │     ├─ No  → regenerate / drop unsupported claims / abstain / escalate
-        │     └─ Yes → validate citations map to retrieved ids
-        └─ Serve + log (faithfulness, abstained, citations) for monitoring</pre></div>
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Closed-book (no retrieval)?  <span class="d-a">→</span> high hallucination risk
+   <span class="d-l">│</span>     <span class="d-l">└─</span> prefer RAG; if impossible, self-consistency + low temp + abstain on disagreement
+   <span class="d-l">│</span>
+   <span class="d-l">└─</span> RAG path
+        <span class="d-l">├─</span> Retrieve <span class="d-a">→</span> did we get relevant chunks? (log chunk ids + scores)
+        <span class="d-l">│</span>     <span class="d-l">└─</span> No  <span class="d-a">→</span> fix retrieval (hybrid + rerank); abstain rather than guess
+        <span class="d-l">├─</span> Generate with grounded+abstention prompt, cite chunk ids, low temp, capped length
+        <span class="d-l">├─</span> Faithfulness gate (NLI / judge): score ≥ threshold?
+        <span class="d-l">│</span>     <span class="d-l">├─</span> No  <span class="d-a">→</span> regenerate / drop unsupported claims / abstain / escalate
+        <span class="d-l">│</span>     <span class="d-l">└─</span> Yes <span class="d-a">→</span> validate citations map to retrieved ids
+        <span class="d-l">└─</span> Serve + log (faithfulness, abstained, citations) for monitoring</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f20LLMHallucina-16">
@@ -1999,9 +2011,9 @@ Rules:
             <p>A worked example makes the levers obvious.</p>
             <div class="diagram"><pre>A support assistant. Per request:
   System prompt + instructions ........  600 tokens
-  10 few-shot examples ................ 2,500 tokens   ← do you need all 10?
-  Retrieved RAG context (8 chunks) ... 3,200 tokens   ← do you need all 8?
-  Conversation history (full) ........ 1,500 tokens   ← growing every turn
+  10 few-shot examples ................ 2,500 tokens   <span class="d-a">←</span> do you need all 10?
+  Retrieved RAG context (8 chunks) ... 3,200 tokens   <span class="d-a">←</span> do you need all 8?
+  Conversation history (full) ........ 1,500 tokens   <span class="d-a">←</span> growing every turn
   User message .......................   200 tokens
   ----------------------------------------------------
   INPUT  total ....................... 8,000 tokens
@@ -2009,7 +2021,7 @@ Rules:
 
 At $5 / 1M input and $15 / 1M output (illustrative):
   per call = 8,000×$5/1e6 + 400×$15/1e6 = $0.040 + $0.006 = $0.046
-  at 1,000,000 calls/month  →  $46,000 / month</pre></div>
+  at 1,000,000 calls/month  <span class="d-a">→</span>  $46,000 / month</pre></div>
             <p>Now watch the levers:</p>
             <div class="tbl-wrap">
               <table class="t5">
@@ -2116,10 +2128,10 @@ At $5 / 1M input and $15 / 1M output (illustrative):
           </div>
           <div class="q-a">
             <p>Not every query needs your most expensive model. Route by difficulty.</p>
-            <div class="diagram"><pre>            ┌─ classify difficulty (cheap/heuristic) ─┐
-query ──────┤                                         ├───────────────▶ answer
-            ├─ easy/common  → small cheap model ──────┘
-            └─ hard/uncertain → large model (only when needed)</pre></div>
+            <div class="diagram"><pre>            <span class="d-l">┌─</span> classify difficulty (cheap/heuristic) <span class="d-l">─┐</span>
+query <span class="d-l">──────┤</span>                                         <span class="d-l">├───────────────</span><span class="d-a">►</span> answer
+            <span class="d-l">├─</span> easy/common  <span class="d-a">→</span> small cheap model <span class="d-l">──────┘</span>
+            <span class="d-l">└─</span> hard/uncertain <span class="d-a">→</span> large model (only when needed)</pre></div>
             <p><strong>Cascade pattern:</strong> try the cheap model first; only escalate when its confidence/quality is low.</p>
             <pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">cascade</span>(query, cheap, strong, confident):
     ans = <span class="fn">cheap</span>(query)                  <span class="cmt"># ~10–20× cheaper</span>
@@ -2221,16 +2233,16 @@ query ──────┤                                         ├───
           </div>
           <div class="q-a">
             <div class="diagram"><pre>LLM bill too high?
-   │
-   ├─ Measure first: tokens in/out per call, calls/day, cache hit rate.
-   │
-   ├─ Input tokens dominate?  → trim few-shot, rerank RAG to top-k,
-   │                            summarize history, prompt-cache the prefix
-   ├─ Output tokens high?     → cap max_tokens, ask for structured/short output
-   ├─ Same/similar queries?   → exact + semantic cache (high threshold!)
-   ├─ Using the big model for everything?  → route/cascade easy→cheap, hard→strong
-   ├─ Non-real-time workload? → batch API (≈50% off)
-   └─ Agentic?               → per-run budgets, cheap routine steps, trim tool outputs,
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Measure first: tokens in/out per call, calls/day, cache hit rate.
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Input tokens dominate?  <span class="d-a">→</span> trim few-shot, rerank RAG to top-k,
+   <span class="d-l">│</span>                            summarize history, prompt-cache the prefix
+   <span class="d-l">├─</span> Output tokens high?     <span class="d-a">→</span> cap max_tokens, ask for structured/short output
+   <span class="d-l">├─</span> Same/similar queries?   <span class="d-a">→</span> exact + semantic cache (high threshold!)
+   <span class="d-l">├─</span> Using the big model for everything?  <span class="d-a">→</span> route/cascade easy<span class="d-a">→</span>cheap, hard<span class="d-a">→</span>strong
+   <span class="d-l">├─</span> Non-real-time workload? <span class="d-a">→</span> batch API (≈50% off)
+   <span class="d-l">└─</span> Agentic?               <span class="d-a">→</span> per-run budgets, cheap routine steps, trim tool outputs,
                                cap reflection
    Then: monitor cost/request + cache hit rate + per-user caps with alerts.</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -2557,7 +2569,7 @@ changelog:
             <h3>Catastrophic forgetting (the main production risk)</h3>
             <p>Fine-tuning on a narrow dataset can make the model <strong>worse at everything else</strong> — it over-specializes and loses general ability.</p>
             <div class="diagram"><pre>Before FT:  task accuracy 70% | general benchmark 85%
-After FT:   task accuracy 92% | general benchmark 61%   ← forgot a lot</pre></div>
+After FT:   task accuracy 92% | general benchmark 61%   <span class="d-a">←</span> forgot a lot</pre></div>
             <p><strong>Defenses:</strong>
               - <strong>Always keep a general-capability eval</strong> (a held-out broad benchmark) in your eval set, not just task metrics — so you <em>see</em> the regression.
               - <strong><abbr title="low-rank adaptation">LoRA</abbr> / <abbr title="parameter-efficient fine-tuning">PEFT</abbr></strong> — train small adapters instead of all weights: cheaper, and the base model stays intact (swap the adapter out to recover general behavior).
@@ -2581,19 +2593,19 @@ After FT:   task accuracy 92% | general benchmark 61%   ← forgot a lot</pre></
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Want to improve LLM quality?
-   │
-   ├─ Define an EVAL SET first (inputs + criteria/gold) — you can't improve what you can't measure
-   │
-   ├─ Try PROMPTING / few-shot
-   │     └─ change a prompt? → run eval-set regression gate → A/B in prod for subjective gains
-   │
-   ├─ Need up-to-date / private FACTS? → RAG (not fine-tuning); measure faithfulness (file 09)
-   │
-   └─ Need consistent BEHAVIOR/FORMAT/STYLE or lower token cost? → FINE-TUNE
-         ├─ prefer LoRA/PEFT (cheap, base intact, swappable)
-         ├─ keep a GENERAL-capability eval to catch catastrophic forgetting
-         ├─ version data + base + adapter together
-         └─ run full eval harness (task + general + safety) before promote → else block
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Define an EVAL SET first (inputs + criteria/gold) — you can't improve what you can't measure
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Try PROMPTING / few-shot
+   <span class="d-l">│</span>     <span class="d-l">└─</span> change a prompt? <span class="d-a">→</span> run eval-set regression gate <span class="d-a">→</span> A/B in prod for subjective gains
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Need up-to-date / private FACTS? <span class="d-a">→</span> RAG (not fine-tuning); measure faithfulness (file 09)
+   <span class="d-l">│</span>
+   <span class="d-l">└─</span> Need consistent BEHAVIOR/FORMAT/STYLE or lower token cost? <span class="d-a">→</span> FINE-TUNE
+         <span class="d-l">├─</span> prefer LoRA/PEFT (cheap, base intact, swappable)
+         <span class="d-l">├─</span> keep a GENERAL-capability eval to catch catastrophic forgetting
+         <span class="d-l">├─</span> version data + base + adapter together
+         <span class="d-l">└─</span> run full eval harness (task + general + safety) before promote <span class="d-a">→</span> else block
    On any provider model upgrade: re-run the eval set (prompts are coupled to the model).</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -2645,14 +2657,14 @@ After FT:   task accuracy 92% | general benchmark 61%   ← forgot a lot</pre></
               <p><strong>One-sentence idea:</strong> The model is a powerful but <strong>untrusted</strong> text generator — it will faithfully follow a malicious instruction, repeat toxic content, leak a secret in its context, or wander off-brand. A guardrail is the <strong>filter and policy layer you wrap around it</strong> so that neither the input nor the output can do harm, regardless of what the model "decides."</p>
             </div>
             <p>The mental model: treat the <abbr title="large language model">LLM</abbr> like <strong>user-supplied code running in your system</strong>. You'd never run that without a sandbox, input validation, and output checks. Same here — the model's input and output are both attack surfaces.</p>
-            <div class="diagram"><pre>            ┌──────────── INPUT GUARDRAILS ────────────┐
- user  ───▶ │ injection/jailbreak scan · PII redact ·  │ ───▶  LLM  ───▶
-            │ scope/topic filter · rate limit          │
-            └──────────────────────────────────────────┘
-                                                            ┌───── OUTPUT GUARDRAILS ────┐
-                                                       ───▶ │ moderation · PII/secret    │ ───▶ user
-            │ scan · schema · grounding                │
-                                                            └────────────────────────────┘</pre></div>
+            <div class="diagram"><pre>            <span class="d-l">┌────────────</span> INPUT GUARDRAILS <span class="d-l">────────────┐</span>
+ user  <span class="d-l">───</span><span class="d-a">►</span> <span class="d-l">│</span> injection/jailbreak scan · PII redact ·  <span class="d-l">│</span> <span class="d-l">───</span><span class="d-a">►</span>  LLM  <span class="d-l">───</span><span class="d-a">►</span>
+            <span class="d-l">│</span> scope/topic filter · rate limit          <span class="d-l">│</span>
+            <span class="d-l">└──────────────────────────────────────────┘</span>
+                                                            <span class="d-l">┌─────</span> OUTPUT GUARDRAILS <span class="d-l">────┐</span>
+                                                       <span class="d-l">───</span><span class="d-a">►</span> <span class="d-l">│</span> moderation · PII/secret    <span class="d-l">│</span> <span class="d-l">───</span><span class="d-a">►</span> user
+            <span class="d-l">│</span> scan · schema · grounding                <span class="d-l">│</span>
+                                                            <span class="d-l">└────────────────────────────┘</span></pre></div>
             <div class="note">
               <p>This file unifies safety threads that appear elsewhere: <strong><abbr title="a fluent, confident answer that is not supported by the evidence or the facts">hallucination</abbr>/<abbr title="tying a generated answer to retrieved evidence rather than model memory">grounding</abbr></strong> (<a href="production.html#f20LLMHallucina">LLM Hallucination and Faithfulness</a>), <strong>unsafe agent actions</strong> (<a href="../08_LangChain_and_LangGraph/production.html#f40AgenticAIFai">Agentic AI Failure Modes</a>), and <strong>PII-to-LLM</strong> (<a href="../08_LangChain_and_LangGraph/prod-scenarios.html#f30ProductionSc">Production Scenarios Workflows</a> Q39). Here it's the consolidated guardrail system.</p>
             </div>
@@ -3022,23 +3034,23 @@ JAILBREAK_PATTERNS = [
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Untrusted text reaching or leaving the model?  (assume YES for any user-facing LLM)
-   │
-   ├─ INPUT guardrails
-   │     ├─ injection/jailbreak scan (regex + classifier + provider safety)
-   │     ├─ redact PII/secrets before the prompt
-   │     ├─ scope/topic filter; rate limit/auth
-   │     └─ wrap user + retrieved content as DATA, not instructions
-   │
-   ├─ MODEL (with canary token in system prompt)
-   │
-   ├─ OUTPUT guardrails  (fail-CLOSED: any failure → safe refusal, never raw)
-   │     ├─ content moderation (dedicated model/API)
-   │     ├─ PII/secret scan + canary check
-   │     ├─ schema validation; never auto-execute generated code/SQL
-   │     └─ grounding/faithfulness gate (RAG, file 09)
-   │
-   ├─ Agent actions? → least privilege + HITL (file 10)
-   └─ Log every event; red-team regularly; tune for harmful-FN AND over-refusal-FP</pre></div>
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> INPUT guardrails
+   <span class="d-l">│</span>     <span class="d-l">├─</span> injection/jailbreak scan (regex + classifier + provider safety)
+   <span class="d-l">│</span>     <span class="d-l">├─</span> redact PII/secrets before the prompt
+   <span class="d-l">│</span>     <span class="d-l">├─</span> scope/topic filter; rate limit/auth
+   <span class="d-l">│</span>     <span class="d-l">└─</span> wrap user + retrieved content as DATA, not instructions
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> MODEL (with canary token in system prompt)
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> OUTPUT guardrails  (fail-CLOSED: any failure <span class="d-a">→</span> safe refusal, never raw)
+   <span class="d-l">│</span>     <span class="d-l">├─</span> content moderation (dedicated model/API)
+   <span class="d-l">│</span>     <span class="d-l">├─</span> PII/secret scan + canary check
+   <span class="d-l">│</span>     <span class="d-l">├─</span> schema validation; never auto-execute generated code/SQL
+   <span class="d-l">│</span>     <span class="d-l">└─</span> grounding/faithfulness gate (RAG, file 09)
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Agent actions? <span class="d-a">→</span> least privilege + HITL (file 10)
+   <span class="d-l">└─</span> Log every event; red-team regularly; tune for harmful-FN AND over-refusal-FP</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f23LLMGuardrail-46">
@@ -3082,13 +3094,13 @@ JAILBREAK_PATTERNS = [
         <div class="q-a" style="margin:0 0 12px">
           <p><strong>Mental model — two phases of generation:</strong>
           </p>
-          <div class="diagram"><pre>PROMPT: "The capital of France is"   ──► [ PREFILL ]  one parallel forward pass over all prompt tokens
+          <div class="diagram"><pre>PROMPT: "The capital of France is"   <span class="d-l">──</span><span class="d-a">►</span> [ PREFILL ]  one parallel forward pass over all prompt tokens
                                                          • compute-bound (big matmuls, GPU saturated)
                                                          • fills the KV cache for every prompt token
                                                          • determines TTFT (time-to-first-token)
-                                              │
-                                              ▼
-OUTPUT:  " Paris" ► "." ► &lt;eos&gt;      ──► [ DECODE ]   one token at a time, autoregressively
+                                              <span class="d-l">│</span>
+                                              <span class="d-a">▼</span>
+OUTPUT:  " Paris" <span class="d-a">►</span> "." <span class="d-a">►</span> &lt;eos&gt;      <span class="d-l">──</span><span class="d-a">►</span> [ DECODE ]   one token at a time, autoregressively
                                                          • memory-bandwidth-bound (read whole cache each step)
                                                          • each step appends 1 token's K,V to the cache
                                                          • determines TPOT (time-per-output-token)</pre></div>
@@ -3129,8 +3141,8 @@ OUTPUT:  " Paris" ► "." ► &lt;eos&gt;      ──► [ DECODE ]   one token 
             </div>
             <p>A small <strong>draft</strong> model proposes k tokens; the large <strong>target</strong> model verifies all k in <strong>one</strong> parallel pass. Accepted tokens are kept (the accept/reject rule makes the output distribution <em>identical</em> to sampling from the target); the first rejection is resampled from a corrected distribution.</p>
             <div class="diagram"><pre>draft (cheap):   proposes  "Paris is the capital"   (4 tokens, 4 cheap steps)
-target (1 pass): verifies   ✓Paris ✓is ✓the ✗capital → keep 3, resample token 4
-net: up to k tokens of the big model for ~1 big-model forward pass → 2–3× faster, same quality</pre></div>
+target (1 pass): verifies   √Paris √is √the ×capital <span class="d-a">→</span> keep 3, resample token 4
+net: up to k tokens of the big model for ~1 big-model forward pass <span class="d-a">→</span> 2–3× faster, same quality</pre></div>
             <p><strong>Acceptance rule</strong> for token x with draft prob q(x), target prob p(x): accept with prob <code>min(1, p(x)/q(x))</code>; on reject, sample from normalized <code>max(0, p−q)</code>. Works because verifying-in-parallel uses idle compute during the memory-bound <abbr title="generating output tokens one at a time after prefill">decode</abbr> phase. <strong>Variants:</strong> Medusa (extra heads, no separate model), EAGLE, n-gram/prompt-lookup (draft from the prompt).</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -3142,9 +3154,9 @@ net: up to k tokens of the big model for ~1 big-model forward pass → 2–3× f
             <div class="keyterms"><span class="kt">static</span><span class="kt">Continuous</span><span class="kt">every decode step</span>
             </div>
             <p>Naive <strong>static</strong> batching runs a fixed batch to completion → short requests wait for the longest (head-of-line blocking, GPU idles). <strong>Continuous</strong> batching makes scheduling decisions <strong>every <abbr title="generating output tokens one at a time after prefill">decode</abbr> step</strong>: finished sequences are evicted, queued ones slotted in immediately.</p>
-            <div class="diagram"><pre>static:      [R1████████][R2██][R3█████]   ← R2 done early but its slot idles until R1 finishes
+            <div class="diagram"><pre>static:      [R1████████][R2██][R3█████]   <span class="d-a">←</span> R2 done early but its slot idles until R1 finishes
 continuous:  [R1████████]
-             [R2██][R5███...]              ← R2 finishes, R5 takes its slot mid-flight
+             [R2██][R5███...]              <span class="d-a">←</span> R2 finishes, R5 takes its slot mid-flight
              [R3█████][R6██...]</pre></div>
             <p>Biggest real-world throughput win (often <span class="mag">5–20×</span> over static). Used by vLLM, TGI.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -3275,14 +3287,14 @@ continuous:  [R1████████]
         <div class="q-a" style="margin:0 0 12px">
           <p><strong>Pipeline:</strong> ingest → <strong>chunk</strong> → <strong>embed</strong> → <strong>index</strong> → <strong>retrieve</strong> top-k → (<strong>rerank</strong>) → augment prompt → <strong>generate</strong> (grounded, citable). Use <abbr title="retrieval-augmented generation">RAG</abbr> to inject fresh/private knowledge and cut <abbr title="a fluent, confident answer that is not supported by the evidence or the facts">hallucination</abbr> <em>without retraining</em>.</p>
           <div class="diagram"><pre>                INGEST (offline)                        QUERY (online)
-   docs ─► chunk ─► embed ─► [Vector DB]      query ─► embed ─► ANN search ─┐
-                                  ▲                                        │ top-50
-                                  └──────── same embedding model ──────────┤
-                                                                  rerank (cross-encoder) ─► top-5
-                                                                           │
+   docs <span class="d-l">─</span><span class="d-a">►</span> chunk <span class="d-l">─</span><span class="d-a">►</span> embed <span class="d-l">─</span><span class="d-a">►</span> [Vector DB]      query <span class="d-l">─</span><span class="d-a">►</span> embed <span class="d-l">─</span><span class="d-a">►</span> ANN search <span class="d-l">─┐</span>
+                                  <span class="d-a">▲</span>                                        <span class="d-l">│</span> top-50
+                                  <span class="d-l">└────────</span> same embedding model <span class="d-l">──────────┤</span>
+                                                                  rerank (cross-encoder) <span class="d-l">─</span><span class="d-a">►</span> top-5
+                                                                           <span class="d-l">│</span>
                                               prompt = system + context(top-5) + question
-                                                                           │
-                                                                   LLM ─► grounded answer + citations</pre></div>
+                                                                           <span class="d-l">│</span>
+                                                                   LLM <span class="d-l">─</span><span class="d-a">►</span> grounded answer + citations</pre></div>
         </div>
         <article class="q" id="f24LLMSystemsIn-58">
           <div class="q-h"><span class="q-n">&bull;</span>
@@ -3381,7 +3393,7 @@ continuous:  [R1████████]
               <li><strong><abbr title="a model that embeds query and passage separately, so passages can be indexed in advance">Bi-encoder</abbr>:</strong> encode query and doc <strong>separately</strong> → vectors → cosine. Doc vectors precomputed/indexed → <strong>fast, scalable</strong> → first-stage retrieval. Less accurate (no query↔doc interaction).</li>
               <li><strong><abbr title="a model that scores a query and passage together in one pass, more accurate but slower than separate embeddings">Cross-encoder</abbr>:</strong> feed <code>(query, doc)</code> <strong>together</strong> through a transformer → one relevance score with full cross-attention → <strong>accurate but O(N) model calls</strong> → rerank only top ~50–100, keep top 3–5.</li>
             </ul>
-            <div class="diagram"><pre>two-stage retrieval:  [bi-encoder ANN] → 50 candidates → [cross-encoder] → top 5 → LLM
+            <div class="diagram"><pre>two-stage retrieval:  [bi-encoder ANN] <span class="d-a">→</span> 50 candidates <span class="d-a">→</span> [cross-encoder] <span class="d-a">→</span> top 5 <span class="d-a">→</span> LLM
                          fast, recall                      precise, order</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -3510,16 +3522,16 @@ continuous:  [R1████████]
             <div class="keyterms"><span class="kt">IVF (Inverted File)</span><span class="kt">PQ (Product Quantization)</span><span class="kt">IVFPQ</span><span class="kt">billion-scale</span><span class="kt">Scalar Quantization (SQ)</span>
             </div>
             <p><strong><abbr title="hierarchical navigable small world — the graph index most vector stores use for approximate nearest-neighbour search">HNSW</abbr> (Hierarchical Navigable Small World)</strong> — multi-layer proximity graph; greedy search descends sparse top layer → dense bottom. Fast, high recall, real-time. Cost: high memory (stores graph), awkward deletes. Knobs: <code>M</code> (edges/node), <code>efConstruction</code>, <code>efSearch</code> (recall↔speed).</p>
-            <div class="diagram"><pre>Layer 2:   A ───────────── E          (few long-range links: coarse jumps)
-Layer 1:   A ── C ──── E ── G
+            <div class="diagram"><pre>Layer 2:   A <span class="d-l">─────────────</span> E          (few long-range links: coarse jumps)
+Layer 1:   A <span class="d-l">──</span> C <span class="d-l">────</span> E <span class="d-l">──</span> G
 Layer 0:   A-B-C-D-E-F-G-H...          (all nodes, dense local links)
-query: enter top, greedily hop to nearest, drop a layer, repeat → O(log N)-ish</pre></div>
+query: enter top, greedily hop to nearest, drop a layer, repeat <span class="d-a">→</span> O(log N)-ish</pre></div>
             <p><strong><abbr title="inverted file index — clusters vectors so search only scans nearby cells">IVF</abbr> (Inverted File)</strong> — k-means partitions vectors into <code>nlist</code> cells (centroids); query searches only the <code>nprobe</code> nearest cells → sub-linear. Lower memory/faster build than HNSW; recall depends on <code>nlist/nprobe</code>; can miss vectors near cell borders. Needs a training step.</p>
             <p><strong><abbr title="product quantization — compressing vectors into sub-space codes to shrink the index">PQ</abbr> (Product <abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">Quantization</abbr>)</strong> — compress: split a vector into m sub-vectors, k-means each sub-space (256 centroids = 1 byte), store m centroid IDs. A 1536-d float32 vector (<span class="mag">6 KB</span>) → ~m bytes. Distances via precomputed lookup tables.</p>
-            <div class="diagram"><pre>[───────── 128-dim vector ─────────]
- split → [s1][s2][s3][s4]                 (4 sub-vectors of 32-d)
- each sub-vec → nearest of 256 centroids → 1 byte
- stored as: [37][8][201][95]   ← 4 bytes instead of 512 bytes (128×fp32). 128× smaller.</pre></div>
+            <div class="diagram"><pre>[<span class="d-l">─────────</span> 128-dim vector <span class="d-l">─────────</span>]
+ split <span class="d-a">→</span> [s1][s2][s3][s4]                 (4 sub-vectors of 32-d)
+ each sub-vec <span class="d-a">→</span> nearest of 256 centroids <span class="d-a">→</span> 1 byte
+ stored as: [37][8][201][95]   <span class="d-a">←</span> 4 bytes instead of 512 bytes (128×fp32). 128× smaller.</pre></div>
             <p><strong>IVFPQ</strong> — IVF (prune to few cells) + PQ (compress residuals in-cell) → the <strong>billion-scale</strong> workhorse (FAISS). Tune recall vs speed/memory via <code>nprobe</code> + PQ granularity.</p>
             <p><strong>Scalar Quantization (SQ)</strong> — per-dimension float32→int8 via min/max → <span class="mag">~4×</span> smaller, fast, minimal recall loss; the simplest first compression step.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -3815,10 +3827,10 @@ query: enter top, greedily hop to nearest, drop a layer, repeat → O(log N)-ish
             </table>
           </div>
           <div class="diagram"><pre>CoT:  Q: 23 eggs, eat 4, buy 2 dozen, how many?
-      A: Start 23. Eat 4 → 19. 2 dozen = 24. 19 + 24 = 43.   ← intermediate tokens = "compute"
-ToT:                       ┌─ path A (eval 0.8) ─► expand
-      Q ─► branch ─────────┼─ path B (eval 0.3) ✗ prune
-                           └─ path C (eval 0.7) ─► expand ... pick best leaf</pre></div>
+      A: Start 23. Eat 4 <span class="d-a">→</span> 19. 2 dozen = 24. 19 + 24 = 43.   <span class="d-a">←</span> intermediate tokens = "compute"
+ToT:                       <span class="d-l">┌─</span> path A (eval 0.8) <span class="d-l">─</span><span class="d-a">►</span> expand
+      Q <span class="d-l">─</span><span class="d-a">►</span> branch <span class="d-l">─────────┼─</span> path B (eval 0.3) × prune
+                           <span class="d-l">└─</span> path C (eval 0.7) <span class="d-l">─</span><span class="d-a">►</span> expand ... pick best leaf</pre></div>
           <p><strong>Structured Outputs / JSON Mode</strong> — constrain to a schema so code can parse reliably.
             - <strong>JSON mode</strong> = guarantees <em>syntactically valid</em> JSON.
             - <strong>Structured outputs</strong> = also enforces <em>your</em> schema (constrained decoding / grammars / function schemas). Always give a schema/example; validate + retry on failure.</p>
@@ -3842,11 +3854,11 @@ prompt = TEMPLATE.<span class="fn">format</span>(context=ctx, question=q)</code>
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <p><strong>Definition:</strong> an <abbr title="large language model">LLM</abbr> that, in a loop, <strong>decides actions → uses tools → observes results → plans</strong> toward a goal.</p>
-          <div class="diagram"><pre>        ┌──────────────────────────────────────────────────┐
-        ▼                                                  │
-   [LLM reason] ─► pick tool + args ─► [execute] ─► observe ─┘   (repeat until done)
-        ▲                                                  │
-        └─────────────── memory (short + long term) ◄──────┘</pre></div>
+          <div class="diagram"><pre>        <span class="d-l">┌──────────────────────────────────────────────────┐</span>
+        <span class="d-a">▼</span>                                                  <span class="d-l">│</span>
+   [LLM reason] <span class="d-l">─</span><span class="d-a">►</span> pick tool + args <span class="d-l">─</span><span class="d-a">►</span> [execute] <span class="d-l">─</span><span class="d-a">►</span> observe <span class="d-l">─┘</span>   (repeat until done)
+        <span class="d-a">▲</span>                                                  <span class="d-l">│</span>
+        <span class="d-l">└───────────────</span> memory (short + long term) <span class="d-a">◄</span><span class="d-l">──────┘</span></pre></div>
         </div>
         <article class="q" id="f24LLMSystemsIn-87">
           <div class="q-h"><span class="q-n">&bull;</span>
@@ -3895,8 +3907,8 @@ prompt = TEMPLATE.<span class="fn">format</span>(context=ctx, question=q)</code>
             <div class="keyterms"><span class="kt">supervisor/router</span><span class="kt">hierarchical teams</span><span class="kt">network/peer</span><span class="kt">debate</span>
             </div>
             <p>Specialized agents collaborate. Topologies: <strong><abbr title="an agent that routes work to other agents and owns the overall plan">supervisor</abbr>/router</strong> (orchestrator delegates to workers), <strong>hierarchical teams</strong>, <strong>network/peer</strong>, <strong>debate</strong>. Pros: separation of concerns, specialized tools/prompts, parallelism. Cons: coordination overhead, error propagation, cost. Frameworks: LangGraph, CrewAI, AutoGen, OpenAI Swarm/Agents SDK.</p>
-            <div class="diagram"><pre>        ┌──────────── Supervisor ────────────┐
-        ▼              ▼                       ▼
+            <div class="diagram"><pre>        <span class="d-l">┌────────────</span> Supervisor <span class="d-l">────────────┐</span>
+        <span class="d-a">▼</span>              <span class="d-a">▼</span>                       <span class="d-a">▼</span>
    Researcher       Coder                   Writer        (each: own tools + prompt)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -3970,8 +3982,8 @@ prompt = TEMPLATE.<span class="fn">format</span>(context=ctx, question=q)</code>
             <div class="keyterms"><span class="kt">low-rank</span><span class="kt">&lt;1%</span><span class="kt">hot-swappable</span>
             </div>
             <p>Freeze base <code>W₀</code>; add a trainable <strong>low-rank</strong> delta <code>ΔW = B·A</code> (rank r ≈ 8–64) → output <code>W₀x + BAx</code>. Train <strong><span class="mag">&lt;1%</span></strong> of params → less memory, tiny checkpoints (MBs), <strong>hot-swappable</strong> adapters; merge <code>BA</code> into <code>W₀</code> at inference for zero added latency.</p>
-            <div class="diagram"><pre>W₀ : (d × d)  frozen                A : (r × d) trainable   ┐
-                                    B : (d × r) trainable   ┘  r ≪ d  →  B·A ≈ low-rank ΔW
+            <div class="diagram"><pre>W₀ : (d × d)  frozen                A : (r × d) trainable   <span class="d-l">┐</span>
+                                    B : (d × r) trainable   <span class="d-l">┘</span>  r ≪ d  <span class="d-a">→</span>  B·A ≈ low-rank ΔW
 forward:  h = W₀x + (B·A)x · (α/r)        # α = scaling</pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">class</span> LoRALinear:
     <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, W0, r=<span class="num">8</span>, alpha=<span class="num">16</span>):
@@ -4020,8 +4032,8 @@ forward:  h = W₀x + (B·A)x · (α/r)        # α = scaling</pre></div>
           </div>
           <div class="q-a">
             <div class="diagram"><pre>1. SFT model
-2. Reward Model: humans rank responses → RM learns to score "better"
-3. PPO: optimize policy to maximize RM score − β·KL(policy ‖ SFT)   ← KL keeps it from drifting/gaming</pre></div>
+2. Reward Model: humans rank responses <span class="d-a">→</span> RM learns to score "better"
+3. PPO: optimize policy to maximize RM score − β·KL(policy ‖ SFT)   <span class="d-a">←</span> KL keeps it from drifting/gaming</pre></div>
             <p>Powerful but complex/unstable, needs lots of preference data. Made ChatGPT helpful/harmless.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -4201,15 +4213,15 @@ app = <span class="fn">FastAPI</span>()
         <div class="q-a" style="margin:0 0 12px">
           <p><strong>Blueprint:</strong>
           </p>
-          <div class="diagram"><pre>Client ─► API Gateway (auth, rate limit) ─► Orchestration (prompt assembly, guardrails, routing)
-                                                   │
-                                  ┌────────────────┼─────────────────┐
-                                  ▼                ▼                  ▼
+          <div class="diagram"><pre>Client <span class="d-l">─</span><span class="d-a">►</span> API Gateway (auth, rate limit) <span class="d-l">─</span><span class="d-a">►</span> Orchestration (prompt assembly, guardrails, routing)
+                                                   <span class="d-l">│</span>
+                                  <span class="d-l">┌────────────────┼─────────────────┐</span>
+                                  <span class="d-a">▼</span>                <span class="d-a">▼</span>                  <span class="d-a">▼</span>
                            Vector DB +        LLM serving        Cache (semantic
                            metadata filter    (vLLM/managed,     + prompt + KV)
-                                  │            streaming)            │
-                                  └───────► post-process / validate ◄┘
-                                                   │
+                                  <span class="d-l">│</span>            streaming)            <span class="d-l">│</span>
+                                  <span class="d-l">└───────</span><span class="d-a">►</span> post-process / validate <span class="d-a">◄</span><span class="d-l">┘</span>
+                                                   <span class="d-l">│</span>
                               response (streamed) + logging/observability + feedback loop</pre></div>
           <p>Cross-cutting: caching (semantic + prompt + <abbr title="key-value — the attention keys and values cached for tokens already generated">KV</abbr>), multi-tenancy/isolation, cost controls, fallbacks.</p>
           <div class="tbl-wrap">
@@ -4705,7 +4717,7 @@ x̂     = (q - zero_point) * scale             # dequant (lossy)</code></pre>
             </div>
             <p>Everything else in this folder assumes the model is a constant and something around it broke. This file is the case where <strong>the constant moves</strong>. It's the most common "surprise" incident in LLM products and almost nobody prepares for it, which is exactly why it's a good interview question.</p>
             <div class="diagram"><pre>Classic ML                          Hosted LLM
-──────────────                      ──────────────
+<span class="d-l">──────────────</span>                      <span class="d-l">──────────────</span>
 you train it                        vendor trains it
 you version it                      vendor versions it
 you decide when it changes          VENDOR decides when it changes
@@ -4812,8 +4824,8 @@ rollback = redeploy old artifact    rollback = ...the old artifact no longer exi
             <p>You did the right thing and pinned a snapshot. Eighteen months later you get a 90-day notice. Now you must migrate a system whose prompts were tuned against behaviour that is about to cease to exist, <strong>with a hard deadline and no rollback</strong>.</p>
             <p><strong>Detection:</strong> vendor deprecation feed, <code>Deprecation</code>/<code>Sunset</code> HTTP headers, console warnings, release notes. <strong>Nobody reads these</strong>, which is why this needs to be an automated monitor, not a habit.</p>
             <h3>2. Floating alias silently upgraded — the invisible incident</h3>
-            <div class="diagram"><pre>Monday:    "…-latest" → snapshot-2026-03-11    JSON parse failures: 0.4%
-Tuesday:   "…-latest" → snapshot-2026-06-02    JSON parse failures: 7.1%   ← no deploy of yours</pre></div>
+            <div class="diagram"><pre>Monday:    "…-latest" <span class="d-a">→</span> snapshot-2026-03-11    JSON parse failures: 0.4%
+Tuesday:   "…-latest" <span class="d-a">→</span> snapshot-2026-06-02    JSON parse failures: 7.1%   <span class="d-a">←</span> no deploy of yours</pre></div>
             <p>Your on-call sees an error-rate spike with an empty change log and burns two hours before someone thinks to check the model. <strong>This is the single most common version incident.</strong>
             </p>
             <div class="note">
@@ -4869,9 +4881,9 @@ Tuesday:   "…-latest" → snapshot-2026-06-02    JSON parse failures: 7.1%   �
             <h3>5. Tokenizer &amp; pricing changes</h3>
             <p>A different tokenizer means the <em>same</em> text is a different token count. Your context budget math, truncation thresholds, and cost forecast are all silently wrong.</p>
             <div class="diagram"><pre>Illustrative: 3,000-word document, two tokenizers
-  Model A: 4,010 tokens   → fits your 4,096 truncation guard
-  Model B: 4,380 tokens   → truncated at 4,096; the last 284 tokens (the conclusion) vanish
-                            → answers quietly degrade, zero errors raised</pre></div>
+  Model A: 4,010 tokens   <span class="d-a">→</span> fits your 4,096 truncation guard
+  Model B: 4,380 tokens   <span class="d-a">→</span> truncated at 4,096; the last 284 tokens (the conclusion) vanish
+                            <span class="d-a">→</span> answers quietly degrade, zero errors raised</pre></div>
             <p><strong>Silent truncation is the worst class of migration bug</strong>: no exception, no alert, just worse answers.</p>
             <h3>6. Embedding-model deprecation — the expensive one</h3>
             <p>Deprecating a <strong>chat</strong> model costs you prompt work. Deprecating an <strong><abbr title="a dense numeric vector representing text so that similar meanings sit close together">embedding</abbr></strong> model costs you a full re-index of the corpus — and you cannot mix vector spaces.</p>
@@ -4881,7 +4893,7 @@ Tuesday:   "…-latest" → snapshot-2026-06-02    JSON parse failures: 7.1%   �
             <div class="diagram"><pre>Illustrative cost, 5M chunks @ 400 tokens:
   re-embed:  5M × 400 = 2.0B tokens × $0.02/1M   ≈ $40   (cheap!)
   the real cost:  index rebuild + dual-storage during cutover
-                  + re-tuning score thresholds   ← the part teams forget</pre></div>
+                  + re-tuning score thresholds   <span class="d-a">←</span> the part teams forget</pre></div>
             <p>That last item bites: your <code>score_threshold = 0.78</code> abstain guard was calibrated on the <em>old</em> model's similarity distribution. On the new model 0.78 may mean something completely different, so your no-context guard either fires constantly or never fires.</p>
             <h3>7. Fine-tuned models die with their base</h3>
             <p>Your fine-tune is a set of weights <em>on top of a base model</em>. Base retired → your fine-tune is retired. You need the training data, the recipe, and the eval harness preserved and re-runnable, or the asset is simply gone.</p>
@@ -5105,15 +5117,15 @@ MODELS = {
               <p><strong>Keep both prompt versions live during canary.</strong> <code>summarise@v7</code> (old model) and <code>summarise@v8</code> (new model) run side by side, selected by which model the request routed to. Rolling back the model without rolling back the prompt is how canaries turn into incidents.</p>
             </div>
             <h3>Step 5 — <abbr title="a dense numeric vector representing text so that similar meanings sit close together">Embedding</abbr> migration (dual-index, zero downtime)</h3>
-            <div class="diagram"><pre>      ┌─ writes ─────────────────────────────────────────┐
-new doc ──► embed(OLD) ──► index_v1  ◄── reads (100%)     │  Phase 1: dual-write, read old
-        └─► embed(NEW) ──► index_v2                        │
-                                                           │  Phase 2: backfill index_v2
-                                                           │           (batch, off-peak)
-                                                           │  Phase 3: re-tune thresholds
-                                                           │           on index_v2 ← DON'T SKIP
-new doc ──► embed(NEW) ──► index_v2  ◄── reads (canary %)  │  Phase 4: shift reads gradually
-                                                           │  Phase 5: drop index_v1 + old writes</pre></div>
+            <div class="diagram"><pre>      <span class="d-l">┌─</span> writes <span class="d-l">─────────────────────────────────────────┐</span>
+new doc <span class="d-l">──</span><span class="d-a">►</span> embed(OLD) <span class="d-l">──</span><span class="d-a">►</span> index_v1  <span class="d-a">◄</span><span class="d-l">──</span> reads (100%)     <span class="d-l">│</span>  Phase 1: dual-write, read old
+        <span class="d-l">└─</span><span class="d-a">►</span> embed(NEW) <span class="d-l">──</span><span class="d-a">►</span> index_v2                        <span class="d-l">│</span>
+                                                           <span class="d-l">│</span>  Phase 2: backfill index_v2
+                                                           <span class="d-l">│</span>           (batch, off-peak)
+                                                           <span class="d-l">│</span>  Phase 3: re-tune thresholds
+                                                           <span class="d-l">│</span>           on index_v2 <span class="d-a">←</span> DON'T SKIP
+new doc <span class="d-l">──</span><span class="d-a">►</span> embed(NEW) <span class="d-l">──</span><span class="d-a">►</span> index_v2  <span class="d-a">◄</span><span class="d-l">──</span> reads (canary %)  <span class="d-l">│</span>  Phase 4: shift reads gradually
+                                                           <span class="d-l">│</span>  Phase 5: drop index_v1 + old writes</pre></div>
             <p><strong>Non-negotiables:</strong> never mix vector spaces in one index; re-calibrate every similarity threshold and <code>top_k</code> after cutover; keep the old index until the new one has served real traffic for a full business cycle. Full mechanics: <a href="../08_LangChain_and_LangGraph/production.html#f41RAGinProduct">RAG in Production</a> and the spoken version at <a href="../08_LangChain_and_LangGraph/rag-qa.html#f23RAGProductio">14/23 Q10 &amp; Q26</a>.</p>
             <h3>Step 6 — Fallback routing (and its trap)</h3>
             <pre class="code" data-lang="python"><code><span class="kw">import</span> time
@@ -5173,20 +5185,20 @@ Day 3    Quota increase requested for the successor model.
 Day 5    Golden set assembled: 400 cases (240 production / 80 hard / 40 adversarial / 40 contract).
 Day 7    Baseline the OLD model on it — you need the incumbent's numbers to compare against.
 Day 10   Shadow run on the new model. Results:
-             task accuracy      0.86 → 0.88   ✅
-             valid-JSON rate    99.7% → 94.2% ❌  ← new model wraps JSON in ``` fences
-             mean out tokens      310 →   445  ⚠️  +44% verbosity → cost +38%
-             p95 latency        1.9s → 1.4s   ✅
+             task accuracy      0.86 <span class="d-a">→</span> 0.88   √
+             valid-JSON rate    99.7% <span class="d-a">→</span> 94.2% ×  <span class="d-a">←</span> new model wraps JSON in ``` fences
+             mean out tokens      310 <span class="d-a">→</span>   445  !  +44% verbosity <span class="d-a">→</span> cost +38%
+             p95 latency        1.9s <span class="d-a">→</span> 1.4s   √
 Day 12   Fix: enable strict schema mode + drop the now-redundant "respond only in JSON"
          instruction; trim the CoT scaffolding the new model does natively.
-Day 18   Re-run: JSON 99.9% ✅, out tokens 295 ✅, accuracy 0.89 ✅. All gates green.
+Day 18   Re-run: JSON 99.9% √, out tokens 295 √, accuracy 0.89 √. All gates green.
 Day 20   Canary 1%. Day 24: 5%. Day 31: 25%. Day 40: 100%. Kill switch tested at 5%.
 Day 45   Embedding index: dual-write starts, backfill runs off-peak over 6 nights.
-Day 55   Thresholds re-tuned on index_v2 (score_threshold 0.78 → 0.71 for equal abstain rate).
+Day 55   Thresholds re-tuned on index_v2 (score_threshold 0.78 <span class="d-a">→</span> 0.71 for equal abstain rate).
 Day 62   Reads shifted to index_v2. Old index retained.
 Day 75   Fine-tuned classifier re-trained on the new base from the preserved recipe; eval-gated.
 Day 85   Old index dropped, old code paths removed.
-Day 90   Retirement date passes. Nothing happens. ← the objective</pre></div>
+Day 90   Retirement date passes. Nothing happens. <span class="d-a">←</span> the objective</pre></div>
             <p><strong>The two lessons that generalise:</strong> the quality gate passed on day 10 but the <em>contract</em> gate (valid JSON) failed — you'd have shipped a broken parser if you'd only measured accuracy. And the fix for verbosity was <strong>deleting</strong> prompt instructions, not adding them: prompts accumulate scaffolding for weaknesses the new model doesn't have.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -5203,7 +5215,7 @@ Day 90   Retirement date passes. Nothing happens. ← the objective</pre></div>
 
 DETECTION
   □ Log model_served (not just model_requested) on every call — alert on mismatch
-  □ Monitor vendor deprecation feeds/headers → auto-ticket
+  □ Monitor vendor deprecation feeds/headers <span class="d-a">→</span> auto-ticket
   □ Nightly golden-set eval per model ID, incl. against the floating alias in staging
   □ Dashboards per model ID: latency, cost, output length, parse-failure, refusal rate
 

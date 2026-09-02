@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1293,15 +1305,15 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
               <p><em>"Query comes in, a router decides whether it even needs retrieval or which source to use. If it's multi-hop, a planner decomposes it into sub-questions. Each sub-question goes through retrieval, then a grading step scores what came back — sufficient evidence moves to generation with citations, insufficient evidence triggers a bounded retry: rewrite the query, re-retrieve, or switch to a fallback source. Everything that loops back is capped by a hard hop limit. Once evidence is sufficient — or the cap is hit and the system abstains — a synthesis step generates the final, cited answer."</em>
               </p>
             </div>
-            <div class="diagram"><pre>query ──▶ [ROUTE] ──no retrieval needed──▶ answer directly
-             │ yes
-             ▼
-      [DECOMPOSE?] ──single-hop──▶ RETRIEVE ──┐
-             │ multi-hop                       ▼
-    per sub-Q: RETRIEVE ──▶ evidence   [GRADE evidence]
-             │                          ┌─sufficient──▶ GENERATE + cite ──▶ answer
-    [synthesize evidences]              │
-                              insufficient (capped) ──▶ rewrite/switch source/abstain</pre></div>
+            <div class="diagram"><pre>query <span class="d-l">──</span><span class="d-a">►</span> [ROUTE] <span class="d-l">──</span>no retrieval needed<span class="d-l">──</span><span class="d-a">►</span> answer directly
+             <span class="d-l">│</span> yes
+             <span class="d-a">▼</span>
+      [DECOMPOSE?] <span class="d-l">──</span>single-hop<span class="d-l">──</span><span class="d-a">►</span> RETRIEVE <span class="d-l">──┐</span>
+             <span class="d-l">│</span> multi-hop                       <span class="d-a">▼</span>
+    per sub-Q: RETRIEVE <span class="d-l">──</span><span class="d-a">►</span> evidence   [GRADE evidence]
+             <span class="d-l">│</span>                          <span class="d-l">┌─</span>sufficient<span class="d-l">──</span><span class="d-a">►</span> GENERATE + cite <span class="d-l">──</span><span class="d-a">►</span> answer
+    [synthesize evidences]              <span class="d-l">│</span>
+                              insufficient (capped) <span class="d-l">──</span><span class="d-a">►</span> rewrite/switch source/abstain</pre></div>
             <p>Full architecture diagram + from-scratch Python loop: <a href="production.html#f46AgenticRAGmd">Agentic RAG</a>.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1473,10 +1485,10 @@ graph.<span class="fn">add_conditional_edges</span>(<span class="str">"grade"</s
               <p><em>"Unlike decomposition, where all sub-questions are known up front, iterative retrieval discovers each next query </em><em>from the previous result</em><em> — retrieve, reason about what's still missing, retrieve again with a refined query, repeated until there's enough evidence or the hop cap is hit. Because each step depends on the last, this pattern is inherently sequential — there's no parallelizing your way out of the cost, which is exactly why the hop cap matters more here than in any other agentic <abbr title="retrieval-augmented generation">RAG</abbr> pattern."</em>
               </p>
             </div>
-            <div class="diagram"><pre>Step 1: retrieve("symptoms of X")               → note what's still missing
-Step 2: retrieve("treatment for X in children")  → refined from step 1's gap
-Step 3: retrieve("drug interactions with {step-2 treatment}") → refined again
-   ... capped at N hops → synthesize across all retrieved evidence</pre></div>
+            <div class="diagram"><pre>Step 1: retrieve("symptoms of X")               <span class="d-a">→</span> note what's still missing
+Step 2: retrieve("treatment for X in children")  <span class="d-a">→</span> refined from step 1's gap
+Step 3: retrieve("drug interactions with {step-2 treatment}") <span class="d-a">→</span> refined again
+   ... capped at N hops <span class="d-a">→</span> synthesize across all retrieved evidence</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f24AgenticRAGTe-18">
@@ -2498,15 +2510,15 @@ agent = model.<span class="fn">bind_tools</span>([search_policy_docs, sql_lookup
               <p><em>"At the core is a loop: the model receives the current state — goal, history, latest observation — decides on a next action, that action executes through a tool, the result becomes a new observation, and the loop repeats until a stopping condition. Around that loop sit the supporting components: a planner for breaking down complex goals up front, a router for picking among multiple possible paths or tools, memory for carrying relevant context across steps, and a reflection/verifier step for checking intermediate or final results before committing to them. None of these are mandatory for every agent — a simple agent might just be the loop plus tools — but as task complexity grows, each component earns its place by solving a specific failure mode."</em>
               </p>
             </div>
-            <div class="diagram"><pre>        ┌────────────────────────────────────────────────┐
-goal ──▶│  PLANNER (optional, for complex/multi-step)    │
-        └──────────────────┬─────────────────────────────┘
-                            ▼
-              ┌───────────────────────────┐
-        │   LOOP: decide → act (tool via ROUTER)         │◀── MEMORY (short + long-term)
-        │        → observe → reflect/verify              │
-              └──────────────┬────────────┘
-                             ▼
+            <div class="diagram"><pre>        <span class="d-l">┌────────────────────────────────────────────────┐</span>
+goal <span class="d-l">──</span><span class="d-a">►</span><span class="d-l">│</span>  PLANNER (optional, for complex/multi-step)    <span class="d-l">│</span>
+        <span class="d-l">└──────────────────┬─────────────────────────────┘</span>
+                            <span class="d-a">▼</span>
+              <span class="d-l">┌───────────────────────────┐</span>
+        <span class="d-l">│</span>   LOOP: decide <span class="d-a">→</span> act (tool via ROUTER)         <span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">──</span> MEMORY (short + long-term)
+        <span class="d-l">│</span>        <span class="d-a">→</span> observe <span class="d-a">→</span> reflect/verify              <span class="d-l">│</span>
+              <span class="d-l">└──────────────┬────────────┘</span>
+                             <span class="d-a">▼</span>
                      final answer / result</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>

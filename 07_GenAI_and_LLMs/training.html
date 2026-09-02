@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1211,7 +1223,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p>Imagine the model is a <strong>smart new employee</strong>. Fine-tuning is <strong>sending them to training</strong> so a new behavior becomes second nature.</p>
             <p>You show the model <strong>lots of examples</strong> of the input → the answer you <em>want</em>, and it adjusts its internal numbers (weights) to copy that behavior.</p>
             <div class="diagram"><pre>   Base model            show it ~1000 examples            Fine-tuned model
-   (generic)      ───────  of the behavior you want  ──►   (your style / skill)</pre></div>
+   (generic)      <span class="d-l">───────</span>  of the behavior you want  <span class="d-l">──</span><span class="d-a">►</span>   (your style / skill)</pre></div>
             <div class="note">
               <p>🔑 <strong>Key idea:</strong> fine-tuning changes <strong>how the model behaves</strong> (style, tone, format, a skill) — <strong>not the facts it knows</strong>. (For facts, use <abbr title="retrieval-augmented generation">RAG</abbr> — see next section.)</p>
             </div>
@@ -1261,11 +1273,11 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
               </table>
             </div>
             <div class="diagram"><pre>WHICH ONE DO I PICK?
-  Need fresh / private FACTS? ───────────────► RAG
-  Just a quick one-off change? ──────────────► PROMPT ENGINEERING  (try this first!)
+  Need fresh / private FACTS? <span class="d-l">───────────────</span><span class="d-a">►</span> RAG
+  Just a quick one-off change? <span class="d-l">──────────────</span><span class="d-a">►</span> PROMPT ENGINEERING  (try this first!)
   Need the SAME behavior every time,
    a skill too complex to describe in words,
-   or shorter prompts (lower cost)? ─────────► FINE-TUNE  (LoRA / QLoRA)</pre></div>
+   or shorter prompts (lower cost)? <span class="d-l">─────────</span><span class="d-a">►</span> FINE-TUNE  (LoRA / QLoRA)</pre></div>
             <p><strong>So why fine-tune at all?</strong>
             </p>
             <ul>
@@ -1484,22 +1496,22 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p>Each training example flows through the model like this:</p>
             <div class="diagram"><pre>Text
-  ↓
+  <span class="d-a">↓</span>
 Tokenizer          split the text into pieces
-  ↓
-Token IDs          each piece → a number
-  ↓
-Embedding          each number → a vector
-  ↓
-Transformer        the model "thinks"      ← LoRA's A and B sit here
-  ↓
+  <span class="d-a">↓</span>
+Token IDs          each piece <span class="d-a">→</span> a number
+  <span class="d-a">↓</span>
+Embedding          each number <span class="d-a">→</span> a vector
+  <span class="d-a">↓</span>
+Transformer        the model "thinks"      <span class="d-a">←</span> LoRA's A and B sit here
+  <span class="d-a">↓</span>
 Predicted Tokens   the model's guess
-  ↓
+  <span class="d-a">↓</span>
 Loss               how wrong the guess was
-  ↓
+  <span class="d-a">↓</span>
 Backpropagation    figure out which way to nudge
-  ↓
-Weight Updates     only A and B change   (base stays frozen ❄️)</pre></div>
+  <span class="d-a">↓</span>
+Weight Updates     only A and B change   (base stays frozen *)</pre></div>
             <p><strong>About <code>A</code> and <code>B</code>:</strong> they start tiny (<code>B</code> is all zeros, <code>A</code> is small random) — so at first the add-on does <strong>nothing</strong> and the model behaves exactly like the base. Each pass <strong>trains them</strong> a little. After enough passes, <code>A</code> and <code>B</code> hold the <strong>proper learned weights</strong>. That's all fine-tuning is.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1806,23 +1818,23 @@ tok.<span class="fn">save_pretrained</span>(<span class="str">"./pirate-merged"<
         <div class="q-a" style="margin:0 0 12px">
           <p>A pretrained <abbr title="large language model">LLM</abbr> is not trying to be helpful. It is trying to <strong>predict the most likely next token given the internet</strong>. Ask it "What is the capital of France?" and a plausible continuation is <em>"What is the capital of Germany? What is the capital of Spain?"</em> — because on the internet, questions come in lists.</p>
           <p>Post-training fixes this in two moves:</p>
-          <div class="diagram"><pre>SFT       "Here is what a good answer looks like."      ← imitation      (cheap, gets you 80%)
-ALIGNMENT "Here is which of two answers is better."     ← preference     (expensive, gets the last 20%)</pre></div>
+          <div class="diagram"><pre>SFT       "Here is what a good answer looks like."      <span class="d-a">←</span> imitation      (cheap, gets you 80%)
+ALIGNMENT "Here is which of two answers is better."     <span class="d-a">←</span> preference     (expensive, gets the last 20%)</pre></div>
           <p>Why the second stage at all? Because <strong>it is far easier for a human to rank two answers than to write the perfect one.</strong> You cannot hire people to hand-write a million ideal responses, but you <em>can</em> have them click "A is better" a million times. Alignment is the machinery for converting cheap comparisons into model weights.</p>
           <p>The whole pipeline:</p>
           <div class="diagram"><pre>  Raw text (trillions of tokens)
-        │  next-token prediction
-        ▼
-  BASE MODEL ─────────────────────────────────► completes text, ignores instructions
-        │  SFT on (instruction, answer) pairs
-        ▼
-  SFT MODEL  ─────────────────────────────────► follows instructions, mediocre judgement
-        │
-        ├── path A: RM + PPO      (classic RLHF — OpenAI/Anthropic 2022)
-        ├── path B: DPO           (2023 — no RM, no RL loop, the default for most teams)
-        └── path C: GRPO + RLVR   (2025 — reasoning models: DeepSeek-R1 style)
-        ▼
-  ALIGNED MODEL ──────────────────────────────► helpful, harmless, formatted, calibrated</pre></div>
+        <span class="d-l">│</span>  next-token prediction
+        <span class="d-a">▼</span>
+  BASE MODEL <span class="d-l">─────────────────────────────────</span><span class="d-a">►</span> completes text, ignores instructions
+        <span class="d-l">│</span>  SFT on (instruction, answer) pairs
+        <span class="d-a">▼</span>
+  SFT MODEL  <span class="d-l">─────────────────────────────────</span><span class="d-a">►</span> follows instructions, mediocre judgement
+        <span class="d-l">│</span>
+        <span class="d-l">├──</span> path A: RM + PPO      (classic RLHF — OpenAI/Anthropic 2022)
+        <span class="d-l">├──</span> path B: DPO           (2023 — no RM, no RL loop, the default for most teams)
+        <span class="d-l">└──</span> path C: GRPO + RLVR   (2025 — reasoning models: DeepSeek-R1 style)
+        <span class="d-a">▼</span>
+  ALIGNED MODEL <span class="d-l">──────────────────────────────</span><span class="d-a">►</span> helpful, harmless, formatted, calibrated</pre></div>
         </div>
         <div class="parthead" id="f07LLMTraininga-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>1. Stage 1 — Pretraining</span><i></i>
         </div>
@@ -1918,7 +1930,7 @@ text = tokenizer.<span class="fn">apply_chat_template</span>(messages, tokenize=
 σ(0.6) = 1 / (1 + e^−0.6) = 1 / (1 + 0.5488) = 0.6457
 loss = −log(0.6457) = 0.4372</code></pre>
           <p>Now suppose the model had it backwards: <code>r(y_w) = 0.4</code>, <code>r(y_l) = 1.7</code>.</p>
-          <div class="diagram"><pre>gap  = −1.3 → σ(−1.3) = 0.2142 → loss = −log(0.2142) = 1.5412     ← 3.5× the penalty</pre></div>
+          <div class="diagram"><pre>gap  = −1.3 <span class="d-a">→</span> σ(−1.3) = 0.2142 <span class="d-a">→</span> loss = −log(0.2142) = 1.5412     <span class="d-a">←</span> 3.5× the penalty</pre></div>
           <p>And when it's already confident: gap = 4.0 → σ = 0.982 → loss = 0.018. <strong>Near zero — no more gradient.</strong> That's the saturation: the RM stops burning capacity on pairs it already ranks correctly.</p>
           <h3>From scratch</h3>
           <pre class="code" data-lang="python"><code><span class="kw">import</span> torch, torch.nn <span class="kw">as</span> nn, torch.nn.functional <span class="kw">as</span> F
@@ -1959,7 +1971,7 @@ loss = −log(0.6457) = 0.4372</code></pre>
           <p>Now you have a scorer. Let the model generate answers, score them, and push its weights toward whatever scored well — with a <strong>leash</strong> so it doesn't wander off into gibberish that happens to fool the scorer.</p>
           <h3>The objective</h3>
           <div class="diagram"><pre>max_θ   E_{x~D, y~π_θ} [ r_φ(x, y) ]   −   β · KL( π_θ(·|x) ‖ π_ref(·|x) )
-        └──── get a high reward ────┘       └──── but stay near the SFT model ────┘</pre></div>
+        <span class="d-l">└────</span> get a high reward <span class="d-l">────┘</span>       <span class="d-l">└────</span> but stay near the SFT model <span class="d-l">────┘</span></pre></div>
           <p><code>π_ref</code> is the frozen <abbr title="supervised fine-tuning">SFT</abbr> model. <code>β</code> (typically 0.01–0.1) sets the leash length.</p>
           <p><strong>Why the KL term is non-negotiable:</strong> without it the policy collapses onto whatever degenerate text maximises the RM — repeated flattery, huge lists, a specific formatting tic. You get a model with a phenomenal reward score that is useless to humans. In practice the KL is applied as a <strong>per-token penalty folded into the reward</strong>:</p>
           <pre class="code"><code>R_t  =  r_φ(x, y) · 1[t is last token]  −  β · ( log π_θ(y_t|·) − log π_ref(y_t|·) )</code></pre>
@@ -2012,8 +2024,8 @@ L_PPO = E[ min( ρ_t · Â_t ,  clip(ρ_t, 1−ε, 1+ε) · Â_t ) ]     # ε �
           <h3>The loop</h3>
           <div class="diagram"><pre>for batch of prompts:
     1. GENERATE   completions from π_θ                (slow — this is autoregressive sampling)
-    2. SCORE      each with r_φ                       → scalar reward
-    3. PENALISE   per-token KL vs π_ref               → shaped reward R_t
+    2. SCORE      each with r_φ                       <span class="d-a">→</span> scalar reward
+    3. PENALISE   per-token KL vs π_ref               <span class="d-a">→</span> shaped reward R_t
     4. ESTIMATE   advantages Â_t via GAE using V_ψ
     5. UPDATE     π_θ (clipped surrogate) and V_ψ (MSE), a few inner epochs</pre></div>
         </div>
@@ -2039,7 +2051,7 @@ L_PPO = E[ min( ρ_t · Â_t ,  clip(ρ_t, 1−ε, 1+ε) · Â_t ) ]     # ε �
             </div><pre class="code"><code>r(x,y)  =  β · log( π*(y|x) / π_ref(y|x) )  +  β · log Z(x)</code></pre>
             <p><strong>3. Substitute into Bradley-Terry.</strong> The intractable partition function <code>Z(x)</code> depends only on <code>x</code>, so it appears in <em>both</em> terms of the difference and <strong>cancels</strong>:</p>
             <div class="diagram"><pre>L_DPO = − E [ log σ(  β·log( π_θ(y_w|x) / π_ref(y_w|x) )  −  β·log( π_θ(y_l|x) / π_ref(y_l|x) )  ) ]
-                      └────────── "implicit reward" of the winner ─────┘   └──── of the loser ────┘</pre></div>
+                      <span class="d-l">└──────────</span> "implicit reward" of the winner <span class="d-l">─────┘</span>   <span class="d-l">└────</span> of the loser <span class="d-l">────┘</span></pre></div>
             <p><strong>The whole trick in one sentence:</strong> <em>the language model is secretly its own reward model</em> — the log-ratio against the frozen reference <strong>is</strong> the reward, so you can optimise preferences with a supervised loss.</p>
             <h3>Worked numbers</h3>
             <p>Say for one pair the summed response log-probs are:</p>
@@ -2250,7 +2262,7 @@ trainer.<span class="fn">train</span>()</code></pre>
 GRPO:   advantage = actual reward − mean reward of G siblings  (empirical baseline, free)</code></pre>
           <h3>The formula</h3>
           <p>For prompt <code>x</code>, sample a group <code>{y_1 … y_G}</code> and score each:</p>
-          <div class="diagram"><pre>Â_i  =  ( r_i − mean(r_1..r_G) )  /  std(r_1..r_G)         ← group-normalised advantage
+          <div class="diagram"><pre>Â_i  =  ( r_i − mean(r_1..r_G) )  /  std(r_1..r_G)         <span class="d-a">←</span> group-normalised advantage
 
 L_GRPO = −E[ (1/G) Σ_i  min( ρ_i·Â_i, clip(ρ_i, 1−ε, 1+ε)·Â_i ) ]  +  β·KL(π_θ ‖ π_ref)</pre></div>
           <p>Same clipped surrogate as PPO, different advantage, one fewer model.</p>
@@ -2401,7 +2413,7 @@ r = torch.<span class="fn">tensor</span>([[<span class="num">1</span>., <span cl
             </table>
           </div>
           <p><strong>Worked trade-off.</strong> A task where the small model scores <span class="mag">60%</span> and the big model <span class="mag">85%</span>, but the big model costs <span class="mag">20×</span> per call:</p>
-          <div class="diagram"><pre>Small + self-consistency@8:   accuracy ≈ 78%,  cost = 8×   ← often the right answer
+          <div class="diagram"><pre>Small + self-consistency@8:   accuracy ≈ 78%,  cost = 8×   <span class="d-a">←</span> often the right answer
 Big model, single sample:     accuracy ≈ 85%,  cost = 20×</pre></div>
           <p><strong>Interview soundbite:</strong> <em>"Test-time compute is the cheapest quality lever I own, because it needs no retraining — but it trades latency for accuracy, so it belongs on the hard tail of my traffic, not on every request. I route: cheap single-pass for easy queries, verified sampling for hard ones."</em> That routing idea connects directly to <a href="production.html#f21LLMCostandTo">LLM Cost and Token Optimization</a>.</p>
         </div>
@@ -2410,12 +2422,12 @@ Big model, single sample:     accuracy ≈ 85%,  cost = 20×</pre></div>
         <div class="q-a" style="margin:0 0 12px">
           <p><strong>The core phenomenon (Goodhart's law, applied):</strong> the RM is a <em>proxy</em> for human preference. Optimise the proxy hard enough and the two come apart — true quality peaks and then <strong>falls</strong> while the RM score keeps climbing.</p>
           <div class="diagram"><pre>  quality
-    ▲          ┌── RM score (proxy) — keeps rising
-    │      ────┘
-    │    ╱‾‾‾╲            ← TRUE human preference: peaks, then degrades
-    │   ╱      ╲___
-    └──────────────────────────► KL distance from π_ref
-              ↑
+    <span class="d-a">▲</span>          <span class="d-l">┌──</span> RM score (proxy) — keeps rising
+    <span class="d-l">│</span>      <span class="d-l">────┘</span>
+    <span class="d-l">│</span>    <span class="d-l">╱</span>‾‾‾<span class="d-l">╲</span>            <span class="d-a">←</span> TRUE human preference: peaks, then degrades
+    <span class="d-l">│</span>   <span class="d-l">╱</span>      <span class="d-l">╲</span>___
+    <span class="d-l">└──────────────────────────</span><span class="d-a">►</span> KL distance from π_ref
+              <span class="d-a">↑</span>
         stop training here</pre></div>
           <h3>The catalogue</h3>
           <div class="tbl-wrap">
@@ -2474,7 +2486,7 @@ Big model, single sample:     accuracy ≈ 85%,  cost = 20×</pre></div>
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <p>Human preference labels cost $1–5 each and take weeks. <strong>RLAIF</strong> replaces the labeller with an <abbr title="large language model">LLM</abbr>:</p>
-          <div class="diagram"><pre>Prompt → sample 2 responses → ask a strong LLM "which is better, and why?" → preference pair → DPO/RM</pre></div>
+          <div class="diagram"><pre>Prompt <span class="d-a">→</span> sample 2 responses <span class="d-a">→</span> ask a strong LLM "which is better, and why?" <span class="d-a">→</span> preference pair <span class="d-a">→</span> DPO/RM</pre></div>
           <p>At a modest quality cost you get labels for ~$0.001 each and a full dataset overnight. In practice most teams use <strong>hybrid</strong>: AI labels for volume, human labels for calibration and for the safety-critical slice.</p>
           <p><strong>Constitutional AI (Anthropic)</strong> adds structure — the AI critiques against an explicit written set of principles:</p>
           <ol class="steplist">
@@ -2568,28 +2580,28 @@ Big model, single sample:     accuracy ≈ 85%,  cost = 20×</pre></div>
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <div class="diagram"><pre>Do you need the model to know NEW FACTS?
-  └─► No fine-tuning. Use RAG.  →  05_RAG_and_Vector_Stores.md
+  <span class="d-l">└─</span><span class="d-a">►</span> No fine-tuning. Use RAG.  <span class="d-a">→</span>  05_RAG_and_Vector_Stores.md
       (Fine-tuning teaches behaviour, not facts. This mistake is the #1 interview filter.)
 
 Do you need a specific FORMAT / TONE / TASK behaviour?
-  └─► SFT (+ LoRA). 1k–10k examples. Stop here — most projects should.
+  <span class="d-l">└─</span><span class="d-a">►</span> SFT (+ LoRA). 1k–10k examples. Stop here — most projects should.
 
 Is the model's behaviour "correct but not preferred" — too verbose, wrong register,
 unsafe edge cases, doesn't pick the answer humans like?
-  ├─ You have PAIRWISE data ..................... DPO   (β=0.1, lr≈5e-7, 1 epoch)
-  ├─ You have THUMBS UP/DOWN only ............... KTO
-  ├─ You want ONE stage from a base model ....... ORPO
-  └─ Outputs keep getting longer ................ SimPO
+  <span class="d-l">├─</span> You have PAIRWISE data ..................... DPO   (β=0.1, lr≈5e-7, 1 epoch)
+  <span class="d-l">├─</span> You have THUMBS UP/DOWN only ............... KTO
+  <span class="d-l">├─</span> You want ONE stage from a base model ....... ORPO
+  <span class="d-l">└─</span> Outputs keep getting longer ................ SimPO
 
 Do you have a PROGRAMMATIC verifier (tests, exact answer, schema)?
-  └─► GRPO + RLVR. This is how you build a reasoning/agentic model.
+  <span class="d-l">└─</span><span class="d-a">►</span> GRPO + RLVR. This is how you build a reasoning/agentic model.
 
 Do you have a labelling budget, an RM, GPUs for 4 models, and a team?
-  └─► PPO/RLHF. Highest ceiling, highest cost. Rarely the right first move.</pre></div>
+  <span class="d-l">└─</span><span class="d-a">►</span> PPO/RLHF. Highest ceiling, highest cost. Rarely the right first move.</pre></div>
           <p><strong>Realistic 2026 pipeline for a product team:</strong>
           </p>
-          <div class="diagram"><pre>open instruct model  →  LoRA SFT (5k curated examples)  →  LoRA DPO (2k preference pairs
-harvested from production thumbs-down + LLM-judge labels)  →  merge  →  eval-gated deploy</pre></div>
+          <div class="diagram"><pre>open instruct model  <span class="d-a">→</span>  LoRA SFT (5k curated examples)  <span class="d-a">→</span>  LoRA DPO (2k preference pairs
+harvested from production thumbs-down + LLM-judge labels)  <span class="d-a">→</span>  merge  <span class="d-a">→</span>  eval-gated deploy</pre></div>
           <p>That's two GPU-days, not a research programme — and it is the answer that lands in an interview, because it's the one that ships.</p>
         </div>
         <div class="parthead" id="f07LLMTraininga-p15"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-chart"/></svg>14. Evaluating an aligned model</span><i></i>

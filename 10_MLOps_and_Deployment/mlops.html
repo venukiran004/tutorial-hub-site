@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1145,13 +1157,13 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
   Level 3 — Full:       + Monitoring, auto-retraining, feature store
   
   ML LIFECYCLE:
-  ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
-  │  Data    │──→│  Train   │──→│  Deploy  │──→│ Monitor  │
-  │ Pipeline │   │ Pipeline │   │ Pipeline │   │          │──→ Retrain
-  └──────────┘   └──────────┘   └──────────┘   └──────────┘
+  <span class="d-l">┌──────────┐</span>   <span class="d-l">┌──────────┐</span>   <span class="d-l">┌──────────┐</span>   <span class="d-l">┌──────────┐</span>
+  <span class="d-l">│</span>  Data    <span class="d-l">│──</span><span class="d-a">→</span><span class="d-l">│</span>  Train   <span class="d-l">│──</span><span class="d-a">→</span><span class="d-l">│</span>  Deploy  <span class="d-l">│──</span><span class="d-a">→</span><span class="d-l">│</span> Monitor  <span class="d-l">│</span>
+  <span class="d-l">│</span> Pipeline <span class="d-l">│</span>   <span class="d-l">│</span> Pipeline <span class="d-l">│</span>   <span class="d-l">│</span> Pipeline <span class="d-l">│</span>   <span class="d-l">│</span>          <span class="d-l">│──</span><span class="d-a">→</span> Retrain
+  <span class="d-l">└──────────┘</span>   <span class="d-l">└──────────┘</span>   <span class="d-l">└──────────┘</span>   <span class="d-l">└──────────┘</span>
   
   KEY PRINCIPLES:
-  - Reproducibility (same data + code + params → same model)
+  - Reproducibility (same data + code + params <span class="d-a">→</span> same model)
   - Automation (manual steps = errors)
   - Monitoring (models degrade over time)
   - Versioning (data, code, model, config — ALL versioned)</pre></div>
@@ -1363,15 +1375,15 @@ saved_model = bentoml.sklearn.<span class="fn">save_model</span>(<span class="st
 app = ModelDeployment.<span class="fn">bind</span>()
 serve.<span class="fn">run</span>(app)</code></pre>
             <div class="diagram"><pre>MODEL SERVING COMPARISON:
-  Framework   │ Type      │ Best For              │ GPU │ Batching
-  ────────────┼───────────┼───────────────────────┼─────┼─────────
-  FastAPI     │ Generic   │ Simple models, APIs   │ Yes │ Manual
-  BentoML     │ ML-first  │ Sklearn/PyTorch/TF    │ Yes │ Adaptive
-  Ray Serve   │ Scalable  │ Multi-model, A/B test │ Yes │ Yes
-  TorchServe  │ PyTorch   │ PyTorch models        │ Yes │ Yes
-  vLLM        │ LLM       │ LLM inference (fast)  │ Yes │ Continuous
-  TGI         │ LLM       │ HF LLM inference      │ Yes │ Continuous
-  Triton      │ Multi-FW  │ NVIDIA GPU serving    │ Yes │ Dynamic</pre></div>
+  Framework   <span class="d-l">│</span> Type      <span class="d-l">│</span> Best For              <span class="d-l">│</span> GPU <span class="d-l">│</span> Batching
+  <span class="d-l">────────────┼───────────┼───────────────────────┼─────┼─────────</span>
+  FastAPI     <span class="d-l">│</span> Generic   <span class="d-l">│</span> Simple models, APIs   <span class="d-l">│</span> Yes <span class="d-l">│</span> Manual
+  BentoML     <span class="d-l">│</span> ML-first  <span class="d-l">│</span> Sklearn/PyTorch/TF    <span class="d-l">│</span> Yes <span class="d-l">│</span> Adaptive
+  Ray Serve   <span class="d-l">│</span> Scalable  <span class="d-l">│</span> Multi-model, A/B test <span class="d-l">│</span> Yes <span class="d-l">│</span> Yes
+  TorchServe  <span class="d-l">│</span> PyTorch   <span class="d-l">│</span> PyTorch models        <span class="d-l">│</span> Yes <span class="d-l">│</span> Yes
+  vLLM        <span class="d-l">│</span> LLM       <span class="d-l">│</span> LLM inference (fast)  <span class="d-l">│</span> Yes <span class="d-l">│</span> Continuous
+  TGI         <span class="d-l">│</span> LLM       <span class="d-l">│</span> HF LLM inference      <span class="d-l">│</span> Yes <span class="d-l">│</span> Continuous
+  Triton      <span class="d-l">│</span> Multi-FW  <span class="d-l">│</span> NVIDIA GPU serving    <span class="d-l">│</span> Yes <span class="d-l">│</span> Dynamic</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01MLOpsmd-7">
@@ -1396,7 +1408,7 @@ serve.<span class="fn">run</span>(app)</code></pre>
     PSI = Σ (pᵢ - qᵢ) × ln(pᵢ / qᵢ)
     PSI &lt; 0.1:  No significant change
     0.1 ≤ PSI &lt; 0.25:  Moderate shift
-    PSI ≥ 0.25:  Significant shift → investigate or retrain</pre></div>
+    PSI ≥ 0.25:  Significant shift <span class="d-a">→</span> investigate or retrain</pre></div>
             <pre class="code" data-lang="python"><code><span class="cmt"># ── Evidently (drift detection) ──────────────────────────</span>
 <span class="kw">from</span> evidently.report <span class="kw">import</span> Report
 <span class="kw">from</span> evidently.metric_preset <span class="kw">import</span> DataDriftPreset
@@ -1530,15 +1542,15 @@ jobs:
             <p>A/B testing and graduated deployment strategies — shadow mode, canary, and blue-green — reduce the risk of deploying new models by controlling traffic splits and measuring real-world impact before full rollout. Statistical significance testing on business metrics ensures that model changes deliver genuine improvements rather than random fluctuations.</p>
             <div class="diagram"><pre>DEPLOYMENT STRATEGIES:
   Shadow:    Send real traffic to new model, compare outputs (no impact)
-  Canary:    Route 5% traffic → new model, 95% → old. Gradually increase.
+  Canary:    Route 5% traffic <span class="d-a">→</span> new model, 95% <span class="d-a">→</span> old. Gradually increase.
   Blue-Green: Two identical environments. Switch DNS/LB instantly.
   A/B:       Random split with metrics tracking. Statistical significance testing.
   
-  ┌─────────┐        5%  ┌────────────┐
-  │ Traffic  │───────────→│ New Model  │ (Canary)
-  │         │        95% ┌────────────┐
-  │         │───────────→│ Old Model  │
-  └─────────┘           └─────────────┘
+  <span class="d-l">┌─────────┐</span>        5%  <span class="d-l">┌────────────┐</span>
+  <span class="d-l">│</span> Traffic  <span class="d-l">│───────────</span><span class="d-a">→</span><span class="d-l">│</span> New Model  <span class="d-l">│</span> (Canary)
+  <span class="d-l">│</span>         <span class="d-l">│</span>        95% <span class="d-l">┌────────────┐</span>
+  <span class="d-l">│</span>         <span class="d-l">│───────────</span><span class="d-a">→</span><span class="d-l">│</span> Old Model  <span class="d-l">│</span>
+  <span class="d-l">└─────────┘</span>           <span class="d-l">└─────────────┘</span>
 
 A/B TESTING for ML:
   1. Define metrics (CTR, revenue, engagement)
@@ -1555,20 +1567,20 @@ A/B TESTING for ML:
           <div class="q-a">
             <p>Model compression techniques — <abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">quantization</abbr>, knowledge <abbr title="training a smaller model to reproduce a larger model&#x27;s behaviour">distillation</abbr>, and pruning — reduce model size and inference latency while preserving accuracy, enabling deployment on resource-constrained devices or cost-sensitive serving environments. Quantization alone (FP32 → INT8) can deliver <span class="mag">2–4×</span> speedups with less than <span class="mag">1%</span> accuracy loss for most models.</p>
             <div class="diagram"><pre>COMPRESSION TECHNIQUES:
-  Quantization:   FP32 → INT8/INT4 (reduce precision)
+  Quantization:   FP32 <span class="d-a">→</span> INT8/INT4 (reduce precision)
                   2-4× faster, 2-4× less memory, &lt;1% accuracy loss
                   Tools: ONNX Runtime, TensorRT, bitsandbytes
   
   Knowledge Distillation: Train small "student" model to mimic large "teacher"
                   10-100× smaller, variable accuracy loss
-                  Used for: BERT → DistilBERT, GPT-4 → fine-tune small model
+                  Used for: BERT <span class="d-a">→</span> DistilBERT, GPT-4 <span class="d-a">→</span> fine-tune small model
   
   Pruning:       Remove unimportant weights (set to zero)
                  Structured (remove neurons) vs Unstructured (sparse weights)
                  2-10× faster with structured pruning
   
   ONNX:          Framework-agnostic model format
-                 Export PyTorch/TF → ONNX → optimize with ONNX Runtime
+                 Export PyTorch/TF <span class="d-a">→</span> ONNX <span class="d-a">→</span> optimize with ONNX Runtime
                  2-5× faster inference vs native PyTorch</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1696,8 +1708,8 @@ A/B TESTING for ML:
   5. Collaboration: GitOps, PRs, code review
   
   WORKFLOW:
-  Code → Build → Test → Release → Deploy → Operate → Monitor → Plan
-           └──────────────── Continuous Feedback ────────────────┘</pre></div>
+  Code <span class="d-a">→</span> Build <span class="d-a">→</span> Test <span class="d-a">→</span> Release <span class="d-a">→</span> Deploy <span class="d-a">→</span> Operate <span class="d-a">→</span> Monitor <span class="d-a">→</span> Plan
+           <span class="d-l">└────────────────</span> Continuous Feedback <span class="d-l">────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f02DevOpsmd-17">
@@ -1835,24 +1847,24 @@ docker compose down -v         <span class="cmt"># Stop and remove volumes</span
                 </tbody>
               </table>
             </div>
-            <div class="diagram"><pre>NESTING  (smallest ───────────────────────────────► largest)
+            <div class="diagram"><pre>NESTING  (smallest <span class="d-l">───────────────────────────────</span><span class="d-a">►</span> largest)
 
-┌───────────────────────────── CLUSTER ────────────────────────────┐
-│  Control plane:  API server · scheduler · etcd · controllers     │
-│                                                                  │
-│   ┌──────────── NODE 1 ────────────┐   ┌──────── NODE 2 ───────┐ │
-│   │  (a machine: VM or physical)   │   │                       │ │
-│   │   ┌──── POD ────┐  ┌── POD ──┐ │   │   ┌──── POD ────┐     │ │
-│   │   │ ┌─────────┐ │  │┌───────┐│ │   │   │ ┌─────────┐ │     │ │
-│   │   │ │container│ │  ││contain││ │   │   │ │container│ │     │ │
-│   │   │ ├─────────┤ │  │└───────┘│ │   │   │ └─────────┘ │     │ │
-│   │   │ │container│ │  └─────────┘ │   │   └─────────────┘     │ │
-│   │   │ └─────────┘ │              │   │                       │ │
-│   │   └─────────────┘              │   │                       │ │
-│   └────────────────────────────────┘   └───────────────────────┘ │
-└──────────────────────────────────────────────────────────────────┘
+<span class="d-l">┌─────────────────────────────</span> CLUSTER <span class="d-l">────────────────────────────┐</span>
+<span class="d-l">│</span>  Control plane:  API server · scheduler · etcd · controllers     <span class="d-l">│</span>
+<span class="d-l">│</span>                                                                  <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">┌────────────</span> NODE 1 <span class="d-l">────────────┐</span>   <span class="d-l">┌────────</span> NODE 2 <span class="d-l">───────┐</span> <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>  (a machine: VM or physical)   <span class="d-l">│</span>   <span class="d-l">│</span>                       <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">┌────</span> POD <span class="d-l">────┐</span>  <span class="d-l">┌──</span> POD <span class="d-l">──┐</span> <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">┌────</span> POD <span class="d-l">────┐</span>     <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span> <span class="d-l">┌─────────┐</span> <span class="d-l">│</span>  <span class="d-l">│┌───────┐│</span> <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span> <span class="d-l">┌─────────┐</span> <span class="d-l">│</span>     <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span> <span class="d-l">│</span>container<span class="d-l">│</span> <span class="d-l">│</span>  <span class="d-l">││</span>contain<span class="d-l">││</span> <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span> <span class="d-l">│</span>container<span class="d-l">│</span> <span class="d-l">│</span>     <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span> <span class="d-l">├─────────┤</span> <span class="d-l">│</span>  <span class="d-l">│└───────┘│</span> <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span> <span class="d-l">└─────────┘</span> <span class="d-l">│</span>     <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span> <span class="d-l">│</span>container<span class="d-l">│</span> <span class="d-l">│</span>  <span class="d-l">└─────────┘</span> <span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">└─────────────┘</span>     <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">│</span> <span class="d-l">└─────────┘</span> <span class="d-l">│</span>              <span class="d-l">│</span>   <span class="d-l">│</span>                       <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">│</span>   <span class="d-l">└─────────────┘</span>              <span class="d-l">│</span>   <span class="d-l">│</span>                       <span class="d-l">│</span> <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-l">└────────────────────────────────┘</span>   <span class="d-l">└───────────────────────┘</span> <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────────────────────────────┘</span>
 
-Flow:  IMAGE ──► wrapped in a POD ──► scheduled onto a NODE ──► nodes form the CLUSTER</pre></div>
+Flow:  IMAGE <span class="d-l">──</span><span class="d-a">►</span> wrapped in a POD <span class="d-l">──</span><span class="d-a">►</span> scheduled onto a NODE <span class="d-l">──</span><span class="d-a">►</span> nodes form the CLUSTER</pre></div>
             <div class="note">
               <p><strong>Mental model:</strong> you hand Kubernetes a <strong>container image</strong> → it wraps it in a <strong>pod</strong> → the scheduler places that pod on a <strong>node</strong> → all nodes managed together are the <strong>cluster</strong>.</p>
             </div>
@@ -1889,14 +1901,14 @@ spec:
       periodSeconds: 5</code></pre>
             <div class="diagram"><pre>K8S ARCHITECTURE:
   Control Plane:
-    API Server → etcd (state store)
-    Scheduler → assigns pods to nodes
-    Controller Manager → reconciles desired vs actual state
+    API Server <span class="d-a">→</span> etcd (state store)
+    Scheduler <span class="d-a">→</span> assigns pods to nodes
+    Controller Manager <span class="d-a">→</span> reconciles desired vs actual state
   
   Worker Nodes:
-    kubelet → manages pods on the node
-    kube-proxy → handles networking
-    Container runtime → runs containers (containerd)
+    kubelet <span class="d-a">→</span> manages pods on the node
+    kube-proxy <span class="d-a">→</span> handles networking
+    Container runtime <span class="d-a">→</span> runs containers (containerd)
   
   KEY CONCEPTS:
   Pod:         1+ containers sharing network/storage
@@ -2137,9 +2149,9 @@ jobs:
   1. Git is the single source of truth
   2. Desired state is declarative (YAML in Git)
   3. Changes are made via Pull Requests
-  4. Automated reconciliation (ArgoCD watches Git → applies to cluster)
+  4. Automated reconciliation (ArgoCD watches Git <span class="d-a">→</span> applies to cluster)
   
-  Developer → PR to Git → Merge → ArgoCD detects → Syncs to K8s
+  Developer <span class="d-a">→</span> PR to Git <span class="d-a">→</span> Merge <span class="d-a">→</span> ArgoCD detects <span class="d-a">→</span> Syncs to K8s
   
   ARGOCD:
   - Watches Git repos for K8s manifest changes
@@ -2193,7 +2205,7 @@ jobs:
     "error": "ConnectionRefused"
   }
   
-  LOG LEVELS: DEBUG → INFO → WARNING → ERROR → CRITICAL
+  LOG LEVELS: DEBUG <span class="d-a">→</span> INFO <span class="d-a">→</span> WARNING <span class="d-a">→</span> ERROR <span class="d-a">→</span> CRITICAL
   Production: INFO and above (no DEBUG)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -2231,12 +2243,12 @@ jobs:
           <div class="q-a">
             <p>Deployment strategies — recreate, rolling update, blue-green, and canary — control how new application versions replace old ones, each trading off between downtime risk, rollback speed, and resource cost. Rolling updates (Kubernetes default) and canary deployments are the most common choices for achieving zero-downtime, low-risk releases in production.</p>
             <div class="diagram"><pre>COMPARISON:
-  Strategy    │ Downtime │ Risk   │ Rollback  │ Resource
-  ────────────┼──────────┼────────┼───────────┼──────────
-  Recreate    │ Yes      │ High   │ Slow      │ 1× 
-  Rolling     │ No       │ Medium │ Medium    │ 1-2×
-  Blue-Green  │ No       │ Low    │ Instant   │ 2×
-  Canary      │ No       │ Low    │ Fast      │ 1.1×
+  Strategy    <span class="d-l">│</span> Downtime <span class="d-l">│</span> Risk   <span class="d-l">│</span> Rollback  <span class="d-l">│</span> Resource
+  <span class="d-l">────────────┼──────────┼────────┼───────────┼──────────</span>
+  Recreate    <span class="d-l">│</span> Yes      <span class="d-l">│</span> High   <span class="d-l">│</span> Slow      <span class="d-l">│</span> 1× 
+  Rolling     <span class="d-l">│</span> No       <span class="d-l">│</span> Medium <span class="d-l">│</span> Medium    <span class="d-l">│</span> 1-2×
+  Blue-Green  <span class="d-l">│</span> No       <span class="d-l">│</span> Low    <span class="d-l">│</span> Instant   <span class="d-l">│</span> 2×
+  Canary      <span class="d-l">│</span> No       <span class="d-l">│</span> Low    <span class="d-l">│</span> Fast      <span class="d-l">│</span> 1.1×
   
   Rolling Update (K8s default):
     Replace pods one by one. maxSurge=1, maxUnavailable=0.
@@ -2258,7 +2270,7 @@ jobs:
             <p>Ansible is an agentless configuration management and automation tool. Unlike Terraform (which provisions infrastructure), Ansible <strong>configures</strong> servers — installing packages, deploying code, managing services.</p>
             <h3>15.1 Core Concepts</h3>
             <div class="diagram"><pre>Concept          Description
-─────────────────────────────────────────────────────────
+<span class="d-l">─────────────────────────────────────────────────────────</span>
 Inventory        List of target hosts (static file or dynamic)
 Playbook         YAML file defining automation tasks
 Role             Reusable, organized collection of tasks
@@ -2342,7 +2354,7 @@ ansible_python_interpreter=/usr/bin/python3</code></pre>
         daemon_reload: yes</code></pre>
             <h3>15.4 Ansible vs Terraform</h3>
             <div class="diagram"><pre>                    Ansible                     Terraform
-─────────────────────────────────────────────────────────────
+<span class="d-l">─────────────────────────────────────────────────────────────</span>
 Purpose             Configuration management    Infrastructure provisioning
 Approach            Procedural (tasks in order) Declarative (desired state)
 State               Stateless (no state file)   Stateful (terraform.tfstate)
@@ -2352,7 +2364,7 @@ Best For            Installing packages,        Creating VMs, networks,
 Language            YAML (playbooks)            HCL (HashiCorp Config Lang)
 Idempotent?         Yes (most modules)          Yes (by design)
 
-COMMON PATTERN: Use Terraform to create infra → Ansible to configure it</pre></div>
+COMMON PATTERN: Use Terraform to create infra <span class="d-a">→</span> Ansible to configure it</pre></div>
             <h3>15.5 Common Ad-Hoc Commands</h3>
             <pre class="code" data-lang="bash"><code><span class="cmt"># Ping all hosts</span>
 ansible all -m ping -i inventory.ini
@@ -2410,23 +2422,23 @@ ansible-playbook deploy_ml_service.yml -i inventory.ini</code></pre></div><butto
           </div>
           <div class="q-a">
             <p>The cloud ML platform landscape encompasses managed services from AWS, GCP, and Azure that cover the full ML lifecycle—from notebooks and training to serving and monitoring. Understanding the capabilities and trade-offs of each platform is essential for selecting the right infrastructure for your ML workloads.</p>
-            <div class="diagram"><pre>┌────────────────────────────────────────────────────────────────┐
-│                   CLOUD ML PLATFORM COMPARISON                 │
-├──────────────┬──────────────┬──────────────┬───────────────────┤
-│  Capability  │ AWS SageMaker│  GCP Vertex  │    Azure ML       │
-├──────────────┼──────────────┼──────────────┼───────────────────┤
-│ Notebooks    │ Studio       │ Workbench    │ Compute Instances │
-│ Training     │ Training Jobs│ Custom Jobs  │ Compute Clusters  │
-│ HPO          │ HPO Jobs     │ Vizier       │ HyperDrive        │
-│ Serving      │ Endpoints    │ Endpoints    │ Managed Endpoints │
-│ Pipeline     │ Pipelines    │ Pipelines    │ Pipelines (v2)    │
-│ Feature Store│ Feature Store│ Feature Store│ Feature Store     │
-│ AutoML       │ Autopilot    │ AutoML       │ AutoML            │
-│ LLM/GenAI    │ Bedrock      │ Vertex AI    │ Azure OpenAI      │
-│ Experiment   │ Experiments  │ Experiments  │ MLflow            │
-│ Registry     │ Model Reg.   │ Model Reg.   │ Model Reg.        │
-│ Monitoring   │ Model Monitor│ Model Monitor│ Data Drift        │
-└──────────────┴──────────────┴──────────────┴───────────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                   CLOUD ML PLATFORM COMPARISON                 <span class="d-l">│</span>
+<span class="d-l">├──────────────┬──────────────┬──────────────┬───────────────────┤</span>
+<span class="d-l">│</span>  Capability  <span class="d-l">│</span> AWS SageMaker<span class="d-l">│</span>  GCP Vertex  <span class="d-l">│</span>    Azure ML       <span class="d-l">│</span>
+<span class="d-l">├──────────────┼──────────────┼──────────────┼───────────────────┤</span>
+<span class="d-l">│</span> Notebooks    <span class="d-l">│</span> Studio       <span class="d-l">│</span> Workbench    <span class="d-l">│</span> Compute Instances <span class="d-l">│</span>
+<span class="d-l">│</span> Training     <span class="d-l">│</span> Training Jobs<span class="d-l">│</span> Custom Jobs  <span class="d-l">│</span> Compute Clusters  <span class="d-l">│</span>
+<span class="d-l">│</span> HPO          <span class="d-l">│</span> HPO Jobs     <span class="d-l">│</span> Vizier       <span class="d-l">│</span> HyperDrive        <span class="d-l">│</span>
+<span class="d-l">│</span> Serving      <span class="d-l">│</span> Endpoints    <span class="d-l">│</span> Endpoints    <span class="d-l">│</span> Managed Endpoints <span class="d-l">│</span>
+<span class="d-l">│</span> Pipeline     <span class="d-l">│</span> Pipelines    <span class="d-l">│</span> Pipelines    <span class="d-l">│</span> Pipelines (v2)    <span class="d-l">│</span>
+<span class="d-l">│</span> Feature Store<span class="d-l">│</span> Feature Store<span class="d-l">│</span> Feature Store<span class="d-l">│</span> Feature Store     <span class="d-l">│</span>
+<span class="d-l">│</span> AutoML       <span class="d-l">│</span> Autopilot    <span class="d-l">│</span> AutoML       <span class="d-l">│</span> AutoML            <span class="d-l">│</span>
+<span class="d-l">│</span> LLM/GenAI    <span class="d-l">│</span> Bedrock      <span class="d-l">│</span> Vertex AI    <span class="d-l">│</span> Azure OpenAI      <span class="d-l">│</span>
+<span class="d-l">│</span> Experiment   <span class="d-l">│</span> Experiments  <span class="d-l">│</span> Experiments  <span class="d-l">│</span> MLflow            <span class="d-l">│</span>
+<span class="d-l">│</span> Registry     <span class="d-l">│</span> Model Reg.   <span class="d-l">│</span> Model Reg.   <span class="d-l">│</span> Model Reg.        <span class="d-l">│</span>
+<span class="d-l">│</span> Monitoring   <span class="d-l">│</span> Model Monitor<span class="d-l">│</span> Model Monitor<span class="d-l">│</span> Data Drift        <span class="d-l">│</span>
+<span class="d-l">└──────────────┴──────────────┴──────────────┴───────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f03CloudMLmd-33">
@@ -2584,29 +2596,29 @@ returned_job = ml_client.jobs.<span class="fn">create_or_update</span>(job)
           </div>
           <div class="q-a">
             <p>GPU instance selection involves matching the right accelerator (T4, A10G, A100, H100) to your workload based on VRAM requirements, compute throughput, and cost. Proper GPU sizing—informed by model parameter count and precision format—prevents both under-provisioning and wasted spend.</p>
-            <div class="diagram"><pre>┌─────────────────────────────────────────────────────────────────────────┐
-│                        GPU SELECTION GUIDE                              │
-├──────────────┬──────────┬───────────┬──────────────┬────────────────────┤
-│ GPU          │ VRAM     │ Cost/hr   │ Best For     │ Cloud Instance     │
-├──────────────┼──────────┼───────────┼──────────────┼────────────────────┤
-│ T4           │ 16 GB    │ $0.50     │ Inference,   │ AWS g4dn           │
-│              │          │           │ small train  │ GCP n1+T4          │
-├──────────────┼──────────┼───────────┼──────────────┼────────────────────┤
-│ A10G         │ 24 GB    │ $1.00     │ Fine-tuning  │ AWS g5             │
-│              │          │           │ 7B models    │                    │
-├──────────────┼──────────┼───────────┼──────────────┼────────────────────┤
-│ L4           │ 24 GB    │ $0.80     │ Inference,   │ GCP g2             │
-│              │          │           │ fine-tuning  │                    │
-├──────────────┼──────────┼───────────┼──────────────┼────────────────────┤
-│ A100 (40GB)  │ 40 GB    │ $3.00     │ Training     │ AWS p4d            │
-│              │          │           │ 13B models   │ GCP a2             │
-├──────────────┼──────────┼───────────┼──────────────┼────────────────────┤
-│ A100 (80GB)  │ 80 GB    │ $5.00     │ Training     │ AWS p4de           │
-│              │          │           │ 70B models   │ GCP a2-ultragpu    │
-├──────────────┼──────────┼───────────┼──────────────┼────────────────────┤
-│ H100         │ 80 GB    │ $8-12     │ Large-scale  │ AWS p5             │
-│              │          │           │ LLM training │ GCP a3             │
-└──────────────┴──────────┴───────────┴──────────────┴────────────────────┘
+            <div class="diagram"><pre><span class="d-l">┌─────────────────────────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                        GPU SELECTION GUIDE                              <span class="d-l">│</span>
+<span class="d-l">├──────────────┬──────────┬───────────┬──────────────┬────────────────────┤</span>
+<span class="d-l">│</span> GPU          <span class="d-l">│</span> VRAM     <span class="d-l">│</span> Cost/hr   <span class="d-l">│</span> Best For     <span class="d-l">│</span> Cloud Instance     <span class="d-l">│</span>
+<span class="d-l">├──────────────┼──────────┼───────────┼──────────────┼────────────────────┤</span>
+<span class="d-l">│</span> T4           <span class="d-l">│</span> 16 GB    <span class="d-l">│</span> $0.50     <span class="d-l">│</span> Inference,   <span class="d-l">│</span> AWS g4dn           <span class="d-l">│</span>
+<span class="d-l">│</span>              <span class="d-l">│</span>          <span class="d-l">│</span>           <span class="d-l">│</span> small train  <span class="d-l">│</span> GCP n1+T4          <span class="d-l">│</span>
+<span class="d-l">├──────────────┼──────────┼───────────┼──────────────┼────────────────────┤</span>
+<span class="d-l">│</span> A10G         <span class="d-l">│</span> 24 GB    <span class="d-l">│</span> $1.00     <span class="d-l">│</span> Fine-tuning  <span class="d-l">│</span> AWS g5             <span class="d-l">│</span>
+<span class="d-l">│</span>              <span class="d-l">│</span>          <span class="d-l">│</span>           <span class="d-l">│</span> 7B models    <span class="d-l">│</span>                    <span class="d-l">│</span>
+<span class="d-l">├──────────────┼──────────┼───────────┼──────────────┼────────────────────┤</span>
+<span class="d-l">│</span> L4           <span class="d-l">│</span> 24 GB    <span class="d-l">│</span> $0.80     <span class="d-l">│</span> Inference,   <span class="d-l">│</span> GCP g2             <span class="d-l">│</span>
+<span class="d-l">│</span>              <span class="d-l">│</span>          <span class="d-l">│</span>           <span class="d-l">│</span> fine-tuning  <span class="d-l">│</span>                    <span class="d-l">│</span>
+<span class="d-l">├──────────────┼──────────┼───────────┼──────────────┼────────────────────┤</span>
+<span class="d-l">│</span> A100 (40GB)  <span class="d-l">│</span> 40 GB    <span class="d-l">│</span> $3.00     <span class="d-l">│</span> Training     <span class="d-l">│</span> AWS p4d            <span class="d-l">│</span>
+<span class="d-l">│</span>              <span class="d-l">│</span>          <span class="d-l">│</span>           <span class="d-l">│</span> 13B models   <span class="d-l">│</span> GCP a2             <span class="d-l">│</span>
+<span class="d-l">├──────────────┼──────────┼───────────┼──────────────┼────────────────────┤</span>
+<span class="d-l">│</span> A100 (80GB)  <span class="d-l">│</span> 80 GB    <span class="d-l">│</span> $5.00     <span class="d-l">│</span> Training     <span class="d-l">│</span> AWS p4de           <span class="d-l">│</span>
+<span class="d-l">│</span>              <span class="d-l">│</span>          <span class="d-l">│</span>           <span class="d-l">│</span> 70B models   <span class="d-l">│</span> GCP a2-ultragpu    <span class="d-l">│</span>
+<span class="d-l">├──────────────┼──────────┼───────────┼──────────────┼────────────────────┤</span>
+<span class="d-l">│</span> H100         <span class="d-l">│</span> 80 GB    <span class="d-l">│</span> $8-12     <span class="d-l">│</span> Large-scale  <span class="d-l">│</span> AWS p5             <span class="d-l">│</span>
+<span class="d-l">│</span>              <span class="d-l">│</span>          <span class="d-l">│</span>           <span class="d-l">│</span> LLM training <span class="d-l">│</span> GCP a3             <span class="d-l">│</span>
+<span class="d-l">└──────────────┴──────────┴───────────┴──────────────┴────────────────────┘</span>
 
 RULES OF THUMB:
   Inference (&lt; 7B model):     T4 or L4 (cheapest)
@@ -2618,7 +2630,7 @@ RULES OF THUMB:
   Model params (FP16) ≈ params × 2 bytes
   7B model FP16 ≈ 14 GB VRAM
   7B model QLoRA (4-bit) ≈ 4-5 GB VRAM
-  70B model FP16 ≈ 140 GB → need multiple GPUs</pre></div>
+  70B model FP16 ≈ 140 GB <span class="d-a">→</span> need multiple GPUs</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f03CloudMLmd-38">
@@ -2628,8 +2640,8 @@ RULES OF THUMB:
           <div class="q-a">
             <p>Spot instances (AWS), preemptible VMs (GCP), and low-priority VMs (Azure) offer <span class="mag">60–90%</span> cost savings over on-demand pricing but can be reclaimed by the cloud provider with minimal notice. They are ideal for fault-tolerant workloads like training jobs and batch inference that can resume from checkpoints.</p>
             <div class="diagram"><pre>SPOT INSTANCES (AWS) / PREEMPTIBLE VMs (GCP) / LOW-PRIORITY (Azure):
-  → 60-90% cheaper than on-demand
-  → Can be interrupted with 30sec-2min warning
+  <span class="d-a">→</span> 60-90% cheaper than on-demand
+  <span class="d-a">→</span> Can be interrupted with 30sec-2min warning
   
   BEST PRACTICES:
   1. CHECKPOINT FREQUENTLY: Save model every N steps
@@ -2639,11 +2651,11 @@ RULES OF THUMB:
   5. Mix spot + on-demand (at least 1 on-demand node)
   
   WHEN TO USE:
-    ✅ Training jobs (can resume from checkpoint)
-    ✅ Batch inference
-    ✅ HPO (embarrassingly parallel)
-    ❌ Real-time serving endpoints (use on-demand)
-    ❌ Time-critical training with hard deadlines</pre></div>
+    √ Training jobs (can resume from checkpoint)
+    √ Batch inference
+    √ HPO (embarrassingly parallel)
+    × Real-time serving endpoints (use on-demand)
+    × Time-critical training with hard deadlines</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f03CloudMLmd-39">
@@ -2684,20 +2696,20 @@ estimator = <span class="fn">PyTorch</span>(
           <div class="q-a">
             <p>Model serving endpoints expose trained models as APIs for real-time, batch, serverless, or async inference, each with different latency and cost profiles. Configuring autoscaling policies—based on invocation count or resource utilization—ensures endpoints meet demand while controlling costs.</p>
             <div class="diagram"><pre>SERVING OPTIONS COMPARISON:
-┌────────────────────┬────────────────┬───────────────┬──────────────┐
-│ Option             │ Latency        │ Cost          │ Best For     │
-├────────────────────┼────────────────┼───────────────┼──────────────┤
-│ Real-time Endpoint │ Low (ms)       │ High (always  │ User-facing  │
-│                    │                │ running)      │ APIs         │
-├────────────────────┼────────────────┼───────────────┼──────────────┤
-│ Serverless Endpoint│ Medium (cold   │ Pay per request│ Sporadic    │
-│                    │ start)         │               │ traffic      │
-├────────────────────┼────────────────┼───────────────┼──────────────┤
-│ Batch Transform    │ High (minutes) │ Low           │ Bulk scoring │
-├────────────────────┼────────────────┼───────────────┼──────────────┤
-│ Async Endpoint    │ Medium-High    │ Medium        │ Large payloads│
-│                    │                │               │ (video, docs)│
-└────────────────────┴────────────────┴───────────────┴──────────────┘
+<span class="d-l">┌────────────────────┬────────────────┬───────────────┬──────────────┐</span>
+<span class="d-l">│</span> Option             <span class="d-l">│</span> Latency        <span class="d-l">│</span> Cost          <span class="d-l">│</span> Best For     <span class="d-l">│</span>
+<span class="d-l">├────────────────────┼────────────────┼───────────────┼──────────────┤</span>
+<span class="d-l">│</span> Real-time Endpoint <span class="d-l">│</span> Low (ms)       <span class="d-l">│</span> High (always  <span class="d-l">│</span> User-facing  <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span>                <span class="d-l">│</span> running)      <span class="d-l">│</span> APIs         <span class="d-l">│</span>
+<span class="d-l">├────────────────────┼────────────────┼───────────────┼──────────────┤</span>
+<span class="d-l">│</span> Serverless Endpoint<span class="d-l">│</span> Medium (cold   <span class="d-l">│</span> Pay per request<span class="d-l">│</span> Sporadic    <span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span> start)         <span class="d-l">│</span>               <span class="d-l">│</span> traffic      <span class="d-l">│</span>
+<span class="d-l">├────────────────────┼────────────────┼───────────────┼──────────────┤</span>
+<span class="d-l">│</span> Batch Transform    <span class="d-l">│</span> High (minutes) <span class="d-l">│</span> Low           <span class="d-l">│</span> Bulk scoring <span class="d-l">│</span>
+<span class="d-l">├────────────────────┼────────────────┼───────────────┼──────────────┤</span>
+<span class="d-l">│</span> Async Endpoint    <span class="d-l">│</span> Medium-High    <span class="d-l">│</span> Medium        <span class="d-l">│</span> Large payloads<span class="d-l">│</span>
+<span class="d-l">│</span>                    <span class="d-l">│</span>                <span class="d-l">│</span>               <span class="d-l">│</span> (video, docs)<span class="d-l">│</span>
+<span class="d-l">└────────────────────┴────────────────┴───────────────┴──────────────┘</span>
 
 AUTOSCALING:
   Scale on: InvocationsPerInstance, CPUUtilization, GPUMemoryUtilization
@@ -2713,25 +2725,25 @@ AUTOSCALING:
           <div class="q-a">
             <p>Data pipelines orchestrate the flow of data from raw sources through transformation to feature stores that serve both batch training and real-time inference. Feature stores eliminate <abbr title="the batch and online paths computing the same feature differently, so production silently disagrees with the offline metric">training-serving skew</abbr> by providing a single source of truth for feature computation logic across offline and online environments.</p>
             <div class="diagram"><pre>DATA PIPELINE PATTERNS:
-  Batch:      S3/GCS → Spark/Glue → Feature Store → Training
-  Streaming:  Kafka/Kinesis → Flink → Feature Store → Real-time serving
+  Batch:      S3/GCS <span class="d-a">→</span> Spark/Glue <span class="d-a">→</span> Feature Store <span class="d-a">→</span> Training
+  Streaming:  Kafka/Kinesis <span class="d-a">→</span> Flink <span class="d-a">→</span> Feature Store <span class="d-a">→</span> Real-time serving
   
 FEATURE STORE ARCHITECTURE:
-  ┌─────────────────────┐
-  │   Feature Store     │
-  │  ┌───────────────┐  │
-  │  │ Offline Store  │──── Training (high throughput, batch)
-  │  │ (S3/BigQuery)  │ │
-  │  └───────────────┘  │
-  │  ┌───────────────┐  │
-  │  │ Online Store   │──── Serving (low latency, key-value)
-  │  │ (DynamoDB/     │ │
-  │  │  Redis/Bigtable│ │
-  │  └───────────────┘  │
-  └─────────────────────┘
+  <span class="d-l">┌─────────────────────┐</span>
+  <span class="d-l">│</span>   Feature Store     <span class="d-l">│</span>
+  <span class="d-l">│</span>  <span class="d-l">┌───────────────┐</span>  <span class="d-l">│</span>
+  <span class="d-l">│</span>  <span class="d-l">│</span> Offline Store  <span class="d-l">│────</span> Training (high throughput, batch)
+  <span class="d-l">│</span>  <span class="d-l">│</span> (S3/BigQuery)  <span class="d-l">│</span> <span class="d-l">│</span>
+  <span class="d-l">│</span>  <span class="d-l">└───────────────┘</span>  <span class="d-l">│</span>
+  <span class="d-l">│</span>  <span class="d-l">┌───────────────┐</span>  <span class="d-l">│</span>
+  <span class="d-l">│</span>  <span class="d-l">│</span> Online Store   <span class="d-l">│────</span> Serving (low latency, key-value)
+  <span class="d-l">│</span>  <span class="d-l">│</span> (DynamoDB/     <span class="d-l">│</span> <span class="d-l">│</span>
+  <span class="d-l">│</span>  <span class="d-l">│</span>  Redis/Bigtable<span class="d-l">│</span> <span class="d-l">│</span>
+  <span class="d-l">│</span>  <span class="d-l">└───────────────┘</span>  <span class="d-l">│</span>
+  <span class="d-l">└─────────────────────┘</span>
   
   KEY BENEFIT: Same feature logic for training and serving
-  → Eliminates training-serving skew</pre></div>
+  <span class="d-a">→</span> Eliminates training-serving skew</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f03CloudMLmd-42">
@@ -2770,13 +2782,13 @@ FEATURE STORE ARCHITECTURE:
           <div class="q-a">
             <p>Cost optimization for cloud ML involves right-sizing GPU instances, leveraging spot pricing, applying model <abbr title="storing weights and activations at lower precision (INT8/INT4) to cut memory and speed up inference, at some accuracy cost">quantization</abbr>, and configuring autoscaling to minimize idle compute. A disciplined approach to cost management can reduce ML infrastructure spend by <span class="mag">50–80%</span> without sacrificing model performance.</p>
             <div class="diagram"><pre>COST OPTIMIZATION STRATEGIES:
-  1. RIGHT-SIZE: Don't use A100 for inference → use T4/L4
+  1. RIGHT-SIZE: Don't use A100 for inference <span class="d-a">→</span> use T4/L4
   2. SPOT INSTANCES: 60-90% savings for training
   3. RESERVED: 1-3 year commitments for 30-60% savings on persistent endpoints
   4. AUTOSCALE: Scale to 0 when no traffic
-  5. QUANTIZE: INT8/INT4 → smaller GPU, lower cost
-  6. BATCH: Combine requests → higher GPU utilization
-  7. COMPRESSION: Distill large model → smaller, faster
+  5. QUANTIZE: INT8/INT4 <span class="d-a">→</span> smaller GPU, lower cost
+  6. BATCH: Combine requests <span class="d-a">→</span> higher GPU utilization
+  7. COMPRESSION: Distill large model <span class="d-a">→</span> smaller, faster
   8. MULTI-TENANCY: Share GPU across models (Triton Inference Server)
   9. REGION SELECTION: us-east-1 is often cheapest
   10. MONITORING: Set billing alerts, analyze cost explorer
@@ -2796,9 +2808,9 @@ FEATURE STORE ARCHITECTURE:
             <p>Data governance and security for cloud ML ensure compliance with regulations like GDPR and CCPA while protecting sensitive training data and model artifacts. Key practices include network isolation (<abbr title="virtual private cloud">VPC</abbr>), least-privilege <abbr title="identity and access management">IAM</abbr>, encryption at rest and in transit, and audit logging of all API calls.</p>
             <div class="diagram"><pre>DATA GOVERNANCE:
   GDPR / CCPA:
-    - Right to deletion → ability to retrain without deleted data
-    - Data residency → choose cloud region carefully
-    - Consent management → track data lineage
+    - Right to deletion <span class="d-a">→</span> ability to retrain without deleted data
+    - Data residency <span class="d-a">→</span> choose cloud region carefully
+    - Consent management <span class="d-a">→</span> track data lineage
   
   CLOUD SECURITY:
     - VPC/VNet: Isolate training/serving in private network
@@ -2860,7 +2872,7 @@ FEATURE STORE ARCHITECTURE:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>WITHOUT SDLC:                          WITH SDLC:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<span class="d-l">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
 Chaotic development                     Structured, predictable process
 Scope creep                             Controlled change management
 No documentation                        Living documentation
@@ -2876,14 +2888,14 @@ Missed deadlines                        Realistic planning &amp; tracking</pre><
           </div>
           <div class="q-a">
             <div class="diagram"><pre>PRINCIPLE                 DESCRIPTION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<span class="d-l">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
 Iterative refinement      Build in cycles, improve each iteration
 Early feedback            Get stakeholder input before building too much
 Risk management           Identify &amp; mitigate risks proactively
 Quality gates             Don't move to next phase without validation
-Traceability              Link requirements → design → code → tests
+Traceability              Link requirements <span class="d-a">→</span> design <span class="d-a">→</span> code <span class="d-a">→</span> tests
 Automation                Automate repetitive tasks (build, test, deploy)
-Continuous improvement    Retrospectives → process improvements</pre></div>
+Continuous improvement    Retrospectives <span class="d-a">→</span> process improvements</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="f06SDLCmd-p1"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-star"/></svg>2. SDLC Phases — Deep Dive</span><i></i>
@@ -2897,7 +2909,7 @@ Continuous improvement    Retrospectives → process improvements</pre></div>
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Phase                    Key Activities                      Output
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<span class="d-l">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
 1. Planning              Feasibility, scope, timeline         Project charter
 2. Requirements          Gather, analyze, document needs      SRS / User stories
 3. Design                Architecture, DB schema, APIs        Design documents
@@ -3022,16 +3034,16 @@ CODE REVIEW CHECKLIST:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>TESTING PYRAMID:
-        ┌──────────┐
-        │  E2E /   │   Few, slow, expensive
-        │  UI Tests│
-        ├──────────┤
-        │Integration│   Medium count
-        │  Tests   │
-        ├──────────┤
-        │   Unit   │   Many, fast, cheap
-        │   Tests  │
-        └──────────┘
+        <span class="d-l">┌──────────┐</span>
+        <span class="d-l">│</span>  E2E /   <span class="d-l">│</span>   Few, slow, expensive
+        <span class="d-l">│</span>  UI Tests<span class="d-l">│</span>
+        <span class="d-l">├──────────┤</span>
+        <span class="d-l">│</span>Integration<span class="d-l">│</span>   Medium count
+        <span class="d-l">│</span>  Tests   <span class="d-l">│</span>
+        <span class="d-l">├──────────┤</span>
+        <span class="d-l">│</span>   Unit   <span class="d-l">│</span>   Many, fast, cheap
+        <span class="d-l">│</span>   Tests  <span class="d-l">│</span>
+        <span class="d-l">└──────────┘</span>
 
 TEST TYPES:
   Unit Tests:         Test individual functions/classes in isolation
@@ -3061,7 +3073,7 @@ TEST TYPES:
   □ Post-deployment smoke test planned
 
 ENVIRONMENT PROGRESSION:
-  Dev → Staging/QA → Pre-Prod → Production
+  Dev <span class="d-a">→</span> Staging/QA <span class="d-a">→</span> Pre-Prod <span class="d-a">→</span> Production
   
   Each environment should mirror production as closely as possible.</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -3092,39 +3104,39 @@ MONITORING ESSENTIALS:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>WATERFALL MODEL:
-  Requirements → Design → Implementation → Testing → Deployment → Maintenance
+  Requirements <span class="d-a">→</span> Design <span class="d-a">→</span> Implementation <span class="d-a">→</span> Testing <span class="d-a">→</span> Deployment <span class="d-a">→</span> Maintenance
   
-  ┌─────────────┐
-  │ Require- │
-  │ ments    │──┐
-  └──────────┘  │
-                ▼
-           ┌─────────────┐
-  │ Design   │──┐
-           └──────────┘  │
-                         ▼
-                    ┌─────────────┐
-  │ Coding   │──┐
-                    └──────────┘  │
-                                  ▼
-                             ┌───────────────────┐
-  │ Testing  │────────┐
-                             └──────────┘        │
-                                           ▼
-                                      ┌──────────┐
-  │ Deploy   │
-                                      └──────────┘
+  <span class="d-l">┌─────────────┐</span>
+  <span class="d-l">│</span> Require- <span class="d-l">│</span>
+  <span class="d-l">│</span> ments    <span class="d-l">│──┐</span>
+  <span class="d-l">└─────────────┘</span>  <span class="d-l">│</span>
+                <span class="d-a">▼</span>
+           <span class="d-l">┌─────────────┐</span>
+  <span class="d-l">│</span> Design   <span class="d-l">│──┐</span>
+           <span class="d-l">└─────────────┘</span>  <span class="d-l">│</span>
+                         <span class="d-a">▼</span>
+                    <span class="d-l">┌─────────────┐</span>
+  <span class="d-l">│</span> Coding   <span class="d-l">│──┐</span>
+                    <span class="d-l">└─────────────┘</span>  <span class="d-l">│</span>
+                                  <span class="d-a">▼</span>
+                             <span class="d-l">┌───────────────────┐</span>
+  <span class="d-l">│</span> Testing  <span class="d-l">│────────┐</span>
+                             <span class="d-l">└───────────────────┘</span>        <span class="d-l">│</span>
+                                           <span class="d-a">▼</span>
+                                      <span class="d-l">┌──────────┐</span>
+  <span class="d-l">│</span> Deploy   <span class="d-l">│</span>
+                                      <span class="d-l">└──────────┘</span>
 
 CHARACTERISTICS:
-  ✅ Simple, linear, easy to understand
-  ✅ Clear milestones and deliverables
-  ✅ Works for well-defined, stable requirements
-  ✅ Good documentation
+  √ Simple, linear, easy to understand
+  √ Clear milestones and deliverables
+  √ Works for well-defined, stable requirements
+  √ Good documentation
   
-  ✗ No working software until late
-  ✗ Very expensive to change requirements mid-project
-  ✗ Testing happens too late (bugs are costly)
-  ✗ Customer doesn't see product until the end
+  × No working software until late
+  × Very expensive to change requirements mid-project
+  × Testing happens too late (bugs are costly)
+  × Customer doesn't see product until the end
   
 WHEN TO USE:
   • Requirements are crystal clear and won't change
@@ -3141,12 +3153,12 @@ WHEN TO USE:
             <div class="diagram"><pre>V-MODEL:
   Each development phase has a corresponding testing phase.
   
-  Requirements ────────────────────── Acceptance Testing
-       ╲                                    ╱
-    System Design ──────────────── System Testing
-         ╲                              ╱
-      Module Design ────────── Integration Testing
-           ╲                        ╱
+  Requirements <span class="d-l">──────────────────────</span> Acceptance Testing
+       <span class="d-l">╲</span>                                    <span class="d-l">╱</span>
+    System Design <span class="d-l">────────────────</span> System Testing
+         <span class="d-l">╲</span>                              <span class="d-l">╱</span>
+      Module Design <span class="d-l">──────────</span> Integration Testing
+           <span class="d-l">╲</span>                        <span class="d-l">╱</span>
             Implementation &amp; Unit Testing
 
   Left side: Verification (are we building it right?)
@@ -3163,7 +3175,7 @@ WHEN TO USE:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>ITERATIVE MODEL:
-  Build a subset → Get feedback → Refine → Build next subset → ...
+  Build a subset <span class="d-a">→</span> Get feedback <span class="d-a">→</span> Refine <span class="d-a">→</span> Build next subset <span class="d-a">→</span> ...
   
   Each iteration produces a working version with more features.
   
@@ -3173,10 +3185,10 @@ WHEN TO USE:
   Iteration 4: + Admin panel + Analytics
   
 BENEFITS:
-  ✅ Working software early
-  ✅ Can adapt to changing requirements
-  ✅ Risk is managed per iteration
-  ✅ Feedback drives improvement</pre></div>
+  √ Working software early
+  √ Can adapt to changing requirements
+  √ Risk is managed per iteration
+  √ Feedback drives improvement</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f06SDLCmd-59">
@@ -3201,7 +3213,7 @@ BENEFITS:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Model         Flexibility  Risk Mgmt   Feedback    Best For
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<span class="d-l">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
 Waterfall     Low          Low         Late        Fixed requirements
 V-Model       Low          Medium      Late        Safety-critical
 Iterative     Medium       Medium      Regular     Evolving requirements
@@ -3266,28 +3278,28 @@ SCRUM ARTIFACTS:
   Increment:         Working, potentially shippable product at end of sprint
 
 SCRUM EVENTS (CEREMONIES):
-  ┌────────────────────────────────────────────────────────────────┐
-  │  Sprint (1-4 weeks, typically 2 weeks)                         │
-  │                                                                │
-  │  Sprint Planning (2-4 hrs)                                     │
-  │    → What can we deliver? How will we do it?                   │
-  │    → Team pulls items from Product Backlog → Sprint Backlog    │
-  │    → Define Sprint Goal                                        │
-  │                                                                │
-  │  Daily Standup (15 min, every day)                             │
-  │    → What did I do yesterday?                                  │
-  │    → What will I do today?                                     │
-  │    → Any blockers?                                             │
-  │                                                                │
-  │  Sprint Review / Demo (1-2 hrs, end of sprint)                 │
-  │    → Demo working software to stakeholders                     │
-  │    → Get feedback → update Product Backlog                     │
-  │                                                                │
-  │  Sprint Retrospective (1-1.5 hrs, after review)                │
-  │    → What went well?                                           │
-  │    → What didn't go well?                                      │
-  │    → What will we improve next sprint?                         │
-  └────────────────────────────────────────────────────────────────┘</pre></div>
+  <span class="d-l">┌────────────────────────────────────────────────────────────────┐</span>
+  <span class="d-l">│</span>  Sprint (1-4 weeks, typically 2 weeks)                         <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                <span class="d-l">│</span>
+  <span class="d-l">│</span>  Sprint Planning (2-4 hrs)                                     <span class="d-l">│</span>
+  <span class="d-l">│</span>    <span class="d-a">→</span> What can we deliver? How will we do it?                   <span class="d-l">│</span>
+  <span class="d-l">│</span>    <span class="d-a">→</span> Team pulls items from Product Backlog <span class="d-a">→</span> Sprint Backlog    <span class="d-l">│</span>
+  <span class="d-l">│</span>    <span class="d-a">→</span> Define Sprint Goal                                        <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                <span class="d-l">│</span>
+  <span class="d-l">│</span>  Daily Standup (15 min, every day)                             <span class="d-l">│</span>
+  <span class="d-l">│</span>    <span class="d-a">→</span> What did I do yesterday?                                  <span class="d-l">│</span>
+  <span class="d-l">│</span>    <span class="d-a">→</span> What will I do today?                                     <span class="d-l">│</span>
+  <span class="d-l">│</span>    <span class="d-a">→</span> Any blockers?                                             <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                <span class="d-l">│</span>
+  <span class="d-l">│</span>  Sprint Review / Demo (1-2 hrs, end of sprint)                 <span class="d-l">│</span>
+  <span class="d-l">│</span>    <span class="d-a">→</span> Demo working software to stakeholders                     <span class="d-l">│</span>
+  <span class="d-l">│</span>    <span class="d-a">→</span> Get feedback <span class="d-a">→</span> update Product Backlog                     <span class="d-l">│</span>
+  <span class="d-l">│</span>                                                                <span class="d-l">│</span>
+  <span class="d-l">│</span>  Sprint Retrospective (1-1.5 hrs, after review)                <span class="d-l">│</span>
+  <span class="d-l">│</span>    <span class="d-a">→</span> What went well?                                           <span class="d-l">│</span>
+  <span class="d-l">│</span>    <span class="d-a">→</span> What didn't go well?                                      <span class="d-l">│</span>
+  <span class="d-l">│</span>    <span class="d-a">→</span> What will we improve next sprint?                         <span class="d-l">│</span>
+  <span class="d-l">└────────────────────────────────────────────────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f06SDLCmd-63">
@@ -3322,7 +3334,7 @@ ESTIMATION METHODS:
                     NOT hours — it's relative to a reference story
   
   Planning Poker:   Each team member shows their estimate simultaneously
-                    Discuss outliers → re-estimate → converge
+                    Discuss outliers <span class="d-a">→</span> re-estimate <span class="d-a">→</span> converge
   
   T-Shirt Sizing:   XS, S, M, L, XL (for roadmap-level estimates)</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -3339,21 +3351,21 @@ ESTIMATION METHODS:
   Sprint 1: 21 pts | Sprint 2: 25 pts | Sprint 3: 18 pts
   Average velocity = (21 + 25 + 18) / 3 = ~21 pts/sprint
   
-  → Don't commit more than ~21 pts next sprint
-  → Velocity stabilizes after 3-4 sprints
+  <span class="d-a">→</span> Don't commit more than ~21 pts next sprint
+  <span class="d-a">→</span> Velocity stabilizes after 3-4 sprints
 
 BURNDOWN CHART:
   Y-axis: Remaining story points
   X-axis: Days in sprint
   
-  Points ▲
-   30    │╲
-   25    │  ╲  ← Ideal line (straight)
-   20    │   ╲────╲
-   15    │         ╲──╲  ← Actual (may plateau, then drop)
-   10    │              ╲
-    5    │               ╲
-    0    │────────────────╲──▶ Days
+  Points <span class="d-a">▲</span>
+   30    <span class="d-l">│╲</span>
+   25    <span class="d-l">│</span>  <span class="d-l">╲</span>  <span class="d-a">←</span> Ideal line (straight)
+   20    <span class="d-l">│</span>   <span class="d-l">╲────╲</span>
+   15    <span class="d-l">│</span>         <span class="d-l">╲──╲</span>  <span class="d-a">←</span> Actual (may plateau, then drop)
+   10    <span class="d-l">│</span>              <span class="d-l">╲</span>
+    5    <span class="d-l">│</span>               <span class="d-l">╲</span>
+    0    <span class="d-l">│────────────────╲──</span><span class="d-a">►</span> Days
          1  2  3  4  5  6  7  8  9  10</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -3361,15 +3373,15 @@ BURNDOWN CHART:
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <div class="diagram"><pre>KANBAN BOARD:
-  ┌──────────┬──────────┬──────────┬──────────┬──────────┐
-  │ Backlog  │ To Do    │ In Prog  │ Review   │ Done     │
-  │          │ (WIP: 3) │ (WIP: 3) │ (WIP: 2) │          │
-  ├──────────┼──────────┼──────────┼──────────┼──────────┤
-  │ Feature E│ Feature C│ Feature A│ Feature B│ Feature X│
-  │ Feature F│ Bug Fix 2│ Bug Fix 1│          │ Feature Y│
-  │ Feature G│          │ Feature D│          │ Feature Z│
-  │ Tech Debt│          │          │          │          │
-  └──────────┴──────────┴──────────┴──────────┴──────────┘
+  <span class="d-l">┌──────────┬──────────┬──────────┬──────────┬──────────┐</span>
+  <span class="d-l">│</span> Backlog  <span class="d-l">│</span> To Do    <span class="d-l">│</span> In Prog  <span class="d-l">│</span> Review   <span class="d-l">│</span> Done     <span class="d-l">│</span>
+  <span class="d-l">│</span>          <span class="d-l">│</span> (WIP: 3) <span class="d-l">│</span> (WIP: 3) <span class="d-l">│</span> (WIP: 2) <span class="d-l">│</span>          <span class="d-l">│</span>
+  <span class="d-l">├──────────┼──────────┼──────────┼──────────┼──────────┤</span>
+  <span class="d-l">│</span> Feature E<span class="d-l">│</span> Feature C<span class="d-l">│</span> Feature A<span class="d-l">│</span> Feature B<span class="d-l">│</span> Feature X<span class="d-l">│</span>
+  <span class="d-l">│</span> Feature F<span class="d-l">│</span> Bug Fix 2<span class="d-l">│</span> Bug Fix 1<span class="d-l">│</span>          <span class="d-l">│</span> Feature Y<span class="d-l">│</span>
+  <span class="d-l">│</span> Feature G<span class="d-l">│</span>          <span class="d-l">│</span> Feature D<span class="d-l">│</span>          <span class="d-l">│</span> Feature Z<span class="d-l">│</span>
+  <span class="d-l">│</span> Tech Debt<span class="d-l">│</span>          <span class="d-l">│</span>          <span class="d-l">│</span>          <span class="d-l">│</span>          <span class="d-l">│</span>
+  <span class="d-l">└──────────┴──────────┴──────────┴──────────┴──────────┘</span>
 
 KEY PRINCIPLES:
   1. Visualize the workflow
@@ -3380,12 +3392,12 @@ KEY PRINCIPLES:
 
 WIP LIMITS:
   • Prevent multitasking (context switching is expensive)
-  • If column hits WIP limit → help finish existing work first
+  • If column hits WIP limit <span class="d-a">→</span> help finish existing work first
   • "Stop starting, start finishing"
 
 KANBAN METRICS:
-  Lead Time:    Time from request → delivered (customer perspective)
-  Cycle Time:   Time from started → delivered (team perspective)
+  Lead Time:    Time from request <span class="d-a">→</span> delivered (customer perspective)
+  Cycle Time:   Time from started <span class="d-a">→</span> delivered (team perspective)
   Throughput:   Items completed per time period
 
 SCRUM vs KANBAN:
@@ -3412,10 +3424,10 @@ SCRUM vs KANBAN:
 
 AGILE ALTERNATIVE — EPICS &amp; STORIES:
   Epic:    Large feature (weeks/months) — "User Authentication System"
-    ├── Story: "As a user, I can sign up with email"
-    ├── Story: "As a user, I can log in with Google OAuth"
-    ├── Story: "As a user, I can reset my password via email"
-    └── Story: "As an admin, I can disable user accounts"
+    <span class="d-l">├──</span> Story: "As a user, I can sign up with email"
+    <span class="d-l">├──</span> Story: "As a user, I can log in with Google OAuth"
+    <span class="d-l">├──</span> Story: "As a user, I can reset my password via email"
+    <span class="d-l">└──</span> Story: "As an admin, I can disable user accounts"
   
   Theme:   Collection of related epics — "Security &amp; Compliance"</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -3441,13 +3453,13 @@ AGILE ALTERNATIVE — EPICS &amp; STORIES:
     RICE Score = (Reach × Impact × Confidence) / Effort
   
   Value vs Effort Matrix:
-    ┌──────────────┬──────────────┐
-    │ Quick Wins   │ Major Proj.  │  ← High Value
-    │ (DO FIRST)   │ (PLAN CARE.) │
-    ├──────────────┼──────────────┤
-    │ Fill-Ins     │ Thankless    │  ← Low Value
-    │ (IF TIME)    │ (AVOID)      │
-    └──────────────┴──────────────┘
+    <span class="d-l">┌──────────────┬──────────────┐</span>
+    <span class="d-l">│</span> Quick Wins   <span class="d-l">│</span> Major Proj.  <span class="d-l">│</span>  <span class="d-a">←</span> High Value
+    <span class="d-l">│</span> (DO FIRST)   <span class="d-l">│</span> (PLAN CARE.) <span class="d-l">│</span>
+    <span class="d-l">├──────────────┼──────────────┤</span>
+    <span class="d-l">│</span> Fill-Ins     <span class="d-l">│</span> Thankless    <span class="d-l">│</span>  <span class="d-a">←</span> Low Value
+    <span class="d-l">│</span> (IF TIME)    <span class="d-l">│</span> (AVOID)      <span class="d-l">│</span>
+    <span class="d-l">└──────────────┴──────────────┘</span>
       Low Effort     High Effort</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -3548,7 +3560,7 @@ TOOLS: Behave (Python), Cucumber (Java/JS), SpecFlow (C#)</code></pre></div><but
           <div class="q-a">
             <div class="diagram"><pre>TESTING LAYERS:
   Layer          Tool (Python)          What to Test
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  <span class="d-l">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
   Unit           pytest, unittest       Functions, classes, logic
   Integration    pytest + testcontainers  DB, API, message queue
   API/Contract   pytest + httpx, schemathesis  Endpoints, schemas
@@ -3572,11 +3584,11 @@ CODE COVERAGE:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>GIT FLOW:
-  main ─────●─────────────────●─────────────●──── (releases only)
-             ╲               ╱               ╱
-  develop ────●───●───●───●───●───●───●───●────── (integration)
-                   ╲       ╱       ╲       ╱
-  feature/xxx ──────●───●──          ╲     ╱
+  main <span class="d-l">─────</span>●<span class="d-l">─────────────────</span>●<span class="d-l">─────────────</span>●<span class="d-l">────</span> (releases only)
+             <span class="d-l">╲</span>               <span class="d-l">╱</span>               <span class="d-l">╱</span>
+  develop <span class="d-l">────</span>●<span class="d-l">───</span>●<span class="d-l">───</span>●<span class="d-l">───</span>●<span class="d-l">───</span>●<span class="d-l">───</span>●<span class="d-l">───</span>●<span class="d-l">───</span>●<span class="d-l">──────</span> (integration)
+                   <span class="d-l">╲</span>       <span class="d-l">╱</span>       <span class="d-l">╲</span>       <span class="d-l">╱</span>
+  feature/xxx <span class="d-l">──────</span>●<span class="d-l">───</span>●<span class="d-l">──</span>          <span class="d-l">╲</span>     <span class="d-l">╱</span>
                                   feature/yyy
   
   Branches:
@@ -3593,8 +3605,8 @@ CODE COVERAGE:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>TRUNK-BASED:
-  main ────●──●──●──●──●──●──●──●──●──── (everyone commits here)
-            ╲    ╱
+  main <span class="d-l">────</span>●<span class="d-l">──</span>●<span class="d-l">──</span>●<span class="d-l">──</span>●<span class="d-l">──</span>●<span class="d-l">──</span>●<span class="d-l">──</span>●<span class="d-l">──</span>●<span class="d-l">──</span>●<span class="d-l">────</span> (everyone commits here)
+            <span class="d-l">╲</span>    <span class="d-l">╱</span>
   short-lived  ●  (&lt; 1 day branches, or direct to main)
   
   KEY PRACTICES:
@@ -3615,11 +3627,11 @@ CODE COVERAGE:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>GITHUB FLOW:
-  main ──────●─────────●─────────●──── (always deployable)
-              ╲       ╱         ╱
-  feature ─────●───●──          ╱
-                              ╱
-  fix-bug ──────────●────────
+  main <span class="d-l">──────</span>●<span class="d-l">─────────</span>●<span class="d-l">─────────</span>●<span class="d-l">────</span> (always deployable)
+              <span class="d-l">╲</span>       <span class="d-l">╱</span>         <span class="d-l">╱</span>
+  feature <span class="d-l">─────</span>●<span class="d-l">───</span>●<span class="d-l">──</span>          <span class="d-l">╱</span>
+                              <span class="d-l">╱</span>
+  fix-bug <span class="d-l">──────────</span>●<span class="d-l">────────</span>
 
   Rules:
     1. main is always deployable
@@ -3661,15 +3673,15 @@ CODE COVERAGE:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>TYPICAL CI/CD PIPELINE:
-  ┌──────┐   ┌──────┐   ┌──────┐   ┌──────┐   ┌──────┐   ┌──────┐
-  │ Lint │──▶│Build │──▶│ Unit │──▶│Integ.│──▶│Deploy│──▶│Smoke │
-  │      │   │      │   │ Test │   │ Test │   │Staging│  │ Test │
-  └──────┘   └──────┘   └──────┘   └──────┘   └──────┘   └──────┘
-                                                                │
-                                                    ┌─────────▼──────────┐
-                                                    │Approval → Prod     │
-                                                    │Deploy → Monitoring │
-                                                    └────────────────────┘
+  <span class="d-l">┌──────┐</span>   <span class="d-l">┌──────┐</span>   <span class="d-l">┌──────┐</span>   <span class="d-l">┌──────┐</span>   <span class="d-l">┌──────┐</span>   <span class="d-l">┌──────┐</span>
+  <span class="d-l">│</span> Lint <span class="d-l">│──</span><span class="d-a">►</span><span class="d-l">│</span>Build <span class="d-l">│──</span><span class="d-a">►</span><span class="d-l">│</span> Unit <span class="d-l">│──</span><span class="d-a">►</span><span class="d-l">│</span>Integ.<span class="d-l">│──</span><span class="d-a">►</span><span class="d-l">│</span>Deploy<span class="d-l">│──</span><span class="d-a">►</span><span class="d-l">│</span>Smoke <span class="d-l">│</span>
+  <span class="d-l">│</span>      <span class="d-l">│</span>   <span class="d-l">│</span>      <span class="d-l">│</span>   <span class="d-l">│</span> Test <span class="d-l">│</span>   <span class="d-l">│</span> Test <span class="d-l">│</span>   <span class="d-l">│</span>Staging<span class="d-l">│</span>  <span class="d-l">│</span> Test <span class="d-l">│</span>
+  <span class="d-l">└──────┘</span>   <span class="d-l">└──────┘</span>   <span class="d-l">└──────┘</span>   <span class="d-l">└──────┘</span>   <span class="d-l">└──────┘</span>   <span class="d-l">└──────┘</span>
+                                                                <span class="d-l">│</span>
+                                                    <span class="d-l">┌─────────</span><span class="d-a">▼</span><span class="d-l">──────────┐</span>
+                                                    <span class="d-l">│</span>Approval <span class="d-a">→</span> Prod     <span class="d-l">│</span>
+                                                    <span class="d-l">│</span>Deploy <span class="d-a">→</span> Monitoring <span class="d-l">│</span>
+                                                    <span class="d-l">└────────────────────┘</span>
 
 CI (Continuous Integration):
   • Developers merge code frequently (at least daily)
@@ -3742,8 +3754,8 @@ jobs:
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <div class="diagram"><pre>STRATEGY          DESCRIPTION                           RISK   DOWNTIME
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Recreate          Stop old → Start new                  High   Yes
+<span class="d-l">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+Recreate          Stop old <span class="d-a">→</span> Start new                  High   Yes
 Rolling Update    Replace instances gradually           Medium Minimal
 Blue-Green        Two identical envs, switch traffic    Low    Zero
 Canary            Route small % to new version          Low    Zero
@@ -3752,38 +3764,38 @@ Shadow/Dark       Mirror traffic to new version         None   Zero
                   (test without serving responses)
 
 BLUE-GREEN DEPLOYMENT:
-  ┌────────────┐     ┌────────────┐
-  │ Blue (v1)  │ ◄── │ Load       │ ── Users see v1
-  │ (current)  │     │ Balancer   │
-  └────────────┘     └────────────┘
+  <span class="d-l">┌────────────┐</span>     <span class="d-l">┌────────────┐</span>
+  <span class="d-l">│</span> Blue (v1)  <span class="d-l">│</span> <span class="d-a">◄</span><span class="d-l">──</span> <span class="d-l">│</span> Load       <span class="d-l">│</span> <span class="d-l">──</span> Users see v1
+  <span class="d-l">│</span> (current)  <span class="d-l">│</span>     <span class="d-l">│</span> Balancer   <span class="d-l">│</span>
+  <span class="d-l">└────────────┘</span>     <span class="d-l">└────────────┘</span>
   
   Deploy v2 to Green:
-  ┌────────────┐     ┌────────────┐
-  │ Blue (v1)  │     │ Load       │
-  │ (standby)  │     │ Balancer   │ ── Users see v2
-  │            │     │            │
-  └────────────┘     └────────────┘
-  ┌────────────┐          ▲
-  │ Green (v2) │ ◄────────────────┘
-  │ (current)  │
-  └────────────┘
+  <span class="d-l">┌────────────┐</span>     <span class="d-l">┌────────────┐</span>
+  <span class="d-l">│</span> Blue (v1)  <span class="d-l">│</span>     <span class="d-l">│</span> Load       <span class="d-l">│</span>
+  <span class="d-l">│</span> (standby)  <span class="d-l">│</span>     <span class="d-l">│</span> Balancer   <span class="d-l">│</span> <span class="d-l">──</span> Users see v2
+  <span class="d-l">│</span>            <span class="d-l">│</span>     <span class="d-l">│</span>            <span class="d-l">│</span>
+  <span class="d-l">└────────────┘</span>     <span class="d-l">└────────────┘</span>
+  <span class="d-l">┌────────────┐</span>          <span class="d-a">▲</span>
+  <span class="d-l">│</span> Green (v2) <span class="d-l">│</span> <span class="d-a">◄</span><span class="d-l">────────────────┘</span>
+  <span class="d-l">│</span> (current)  <span class="d-l">│</span>
+  <span class="d-l">└────────────┘</span>
   
   Rollback: Switch LB back to Blue (instant)
 
 CANARY DEPLOYMENT:
-  Phase 1: Route 5% → v2, monitor for errors
-  Phase 2: Route 25% → v2, monitor metrics
-  Phase 3: Route 50% → v2, compare A/B metrics
-  Phase 4: Route 100% → v2, decommission v1
+  Phase 1: Route 5% <span class="d-a">→</span> v2, monitor for errors
+  Phase 2: Route 25% <span class="d-a">→</span> v2, monitor metrics
+  Phase 3: Route 50% <span class="d-a">→</span> v2, compare A/B metrics
+  Phase 4: Route 100% <span class="d-a">→</span> v2, decommission v1
   
-  If errors detected at any phase → rollback to v1</pre></div>
+  If errors detected at any phase <span class="d-a">→</span> rollback to v1</pre></div>
         </div>
         <div class="parthead" id="f06SDLCmd-p11"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>12. Documentation &amp; Knowledge Management</span><i></i>
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <div class="diagram"><pre>DOCUMENTATION TYPES:
   Type               Audience           Examples
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  <span class="d-l">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
   API Documentation  Developers         OpenAPI/Swagger, Postman
   Architecture Docs  Tech leads, devs   ADRs, C4 diagrams
   User Guides        End users          How-to guides, FAQs
@@ -3800,21 +3812,21 @@ DOCS-AS-CODE:
   • Tools: MkDocs, Sphinx, Docusaurus, GitBook
 
 THE DOCUMENTATION QUADRANT (Diátaxis):
-  ┌──────────────────┬──────────────────┐
-  │ TUTORIALS        │ HOW-TO GUIDES    │
-  │ Learning-oriented│ Task-oriented    │
-  │ "Follow along"   │ "How do I...?"   │
-  ├──────────────────┼──────────────────┤
-  │ EXPLANATION      │ REFERENCE        │
-  │ Understanding    │ Information      │
-  │ "Why does...?"   │ "What is the..." │
-  └──────────────────┴──────────────────┘</pre></div>
+  <span class="d-l">┌──────────────────┬──────────────────┐</span>
+  <span class="d-l">│</span> TUTORIALS        <span class="d-l">│</span> HOW-TO GUIDES    <span class="d-l">│</span>
+  <span class="d-l">│</span> Learning-oriented<span class="d-l">│</span> Task-oriented    <span class="d-l">│</span>
+  <span class="d-l">│</span> "Follow along"   <span class="d-l">│</span> "How do I...?"   <span class="d-l">│</span>
+  <span class="d-l">├──────────────────┼──────────────────┤</span>
+  <span class="d-l">│</span> EXPLANATION      <span class="d-l">│</span> REFERENCE        <span class="d-l">│</span>
+  <span class="d-l">│</span> Understanding    <span class="d-l">│</span> Information      <span class="d-l">│</span>
+  <span class="d-l">│</span> "Why does...?"   <span class="d-l">│</span> "What is the..." <span class="d-l">│</span>
+  <span class="d-l">└──────────────────┴──────────────────┘</span></pre></div>
         </div>
         <div class="parthead" id="f06SDLCmd-p12"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>13. Project Management Tools</span><i></i>
         </div>
         <div class="q-a" style="margin:0 0 12px">
           <div class="diagram"><pre>TOOL             BEST FOR                    KEY FEATURES
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<span class="d-l">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
 Jira             Enterprise Agile            Sprints, boards, roadmaps,
                                              advanced reporting, JQL
 Linear           Modern startups             Fast UI, cycles, triage,
@@ -3827,11 +3839,11 @@ Notion           All-in-one workspace        Docs + tasks + wiki
 Azure DevOps     Microsoft ecosystem         Boards, repos, pipelines
 
 JIRA WORKFLOW (TYPICAL):
-  Open → In Progress → Code Review → QA → Done
+  Open <span class="d-a">→</span> In Progress <span class="d-a">→</span> Code Review <span class="d-a">→</span> QA <span class="d-a">→</span> Done
   
   With sub-statuses:
-  Open → Groomed → Sprint Ready → In Progress → PR Open → 
-  Code Review → QA Testing → UAT → Done
+  Open <span class="d-a">→</span> Groomed <span class="d-a">→</span> Sprint Ready <span class="d-a">→</span> In Progress <span class="d-a">→</span> PR Open <span class="d-a">→</span> 
+  Code Review <span class="d-a">→</span> QA Testing <span class="d-a">→</span> UAT <span class="d-a">→</span> Done
 
 JIRA QUERY LANGUAGE (JQL):
   project = "ML-PLATFORM" AND status = "In Progress" AND assignee = currentUser()
@@ -3849,23 +3861,23 @@ JIRA QUERY LANGUAGE (JQL):
           </div>
           <div class="q-a">
             <div class="diagram"><pre>TRADITIONAL SDLC:
-  Requirements → Design → Code → Test → Deploy → Maintain
+  Requirements <span class="d-a">→</span> Design <span class="d-a">→</span> Code <span class="d-a">→</span> Test <span class="d-a">→</span> Deploy <span class="d-a">→</span> Maintain
 
 ML SDLC (Additional Phases):
-  Requirements → Data Collection → Data Preparation → 
-  Feature Engineering → Model Training → Model Evaluation → 
-  Model Deployment → Monitoring &amp; Retraining
+  Requirements <span class="d-a">→</span> Data Collection <span class="d-a">→</span> Data Preparation <span class="d-a">→</span> 
+  Feature Engineering <span class="d-a">→</span> Model Training <span class="d-a">→</span> Model Evaluation <span class="d-a">→</span> 
+  Model Deployment <span class="d-a">→</span> Monitoring &amp; Retraining
 
 KEY DIFFERENCES:
   Aspect              Traditional SW         ML/AI Projects
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  <span class="d-l">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
   Testing             Deterministic          Probabilistic (metrics)
   Debugging           Stack traces           Data + model analysis
   Versioning          Code only              Code + data + model + config
   Requirements        "System shall..."      "Model accuracy &gt; 90%"
   Maintenance         Bug fixes              Data drift, retraining
   Dependencies        Libraries              Libraries + training data
-  Reproducibility     Same input → output    Random seeds, hardware, order</pre></div>
+  Reproducibility     Same input <span class="d-a">→</span> output    Random seeds, hardware, order</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f06SDLCmd-79">
@@ -3874,32 +3886,32 @@ KEY DIFFERENCES:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>CRISP-DM PHASES:
-  ┌─────────────────────┐
-  │ Business        │───┐
-  │ Understanding   │   │
-  └────────┬────────┘   │
-           ▼            │
-  ┌─────────────────┐   │
-  │ Data            │   │
-  │ Understanding   │   │ (Iterative — go back
-  └────────┬────────┘   │  to any previous phase)
-           ▼            │
-  ┌─────────────────┐   │
-  │ Data            │   │
-  │ Preparation     │   │
-  └────────┬────────┘   │
-           ▼            │
-  ┌─────────────────┐   │
-  │ Modeling        │   │
-  └────────┬────────┘   │
-           ▼            │
-  ┌─────────────────┐   │
-  │ Evaluation      │◄──┘
-  └────────┬────────────┘
-           ▼
-  ┌─────────────────────┐
-  │ Deployment      │
-  └─────────────────────┘</pre></div>
+  <span class="d-l">┌─────────────────────┐</span>
+  <span class="d-l">│</span> Business        <span class="d-l">│───┐</span>
+  <span class="d-l">│</span> Understanding   <span class="d-l">│</span>   <span class="d-l">│</span>
+  <span class="d-l">└────────┬────────┘</span>   <span class="d-l">│</span>
+           <span class="d-a">▼</span>            <span class="d-l">│</span>
+  <span class="d-l">┌─────────────────┐</span>   <span class="d-l">│</span>
+  <span class="d-l">│</span> Data            <span class="d-l">│</span>   <span class="d-l">│</span>
+  <span class="d-l">│</span> Understanding   <span class="d-l">│</span>   <span class="d-l">│</span> (Iterative — go back
+  <span class="d-l">└────────┬────────┘</span>   <span class="d-l">│</span>  to any previous phase)
+           <span class="d-a">▼</span>            <span class="d-l">│</span>
+  <span class="d-l">┌─────────────────┐</span>   <span class="d-l">│</span>
+  <span class="d-l">│</span> Data            <span class="d-l">│</span>   <span class="d-l">│</span>
+  <span class="d-l">│</span> Preparation     <span class="d-l">│</span>   <span class="d-l">│</span>
+  <span class="d-l">└────────┬────────┘</span>   <span class="d-l">│</span>
+           <span class="d-a">▼</span>            <span class="d-l">│</span>
+  <span class="d-l">┌─────────────────┐</span>   <span class="d-l">│</span>
+  <span class="d-l">│</span> Modeling        <span class="d-l">│</span>   <span class="d-l">│</span>
+  <span class="d-l">└────────┬────────┘</span>   <span class="d-l">│</span>
+           <span class="d-a">▼</span>            <span class="d-l">│</span>
+  <span class="d-l">┌─────────────────┐</span>   <span class="d-l">│</span>
+  <span class="d-l">│</span> Evaluation      <span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">──┘</span>
+  <span class="d-l">└────────┬────────────┘</span>
+           <span class="d-a">▼</span>
+  <span class="d-l">┌─────────────────────┐</span>
+  <span class="d-l">│</span> Deployment      <span class="d-l">│</span>
+  <span class="d-l">└─────────────────────┘</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f06SDLCmd-80">
@@ -3924,7 +3936,7 @@ ML TESTING CHECKLIST:
   □ Model quality tests (accuracy &gt; threshold)
   □ Bias and fairness tests
   □ Performance tests (latency, throughput)
-  □ Integration tests (API → model → response)
+  □ Integration tests (API <span class="d-a">→</span> model <span class="d-a">→</span> response)
   □ A/B test framework for model comparison</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -3936,7 +3948,7 @@ ML TESTING CHECKLIST:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>ANTI-PATTERN                     FIX
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<span class="d-l">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
 "Big Bang" integration           Continuous integration (merge daily)
 Waterfall disguised as Agile     Truly iterate, demo working software
 No retrospectives                Retro every sprint, track action items
@@ -3956,7 +3968,7 @@ Gold plating                     YAGNI — build only what's needed now</pre></d
           </div>
           <div class="q-a">
             <div class="diagram"><pre>CATEGORY           PRACTICE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<span class="d-l">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
 Planning           Start with clear goals and success criteria
 Requirements       Write testable requirements / acceptance criteria
 Design             Architecture Decision Records for key choices

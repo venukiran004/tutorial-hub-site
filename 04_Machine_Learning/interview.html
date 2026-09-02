@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -10608,26 +10620,26 @@ optimizers = {
           </ul>
           <h3>Modeling approaches</h3>
           <div class="diagram"><pre>Supervised (labels exist, even if delayed/noisy)
-  ├── Logistic Regression        baseline, interpretable, fast — often the production champion for
-  │                               low-latency scoring when paired with strong features
-  ├── Random Forest / XGBoost/   workhorse for tabular fraud — handles nonlinearity, mixed feature
-  │   LightGBM                   types, gives feature importance, tunable via class_weight/scale_pos_weight
-  └── Neural nets (tabular/seq)   sequence models over a user's transaction history when temporal
+  <span class="d-l">├──</span> Logistic Regression        baseline, interpretable, fast — often the production champion for
+  <span class="d-l">│</span>                               low-latency scoring when paired with strong features
+  <span class="d-l">├──</span> Random Forest / XGBoost/   workhorse for tabular fraud — handles nonlinearity, mixed feature
+  <span class="d-l">│</span>   LightGBM                   types, gives feature importance, tunable via class_weight/scale_pos_weight
+  <span class="d-l">└──</span> Neural nets (tabular/seq)   sequence models over a user's transaction history when temporal
                                   pattern matters more than a single-row snapshot
 
 Unsupervised / semi-supervised (label-scarce or entirely new fraud patterns)
-  ├── Isolation Forest            fast, scalable anomaly scoring — flags transactions unlike the bulk
-  │                               of "normal" without needing fraud labels (see isolation_forest.md)
-  ├── Autoencoders                reconstruction error as anomaly score — trained only on normal
-  │                               transactions, high error on fraud the model wasn't trained to reconstruct
-  └── Clustering / density-based   groups of behavior that don't fit any known-normal cluster
+  <span class="d-l">├──</span> Isolation Forest            fast, scalable anomaly scoring — flags transactions unlike the bulk
+  <span class="d-l">│</span>                               of "normal" without needing fraud labels (see isolation_forest.md)
+  <span class="d-l">├──</span> Autoencoders                reconstruction error as anomaly score — trained only on normal
+  <span class="d-l">│</span>                               transactions, high error on fraud the model wasn't trained to reconstruct
+  <span class="d-l">└──</span> Clustering / density-based   groups of behavior that don't fit any known-normal cluster
 
 Graph-based
-  └── GNNs / community detection  transaction/entity graphs — fraud rings, mule-account networks,
+  <span class="d-l">└──</span> GNNs / community detection  transaction/entity graphs — fraud rings, mule-account networks,
                                   shared-identity fraud that per-transaction features miss entirely
 
 Hybrid (what's actually deployed)
-  └── Rules engine (hard blocks, compliance-mandated) + ML score (ranking/probability) + human
+  <span class="d-l">└──</span> Rules engine (hard blocks, compliance-mandated) + ML score (ranking/probability) + human
       review queue for the ambiguous middle band — rarely "just the model" end to end</pre></div>
           <h3>Handling imbalance</h3>
           <ul>
@@ -10641,16 +10653,16 @@ Hybrid (what's actually deployed)
             </li>
           </ul>
           <h3>Real-time serving architecture</h3>
-          <div class="diagram"><pre>transaction event ─► streaming pipeline (Kafka/Flink) ─► feature store (online, low-latency)
-                                                                 │
+          <div class="diagram"><pre>transaction event <span class="d-l">─</span><span class="d-a">►</span> streaming pipeline (Kafka/Flink) <span class="d-l">─</span><span class="d-a">►</span> feature store (online, low-latency)
+                                                                 <span class="d-l">│</span>
                                                      real-time feature lookup + compute
                                                      (velocity features need a sliding window
                                                       maintained continuously, not computed
                                                       from scratch per request)
-                                                                 ▼
+                                                                 <span class="d-a">▼</span>
                                                         model inference (&lt;100ms)
-                                                                 ▼
-                                          rules engine (hard blocks) + ML score ─► decision:
+                                                                 <span class="d-a">▼</span>
+                                          rules engine (hard blocks) + ML score <span class="d-l">─</span><span class="d-a">►</span> decision:
                                           approve / decline / step-up auth / human review queue</pre></div>
           <p>Key point: <strong>the <abbr title="the shared service that computes and serves features identically to training and serving">feature store</abbr>, not the model, is usually the hard engineering problem</strong> — computing "transactions by this card in the last hour" at request time, correctly and fast, for every live transaction, is a streaming-systems problem as much as an ML one; <strong>training/serving skew</strong> (features computed differently offline vs online) is a classic, costly bug here (see <a href="../10_MLOps_and_Deployment/production.html#f22TrainingServ">Training Serving Skew</a>).</p>
           <h3>Latency optimization for real-time fraud scoring</h3>

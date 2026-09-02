@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1141,14 +1153,14 @@ SELECT
     e.salary * 12 AS annual_salary
 FROM employees e;</code></pre>
             <div class="diagram"><pre>SQL EXECUTION ORDER (critical for interviews):
-  1. FROM / JOIN     ← Tables are assembled
-  2. WHERE           ← Rows filtered
-  3. GROUP BY        ← Rows grouped
-  4. HAVING          ← Groups filtered
-  5. SELECT          ← Columns chosen + expressions evaluated
-  6. DISTINCT        ← Duplicates removed
-  7. ORDER BY        ← Results sorted
-  8. LIMIT / OFFSET  ← Results trimmed
+  1. FROM / JOIN     <span class="d-a">←</span> Tables are assembled
+  2. WHERE           <span class="d-a">←</span> Rows filtered
+  3. GROUP BY        <span class="d-a">←</span> Rows grouped
+  4. HAVING          <span class="d-a">←</span> Groups filtered
+  5. SELECT          <span class="d-a">←</span> Columns chosen + expressions evaluated
+  6. DISTINCT        <span class="d-a">←</span> Duplicates removed
+  7. ORDER BY        <span class="d-a">←</span> Results sorted
+  8. LIMIT / OFFSET  <span class="d-a">←</span> Results trimmed
   
   WHY IT MATTERS:
   - Can't use column alias in WHERE (SELECT runs after WHERE)
@@ -1201,15 +1213,15 @@ LEFT JOIN departments d ON e.dept_id = d.dept_id
 WHERE d.dept_id IS NULL;  -- Employees with invalid department</code></pre>
             <div class="diagram"><pre>JOIN VISUALIZATION:
   INNER:   ∩  (intersection)
-  LEFT:    ○─  (all left + matching right)
-  RIGHT:   ─○  (matching left + all right)
-  FULL:    ○─○  (all of both)
+  LEFT:    ○<span class="d-l">─</span>  (all left + matching right)
+  RIGHT:   <span class="d-l">─</span>○  (matching left + all right)
+  FULL:    ○<span class="d-l">─</span>○  (all of both)
   CROSS:   × (every combination)
   
   COMMON MISTAKE:
   Filtering in WHERE vs ON for LEFT JOIN:
     ON: Condition applied DURING join (keeps all left rows)
-    WHERE: Condition applied AFTER join (removes unmatched left rows → becomes INNER)</pre></div>
+    WHERE: Condition applied AFTER join (removes unmatched left rows <span class="d-a">→</span> becomes INNER)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01SQLReference-2">
@@ -1335,10 +1347,10 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) &lt;= 3
   RANGE BETWEEN: Logical range on ORDER BY column value
   
   Common frames:
-    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW     → running total
-    ROWS BETWEEN 6 PRECEDING AND CURRENT ROW             → 7-day moving avg
-    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING → entire partition
-    ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING              → smoothing (prev + curr + next)</pre></div>
+    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW     <span class="d-a">→</span> running total
+    ROWS BETWEEN 6 PRECEDING AND CURRENT ROW             <span class="d-a">→</span> 7-day moving avg
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING <span class="d-a">→</span> entire partition
+    ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING              <span class="d-a">→</span> smoothing (prev + curr + next)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01SQLReference-4">
@@ -1578,7 +1590,7 @@ WHERE NOT EXISTS (
 );</code></pre>
             <div class="diagram"><pre>EXISTS vs IN:
   IN:     Evaluates the subquery, creates a list, checks membership.
-          Handles NULLs in subquery result poorly (NULL IN (list) → UNKNOWN).
+          Handles NULLs in subquery result poorly (NULL IN (list) <span class="d-a">→</span> UNKNOWN).
           Better for: small result sets, static lists.
   
   EXISTS: Checks if at least one row exists (stops at first match).
@@ -1750,27 +1762,27 @@ CREATE UNIQUE INDEX idx_emp_email ON employees(email);
 by organizing tables according to dependency rules.
 
 1NF (First Normal Form):
-  ✅ Each column contains atomic (indivisible) values
-  ✅ Each row is unique (has a primary key)
-  ❌ Violation: phone = "123, 456" (multiple values in one column)
+  √ Each column contains atomic (indivisible) values
+  √ Each row is unique (has a primary key)
+  × Violation: phone = "123, 456" (multiple values in one column)
 
 2NF (Second Normal Form):
-  ✅ Is in 1NF
-  ✅ All non-key columns depend on the ENTIRE primary key
-  ❌ Violation: In (student_id, course_id) → student_name
+  √ Is in 1NF
+  √ All non-key columns depend on the ENTIRE primary key
+  × Violation: In (student_id, course_id) <span class="d-a">→</span> student_name
      student_name depends only on student_id, not on course_id
      Fix: Move student_name to a separate students table
 
 3NF (Third Normal Form):
-  ✅ Is in 2NF
-  ✅ No TRANSITIVE dependencies (non-key → non-key)
-  ❌ Violation: employee → department → department_head
+  √ Is in 2NF
+  √ No TRANSITIVE dependencies (non-key <span class="d-a">→</span> non-key)
+  × Violation: employee <span class="d-a">→</span> department <span class="d-a">→</span> department_head
      department_head depends on department, not directly on employee
      Fix: Move department_head to a departments table
 
 BCNF (Boyce-Codd Normal Form):
-  ✅ Is in 3NF
-  ✅ Every determinant is a candidate key
+  √ Is in 3NF
+  √ Every determinant is a candidate key
   Rarely violated in practice if 3NF is achieved
 
 DENORMALIZATION (for ML/Analytics):
@@ -1778,7 +1790,7 @@ DENORMALIZATION (for ML/Analytics):
   - Faster analytical queries (fewer JOINs)
   - Data warehousing (star schema = denormalized)
   - ML feature tables (wide, flat tables)
-  Trade-off: Redundancy ↑ but Query Speed ↑</pre></div>
+  Trade-off: Redundancy <span class="d-a">↑</span> but Query Speed <span class="d-a">↑</span></pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01SQLReference-12">
@@ -1809,16 +1821,16 @@ INSERT INTO order_items VALUES (...);  -- This might fail
 ROLLBACK TO sp1;                        -- Undo only order_items
 COMMIT;                                 -- order still committed</code></pre>
             <div class="diagram"><pre>ACID PROPERTIES:
-  Atomicity    → All or nothing. Transaction either fully completes or fully rolls back.
-  Consistency  → Database moves from one valid state to another. Constraints enforced.
-  Isolation    → Concurrent transactions don't interfere with each other.
-  Durability   → Once committed, data survives crashes (written to disk).
+  Atomicity    <span class="d-a">→</span> All or nothing. Transaction either fully completes or fully rolls back.
+  Consistency  <span class="d-a">→</span> Database moves from one valid state to another. Constraints enforced.
+  Isolation    <span class="d-a">→</span> Concurrent transactions don't interfere with each other.
+  Durability   <span class="d-a">→</span> Once committed, data survives crashes (written to disk).
 
 ISOLATION LEVELS (from weakest to strongest):
-  READ UNCOMMITTED → Can see uncommitted changes (dirty reads)
-  READ COMMITTED   → Only see committed data (default for PostgreSQL)
-  REPEATABLE READ  → Same query in a transaction returns same results
-  SERIALIZABLE     → Full isolation (as if transactions ran sequentially)
+  READ UNCOMMITTED <span class="d-a">→</span> Can see uncommitted changes (dirty reads)
+  READ COMMITTED   <span class="d-a">→</span> Only see committed data (default for PostgreSQL)
+  REPEATABLE READ  <span class="d-a">→</span> Same query in a transaction returns same results
+  SERIALIZABLE     <span class="d-a">→</span> Full isolation (as if transactions ran sequentially)
   
   Higher isolation = fewer anomalies but more locking/slower performance</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -1887,12 +1899,12 @@ REFRESH MATERIALIZED VIEW monthly_revenue;
 REFRESH MATERIALIZED VIEW CONCURRENTLY monthly_revenue;</code></pre>
             <div class="diagram"><pre>VIEW vs MATERIALIZED VIEW:
   Feature          View              Materialized View
-  ───────          ────              ─────────────────
+  <span class="d-l">───────</span>          <span class="d-l">────</span>              <span class="d-l">─────────────────</span>
   Storage          No (virtual)      Yes (physical)
   Performance      Slow (re-runs)    Fast (pre-computed)
   Freshness        Always current    Stale until REFRESH
   Use case         Simplify queries  Dashboard/reporting cache
-  Indexes          ❌ No             ✅ Yes</pre></div>
+  Indexes          × No             √ Yes</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f01SQLReference-14">

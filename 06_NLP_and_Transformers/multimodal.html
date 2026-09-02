@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1192,17 +1204,17 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <h3>Multimodal Fusion Strategies</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03MultimodalAI-2"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Early Fusion: Concatenate raw inputs → shared encoder
-├── Simple but may miss modality-specific patterns
+            <div class="diagram"><pre>Early Fusion: Concatenate raw inputs <span class="d-a">→</span> shared encoder
+<span class="d-l">├──</span> Simple but may miss modality-specific patterns
 
-Late Fusion: Separate encoders → combine at decision level
-├── Preserves modality-specific features, easy to train
+Late Fusion: Separate encoders <span class="d-a">→</span> combine at decision level
+<span class="d-l">├──</span> Preserves modality-specific features, easy to train
 
 Cross-Attention Fusion: Attend across modality representations
-├── Rich interaction, used in most modern VLMs
+<span class="d-l">├──</span> Rich interaction, used in most modern VLMs
 
 Bottleneck Fusion: Compress via learnable queries (Perceiver, Q-Former)
-├── Efficient, handles variable-length inputs</pre></div>
+<span class="d-l">├──</span> Efficient, handles variable-length inputs</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="f03MultimodalAI-p1"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>2. CLIP and Contrastive Learning</span><i></i>
@@ -1212,13 +1224,13 @@ Bottleneck Fusion: Compress via learnable queries (Perceiver, Q-Former)
             <h3>CLIP Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03MultimodalAI-3"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Image Encoder (ViT-L/14 or ResNet)  →  Image embedding (d=768)
+            <div class="diagram"><pre>Image Encoder (ViT-L/14 or ResNet)  <span class="d-a">→</span>  Image embedding (d=768)
                                               ↕ cosine similarity
-Text Encoder (Transformer)           →  Text embedding (d=768)
+Text Encoder (Transformer)           <span class="d-a">→</span>  Text embedding (d=768)
 
 Training: Contrastive loss on 400M (image, text) pairs
-- Matching pairs → high similarity
-- Non-matching pairs → low similarity</pre></div>
+- Matching pairs <span class="d-a">→</span> high similarity
+- Non-matching pairs <span class="d-a">→</span> low similarity</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f03MultimodalAI-4">
@@ -1316,10 +1328,10 @@ text = clip.<span class="fn">tokenize</span>([<span class="str">"a photo of a ca
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Pattern 1: Dual Encoder (CLIP)
-  Image encoder + Text encoder → separate embeddings → similarity
+  Image encoder + Text encoder <span class="d-a">→</span> separate embeddings <span class="d-a">→</span> similarity
 
 Pattern 2: Encoder-Decoder (BLIP-2, Flamingo)
-  Image encoder → Bridge module → LLM decoder
+  Image encoder <span class="d-a">→</span> Bridge module <span class="d-a">→</span> LLM decoder
   
 Pattern 3: Native Multimodal (Gemini, GPT-4o)
   All modalities processed natively in single architecture</pre></div>
@@ -1401,12 +1413,12 @@ Pattern 3: Native Multimodal (Gemini, GPT-4o)
             <h3>LLaVA Architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03MultimodalAI-9"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Input Image → CLIP ViT → Image patches → Linear projection → Visual tokens
-                                                                    ↓
+            <div class="diagram"><pre>Input Image <span class="d-a">→</span> CLIP ViT <span class="d-a">→</span> Image patches <span class="d-a">→</span> Linear projection <span class="d-a">→</span> Visual tokens
+                                                                    <span class="d-a">↓</span>
                                           [Visual tokens] + [Text tokens]
-                                                    ↓
+                                                    <span class="d-a">↓</span>
                                               LLM (Vicuna/LLaMA)
-                                                    ↓
+                                                    <span class="d-a">↓</span>
                                               Text Response
 
 Training:
@@ -1519,10 +1531,10 @@ response = processor.<span class="fn">decode</span>(output[<span class="num">0</
             <div class="keyterms"><span class="kt">latent space</span><span class="kt">Three components</span><span class="kt">VAE (Variational Autoencoder)</span><span class="kt">U-Net</span><span class="kt">Text Encoder (CLIP)</span><span class="kt">Diffusion Process</span>
             </div>
             <p>Operates in <strong>latent space</strong> (not pixel space) for efficiency:</p>
-            <div class="diagram"><pre>Text Prompt → CLIP Text Encoder → Text Embeddings
-                                        ↓
-Image → VAE Encoder → Latent (z)  →  U-Net (denoising)  →  VAE Decoder → Generated Image
-                                        ↑
+            <div class="diagram"><pre>Text Prompt <span class="d-a">→</span> CLIP Text Encoder <span class="d-a">→</span> Text Embeddings
+                                        <span class="d-a">↓</span>
+Image <span class="d-a">→</span> VAE Encoder <span class="d-a">→</span> Latent (z)  <span class="d-a">→</span>  U-Net (denoising)  <span class="d-a">→</span>  VAE Decoder <span class="d-a">→</span> Generated Image
+                                        <span class="d-a">↑</span>
                                    Noise Schedule (timesteps)</pre></div>
             <p><strong>Three components:</strong>
               1. <strong><abbr title="variational autoencoder">VAE</abbr> (Variational Autoencoder):</strong> Compresses images to latent space (64×64 instead of 512×512). Decoder reconstructs from latent.
@@ -1541,9 +1553,9 @@ Image → VAE Encoder → Latent (z)  →  U-Net (denoising)  →  VAE Decoder �
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Input: Condition (edge map, depth map, pose) + Text prompt
-→ ControlNet processes condition
-→ Injected into Stable Diffusion U-Net via zero-convolution
-→ Generated image follows both text and spatial condition</pre></div>
+<span class="d-a">→</span> ControlNet processes condition
+<span class="d-a">→</span> Injected into Stable Diffusion U-Net via zero-convolution
+<span class="d-a">→</span> Generated image follows both text and spatial condition</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f03MultimodalAI-16">
@@ -1754,7 +1766,7 @@ tts.<span class="fn">tts_to_file</span>(
             <h3>Video Generation Pipeline</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03MultimodalAI-21"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Text prompt → Text encoder → Spatiotemporal diffusion → Video frames
+            <div class="diagram"><pre>Text prompt <span class="d-a">→</span> Text encoder <span class="d-a">→</span> Spatiotemporal diffusion <span class="d-a">→</span> Video frames
                                     ↕
                              3D U-Net or DiT
                              (handles time dimension)
@@ -1772,14 +1784,14 @@ Key challenges:
             <h3>Unified Embedding Spaces</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03MultimodalAI-22"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Image → Image encoder → Embedding (d=768)
-Text  → Text encoder  → Embedding (d=768)     → Same vector space
-Audio → Audio encoder → Embedding (d=768)
+            <div class="diagram"><pre>Image <span class="d-a">→</span> Image encoder <span class="d-a">→</span> Embedding (d=768)
+Text  <span class="d-a">→</span> Text encoder  <span class="d-a">→</span> Embedding (d=768)     <span class="d-a">→</span> Same vector space
+Audio <span class="d-a">→</span> Audio encoder <span class="d-a">→</span> Embedding (d=768)
 
 Cross-modal retrieval:
-- Text query → find similar images
-- Image query → find similar text descriptions
-- Audio query → find matching video clips</pre></div>
+- Text query <span class="d-a">→</span> find similar images
+- Image query <span class="d-a">→</span> find similar text descriptions
+- Audio query <span class="d-a">→</span> find matching video clips</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f03MultimodalAI-23">
@@ -1835,7 +1847,7 @@ Cross-modal retrieval:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Key insight: Images appear in all modality pairs
-→ Bind all modalities through image as anchor
+<span class="d-a">→</span> Bind all modalities through image as anchor
 
 image ↔ text    (CLIP pairs)
 image ↔ audio   (video + audio pairs)
@@ -1844,7 +1856,7 @@ image ↔ thermal (thermal camera pairs)
 image ↔ IMU     (video + motion pairs)
 
 Result: All 6 modalities share one embedding space
-→ Audio query can retrieve images (even though never trained together!)</pre></div>
+<span class="d-a">→</span> Audio query can retrieve images (even though never trained together!)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="f03MultimodalAI-p7"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>8. Multimodal RAG</span><i></i>
@@ -1855,17 +1867,17 @@ Result: All 6 modalities share one embedding space
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Query (text + optional image)
-    ↓
+    <span class="d-a">↓</span>
 Multimodal Retriever
-    ├── Text chunks → text embeddings → vector search
-    ├── Image descriptions → text embeddings → vector search
-    ├── Image patches → CLIP embeddings → vector search
-    └── Table data → structured extraction → keyword search
-    ↓
+    <span class="d-l">├──</span> Text chunks <span class="d-a">→</span> text embeddings <span class="d-a">→</span> vector search
+    <span class="d-l">├──</span> Image descriptions <span class="d-a">→</span> text embeddings <span class="d-a">→</span> vector search
+    <span class="d-l">├──</span> Image patches <span class="d-a">→</span> CLIP embeddings <span class="d-a">→</span> vector search
+    <span class="d-l">└──</span> Table data <span class="d-a">→</span> structured extraction <span class="d-a">→</span> keyword search
+    <span class="d-a">↓</span>
 Retrieved context (text + images + tables)
-    ↓
+    <span class="d-a">↓</span>
 Vision-Language Model (GPT-4o, Gemini)
-    ↓
+    <span class="d-a">↓</span>
 Answer (grounded in retrieved multimodal context)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -1897,8 +1909,8 @@ image_elements = [e <span class="kw">for</span> e <span class="kw">in</span> ele
             <h3>ColPali / ColQwen (Document Retrieval)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f03MultimodalAI-27"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Traditional: Parse PDF → extract text → embed text → retrieval
-ColPali: Treat document pages as images → embed with vision model → retrieval
+            <div class="diagram"><pre>Traditional: Parse PDF <span class="d-a">→</span> extract text <span class="d-a">→</span> embed text <span class="d-a">→</span> retrieval
+ColPali: Treat document pages as images <span class="d-a">→</span> embed with vision model <span class="d-a">→</span> retrieval
 
 Advantages:
 - No parsing errors (OCR failures, layout issues)
@@ -1972,15 +1984,15 @@ Advantages:
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Input (PDF/Image)
-    ↓
+    <span class="d-a">↓</span>
 Layout Analysis (detect regions: text, tables, figures)
-    ↓
+    <span class="d-a">↓</span>
 OCR / Text Extraction
-    ↓
+    <span class="d-a">↓</span>
 Structure Understanding (headings, paragraphs, lists)
-    ↓
+    <span class="d-a">↓</span>
 Information Extraction (entities, key-value pairs)
-    ↓
+    <span class="d-a">↓</span>
 Output (structured data, embeddings, summaries)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>

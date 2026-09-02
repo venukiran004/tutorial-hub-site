@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -2196,22 +2208,22 @@ trainer.<span class="fn">train</span>()</code></pre></div><button class="reveal"
           </div>
           <div class="q-a">
             <div class="diagram"><pre>User Request
-    ↓
+    <span class="d-a">↓</span>
 Input Guardrails (PII, injection detection)
-    ↓
-Semantic Cache (hit? → return cached response)
-    ↓
-Task Router (classify → select model + RAG strategy)
-    ↓
-RAG Pipeline (if retrieval needed: embed → search → re-rank)
-    ↓
-LLM API (primary → fallback chain on error)
-    ↓
+    <span class="d-a">↓</span>
+Semantic Cache (hit? <span class="d-a">→</span> return cached response)
+    <span class="d-a">↓</span>
+Task Router (classify <span class="d-a">→</span> select model + RAG strategy)
+    <span class="d-a">↓</span>
+RAG Pipeline (if retrieval needed: embed <span class="d-a">→</span> search <span class="d-a">→</span> re-rank)
+    <span class="d-a">↓</span>
+LLM API (primary <span class="d-a">→</span> fallback chain on error)
+    <span class="d-a">↓</span>
 Output Guardrails (safety classifier, format validator)
-    ↓
-Response → User + Observability (LangSmith/Helicone)
-    ↓
-Feedback Loop → Evaluation dataset → Fine-tuning pipeline</pre></div>
+    <span class="d-a">↓</span>
+Response <span class="d-a">→</span> User + Observability (LangSmith/Helicone)
+    <span class="d-a">↓</span>
+Feedback Loop <span class="d-a">→</span> Evaluation dataset <span class="d-a">→</span> Fine-tuning pipeline</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <div class="parthead" id="f07GenAIIntervi-p6"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>Advanced RAG &amp; Retrieval Architectures (Q101–Q120)</span><i></i>
@@ -2323,13 +2335,13 @@ sub_queries = [
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Standard "bi-encoder":  
-query_emb (768d) ← single vector  
-doc_emb (768d)   ← single vector  
+query_emb (768d) <span class="d-a">←</span> single vector  
+doc_emb (768d)   <span class="d-a">←</span> single vector  
 score = dot(query_emb, doc_emb)  
 
 ColBERT (late interaction):  
-query tokens → [q1, q2...qn] (768d each)  
-doc tokens   → [d1, d2...dm] (768d each)  
+query tokens <span class="d-a">→</span> [q1, q2...qn] (768d each)  
+doc tokens   <span class="d-a">→</span> [d1, d2...dm] (768d each)  
 score = Σ max_j(qi · dj) for each qi  # MaxSim operator</pre></div>
             <p>ColBERT is 10x more expressive than <abbr title="a model that embeds query and passage separately, so passages can be indexed in advance">bi-encoder</abbr> but indexes at token level (larger index). Served by RAGatouille library.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -3176,9 +3188,9 @@ Objective: maximize cosine similarity of correct (image, text) pairs
           </div>
           <div class="q-a">
             <p>VLMs combine a vision encoder (CLIP ViT, SigLIP) with an <abbr title="large language model">LLM</abbr>:</p>
-            <div class="diagram"><pre>Image → Vision encoder → Visual tokens → Projection layer → LLM tokens
-Text  → Tokenizer      → Text tokens  → LLM
-                                           ↓
+            <div class="diagram"><pre>Image <span class="d-a">→</span> Vision encoder <span class="d-a">→</span> Visual tokens <span class="d-a">→</span> Projection layer <span class="d-a">→</span> LLM tokens
+Text  <span class="d-a">→</span> Tokenizer      <span class="d-a">→</span> Text tokens  <span class="d-a">→</span> LLM
+                                           <span class="d-a">↓</span>
                                         Response</pre></div>
             <p>Examples: LLaVA (open), GPT-4V, Claude opus 3, Gemini Pro Vision. Projection layer (MLP bridge or cross-attention) maps visual embeddings to the LLM's token dimension.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -3701,11 +3713,11 @@ merged = <span class="fn">slerp</span>(t=<span class="num">0.5</span>, v0=base_m
           </div>
           <div class="q-a">
             <div class="diagram"><pre>User: "Write a FastMCP server with OAuth"
-↓
+<span class="d-a">↓</span>
 Query embedding: embed("FastMCP server OAuth")
-↓
+<span class="d-a">↓</span>
 Retrieve: Top-k code examples from internal codebase + documentation
-↓
+<span class="d-a">↓</span>
 Generate: LLM writes code conditioned on retrieved examples</pre></div>
             <p>Much better than pure generation for proprietary APIs/frameworks not in training data. GitHub Copilot Enterprise uses repository-level <abbr title="retrieval-augmented generation">RAG</abbr> for this.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -3793,10 +3805,10 @@ Generate: LLM writes code conditioned on retrieved examples</pre></div>
           <div class="q-a">
             <p>Instead of one <abbr title="large language model">LLM</abbr>, MoA uses multiple LLMs in parallel, then an aggregator:</p>
             <div class="diagram"><pre>User query
-    ├── Agent 1 (GPT-4) → response_1
-    ├── Agent 2 (Claude) → response_2
-    ├── Agent 3 (Gemini) → response_3
-                    ↓
+    <span class="d-l">├──</span> Agent 1 (GPT-4) <span class="d-a">→</span> response_1
+    <span class="d-l">├──</span> Agent 2 (Claude) <span class="d-a">→</span> response_2
+    <span class="d-l">├──</span> Agent 3 (Gemini) <span class="d-a">→</span> response_3
+                    <span class="d-a">↓</span>
             Aggregator LLM: synthesize best answer from 3 responses</pre></div>
             <p>Achieves higher quality than any single model but 3x latency and cost. Used in Together AI MoA paper to beat GPT-4 Turbo on AlpacaEval.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -4056,8 +4068,8 @@ result = <span class="fn">llm_with_cache</span>(<span class="str">"Explain Gener
           </div>
           <div class="q-a">
             <p>ToT extends <abbr title="chain of thought">CoT</abbr> by exploring multiple reasoning paths:</p>
-            <div class="diagram"><pre>Problem → Branch into 3-5 intermediate thoughts → Evaluate each → 
-Keep best → Branch again → Evaluate → ... → Final answer</pre></div>
+            <div class="diagram"><pre>Problem <span class="d-a">→</span> Branch into 3-5 intermediate thoughts <span class="d-a">→</span> Evaluate each <span class="d-a">→</span> 
+Keep best <span class="d-a">→</span> Branch again <span class="d-a">→</span> Evaluate <span class="d-a">→</span> ... <span class="d-a">→</span> Final answer</pre></div>
             <p>Uses BFS or DFS to search the reasoning space. Much more powerful than linear CoT for combinatorial problems. Implemented in LangChain as <code>TreeOfThoughtChain</code>.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -4107,7 +4119,7 @@ when grounding; FFN layers recall parametric memory when hallucinating</code></p
           <div class="q-a">
             <p>RIG interleaves retrieval with token generation (inspired by RETRO architecture):</p>
             <div class="diagram"><pre>Generate token 1, 2, 3 ...
-After N tokens → retrieve based on generated so far
+After N tokens <span class="d-a">→</span> retrieve based on generated so far
 Condition next N tokens on retrieved + earlier generation
 Repeat...</pre></div>
             <p>Enables "infinite" effective context by retrieving what's needed as generation progresses.</p>
@@ -4133,9 +4145,9 @@ Repeat...</pre></div>
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Pretrained LLM (predict next token on web data)
-        ↓ SFT (supervised fine-tuning on instruction/response pairs)
+        <span class="d-a">↓</span> SFT (supervised fine-tuning on instruction/response pairs)
 Instruction-following model (can answer questions)
-        ↓ RLHF or DPO (align with human preferences)
+        <span class="d-a">↓</span> RLHF or DPO (align with human preferences)
 Aligned assistant (helpful, harmless, honest)</pre></div>
             <p>Recent evolution: RLVR (<abbr title="reinforcement learning">RL</abbr> with verifiable rewards) and direct preference optimization variants (IPO, ORPO, SimPO) offer alternatives to original PPO-based <abbr title="reinforcement learning from human feedback">RLHF</abbr>.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -5102,10 +5114,10 @@ freq = <span class="fn">Counter</span>(<span class="str">"banana"</span>)       
           <div class="q-a">
             <div class="keyterms"><span class="kt">Production additions to call out</span><span class="kt">prompt versioning</span><span class="kt">citation support</span>
             </div>
-            <div class="diagram"><pre>PDF → Loader (PyMuPDF/Unstructured) → Clean/parse (tables, OCR images)
-    → Chunk (recursive/structure-aware) → Embed → Vector DB (+ metadata)
-                                                        │
-User Q → Query rewrite → Hybrid retrieve → Rerank → Compress → LLM → Answer + citations</pre></div>
+            <div class="diagram"><pre>PDF <span class="d-a">→</span> Loader (PyMuPDF/Unstructured) <span class="d-a">→</span> Clean/parse (tables, OCR images)
+    <span class="d-a">→</span> Chunk (recursive/structure-aware) <span class="d-a">→</span> Embed <span class="d-a">→</span> Vector DB (+ metadata)
+                                                        <span class="d-l">│</span>
+User Q <span class="d-a">→</span> Query rewrite <span class="d-a">→</span> Hybrid retrieve <span class="d-a">→</span> Rerank <span class="d-a">→</span> Compress <span class="d-a">→</span> LLM <span class="d-a">→</span> Answer + citations</pre></div>
             <p><strong>Production additions to call out:</strong> caching (<abbr title="a dense numeric vector representing text so that similar meanings sit close together">embedding</abbr> + answer), logging/tracing, monitoring (latency, cost, retrieval quality), retries + timeouts, rate limiting, <strong>prompt versioning</strong>, <abbr title="checks around a model that block or rewrite unsafe or malformed input and output">guardrails</abbr> (<abbr title="personally identifiable information">PII</abbr>, injection, <abbr title="tying a generated answer to retrieved evidence rather than model memory">grounding</abbr> check), and <strong>citation support</strong> so every claim links to a chunk. <em>(Complex-PDF underwriting variant — nested tables/images — is fully designed in the Round-2 file, Q13.)</em>
             </p>
           </div><button class="reveal">Reveal answer</button>
@@ -5551,13 +5563,13 @@ sem = asyncio.<span class="fn">Semaphore</span>(<span class="num">10</span>)
             </div>
             <h3>The pattern</h3>
             <p>A <strong><abbr title="an agent that routes work to other agents and owns the overall plan">Supervisor</abbr></strong> (router <abbr title="large language model">LLM</abbr>) sits at the center; <strong>specialist agents</strong> (research, SQL, coder, writer) are the spokes. Agents <strong>don't talk peer-to-peer directly</strong> — they communicate <strong>through shared state + the supervisor</strong>:</p>
-            <div class="diagram"><pre>        ┌─────────────┐
-        │  Supervisor │  decides who acts next (routing)
-        └──────┬──────┘
-   ┌───────────┼──────┐
-   ▼           ▼           ▼
- Agent A     Agent B     Agent C     ← each reads/writes the SHARED STATE
-   └───────────┴──────┘
+            <div class="diagram"><pre>        <span class="d-l">┌─────────────┐</span>
+        <span class="d-l">│</span>  Supervisor <span class="d-l">│</span>  decides who acts next (routing)
+        <span class="d-l">└──────┬──────┘</span>
+   <span class="d-l">┌───────────┼──────┐</span>
+   <span class="d-a">▼</span>           <span class="d-a">▼</span>           <span class="d-a">▼</span>
+ Agent A     Agent B     Agent C     <span class="d-a">←</span> each reads/writes the SHARED STATE
+   <span class="d-l">└───────────┴──────┘</span>
         (messages + scratchpad)</pre></div>
             <p><strong>Communication channels:</strong> (1) a <strong>shared message/state object</strong> every agent reads and appends to; (2) the supervisor's <strong>routing decision</strong> (which agent runs next); (3) <strong>handoff</strong> — one agent returns control with a result/next-hop. Optionally a <strong>blackboard</strong> (shared memory) for artifacts.</p>
             <h3>LangGraph / LangChain implementation (sketch)</h3>
@@ -5942,25 +5954,25 @@ fused = <span class="fn">rrf</span>([bm25_results, dense_results])   <span class
             </div>
             <p><strong>Problem:</strong> PDFs are <em>complex</em> — nested tables, grids, images, charts, mixed paragraphs. Naive text extraction destroys table structure → wrong numbers → unacceptable for underwriting. The whole design hinges on <strong>parsing fidelity + grounded, cited answers + human-in-the-loop</strong>.</p>
             <h3>Architecture</h3>
-            <div class="diagram"><pre>┌── INGESTION (offline) ─────────────────────────────────────────────────┐
-│ PDF → Layout-aware parser (Unstructured / LlamaParse / Azure Doc       │
-│        Intelligence / Textract / Docling) → detect blocks:             │
-│        {paragraphs, TABLES (keep as HTML/Markdown), images, KV pairs}  │
-│   • Tables → preserve structure (HTML/MD) + row/col headers            │
-│   • Images/charts → VLM (GPT-4o/Claude) captioning → text description  │
-│   • OCR scanned pages                                                  │
-│ → Structure-aware chunking (don't split a table; attach section path)  │
-│ → Rich metadata: {doc_id, page, section, table_id, policy#, date, type}│
-│ → Embed (text + table-aware + image captions) → Vector DB + BM25       │
-└────────────────────────────────────────────────────────────────────────┘
+            <div class="diagram"><pre><span class="d-l">┌──</span> INGESTION (offline) <span class="d-l">─────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span> PDF <span class="d-a">→</span> Layout-aware parser (Unstructured / LlamaParse / Azure Doc       <span class="d-l">│</span>
+<span class="d-l">│</span>        Intelligence / Textract / Docling) <span class="d-a">→</span> detect blocks:             <span class="d-l">│</span>
+<span class="d-l">│</span>        {paragraphs, TABLES (keep as HTML/Markdown), images, KV pairs}  <span class="d-l">│</span>
+<span class="d-l">│</span>   • Tables <span class="d-a">→</span> preserve structure (HTML/MD) + row/col headers            <span class="d-l">│</span>
+<span class="d-l">│</span>   • Images/charts <span class="d-a">→</span> VLM (GPT-4o/Claude) captioning <span class="d-a">→</span> text description  <span class="d-l">│</span>
+<span class="d-l">│</span>   • OCR scanned pages                                                  <span class="d-l">│</span>
+<span class="d-l">│</span> <span class="d-a">→</span> Structure-aware chunking (don't split a table; attach section path)  <span class="d-l">│</span>
+<span class="d-l">│</span> <span class="d-a">→</span> Rich metadata: {doc_id, page, section, table_id, policy#, date, type}<span class="d-l">│</span>
+<span class="d-l">│</span> <span class="d-a">→</span> Embed (text + table-aware + image captions) <span class="d-a">→</span> Vector DB + BM25       <span class="d-l">│</span>
+<span class="d-l">└────────────────────────────────────────────────────────────────────────┘</span>
 
-┌── QUERY (online) ──────────────────────────────────────────────────────┐
-│ User Q → guardrails/PII → query rewrite                                │
-│   → Hybrid retrieve (dense + BM25) + metadata filter (policy, section) │
-│   → Rerank (cross-encoder) → context compress                          │
-│   → LLM (with table HTML in context) → Answer + CITATIONS (page/table) │
-│   → groundedness/faithfulness check → HUMAN-IN-THE-LOOP for decisions  │
-└────────────────────────────────────────────────────────────────────────┘</pre></div>
+<span class="d-l">┌──</span> QUERY (online) <span class="d-l">──────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span> User Q <span class="d-a">→</span> guardrails/PII <span class="d-a">→</span> query rewrite                                <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-a">→</span> Hybrid retrieve (dense + BM25) + metadata filter (policy, section) <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-a">→</span> Rerank (cross-encoder) <span class="d-a">→</span> context compress                          <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-a">→</span> LLM (with table HTML in context) <span class="d-a">→</span> Answer + CITATIONS (page/table) <span class="d-l">│</span>
+<span class="d-l">│</span>   <span class="d-a">→</span> groundedness/faithfulness check <span class="d-a">→</span> HUMAN-IN-THE-LOOP for decisions  <span class="d-l">│</span>
+<span class="d-l">└────────────────────────────────────────────────────────────────────────┘</span></pre></div>
             <h3>Key design decisions to call out</h3>
             <ol>
               <li><strong>Parsing is the make-or-break step.</strong> Use a <strong>layout-aware document-AI parser</strong> (LlamaParse / Azure Document Intelligence / AWS Textract / Unstructured / Docling), <strong>not</strong> plain <code>PyPDF2</code>. Preserve <strong>tables as HTML/Markdown</strong> so the <abbr title="large language model">LLM</abbr> can read rows/columns; keep header context for <strong>nested tables/grids</strong>.</li>

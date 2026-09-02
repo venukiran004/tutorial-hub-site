@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -2255,11 +2267,11 @@ for t in range(max_len):
             <p><strong>Layer structure:</strong>
             </p>
             <div class="diagram"><pre>Input Embeddings + Positional Encoding
-    ↓
-[Multi-Head Self-Attention → Add &amp; Norm] × N
-    ↓
-[Position-wise FFN → Add &amp; Norm] × N
-    ↓
+    <span class="d-a">↓</span>
+[Multi-Head Self-Attention <span class="d-a">→</span> Add &amp; Norm] × N
+    <span class="d-a">↓</span>
+[Position-wise FFN <span class="d-a">→</span> Add &amp; Norm] × N
+    <span class="d-a">↓</span>
 Output Projection</pre></div>
             <p>For encoder (N=6 in original), <span class="mth"><i>d</i><sub><i>m</i><i>o</i><i>d</i><i>e</i><i>l</i></sub><span class="mth-op">=</span>512</span>, <span class="mth"><i>d</i><sub><i>f</i><i>f</i></sub><span class="mth-op">=</span>2048</span>, <span class="mth"><i>h</i><span class="mth-op">=</span>8</span> heads.</p>
             <p><strong>Position-wise <abbr title="feed-forward network">FFN</abbr>:</strong>
@@ -4755,21 +4767,21 @@ top_hotels = np.<span class="fn">argsort</span>(scores)[::-<span class="num">1</
               5. <strong>Transfer learning:</strong> Pre-trained models reduce data requirements</p>
             <hr />
             <h4>Q9. Types of Neural Networks and their applications</h4>
-            <div class="diagram"><pre>┌──────────────────────────────────────────────────────┐
-│           NEURAL NETWORK TAXONOMY                    │
-├──────────────────┬───────────────────────────────────┤
-│ ANN/MLP          │ Tabular data, classification      │
-│ CNN              │ Images, spatial data              │
-│ RNN              │ Sequential data (deprecated)      │
-│ LSTM             │ Long sequences, time series       │
-│ GRU              │ Efficient sequential processing   │
-│ Transformer      │ NLP, vision, multimodal           │
-│ GAN              │ Image generation, augmentation    │
-│ VAE              │ Generation, latent spaces         │
-│ Autoencoder      │ Compression, anomaly detection    │
-│ Graph Neural Net │ Social networks, molecules        │
-│ Diffusion Model  │ High-quality image generation     │
-└──────────────────┴───────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌──────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>           NEURAL NETWORK TAXONOMY                    <span class="d-l">│</span>
+<span class="d-l">├──────────────────┬───────────────────────────────────┤</span>
+<span class="d-l">│</span> ANN/MLP          <span class="d-l">│</span> Tabular data, classification      <span class="d-l">│</span>
+<span class="d-l">│</span> CNN              <span class="d-l">│</span> Images, spatial data              <span class="d-l">│</span>
+<span class="d-l">│</span> RNN              <span class="d-l">│</span> Sequential data (deprecated)      <span class="d-l">│</span>
+<span class="d-l">│</span> LSTM             <span class="d-l">│</span> Long sequences, time series       <span class="d-l">│</span>
+<span class="d-l">│</span> GRU              <span class="d-l">│</span> Efficient sequential processing   <span class="d-l">│</span>
+<span class="d-l">│</span> Transformer      <span class="d-l">│</span> NLP, vision, multimodal           <span class="d-l">│</span>
+<span class="d-l">│</span> GAN              <span class="d-l">│</span> Image generation, augmentation    <span class="d-l">│</span>
+<span class="d-l">│</span> VAE              <span class="d-l">│</span> Generation, latent spaces         <span class="d-l">│</span>
+<span class="d-l">│</span> Autoencoder      <span class="d-l">│</span> Compression, anomaly detection    <span class="d-l">│</span>
+<span class="d-l">│</span> Graph Neural Net <span class="d-l">│</span> Social networks, molecules        <span class="d-l">│</span>
+<span class="d-l">│</span> Diffusion Model  <span class="d-l">│</span> High-quality image generation     <span class="d-l">│</span>
+<span class="d-l">└──────────────────┴───────────────────────────────────┘</span></pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">import</span> torch
 <span class="kw">import</span> torch.nn <span class="kw">as</span> nn
 
@@ -5072,26 +5084,26 @@ result = chain.<span class="fn">invoke</span>({<span class="str">"comment"</span
             <h4>Q13. Design an end-to-end AI system</h4>
             <p><strong>Architecture for production AI:</strong>
             </p>
-            <div class="diagram"><pre>┌──────────────────────────────────────────────────────┐
-│                 AI SYSTEM ARCHITECTURE               │
-├──────────────────────────────────────────────────────┤
-│                                                      │
-│  DATA LAYER      MODEL LAYER      SERVING LAYER      │
-│  ┌──────────┐    ┌──────────┐    ┌──────────────┐    │
-│  │ Ingestion│    │ Training │    │  API Gateway  │   │
-│  │ (Kafka)  │───▶│ (GPU     │───▶│  (FastAPI)    │   │
-│  │          │    │  Cluster)│    │               │   │
-│  ├──────────┤    ├──────────┤    ├──────────────┤    │
-│  │ Feature  │    │ Registry │    │  Inference    │   │
-│  │ Store    │───▶│ (MLflow) │───▶│  (TorchServe) │   │
-│  │ (Feast)  │    │          │    │               │   │
-│  ├──────────┤    ├──────────┤    ├──────────────┤    │
-│  │ Storage  │    │ Eval     │    │  Monitoring   │   │
-│  │ (S3/GCS) │    │ Pipeline │    │  (Prometheus) │   │
-│  └──────────┘    └──────────┘    └──────────────┘    │
-│                                                      │
-│  MONITORING: Data drift │ Model drift │ Latency      │
-└──────────────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre><span class="d-l">┌──────────────────────────────────────────────────────┐</span>
+<span class="d-l">│</span>                 AI SYSTEM ARCHITECTURE               <span class="d-l">│</span>
+<span class="d-l">├──────────────────────────────────────────────────────┤</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  DATA LAYER      MODEL LAYER      SERVING LAYER      <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">┌──────────┐</span>    <span class="d-l">┌──────────┐</span>    <span class="d-l">┌──────────────┐</span>    <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> Ingestion<span class="d-l">│</span>    <span class="d-l">│</span> Training <span class="d-l">│</span>    <span class="d-l">│</span>  API Gateway  <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> (Kafka)  <span class="d-l">│───</span><span class="d-a">►</span><span class="d-l">│</span> (GPU     <span class="d-l">│───</span><span class="d-a">►</span><span class="d-l">│</span>  (FastAPI)    <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span>          <span class="d-l">│</span>    <span class="d-l">│</span>  Cluster)<span class="d-l">│</span>    <span class="d-l">│</span>               <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">├──────────┤</span>    <span class="d-l">├──────────┤</span>    <span class="d-l">├──────────────┤</span>    <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> Feature  <span class="d-l">│</span>    <span class="d-l">│</span> Registry <span class="d-l">│</span>    <span class="d-l">│</span>  Inference    <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> Store    <span class="d-l">│───</span><span class="d-a">►</span><span class="d-l">│</span> (MLflow) <span class="d-l">│───</span><span class="d-a">►</span><span class="d-l">│</span>  (TorchServe) <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> (Feast)  <span class="d-l">│</span>    <span class="d-l">│</span>          <span class="d-l">│</span>    <span class="d-l">│</span>               <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">├──────────┤</span>    <span class="d-l">├──────────┤</span>    <span class="d-l">├──────────────┤</span>    <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> Storage  <span class="d-l">│</span>    <span class="d-l">│</span> Eval     <span class="d-l">│</span>    <span class="d-l">│</span>  Monitoring   <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">│</span> (S3/GCS) <span class="d-l">│</span>    <span class="d-l">│</span> Pipeline <span class="d-l">│</span>    <span class="d-l">│</span>  (Prometheus) <span class="d-l">│</span>   <span class="d-l">│</span>
+<span class="d-l">│</span>  <span class="d-l">└──────────┘</span>    <span class="d-l">└──────────┘</span>    <span class="d-l">└──────────────┘</span>    <span class="d-l">│</span>
+<span class="d-l">│</span>                                                      <span class="d-l">│</span>
+<span class="d-l">│</span>  MONITORING: Data drift <span class="d-l">│</span> Model drift <span class="d-l">│</span> Latency      <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────────────────────────────┘</span></pre></div>
             <pre class="code" data-lang="python"><code><span class="cmt"># FastAPI serving example</span>
 <span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
 <span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel

@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1121,27 +1133,27 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </p>
             <div class="diagram"><pre>Pipeline Design:
   1. CODE COMMIT (Git)
-     ├── Model code + preprocessing in same repo
-     ├── Feature engineering as shared library (not notebooks)
-     └── Config files for hyperparameters (YAML)
+     <span class="d-l">├──</span> Model code + preprocessing in same repo
+     <span class="d-l">├──</span> Feature engineering as shared library (not notebooks)
+     <span class="d-l">└──</span> Config files for hyperparameters (YAML)
   
   2. CI (GitHub Actions / GitLab CI)
-     ├── Unit tests: feature engineering functions
-     ├── Integration test: train small model on sample data
-     ├── Preprocessing parity test: compare training vs serving output
-     ├── Model quality gate: accuracy &gt; threshold on validation set
-     └── Linting + type checking (mypy, ruff)
+     <span class="d-l">├──</span> Unit tests: feature engineering functions
+     <span class="d-l">├──</span> Integration test: train small model on sample data
+     <span class="d-l">├──</span> Preprocessing parity test: compare training vs serving output
+     <span class="d-l">├──</span> Model quality gate: accuracy &gt; threshold on validation set
+     <span class="d-l">└──</span> Linting + type checking (mypy, ruff)
   
   3. MODEL REGISTRY (MLflow)
-     ├── Register model artifact + metadata
-     ├── Log: data hash, code commit, metrics, config
-     └── Stage: Development → Staging → Production
+     <span class="d-l">├──</span> Register model artifact + metadata
+     <span class="d-l">├──</span> Log: data hash, code commit, metrics, config
+     <span class="d-l">└──</span> Stage: Development <span class="d-a">→</span> Staging <span class="d-a">→</span> Production
   
   4. CD (ArgoCD / custom)
-     ├── Deploy to staging (shadow mode)
-     ├── Run integration tests against staging
-     ├── Canary deployment (5% traffic → 25% → 100%)
-     └── Automated rollback if metrics degrade
+     <span class="d-l">├──</span> Deploy to staging (shadow mode)
+     <span class="d-l">├──</span> Run integration tests against staging
+     <span class="d-l">├──</span> Canary deployment (5% traffic <span class="d-a">→</span> 25% <span class="d-a">→</span> 100%)
+     <span class="d-l">└──</span> Automated rollback if metrics degrade
   
   Key principle: Preprocessing code MUST be packaged with the model
   (sklearn Pipeline, or shared feature engineering library).</pre></div>
@@ -1197,7 +1209,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
      - Remove test files: find . -name "tests" -type d -exec rm -rf {} +
   
   4. Model artifact optimization:
-     - Quantize model (FP32 → INT8 = 4x smaller)
+     - Quantize model (FP32 <span class="d-a">→</span> INT8 = 4x smaller)
      - Store model in external storage (S3), download at startup
        (smaller image, slightly slower cold start)
      - Use ONNX format (often smaller than pickle)
@@ -1357,8 +1369,8 @@ AUTOMATED ROLLBACK TRIGGERS:
   - Standard deviation: $3.00
   - Power: 80%, significance: 5%
   - n ≈ 2 * (1.96 + 0.84)² * 3² / 0.1² ≈ 28,224 per group
-  - At 10K users/day → run for ~6 days minimum
-  - Add buffer for weekly patterns → run 14 days
+  - At 10K users/day <span class="d-a">→</span> run for ~6 days minimum
+  - Add buffer for weekly patterns <span class="d-a">→</span> run 14 days
   
   RANDOMIZATION:
   - User-level (not session-level) — consistent experience
@@ -1410,7 +1422,7 @@ AUTOMATED ROLLBACK TRIGGERS:
    - Dashboard showing last successful retrain date
    
 4. FALLBACK:
-   - If retraining fails for 3+ days → alert on-call + auto-trigger investigation
+   - If retraining fails for 3+ days <span class="d-a">→</span> alert on-call + auto-trigger investigation
    - Serve stale model with increasing staleness warning
    - Have a "last known good model" checkpoint that can be restored</pre></div>
           </div><button class="reveal">Reveal answer</button>
@@ -1427,40 +1439,40 @@ AUTOMATED ROLLBACK TRIGGERS:
             <p><strong>Answer:</strong>
             </p>
             <div class="diagram"><pre>ARCHITECTURE:
-                    ┌──────────────┐
-  Request ────────→ │ API Gateway  │
-                    │ (FastAPI)    │
-                    └──────┬───────┘
-                                   │
-              ┌────────────┼───────┐
-              ▼            ▼            ▼
-        ┌──────────┐ ┌──────────┐ ┌─────────────┐
-        │ PARALLEL  │ │ PARALLEL  │ │ PARALLEL  │
-        │ Search    │ │ Recommend │ │ Ad Rank   │
-        │ (50ms)    │ │ (80ms)    │ │ (40ms)    │
-        └──────────┘ └──────────┘ └─────────────┘
-                                   │
-                           ▼
-                    ┌──────────────┐
-                    │ SEQUENTIAL   │
-                    │ Fraud Score  │ (can't parallelize — needs
-                    │ (30ms)       │  ranking results)
-                    └──────────────┘
-                                   │
-                           ▼
-                    ┌──────────────┐
-                    │ Price Opt    │ (depends on fraud score
-                    │ (20ms)       │  and recommendations)
-                    └──────────────┘
+                    <span class="d-l">┌──────────────┐</span>
+  Request <span class="d-l">────────</span><span class="d-a">→</span> <span class="d-l">│</span> API Gateway  <span class="d-l">│</span>
+                    <span class="d-l">│</span> (FastAPI)    <span class="d-l">│</span>
+                    <span class="d-l">└──────┬───────┘</span>
+                                   <span class="d-l">│</span>
+              <span class="d-l">┌────────────┼───────┐</span>
+              <span class="d-a">▼</span>            <span class="d-a">▼</span>            <span class="d-a">▼</span>
+        <span class="d-l">┌──────────┐</span> <span class="d-l">┌──────────┐</span> <span class="d-l">┌─────────────┐</span>
+        <span class="d-l">│</span> PARALLEL  <span class="d-l">│</span> <span class="d-l">│</span> PARALLEL  <span class="d-l">│</span> <span class="d-l">│</span> PARALLEL  <span class="d-l">│</span>
+        <span class="d-l">│</span> Search    <span class="d-l">│</span> <span class="d-l">│</span> Recommend <span class="d-l">│</span> <span class="d-l">│</span> Ad Rank   <span class="d-l">│</span>
+        <span class="d-l">│</span> (50ms)    <span class="d-l">│</span> <span class="d-l">│</span> (80ms)    <span class="d-l">│</span> <span class="d-l">│</span> (40ms)    <span class="d-l">│</span>
+        <span class="d-l">└──────────┘</span> <span class="d-l">└──────────┘</span> <span class="d-l">└─────────────┘</span>
+                                   <span class="d-l">│</span>
+                           <span class="d-a">▼</span>
+                    <span class="d-l">┌──────────────┐</span>
+                    <span class="d-l">│</span> SEQUENTIAL   <span class="d-l">│</span>
+                    <span class="d-l">│</span> Fraud Score  <span class="d-l">│</span> (can't parallelize — needs
+                    <span class="d-l">│</span> (30ms)       <span class="d-l">│</span>  ranking results)
+                    <span class="d-l">└──────────────┘</span>
+                                   <span class="d-l">│</span>
+                           <span class="d-a">▼</span>
+                    <span class="d-l">┌──────────────┐</span>
+                    <span class="d-l">│</span> Price Opt    <span class="d-l">│</span> (depends on fraud score
+                    <span class="d-l">│</span> (20ms)       <span class="d-l">│</span>  and recommendations)
+                    <span class="d-l">└──────────────┘</span>
 
 KEY DESIGN DECISIONS:
   1. PARALLEL execution for independent models (search, recommend, ads)
      Use asyncio.gather() or gRPC async calls
-  2. SEQUENTIAL for dependent models (fraud → price)
+  2. SEQUENTIAL for dependent models (fraud <span class="d-a">→</span> price)
   3. Each model has its own serving pod (independent scaling)
   4. Feature store shared across models (avoid redundant feature computation)
   5. Circuit breaker per model — if one times out, return default
-  6. Total: max(50, 80, 40) + 30 + 20 = 130ms &lt; 200ms budget ✓
+  6. Total: max(50, 80, 40) + 30 + 20 = 130ms &lt; 200ms budget √
   
 INFRASTRUCTURE:
   - Triton Inference Server (multi-model, dynamic batching)
@@ -1570,37 +1582,37 @@ INFRASTRUCTURE:
             <div class="diagram"><pre>DECOMPOSITION STRATEGY (Strangler Fig Pattern):
 
   Phase 1: Extract API serving
-    Monolith ─── extract ──→ [Model Serving API] (FastAPI + Docker)
+    Monolith <span class="d-l">───</span> extract <span class="d-l">──</span><span class="d-a">→</span> [Model Serving API] (FastAPI + Docker)
     Keep: training, feature eng in monolith
     Benefit: API can scale independently, no downtime from training bugs
   
   Phase 2: Extract feature engineering  
-    Monolith ─── extract ──→ [Feature Service] (shared library or API)
+    Monolith <span class="d-l">───</span> extract <span class="d-l">──</span><span class="d-a">→</span> [Feature Service] (shared library or API)
     Both training and serving use same Feature Service
     Benefit: Eliminates training-serving skew
   
   Phase 3: Extract training pipeline
-    Monolith ─── extract ──→ [Training Pipeline] (Airflow + MLflow)
+    Monolith <span class="d-l">───</span> extract <span class="d-l">──</span><span class="d-a">→</span> [Training Pipeline] (Airflow + MLflow)
     Triggered by: schedule, drift alert, or manual
     Outputs: Model artifact to Model Registry
   
   Phase 4: Add infrastructure
-    [Feature Store] ← Feature Service writes to
-    [Model Registry] ← Training Pipeline registers to
-    [Monitoring] ← All services emit metrics to
+    [Feature Store] <span class="d-a">←</span> Feature Service writes to
+    [Model Registry] <span class="d-a">←</span> Training Pipeline registers to
+    [Monitoring] <span class="d-a">←</span> All services emit metrics to
 
 SERVICE BOUNDARIES:
-  ┌─────────────┐  ┌──────────────┐  ┌───────────────┐
-  │ Training     │  │ Feature      │  │ Model Serving│
-  │ Pipeline     │──│ Service      │──│ API          │
-  │ (batch)      │  │ (shared)     │  │ (real-time)  │
-  └─────────────┘  └──────────────┘  └───────────────┘
-        │                                            │
-        ▼                                     ▼
-  ┌─────────────┐                    ┌───────────────┐
-  │ Model       │                    │ Monitoring    │
-  │ Registry    │                    │ &amp; Alerting    │
-  └─────────────┘                    └───────────────┘
+  <span class="d-l">┌─────────────┐</span>  <span class="d-l">┌──────────────┐</span>  <span class="d-l">┌───────────────┐</span>
+  <span class="d-l">│</span> Training     <span class="d-l">│</span>  <span class="d-l">│</span> Feature      <span class="d-l">│</span>  <span class="d-l">│</span> Model Serving<span class="d-l">│</span>
+  <span class="d-l">│</span> Pipeline     <span class="d-l">│──│</span> Service      <span class="d-l">│──│</span> API          <span class="d-l">│</span>
+  <span class="d-l">│</span> (batch)      <span class="d-l">│</span>  <span class="d-l">│</span> (shared)     <span class="d-l">│</span>  <span class="d-l">│</span> (real-time)  <span class="d-l">│</span>
+  <span class="d-l">└─────────────┘</span>  <span class="d-l">└──────────────┘</span>  <span class="d-l">└───────────────┘</span>
+        <span class="d-l">│</span>                                            <span class="d-l">│</span>
+        <span class="d-a">▼</span>                                     <span class="d-a">▼</span>
+  <span class="d-l">┌─────────────┐</span>                    <span class="d-l">┌───────────────┐</span>
+  <span class="d-l">│</span> Model       <span class="d-l">│</span>                    <span class="d-l">│</span> Monitoring    <span class="d-l">│</span>
+  <span class="d-l">│</span> Registry    <span class="d-l">│</span>                    <span class="d-l">│</span> &amp; Alerting    <span class="d-l">│</span>
+  <span class="d-l">└─────────────┘</span>                    <span class="d-l">└───────────────┘</span>
 
 Key: Don't decompose everything at once. Extract one service at a time,
 validate it works, then move to the next.</pre></div>
@@ -1832,7 +1844,7 @@ message UserResponse {
             <div class="diagram"><pre>Benchmark (typical):
   REST  (JSON/HTTP1.1) : ~10ms avg latency, ~5,000 req/sec
   gRPC  (Proto/HTTP2)  : ~2ms avg latency, ~20,000 req/sec
-                                          ↑ ~4× throughput gain</pre></div>
+                                          <span class="d-a">↑</span> ~4× throughput gain</pre></div>
             <div class="note n-good">
               <p><strong>Rule of thumb:</strong> gRPC is typically <strong><span class="mag">2–5×</span> faster</strong> than REST for equivalent operations.</p>
             </div>
@@ -1951,15 +1963,15 @@ service DataService {
           <div class="q-a">
             <p>A typical production system uses <strong>both</strong>:</p>
             <div class="diagram"><pre>[Browser / Mobile App]
-               │
-         │  REST (HTTP/JSON) — public, flexible, browser-native
-         ▼
+               <span class="d-l">│</span>
+         <span class="d-l">│</span>  REST (HTTP/JSON) — public, flexible, browser-native
+         <span class="d-a">▼</span>
 [API Gateway / Backend for Frontend]
-               │
-         │  gRPC (Protobuf/HTTP2) — fast, streaming, typed
-         ▼
+               <span class="d-l">│</span>
+         <span class="d-l">│</span>  gRPC (Protobuf/HTTP2) — fast, streaming, typed
+         <span class="d-a">▼</span>
 [Internal Microservices]
-    ┌────┴─────┐
+    <span class="d-l">┌────┴─────┐</span>
 [Model Server] [Auth Service] [Data Service]</pre></div>
             <div class="note">
               <p>Expose REST externally for compatibility. Use <abbr title="Google Remote Procedure Call">gRPC</abbr> internally for performance.</p>
@@ -2071,24 +2083,24 @@ app = <span class="fn">Flask</span>(__name__)
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Is your consumer a browser or unknown third party?
-  → YES → Use REST
+  <span class="d-a">→</span> YES <span class="d-a">→</span> Use REST
 
 Do you need streaming (tokens, events, live data)?
-  → YES → Use gRPC
+  <span class="d-a">→</span> YES <span class="d-a">→</span> Use gRPC
 
 Is this internal service-to-service communication?
-  → YES → Use gRPC
+  <span class="d-a">→</span> YES <span class="d-a">→</span> Use gRPC
 
 Do you need human-readable payloads for easy debugging?
-  → YES → Use REST
+  <span class="d-a">→</span> YES <span class="d-a">→</span> Use REST
 
 Is latency or throughput critical (&gt;10k req/sec)?
-  → YES → Use gRPC
+  <span class="d-a">→</span> YES <span class="d-a">→</span> Use gRPC
 
 Building a public API others will integrate with?
-  → YES → Use REST
+  <span class="d-a">→</span> YES <span class="d-a">→</span> Use REST
 
-Not sure? → Use REST externally + gRPC internally</pre></div>
+Not sure? <span class="d-a">→</span> Use REST externally + gRPC internally</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f07gRPCvsRESTmd-26">

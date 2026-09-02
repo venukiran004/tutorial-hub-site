@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1152,13 +1164,13 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
               <p><strong>One-sentence idea:</strong> A plain <abbr title="large language model">LLM</abbr> call is a <strong>function</strong> — one input, one output. An <em>agent</em> is a <strong>loop</strong>: the model observes, decides, calls a tool, sees the result, and decides again, many times. Loops introduce failure modes that single calls simply don't have — they can run forever, drift off course, blow the budget, and take real-world actions.</p>
             </div>
             <p>The mental shift: with a single LLM call your worst case is one bad answer. With an agent your worst case is <strong>a bad answer reached after 50 expensive steps that also deleted a database row along the way.</strong> Every property you relied on for a single call (bounded cost, bounded time, no side-effects) is now something you must <strong>enforce</strong>.</p>
-            <div class="diagram"><pre>Single call:   prompt ──▶ LLM ──▶ answer
+            <div class="diagram"><pre>Single call:   prompt <span class="d-l">──</span><span class="d-a">►</span> LLM <span class="d-l">──</span><span class="d-a">►</span> answer
 
-Agent loop:    ┌───────────────────────────────┐
-               ▼                               │
-   goal ─▶ LLM decides ─▶ tool call ─▶ result ─┘   (repeat until done… or forever)
-                │
-                └─▶ final answer</pre></div>
+Agent loop:    <span class="d-l">┌───────────────────────────────┐</span>
+               <span class="d-a">▼</span>                               <span class="d-l">│</span>
+   goal <span class="d-l">─</span><span class="d-a">►</span> LLM decides <span class="d-l">─</span><span class="d-a">►</span> tool call <span class="d-l">─</span><span class="d-a">►</span> result <span class="d-l">─┘</span>   (repeat until done… or forever)
+                <span class="d-l">│</span>
+                <span class="d-l">└─</span><span class="d-a">►</span> final answer</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f40AgenticAIFai-1">
@@ -1321,9 +1333,9 @@ Agent loop:    ┌────────────────────�
             <div class="keyterms"><span class="kt">Why</span><span class="kt">Defenses (stack them)</span><span class="kt">Hard step limit</span><span class="kt">Repeat detection</span><span class="kt">Better tool feedback</span><span class="kt">Escalate</span>
             </div>
             <p>The signature agent failure: the model keeps taking actions but never reaches "done."</p>
-            <div class="diagram"><pre>Step 1: search("Acme revenue")          → no good result
-Step 2: search("Acme revenue")          → no good result
-Step 3: search("Acme revenue 2023")     → no good result
+            <div class="diagram"><pre>Step 1: search("Acme revenue")          <span class="d-a">→</span> no good result
+Step 2: search("Acme revenue")          <span class="d-a">→</span> no good result
+Step 3: search("Acme revenue 2023")     <span class="d-a">→</span> no good result
 ... (repeats 40 times, burning tokens, never finishing)</pre></div>
             <p><strong>Why:</strong> the tool result never satisfies the goal, and the model — having no concept of "I've tried this" — re-issues a near-identical action.</p>
             <p><strong>Defenses (stack them):</strong>
@@ -1370,10 +1382,10 @@ Step 3: search("Acme revenue 2023")     → no good result
             <p><strong>Worked example — the multiplying error:</strong>
             </p>
             <div class="diagram"><pre>Goal: "Email the Q3 report to the finance lead."
-Step 1 (lookup):  finance lead = "Jordan Lee"   ← WRONG (it's Jordan Park)
-Step 2 (find email): jordan.lee@acme.com         ← built on the wrong name
-Step 3 (draft):   "Hi Jordan Lee, ..."           ← personalizes the wrong person
-Step 4 (send):    ✉ sent to the wrong inbox      ← irreversible side-effect</pre></div>
+Step 1 (lookup):  finance lead = "Jordan Lee"   <span class="d-a">←</span> WRONG (it's Jordan Park)
+Step 2 (find email): jordan.lee@acme.com         <span class="d-a">←</span> built on the wrong name
+Step 3 (draft):   "Hi Jordan Lee, ..."           <span class="d-a">←</span> personalizes the wrong person
+Step 4 (send):    @ sent to the wrong inbox      <span class="d-a">←</span> irreversible side-effect</pre></div>
             <p>One bad lookup in step 1 cascaded into a misdirected email with confidential data.</p>
             <p><strong>Why it's worse than a single wrong answer:</strong> there's no human reading the intermediate steps — the agent trusts its own earlier output completely.</p>
             <p><strong>Defenses:</strong>
@@ -1394,9 +1406,9 @@ Step 4 (send):    ✉ sent to the wrong inbox      ← irreversible side-effect<
             <p>Every step appends to the transcript: the system prompt, the full history, and <strong>every tool output</strong> (which can be huge — a 50-row DB dump, a whole web page). After enough steps you blow the token limit.</p>
             <div class="diagram"><pre>Step 1 transcript:   2,000 tokens
 Step 5 transcript:  18,000 tokens   (5 web pages pasted in full)
-Step 9 transcript:  41,000 tokens   → exceeds 32k limit
-   → API error, OR the framework truncates the START of the history,
-     which is exactly where the ORIGINAL GOAL lived → agent forgets what it's doing.</pre></div>
+Step 9 transcript:  41,000 tokens   <span class="d-a">→</span> exceeds 32k limit
+   <span class="d-a">→</span> API error, OR the framework truncates the START of the history,
+     which is exactly where the ORIGINAL GOAL lived <span class="d-a">→</span> agent forgets what it's doing.</pre></div>
             <p><strong>Defenses:</strong>
               - <strong>Summarize / compress history</strong> — periodically replace old turns with a short summary ("so far: found X, ruled out Y").
               - <strong>Trim tool outputs</strong> — store the full result externally, put only the relevant slice + a reference in context.
@@ -1420,10 +1432,10 @@ Step 9 transcript:  41,000 tokens   → exceeds 32k limit
             </div>
             <p>A single user request can fan out into <strong>dozens or hundreds</strong> of <abbr title="large language model">LLM</abbr> calls (every step is at least one call, often more with reflection/critics). Cost and latency scale with steps, and steps are decided <em>by the model</em>.</p>
             <div class="diagram"><pre>1 user task
-  → planner call            (1)
-  → 12 agent steps × (reason + tool-summarize)   (~24)
-  → 3 critic passes         (3)
-  → final synthesis         (1)
+  <span class="d-a">→</span> planner call            (1)
+  <span class="d-a">→</span> 12 agent steps × (reason + tool-summarize)   (~24)
+  <span class="d-a">→</span> 3 critic passes         (3)
+  <span class="d-a">→</span> final synthesis         (1)
   ≈ 29 LLM calls, 60k+ tokens, 90 seconds — for ONE request.
   At scale, an agent that should cost $0.05 quietly costs $1.50.</pre></div>
             <p><strong>Defenses — enforce budgets per run, not just per call:</strong>
@@ -1608,9 +1620,9 @@ Step 9 transcript:  41,000 tokens   → exceeds 32k limit
             <div class="note">
               <p><strong>One-sentence idea:</strong> An <abbr title="large language model">LLM</abbr> only knows what was in its training data — frozen, public, and undated. <strong><abbr title="retrieval-augmented generation">RAG</abbr></strong> fixes that by <em>retrieving</em> relevant text from <strong>your</strong> knowledge base at query time and handing it to the model as context, so the answer is grounded in current, private, citable facts instead of the model's memory.</p>
             </div>
-            <div class="diagram"><pre>Plain LLM:   question ─────────────────▶ LLM ─▶ answer   (from frozen memory — stale, uncitable, hallucinates)
+            <div class="diagram"><pre>Plain LLM:   question <span class="d-l">─────────────────</span><span class="d-a">►</span> LLM <span class="d-l">─</span><span class="d-a">►</span> answer   (from frozen memory — stale, uncitable, hallucinates)
 
-RAG:         question ─▶ retrieve YOUR docs ─▶ [docs + question] ─▶ LLM ─▶ grounded, cited answer</pre></div>
+RAG:         question <span class="d-l">─</span><span class="d-a">►</span> retrieve YOUR docs <span class="d-l">─</span><span class="d-a">►</span> [docs + question] <span class="d-l">─</span><span class="d-a">►</span> LLM <span class="d-l">─</span><span class="d-a">►</span> grounded, cited answer</pre></div>
             <p>The promise is simple; the <strong>production reality is a multi-stage pipeline where every stage can quietly fail</strong> and the symptom is always the same vague complaint: <em>"the answers are bad."</em> This file makes each stage — and its failure mode — explicit.</p>
             <div class="note">
               <p><strong>Where this fits:</strong> failure <em>scenarios</em> are in <a href="prod-scenarios.html#f30ProductionSc">Production Scenarios Workflows</a> Q11–15; <em><abbr title="tying a generated answer to retrieved evidence rather than model memory">grounding</abbr>/<abbr title="whether an answer is actually supported by the context it was given">faithfulness</abbr></em> in <a href="../07_GenAI_and_LLMs/production.html#f20LLMHallucina">LLM Hallucination and Faithfulness</a>; <em>token cost</em> in <a href="../07_GenAI_and_LLMs/production.html#f21LLMCostandTo">LLM Cost and Token Optimization</a>; <em>evaluation</em> in <a href="../07_GenAI_and_LLMs/production.html#f22LLMEvalPromp">LLM Eval Prompts and Finetuning</a>. This is the end-to-end picture.</p>
@@ -1817,12 +1829,12 @@ RAG:         question ─▶ retrieve YOUR docs ─▶ [docs + question] ─▶ 
             <div class="keyterms"><span class="kt">Mental model</span><span class="kt">So debug retrieval first, always</span>
             </div>
             <div class="diagram"><pre>INGESTION (offline, batch)                         QUERY (online, per request)
-┌──────────────────────────────┐                  ┌───────────────────────────────────────┐
-│ load → clean → CHUNK → EMBED  │                  │ embed query → RETRIEVE (dense+sparse)│
-│      → INDEX (vector + BM25)  │   ──────────▶    │   → RERANK → assemble context        │
-└──────────────────────────────┘   knowledge base │   → GENERATE (grounded + cite)        │
-                                                   │   → faithfulness gate → answer       │
-                                                   └──────────────────────────────────────┘</pre></div>
+<span class="d-l">┌──────────────────────────────┐</span>                  <span class="d-l">┌───────────────────────────────────────┐</span>
+<span class="d-l">│</span> load <span class="d-a">→</span> clean <span class="d-a">→</span> CHUNK <span class="d-a">→</span> EMBED  <span class="d-l">│</span>                  <span class="d-l">│</span> embed query <span class="d-a">→</span> RETRIEVE (dense+sparse)<span class="d-l">│</span>
+<span class="d-l">│</span>      <span class="d-a">→</span> INDEX (vector + BM25)  <span class="d-l">│</span>   <span class="d-l">──────────</span><span class="d-a">►</span>    <span class="d-l">│</span>   <span class="d-a">→</span> RERANK <span class="d-a">→</span> assemble context        <span class="d-l">│</span>
+<span class="d-l">└──────────────────────────────┘</span>   knowledge base <span class="d-l">│</span>   <span class="d-a">→</span> GENERATE (grounded + cite)        <span class="d-l">│</span>
+                                                   <span class="d-l">│</span>   <span class="d-a">→</span> faithfulness gate <span class="d-a">→</span> answer       <span class="d-l">│</span>
+                                                   <span class="d-l">└──────────────────────────────────────┘</span></pre></div>
             <div class="note">
               <p><strong>Mental model:</strong> quality is a chain — <code>retrieval quality × generation quality</code>. If retrieval misses, no amount of prompt engineering saves the answer (the right facts simply aren't in context). <strong>So debug retrieval first, always.</strong>
               </p>
@@ -1967,9 +1979,9 @@ RAG:         question ─▶ retrieve YOUR docs ─▶ [docs + question] ─▶ 
             <p><strong>Worked example — why hybrid matters:</strong>
             </p>
             <div class="diagram"><pre>Query: "error code E-4012 in the billing API"
-Dense (semantic):  finds general "billing API error handling" docs  ← misses the exact code
-Sparse (BM25):     finds the doc literally containing "E-4012"       ← exact match
-RRF fusion:        puts the E-4012 doc at the top AND keeps semantic context → best of both</pre></div>
+Dense (semantic):  finds general "billing API error handling" docs  <span class="d-a">←</span> misses the exact code
+Sparse (BM25):     finds the doc literally containing "E-4012"       <span class="d-a">←</span> exact match
+RRF fusion:        puts the E-4012 doc at the top AND keeps semantic context <span class="d-a">→</span> best of both</pre></div>
             <h3>5. <abbr title="a cross-encoder rescoring the top-k candidates and keeping only the best few">Reranking</abbr> — <em>cheap, huge quality win</em>
             </h3>
             <p>First-stage retrieval optimizes for speed/recall (get ~50 candidates). A <strong><abbr title="a model that scores a query and passage together in one pass, more accurate but slower than separate embeddings">cross-encoder</abbr> reranker</strong> then reads each (query, chunk) pair together and scores true relevance — far more accurate than embedding similarity. Retrieve 50 → rerank → keep top 3–5.</p>
@@ -2029,7 +2041,7 @@ RRF fusion:        puts the E-4012 doc at the top AND keeps semantic context →
             </h4>
             <p>Dense cosine similarities (~0–1) and BM25 scores (unbounded) live on different scales — you <strong>can't just add them</strong>. RRF sidesteps this by using only each document's <strong>rank</strong> in each list. A document's fused score is the sum, over every list it appears in, of <code>1 / (k + rank)</code>:</p>
             <div class="diagram"><pre>                    1
-RRF(d) =  Σ      ───────────
+RRF(d) =  Σ      <span class="d-l">───────────</span>
         lists L   k + rank_L(d)</pre></div>
             <ul>
               <li><code>rank_L(d)</code> = position of <code>d</code> in list <code>L</code> (0-based here; some libs use 1-based — be consistent).</li>
@@ -2042,11 +2054,11 @@ RRF(d) =  Σ      ───────────
 Dense list:  [docA, docB, docC]     (docA rank0, docB rank1, docC rank2)
 Sparse list: [docC, docD, docA]     (docC rank0, docD rank1, docA rank2)
 
-docA = 1/(60+0) + 1/(60+2) = 0.01667 + 0.01613 = 0.03280   ← in BOTH lists, one high → wins
-docC = 1/(60+2) + 1/(60+0) = 0.01613 + 0.01667 = 0.03280   ← also in both → ties at top
-docB = 1/(60+1)                     = 0.01639              ← dense only
-docD = 1/(60+1)                     = 0.01639              ← sparse only
-Fused: [docA, docC, docB, docD]   → the doc both methods liked rises; singletons sink.</pre></div>
+docA = 1/(60+0) + 1/(60+2) = 0.01667 + 0.01613 = 0.03280   <span class="d-a">←</span> in BOTH lists, one high <span class="d-a">→</span> wins
+docC = 1/(60+2) + 1/(60+0) = 0.01613 + 0.01667 = 0.03280   <span class="d-a">←</span> also in both <span class="d-a">→</span> ties at top
+docB = 1/(60+1)                     = 0.01639              <span class="d-a">←</span> dense only
+docD = 1/(60+1)                     = 0.01639              <span class="d-a">←</span> sparse only
+Fused: [docA, docC, docB, docD]   <span class="d-a">→</span> the doc both methods liked rises; singletons sink.</pre></div>
             <div class="note">
               <p><strong>Why RRF and not "normalize then add"?</strong> Score normalization (min-max/z-score) is brittle — one outlier score warps the whole scale, and BM25 has no fixed max. RRF needs <strong>no calibration</strong>, handles <strong>any number of retrievers</strong>, and is the robust default for <abbr title="fusing keyword (BM25) and dense vector results, usually with reciprocal rank fusion">hybrid search</abbr>. The reranker (stage 5) still runs <em>after</em> fusion for true relevance.</p>
             </div>
@@ -2055,7 +2067,7 @@ Fused: [docA, docC, docB, docD]   → the doc both methods liked rises; singleto
             <p>Top-k by pure similarity often returns <strong>five chunks that say the same thing</strong> — wasted context, and the <em>one</em> complementary fact you needed gets pushed out. MMR re-selects greedily, at each step picking the candidate that is <strong>relevant to the query but dissimilar to what's already chosen</strong>:</p>
             <div class="diagram"><pre>MMR = argmax  [ λ · sim(d, query)  −  (1 − λ) · max  sim(d, d_selected) ]
       d ∈ R\S                                     d_selected ∈ S
-        └ relevance to query ┘          └ redundancy vs already-picked ┘</pre></div>
+        <span class="d-l">└</span> relevance to query <span class="d-l">┘</span>          <span class="d-l">└</span> redundancy vs already-picked <span class="d-l">┘</span></pre></div>
             <ul>
               <li><code>λ = 1</code> → pure relevance (ignores diversity, = plain top-k). <code>λ = 0</code> → pure diversity (ignores the query — don't). <strong>Typical <code>λ ≈ 0.5–0.7</code>.</strong>
               </li>
@@ -2078,8 +2090,8 @@ Fused: [docA, docC, docB, docD]   → the doc both methods liked rises; singleto
             <p><strong>Worked intuition:</strong>
             </p>
             <div class="diagram"><pre>5 retrieved chunks, 3 are near-duplicates of the refund policy:
-Plain top-k (λ=1):  [refund-v1, refund-v2, refund-v3, shipping, returns]  ← 3 redundant
-MMR (λ=0.7):        [refund-v1, shipping, returns, warranty, exchange]    ← broader coverage</pre></div>
+Plain top-k (λ=1):  [refund-v1, refund-v2, refund-v3, shipping, returns]  <span class="d-a">←</span> 3 redundant
+MMR (λ=0.7):        [refund-v1, shipping, returns, warranty, exchange]    <span class="d-a">←</span> broader coverage</pre></div>
             <div class="note">
               <p><strong>When to reach for MMR:</strong> chunky corpora with lots of duplicate/boilerplate text, "compare/contrast" or multi-aspect questions, or any time you see the model getting the same fact three times and still missing a second fact. Most vector stores expose it as <code>search_type="mmr"</code>. <strong>RRF first (fuse), rerank (true relevance), then MMR (diversify the final few)</strong> — they stack, they don't compete.</p>
             </div>
@@ -2344,10 +2356,10 @@ MMR (λ=0.7):        [refund-v1, shipping, returns, warranty, exchange]    ← b
             </div>
             <h3>Self-RAG / CRAG — make retrieval self-correcting</h3>
             <p>Basic RAG retrieves <em>once</em> and hopes. <strong>Corrective RAG</strong> adds a grading step: score whether the retrieved chunks are actually relevant, and act on the result — a small agent loop (ties to <a href="production.html#f40AgenticAIFai">Agentic AI Failure Modes</a>).</p>
-            <div class="diagram"><pre>retrieve → GRADE docs relevant?
-   ├─ yes            → generate
-   ├─ partially      → rewrite query / web-search fallback → retrieve again
-   └─ no / low conf  → abstain ("I don't have that") instead of hallucinating</pre></div>
+            <div class="diagram"><pre>retrieve <span class="d-a">→</span> GRADE docs relevant?
+   <span class="d-l">├─</span> yes            <span class="d-a">→</span> generate
+   <span class="d-l">├─</span> partially      <span class="d-a">→</span> rewrite query / web-search fallback <span class="d-a">→</span> retrieve again
+   <span class="d-l">└─</span> no / low conf  <span class="d-a">→</span> abstain ("I don't have that") instead of hallucinating</pre></div>
             <div class="note">
               <p>Worth it when retrieval quality is uneven and a wrong answer is costlier than a slower one. Keep a <strong>step cap</strong> (file 10) so the correction loop can't run forever.</p>
             </div>
@@ -2359,24 +2371,24 @@ MMR (λ=0.7):        [refund-v1, shipping, returns, warranty, exchange]    ← b
           </div>
           <div class="q-a">
             <div class="diagram"><pre>"RAG answers are bad" — diagnose in pipeline order:
-   │
-   ├─ Measure RETRIEVAL first (Recall@k on a labeled set)
-   │     ├─ Right chunk NOT in top-k? → fix retrieval:
-   │     │      ├─ query/doc embedding model mismatch? (the silent killer)
-   │     │      ├─ chunking (size/overlap/structure)?
-   │     │      ├─ add HYBRID (dense+BM25 via RRF) for exact terms
-   │     │      └─ add a RERANKER (retrieve 50 → top 5)
-   │     └─ Right chunk IS retrieved but answer still wrong? → it's generation:
-   │            ├─ grounded prompt + abstention (file 09)
-   │            ├─ rerank/reorder (lost-in-the-middle), trim context
-   │            ├─ require + validate citations
-   │            └─ faithfulness gate; lower temperature
-   │
-   ├─ Latency bad? → vector-DB health / RAM / filters (file 08 Q13)
-   ├─ Cost high?   → trim top-k, rerank, summarize, + SEMANTIC CACHE repeat queries (file 12)
-   ├─ Permissions? → filter retrieval by user access (file 08 Q39/Q40)
-   ├─ Multi-turn?  → condense follow-up into a standalone query before retrieving (stage 6)
-   └─ Untrusted docs? → treat context as data not instructions; defend indirect prompt injection (file 15)</pre></div>
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Measure RETRIEVAL first (Recall@k on a labeled set)
+   <span class="d-l">│</span>     <span class="d-l">├─</span> Right chunk NOT in top-k? <span class="d-a">→</span> fix retrieval:
+   <span class="d-l">│</span>     <span class="d-l">│</span>      <span class="d-l">├─</span> query/doc embedding model mismatch? (the silent killer)
+   <span class="d-l">│</span>     <span class="d-l">│</span>      <span class="d-l">├─</span> chunking (size/overlap/structure)?
+   <span class="d-l">│</span>     <span class="d-l">│</span>      <span class="d-l">├─</span> add HYBRID (dense+BM25 via RRF) for exact terms
+   <span class="d-l">│</span>     <span class="d-l">│</span>      <span class="d-l">└─</span> add a RERANKER (retrieve 50 <span class="d-a">→</span> top 5)
+   <span class="d-l">│</span>     <span class="d-l">└─</span> Right chunk IS retrieved but answer still wrong? <span class="d-a">→</span> it's generation:
+   <span class="d-l">│</span>            <span class="d-l">├─</span> grounded prompt + abstention (file 09)
+   <span class="d-l">│</span>            <span class="d-l">├─</span> rerank/reorder (lost-in-the-middle), trim context
+   <span class="d-l">│</span>            <span class="d-l">├─</span> require + validate citations
+   <span class="d-l">│</span>            <span class="d-l">└─</span> faithfulness gate; lower temperature
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Latency bad? <span class="d-a">→</span> vector-DB health / RAM / filters (file 08 Q13)
+   <span class="d-l">├─</span> Cost high?   <span class="d-a">→</span> trim top-k, rerank, summarize, + SEMANTIC CACHE repeat queries (file 12)
+   <span class="d-l">├─</span> Permissions? <span class="d-a">→</span> filter retrieval by user access (file 08 Q39/Q40)
+   <span class="d-l">├─</span> Multi-turn?  <span class="d-a">→</span> condense follow-up into a standalone query before retrieving (stage 6)
+   <span class="d-l">└─</span> Untrusted docs? <span class="d-a">→</span> treat context as data not instructions; defend indirect prompt injection (file 15)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f41RAGinProduct-22">
@@ -2431,8 +2443,8 @@ MMR (λ=0.7):        [refund-v1, shipping, returns, warranty, exchange]    ← b
             <div class="note">
               <p><strong>One-sentence idea:</strong> <strong>LangChain</strong> gives you composable building blocks (prompts, models, retrievers, parsers) wired together with a pipe operator; <strong>LangGraph</strong> gives you a <strong>stateful, durable graph</strong> for anything that loops, branches, persists, or needs human approval (i.e. agents and multi-step workflows). LangChain is the <em>plumbing</em>; LangGraph is the <em>control flow</em>.</p>
             </div>
-            <div class="diagram"><pre>Single linear call / RAG chain        →  LangChain (LCEL):   prompt | model | parser
-Loops, branches, state, checkpoints,  →  LangGraph:          a graph of nodes with persisted state
+            <div class="diagram"><pre>Single linear call / RAG chain        <span class="d-a">→</span>  LangChain (LCEL):   prompt | model | parser
+Loops, branches, state, checkpoints,  <span class="d-a">→</span>  LangGraph:          a graph of nodes with persisted state
 human-in-the-loop, agents</pre></div>
             <div class="note">
               <p><strong>Honest caveat (read this):</strong> LangChain's API has churned a lot across versions — imports and helpers move between <code>langchain</code>, <code>langchain_core</code>, <code>langchain_community</code>, and provider packages (<code>langchain_openai</code>, <code>langchain_anthropic</code>). <strong>Pin versions</strong> (<a href="../10_MLOps_and_Deployment/production.html#f24ModelVersion">Model Versioning and Reproducibility</a>) and treat the snippets below as idiomatic-but-version-sensitive. The <em>patterns</em> are stable; the exact import paths drift.</p>
@@ -2918,18 +2930,18 @@ builder.<span class="fn">add_conditional_edges</span>(<span class="str">"split"<
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Building an LLM app?
-   │
-   ├─ Simple call / thin RAG / few steps, no loops?
-   │     └─ Raw SDK or a short LCEL chain (prompt | model | parser).  Don't over-engineer.
-   │
-   └─ Loops / branches / agent / needs memory or human approval?
-         └─ LangGraph: define typed State → nodes → (conditional) edges
-               ├─ add a CHECKPOINTER (Sqlite/Postgres) keyed by thread_id → durability + resume
-               ├─ need memory ACROSS chats? → add a STORE (cross-thread long-term memory)
-               ├─ interrupt_before / interrupt()+Command on dangerous nodes → human-in-the-loop
-               ├─ many tools/roles? → split into MULTI-AGENT (supervisor + subgraphs), global step budget
-               ├─ set recursion_limit + validate tool I/O + budgets (file 10 — safety is YOURS)
-               └─ trace with LangSmith/OTel; eval with a regression set (files 08, 14)
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Simple call / thin RAG / few steps, no loops?
+   <span class="d-l">│</span>     <span class="d-l">└─</span> Raw SDK or a short LCEL chain (prompt | model | parser).  Don't over-engineer.
+   <span class="d-l">│</span>
+   <span class="d-l">└─</span> Loops / branches / agent / needs memory or human approval?
+         <span class="d-l">└─</span> LangGraph: define typed State <span class="d-a">→</span> nodes <span class="d-a">→</span> (conditional) edges
+               <span class="d-l">├─</span> add a CHECKPOINTER (Sqlite/Postgres) keyed by thread_id <span class="d-a">→</span> durability + resume
+               <span class="d-l">├─</span> need memory ACROSS chats? <span class="d-a">→</span> add a STORE (cross-thread long-term memory)
+               <span class="d-l">├─</span> interrupt_before / interrupt()+Command on dangerous nodes <span class="d-a">→</span> human-in-the-loop
+               <span class="d-l">├─</span> many tools/roles? <span class="d-a">→</span> split into MULTI-AGENT (supervisor + subgraphs), global step budget
+               <span class="d-l">├─</span> set recursion_limit + validate tool I/O + budgets (file 10 — safety is YOURS)
+               <span class="d-l">└─</span> trace with LangSmith/OTel; eval with a regression set (files 08, 14)
    Pin framework versions; keep prompts/eval portable to avoid lock-in.</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -2982,9 +2994,9 @@ builder.<span class="fn">add_conditional_edges</span>(<span class="str">"split"<
               <p><strong>One-sentence idea:</strong> Evaluating a single <abbr title="large language model">LLM</abbr> call is "is this <em>one</em> output good?" Evaluating an <strong>agent</strong> is "did this <em>sequence of decisions</em> reach the goal — and did it get there for the right reasons?" The same final answer can come from a clean 3-step path or a lucky 20-step flail that deleted a row along the way, and <strong>only looking at the final answer cannot tell them apart.</strong>
               </p>
             </div>
-            <div class="diagram"><pre>LLM eval:    input ────────────────▶ output        →  score ONE thing
-Agent eval:  goal ─▶ step1 ─▶ step2 ─▶ … ─▶ stepN ─▶ answer
-                     └────────── trajectory ──────────┘
+            <div class="diagram"><pre>LLM eval:    input <span class="d-l">────────────────</span><span class="d-a">►</span> output        <span class="d-a">→</span>  score ONE thing
+Agent eval:  goal <span class="d-l">─</span><span class="d-a">►</span> step1 <span class="d-l">─</span><span class="d-a">►</span> step2 <span class="d-l">─</span><span class="d-a">►</span> … <span class="d-l">─</span><span class="d-a">►</span> stepN <span class="d-l">─</span><span class="d-a">►</span> answer
+                     <span class="d-l">└──────────</span> trajectory <span class="d-l">──────────┘</span>
              score the OUTCOME (reached goal?)  AND  the TRAJECTORY (good path?)</pre></div>
             <div class="note">
               <p><strong>The core trap:</strong> a "right answer, wrong path" passes an outcome-only eval but is a time bomb in production — it took 18 steps instead of 3 (cost, <a href="../07_GenAI_and_LLMs/production.html#f21LLMCostandTo">12</a>), called a dangerous tool it didn't need (safety, <a href="production.html#f40AgenticAIFai">10</a> §7), and only got lucky this time. Measure both halves.</p>
@@ -3092,13 +3104,13 @@ Agent eval:  goal ─▶ step1 ─▶ step2 ─▶ … ─▶ stepN ─▶ answe
             <div class="keyterms"><span class="kt">Outcome only</span><span class="kt">Trajectory only</span><span class="kt">Production agents need both</span><span class="kt">cost/latency</span>
             </div>
             <div class="diagram"><pre>                OUTCOME (did it reach the goal?)
-                        ▲
-          right answer  │  right answer
-          BAD path      │  GOOD path        ← what you want
-        ──────────────── ┼ ────────────────▶  TRAJECTORY (was the path good?)
-          wrong answer  │  wrong answer
-          BAD path      │  GOOD path
-                        │  (good decisions, bad luck/tools)</pre></div>
+                        <span class="d-a">▲</span>
+          right answer  <span class="d-l">│</span>  right answer
+          BAD path      <span class="d-l">│</span>  GOOD path        <span class="d-a">←</span> what you want
+        <span class="d-l">────────────────</span> <span class="d-l">┼</span> <span class="d-l">────────────────</span><span class="d-a">►</span>  TRAJECTORY (was the path good?)
+          wrong answer  <span class="d-l">│</span>  wrong answer
+          BAD path      <span class="d-l">│</span>  GOOD path
+                        <span class="d-l">│</span>  (good decisions, bad luck/tools)</pre></div>
             <ul>
               <li><strong>Outcome only</strong> ⇒ you ship lucky-but-broken agents (top-left): correct today, catastrophic when the luck runs out.</li>
               <li><strong>Trajectory only</strong> ⇒ you reward "nice-looking" runs that don't actually solve the task (bottom-right).</li>
@@ -3260,12 +3272,12 @@ Agent eval:  goal ─▶ step1 ─▶ step2 ─▶ … ─▶ stepN ─▶ answe
             <div class="keyterms"><span class="kt">right answer</span><span class="kt">1.0</span><span class="kt">0.40</span><span class="kt">This is why you measure the path</span>
             </div>
             <div class="diagram"><pre>Goal: "What's the weather in Paris, in Fahrenheit?"
-Reference (golden) path:   [get_weather(city=Paris) → convert_c_to_f]      (2 steps)
+Reference (golden) path:   [get_weather(city=Paris) <span class="d-a">→</span> convert_c_to_f]      (2 steps)
 
-Agent A trajectory:        [get_weather(Paris) → convert_c_to_f]           → "59°F"  ✅
-Agent B trajectory:        [search("Paris") → get_weather(Paris) →
-                            search("c to f") → get_weather(Paris) →
-                            convert_c_to_f]                                → "59°F"  ✅</pre></div>
+Agent A trajectory:        [get_weather(Paris) <span class="d-a">→</span> convert_c_to_f]           <span class="d-a">→</span> "59°F"  √
+Agent B trajectory:        [search("Paris") <span class="d-a">→</span> get_weather(Paris) <span class="d-a">→</span>
+                            search("c to f") <span class="d-a">→</span> get_weather(Paris) <span class="d-a">→</span>
+                            convert_c_to_f]                                <span class="d-a">→</span> "59°F"  √</pre></div>
             <p>Both get the <strong>right answer</strong> (outcome = 1.0 each). But:</p>
             <div class="tbl-wrap">
               <table class="t3">
@@ -3413,12 +3425,12 @@ Return JSON: {{"goal":1-5,"tools":1-5,"efficiency":1-5,"safety":1-5,"verdict":"P
           </div>
           <div class="q-a">
             <p>A failing end-to-end agent tells you <em>that</em> it broke, not <em>where</em>. Evaluate the pieces in isolation first (the "debug retrieval before generation" rule from <a href="production.html#f41RAGinProduct">17</a>, generalized):</p>
-            <div class="diagram"><pre>Router / intent      → classification accuracy (right datasource/tool family?)
-Planner              → is the produced plan valid &amp; sufficient?  (trajectory eval on the plan)
-Each tool            → unit tests: correct output for known inputs
-Sub-agent / subgraph → its own task-success set (file 18 subgraphs are independently testable)
-─────────────────────────────────────────────
-End-to-end agent     → outcome + trajectory + cost on the full task set</pre></div>
+            <div class="diagram"><pre>Router / intent      <span class="d-a">→</span> classification accuracy (right datasource/tool family?)
+Planner              <span class="d-a">→</span> is the produced plan valid &amp; sufficient?  (trajectory eval on the plan)
+Each tool            <span class="d-a">→</span> unit tests: correct output for known inputs
+Sub-agent / subgraph <span class="d-a">→</span> its own task-success set (file 18 subgraphs are independently testable)
+<span class="d-l">─────────────────────────────────────────────</span>
+End-to-end agent     <span class="d-a">→</span> outcome + trajectory + cost on the full task set</pre></div>
             <div class="note">
               <p>If the planner is only <span class="mag">70%</span> right, no amount of executor tuning saves you. Isolate, then compose.</p>
             </div>
@@ -3506,21 +3518,21 @@ End-to-end agent     → outcome + trajectory + cost on the full task set</pre><
           </div>
           <div class="q-a">
             <div class="diagram"><pre>"Is my agent good?" — evaluate in layers:
-   │
-   ├─ Define SUCCESS first: programmatic / final-state assertion / unit-test / validated LLM-judge
-   │
-   ├─ OUTCOME: task-success rate on a versioned set  →  run pass^k (k≥5), not once
-   │
-   ├─ TRAJECTORY: vs golden path (tool-selection acc, in-order match, arg accuracy)
-   │              or reference-free LLM-judge with a rubric
-   │     └─ right answer but low trajectory score? → lucky/inefficient/unsafe path → NOT shippable
-   │
-   ├─ COST/LATENCY: steps, tokens, $, p95 latency per task (regress these too)
-   │
-   ├─ ISOLATE if failing: router → planner → each tool → sub-agent, then end-to-end
-   │
-   ├─ OFFLINE gate in CI (mocked tools, deterministic) blocks regressions
-   └─ ONLINE: trace every run; watch escalation/abandon/thumbs + A/B (files 06, 16, 18)</pre></div>
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> Define SUCCESS first: programmatic / final-state assertion / unit-test / validated LLM-judge
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> OUTCOME: task-success rate on a versioned set  <span class="d-a">→</span>  run pass^k (k≥5), not once
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> TRAJECTORY: vs golden path (tool-selection acc, in-order match, arg accuracy)
+   <span class="d-l">│</span>              or reference-free LLM-judge with a rubric
+   <span class="d-l">│</span>     <span class="d-l">└─</span> right answer but low trajectory score? <span class="d-a">→</span> lucky/inefficient/unsafe path <span class="d-a">→</span> NOT shippable
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> COST/LATENCY: steps, tokens, $, p95 latency per task (regress these too)
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> ISOLATE if failing: router <span class="d-a">→</span> planner <span class="d-a">→</span> each tool <span class="d-a">→</span> sub-agent, then end-to-end
+   <span class="d-l">│</span>
+   <span class="d-l">├─</span> OFFLINE gate in CI (mocked tools, deterministic) blocks regressions
+   <span class="d-l">└─</span> ONLINE: trace every run; watch escalation/abandon/thumbs + A/B (files 06, 16, 18)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f43AgentEvaluat-44">
@@ -3569,7 +3581,7 @@ End-to-end agent     → outcome + trajectory + cost on the full task set</pre><
             <div class="note">
               <p><strong>One-sentence idea:</strong> Most <abbr title="retrieval-augmented generation">RAG</abbr>/agent guides give you <em>a</em> recipe. Production reviews ask <em>why that recipe</em> — why 400-token chunks and not 1,000, why <abbr title="hierarchical navigable small world — the graph index most vector stores use for approximate nearest-neighbour search">HNSW</abbr> and not a flat index, why ReAct and not plan-execute. This file makes each choice <strong>explicit, justified, and upgradeable</strong>, so you can pick deliberately instead of cargo-culting a default.</p>
             </div>
-            <div class="diagram"><pre>For every step:   ISSUE you'll face  →  OPTIONS  →  WHY the default  →  UPGRADE WHEN…
+            <div class="diagram"><pre>For every step:   ISSUE you'll face  <span class="d-a">→</span>  OPTIONS  <span class="d-a">→</span>  WHY the default  <span class="d-a">→</span>  UPGRADE WHEN…
                   (the symptom)        (the menu)   (the trade-off)     (the better way)</pre></div>
             <div class="note">
               <p><strong>Golden rule of sequencing:</strong> <strong>measure, then upgrade.</strong> Every step below has a cheap default and a fancier option. Start at the default, instrument it (<a href="production.html#f43AgentEvaluat">Agent Evaluation</a>, <a href="production.html#f41RAGinProduct">17</a> eval), and only climb the upgrade ladder where your numbers prove a specific gap. Complexity you can't measure the benefit of is just risk.</p>
@@ -3723,10 +3735,10 @@ End-to-end agent     → outcome + trajectory + cost on the full task set</pre><
             <p><strong>The better way (upgrade ladder), pick by symptom:</strong>
             </p>
             <div class="diagram"><pre>Recursive + overlap (default)
-   ├─ chunks ambiguous in isolation?      → contextual/late chunking (prepend doc summary)
-   ├─ answer needs more context than the matched chunk? → PARENT-DOCUMENT (retrieve small, feed big)
-   ├─ structured source (md/code/tables)? → structure-aware splitting
-   └─ recursive still cuts ideas apart?   → semantic chunking</pre></div>
+   <span class="d-l">├─</span> chunks ambiguous in isolation?      <span class="d-a">→</span> contextual/late chunking (prepend doc summary)
+   <span class="d-l">├─</span> answer needs more context than the matched chunk? <span class="d-a">→</span> PARENT-DOCUMENT (retrieve small, feed big)
+   <span class="d-l">├─</span> structured source (md/code/tables)? <span class="d-a">→</span> structure-aware splitting
+   <span class="d-l">└─</span> recursive still cuts ideas apart?   <span class="d-a">→</span> semantic chunking</pre></div>
             <div class="note">
               <p><strong>Tune size against your data, not folklore.</strong> Start ~200–500 tokens, <span class="mag">10–20%</span> overlap, then let <strong><abbr title="the share of answerable questions whose supporting passage appears in the top k results">Recall@k</abbr></strong> (<a href="production.html#f41RAGinProduct">17</a>) pick the size — there is no universal "best" number, only the best for <em>your</em> docs and queries.</p>
             </div>
@@ -3836,14 +3848,14 @@ Hybrid+RRF:   E-4012 doc at top AND the semantic context    ✓ best of both</co
             <p>Dense and sparse fail on <strong>different</strong> queries, so fusing them is close to free insurance. Merge with <strong><abbr title="reciprocal rank fusion — merges two ranked lists by summing 1/(k+rank), needing no score calibration">RRF</abbr></strong> (ranks only, no score calibration — <a href="production.html#f41RAGinProduct">17</a> stage 5b).</p>
             <p><strong>The retrieval upgrade ladder (this is the heart of "a better way"):</strong>
             </p>
-            <div class="diagram"><pre>1. Dense top-k                 ← naive baseline (semantic only)
-2. + BM25, fused with RRF      ← HYBRID: the real default. Catches exact terms. Do this first.
-3. + Cross-encoder RERANK      ← biggest quality jump per dollar: retrieve ~50 → rerank → top 3–5
-4. + MMR diversity             ← if results are near-duplicates (redundant context) — stage 5b
-5. + Query transforms          ← vague/short/conversational queries: rewrite / multi-query / HyDE / routing
-6. + Parent-doc / contextual   ← when the matched chunk is too small or ambiguous alone
-7. + Self-RAG / CRAG grading   ← uneven retrieval: grade docs, re-retrieve or abstain (small agent loop)
-8. + GraphRAG / agentic RAG    ← multi-hop questions spanning many docs / requiring several retrieve-reason steps</pre></div>
+            <div class="diagram"><pre>1. Dense top-k                 <span class="d-a">←</span> naive baseline (semantic only)
+2. + BM25, fused with RRF      <span class="d-a">←</span> HYBRID: the real default. Catches exact terms. Do this first.
+3. + Cross-encoder RERANK      <span class="d-a">←</span> biggest quality jump per dollar: retrieve ~50 <span class="d-a">→</span> rerank <span class="d-a">→</span> top 3–5
+4. + MMR diversity             <span class="d-a">←</span> if results are near-duplicates (redundant context) — stage 5b
+5. + Query transforms          <span class="d-a">←</span> vague/short/conversational queries: rewrite / multi-query / HyDE / routing
+6. + Parent-doc / contextual   <span class="d-a">←</span> when the matched chunk is too small or ambiguous alone
+7. + Self-RAG / CRAG grading   <span class="d-a">←</span> uneven retrieval: grade docs, re-retrieve or abstain (small agent loop)
+8. + GraphRAG / agentic RAG    <span class="d-a">←</span> multi-hop questions spanning many docs / requiring several retrieve-reason steps</pre></div>
             <div class="note">
               <p><strong>Order matters and is deliberate:</strong> each rung costs more (latency, tokens, an extra <abbr title="large language model">LLM</abbr> call, or ops complexity). <strong>Stop climbing the moment <abbr title="the share of answerable questions whose supporting passage appears in the top k results">Recall@k</abbr> and <abbr title="whether an answer is actually supported by the context it was given">faithfulness</abbr> are good enough.</strong> Most production <abbr title="retrieval-augmented generation">RAG</abbr> is solved at rung 3 (<strong>hybrid + rerank + grounded prompt</strong>); rungs 5–8 are for measured, specific gaps — not defaults. The single highest-ROI move for a "dense-only" system is usually <strong>add a reranker</strong> (rung 3), then <strong>add BM25</strong> (rung 2).</p>
             </div>
@@ -4028,20 +4040,20 @@ Hybrid+RRF:   E-4012 doc at top AND the semantic context    ✓ best of both</co
             <h3>Decision Flow (defend any choice in one pass)</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f44RAGandAgentD-58"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>RAG:  chunking → embedding → index → retrieval → generation
-  ├─ "why this chunk strategy?"  → recursive+overlap default; upgrade by symptom (A1 ladder)
-  ├─ "why same embed model?"     → vector spaces aren't comparable across models; reranker &gt; bigger embedder (A2)
-  ├─ "why HNSW?"                  → best recall@latency if it fits RAM; IVF+PQ when it doesn't (A3)
-  ├─ "better retrieval?"         → climb the ladder: hybrid+RRF → rerank → MMR → query-transform → … STOP when Recall@k is enough (A4)
-  └─ "why not a smarter model?"  → generation failures are grounding, not capability — fix the prompt/gate (A5)
+            <div class="diagram"><pre>RAG:  chunking <span class="d-a">→</span> embedding <span class="d-a">→</span> index <span class="d-a">→</span> retrieval <span class="d-a">→</span> generation
+  <span class="d-l">├─</span> "why this chunk strategy?"  <span class="d-a">→</span> recursive+overlap default; upgrade by symptom (A1 ladder)
+  <span class="d-l">├─</span> "why same embed model?"     <span class="d-a">→</span> vector spaces aren't comparable across models; reranker &gt; bigger embedder (A2)
+  <span class="d-l">├─</span> "why HNSW?"                  <span class="d-a">→</span> best recall@latency if it fits RAM; IVF+PQ when it doesn't (A3)
+  <span class="d-l">├─</span> "better retrieval?"         <span class="d-a">→</span> climb the ladder: hybrid+RRF <span class="d-a">→</span> rerank <span class="d-a">→</span> MMR <span class="d-a">→</span> query-transform <span class="d-a">→</span> … STOP when Recall@k is enough (A4)
+  <span class="d-l">└─</span> "why not a smarter model?"  <span class="d-a">→</span> generation failures are grounding, not capability — fix the prompt/gate (A5)
 
-AGENT:  need-it? → plan style → tools → memory → topology → safety
-  ├─ "do I need an agent?"       → fixed steps → workflow; loop only if control flow is truly dynamic (B1)
-  ├─ "ReAct vs plan-execute?"    → ReAct default; plan-execute when it drifts/loops; bounded reflexion for hard tasks (B2)
-  ├─ "tool design?"              → few, strict-schema, output-validated, untrusted, structured errors (B3)
-  ├─ "memory?"                   → summarize + external store + restate goal; short vs long-term (B4)
-  ├─ "multi-agent?"              → one guarded agent first; supervisor+subgraphs only when measured (B5)
-  └─ "safety?"                   → step cap + budgets + least-privilege + HITL + checkpoints, from day one (B6)</pre></div>
+AGENT:  need-it? <span class="d-a">→</span> plan style <span class="d-a">→</span> tools <span class="d-a">→</span> memory <span class="d-a">→</span> topology <span class="d-a">→</span> safety
+  <span class="d-l">├─</span> "do I need an agent?"       <span class="d-a">→</span> fixed steps <span class="d-a">→</span> workflow; loop only if control flow is truly dynamic (B1)
+  <span class="d-l">├─</span> "ReAct vs plan-execute?"    <span class="d-a">→</span> ReAct default; plan-execute when it drifts/loops; bounded reflexion for hard tasks (B2)
+  <span class="d-l">├─</span> "tool design?"              <span class="d-a">→</span> few, strict-schema, output-validated, untrusted, structured errors (B3)
+  <span class="d-l">├─</span> "memory?"                   <span class="d-a">→</span> summarize + external store + restate goal; short vs long-term (B4)
+  <span class="d-l">├─</span> "multi-agent?"              <span class="d-a">→</span> one guarded agent first; supervisor+subgraphs only when measured (B5)
+  <span class="d-l">└─</span> "safety?"                   <span class="d-a">→</span> step cap + budgets + least-privilege + HITL + checkpoints, from day one (B6)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f44RAGandAgentD-59">
@@ -4098,14 +4110,14 @@ AGENT:  need-it? → plan style → tools → memory → topology → safety
             <p>One <code>except Exception: return "error"</code> cannot express any of that.</p>
             <div class="diagram"><pre>                 THE UNIVERSAL RECOVERY LADDER (per step)
 
-   1. RETRY        transient fault?  → same action again (backoff, max N)
-   2. RETRY DIFFERENTLY               → new query / new args / other tool
-   3. FALL BACK    → cheaper/simpler alternative (keyword search, smaller model, cache)
-   4. DEGRADE      → partial answer, clearly labeled ("based on limited results…")
-   5. ABSTAIN      → "I don't know / can't do this" — the honest floor
-   6. ESCALATE     → human-in-the-loop / support ticket
-   ── never ──
-   ✗ SILENT WRONG ANSWER  (the only truly unacceptable outcome)</pre></div>
+   1. RETRY        transient fault?  <span class="d-a">→</span> same action again (backoff, max N)
+   2. RETRY DIFFERENTLY               <span class="d-a">→</span> new query / new args / other tool
+   3. FALL BACK    <span class="d-a">→</span> cheaper/simpler alternative (keyword search, smaller model, cache)
+   4. DEGRADE      <span class="d-a">→</span> partial answer, clearly labeled ("based on limited results…")
+   5. ABSTAIN      <span class="d-a">→</span> "I don't know / can't do this" — the honest floor
+   6. ESCALATE     <span class="d-a">→</span> human-in-the-loop / support ticket
+   <span class="d-l">──</span> never <span class="d-l">──</span>
+   × SILENT WRONG ANSWER  (the only truly unacceptable outcome)</pre></div>
             <p>Every section below picks the right rungs of this ladder for one step.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -4419,9 +4431,9 @@ AGENT:  need-it? → plan style → tools → memory → topology → safety
         <div class="parthead" id="f45RAGandAgentS-p2"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>B — The Agent Loop, Step by Step</span><i></i>
         </div>
         <div class="q-a" style="margin:0 0 12px">
-          <div class="diagram"><pre> B1 goal in → B2 plan → ┌ B3 pick tool → B4 build args → B5 execute → B6 observe ┐
-                        └───────────── B7 remember → B8 continue-or-stop? ───────┘
-                                                   → B9 final answer</pre></div>
+          <div class="diagram"><pre> B1 goal in <span class="d-a">→</span> B2 plan <span class="d-a">→</span> <span class="d-l">┌</span> B3 pick tool <span class="d-a">→</span> B4 build args <span class="d-a">→</span> B5 execute <span class="d-a">→</span> B6 observe <span class="d-l">┐</span>
+                        <span class="d-l">└─────────────</span> B7 remember <span class="d-a">→</span> B8 continue-or-stop? <span class="d-l">───────┘</span>
+                                                   <span class="d-a">→</span> B9 final answer</pre></div>
           <p>An agent repeats B3–B8 many times, so <strong>per-step failures compound</strong>: a 95%-reliable step run 10 times is a 60%-reliable task (0.95¹⁰ ≈ 0.60). Per-step recovery is what keeps the product from collapsing.</p>
         </div>
         <article class="q" id="f45RAGandAgentS-72">
@@ -4799,13 +4811,13 @@ AGENT:  need-it? → plan style → tools → memory → topology → safety
             <div class="note">
               <p><strong>One-sentence idea:</strong> Vanilla <abbr title="retrieval-augmented generation">RAG</abbr> always does the same thing — retrieve top-k, generate — whether the query needs it or not, whether one retrieval is enough or not, and whether the retrieved docs are any good or not. <strong>Agentic RAG wraps retrieval in a decision loop</strong>: an <abbr title="large language model">LLM</abbr> decides <em>whether</em> to retrieve, <em>what</em> to retrieve, <em>how many times</em>, and <em>whether to trust what it got back</em> — turning a fixed pipeline into a controllable, self-correcting process.</p>
             </div>
-            <div class="diagram"><pre>Vanilla RAG:     query ──▶ retrieve(top-k) ──▶ generate ──▶ answer
+            <div class="diagram"><pre>Vanilla RAG:     query <span class="d-l">──</span><span class="d-a">►</span> retrieve(top-k) <span class="d-l">──</span><span class="d-a">►</span> generate <span class="d-l">──</span><span class="d-a">►</span> answer
                             (always exactly once, no judgment)
 
-Agentic RAG:     query ──▶ [LLM decides] ──┬─▶ skip retrieval (trivial query) ──▶ answer
-                                            ├─▶ retrieve ──▶ [LLM grades result] ──┬─▶ good enough ──▶ generate ──▶ answer
-                                            │                                       └─▶ not good enough ──▶ rewrite / re-retrieve / switch source (loop, capped)
-                                            └─▶ decompose into sub-questions ──▶ retrieve per sub-question ──▶ synthesize ──▶ answer</pre></div>
+Agentic RAG:     query <span class="d-l">──</span><span class="d-a">►</span> [LLM decides] <span class="d-l">──┬─</span><span class="d-a">►</span> skip retrieval (trivial query) <span class="d-l">──</span><span class="d-a">►</span> answer
+                                            <span class="d-l">├─</span><span class="d-a">►</span> retrieve <span class="d-l">──</span><span class="d-a">►</span> [LLM grades result] <span class="d-l">──┬─</span><span class="d-a">►</span> good enough <span class="d-l">──</span><span class="d-a">►</span> generate <span class="d-l">──</span><span class="d-a">►</span> answer
+                                            <span class="d-l">│</span>                                       <span class="d-l">└─</span><span class="d-a">►</span> not good enough <span class="d-l">──</span><span class="d-a">►</span> rewrite / re-retrieve / switch source (loop, capped)
+                                            <span class="d-l">└─</span><span class="d-a">►</span> decompose into sub-questions <span class="d-l">──</span><span class="d-a">►</span> retrieve per sub-question <span class="d-l">──</span><span class="d-a">►</span> synthesize <span class="d-l">──</span><span class="d-a">►</span> answer</pre></div>
             <div class="note">
               <p><strong>Why this is a distinct file, not just a row in 17's table:</strong> vanilla RAG is a <em>pipeline</em> — you can reason about its cost and latency as one straight line. Agentic RAG is a <em>loop</em> — it inherits every agent failure mode in file 10 (runaway loops, cost explosion, compounding errors) applied specifically to retrieval, and it needs its own evaluation axis (did it decide correctly, not just did it answer correctly). That's enough surface area to deserve its own treatment.</p>
             </div>
@@ -4974,10 +4986,10 @@ Agentic RAG:     query ──▶ [LLM decides] ──┬─▶ skip retrieval (t
             <h3>1. Retrieval routing — <em>"does this even need retrieval, and from where?"</em>
             </h3>
             <p><strong>Problem it solves:</strong> one corpus/index rarely fits every question; a greeting or an out-of-scope question shouldn't trigger a search at all.</p>
-            <div class="diagram"><pre>query ──▶ [classifier LLM/model] ──┬─▶ "trivial/no-retrieval-needed" ──▶ answer directly
-                                     ├─▶ "docs index"     ──▶ retrieve from docs
-                                     ├─▶ "tickets index"  ──▶ retrieve from tickets
-                                     └─▶ "code index"     ──▶ retrieve from code</pre></div>
+            <div class="diagram"><pre>query <span class="d-l">──</span><span class="d-a">►</span> [classifier LLM/model] <span class="d-l">──┬─</span><span class="d-a">►</span> "trivial/no-retrieval-needed" <span class="d-l">──</span><span class="d-a">►</span> answer directly
+                                     <span class="d-l">├─</span><span class="d-a">►</span> "docs index"     <span class="d-l">──</span><span class="d-a">►</span> retrieve from docs
+                                     <span class="d-l">├─</span><span class="d-a">►</span> "tickets index"  <span class="d-l">──</span><span class="d-a">►</span> retrieve from tickets
+                                     <span class="d-l">└─</span><span class="d-a">►</span> "code index"     <span class="d-l">──</span><span class="d-a">►</span> retrieve from code</pre></div>
             <p><strong>Worked example:</strong> <code>"hi there"</code> → route: no retrieval → direct answer. <code>"stack trace: NullPointerException at line 42"</code> → route: code index. <code>"what's your refund policy?"</code> → route: docs index.</p>
             <p><strong>Cost/latency:</strong> one cheap classification call added up front — usually a small/fast model, not the main generator. <strong>Cheapest agentic-RAG pattern to add.</strong>
             </p>
@@ -4985,18 +4997,18 @@ Agentic RAG:     query ──▶ [LLM decides] ──┬─▶ skip retrieval (t
             <h3>2. <abbr title="splitting a multi-part question into sub-questions retrieved separately">Query decomposition</abbr> (multi-hop) — <em>"one retrieval can't answer this"</em>
             </h3>
             <p><strong>Problem it solves:</strong> questions like <em>"Was the vendor who supplied our Q3 servers also involved in last year's security incident?"</em> need facts from <strong>two separate lookups</strong>, then a join — no single top-k retrieval surfaces both.</p>
-            <div class="diagram"><pre>query ──▶ [LLM decomposes] ──▶ sub-Q1: "which vendor supplied Q3 servers?"     ──▶ retrieve ──▶ evidence1
-                            └─▶ sub-Q2: "was {vendor from Q1} in last year's incident report?" ──▶ retrieve ──▶ evidence2
-                                                                                                        │
-                                                                                     [LLM synthesizes evidence1 + evidence2] ──▶ answer</pre></div>
+            <div class="diagram"><pre>query <span class="d-l">──</span><span class="d-a">►</span> [LLM decomposes] <span class="d-l">──</span><span class="d-a">►</span> sub-Q1: "which vendor supplied Q3 servers?"     <span class="d-l">──</span><span class="d-a">►</span> retrieve <span class="d-l">──</span><span class="d-a">►</span> evidence1
+                            <span class="d-l">└─</span><span class="d-a">►</span> sub-Q2: "was {vendor from Q1} in last year's incident report?" <span class="d-l">──</span><span class="d-a">►</span> retrieve <span class="d-l">──</span><span class="d-a">►</span> evidence2
+                                                                                                        <span class="d-l">│</span>
+                                                                                     [LLM synthesizes evidence1 + evidence2] <span class="d-l">──</span><span class="d-a">►</span> answer</pre></div>
             <p><strong>Failure mode unique to this pattern:</strong> sub-Q2 depends on sub-Q1's <em>answer</em>, not just its retrieval — if sub-Q1 gets the vendor name wrong, sub-Q2 retrieves for the wrong entity and the whole chain is confidently wrong (the RAG-flavored version of error compounding, file 10 §2). <strong>Fix:</strong> ground/validate each hop's extracted fact before using it to build the next query.</p>
             <p><strong>When to use it:</strong> questions that require chaining facts across documents, comparison/contrast questions, "who/what caused/led-to" questions.</p>
             <h3>3. Corrective RAG (<abbr title="corrective retrieval-augmented generation">CRAG</abbr>) — <em>grade what you retrieved, act on the grade</em>
             </h3>
             <p><strong>Problem it solves:</strong> vanilla RAG retrieves once and hopes; sometimes the top-k is genuinely irrelevant (sparse corpus, rare query, stale index) and generating from it produces a confident, ungrounded answer.</p>
-            <div class="diagram"><pre>retrieve ──▶ [grader: relevant? partially? irrelevant?] ──┬─▶ relevant     ──▶ generate
-                                                            ├─▶ partial      ──▶ rewrite query / re-retrieve (capped) ──▶ regrade
-                                                            └─▶ irrelevant   ──▶ fallback source (e.g. web search) OR abstain</pre></div>
+            <div class="diagram"><pre>retrieve <span class="d-l">──</span><span class="d-a">►</span> [grader: relevant? partially? irrelevant?] <span class="d-l">──┬─</span><span class="d-a">►</span> relevant     <span class="d-l">──</span><span class="d-a">►</span> generate
+                                                            <span class="d-l">├─</span><span class="d-a">►</span> partial      <span class="d-l">──</span><span class="d-a">►</span> rewrite query / re-retrieve (capped) <span class="d-l">──</span><span class="d-a">►</span> regrade
+                                                            <span class="d-l">└─</span><span class="d-a">►</span> irrelevant   <span class="d-l">──</span><span class="d-a">►</span> fallback source (e.g. web search) OR abstain</pre></div>
             <p><strong>Mechanism:</strong> CRAG is a <strong>wrapper</strong> — a separate grading step (often a small/cheap model or even a similarity threshold) sits <em>between</em> retrieval and generation. The generator itself is unchanged; the grading step is the new moving part, and its accuracy becomes a hidden dependency of the whole system.</p>
             <p><strong>When to use it:</strong> retrieval quality is uneven (some queries nail it, some don't) and a wrong answer is more costly than a slower one.</p>
             <h3>4. Self-RAG — <em>the generator grades itself, inline</em>
@@ -5049,19 +5061,19 @@ Agentic RAG:     query ──▶ [LLM decides] ──┬─▶ skip retrieval (t
             <h3>5. Iterative / recursive retrieval — <em>retrieve, reason, retrieve again</em>
             </h3>
             <p><strong>Problem it solves:</strong> some questions need progressively refined evidence — you don't know what the <em>second</em> query should be until you've seen the <em>first</em> result (unlike decomposition, where sub-questions are known up front).</p>
-            <div class="diagram"><pre>Step 1: retrieve("symptoms of X")              → get partial answer, note what's still missing
-Step 2: retrieve("treatment for X in children") → refined based on step 1's gap
-Step 3: retrieve("drug interactions with {treatment from step 2}") → refined again
-   ... (capped at N hops) → synthesize across all retrieved evidence</pre></div>
+            <div class="diagram"><pre>Step 1: retrieve("symptoms of X")              <span class="d-a">→</span> get partial answer, note what's still missing
+Step 2: retrieve("treatment for X in children") <span class="d-a">→</span> refined based on step 1's gap
+Step 3: retrieve("drug interactions with {treatment from step 2}") <span class="d-a">→</span> refined again
+   ... (capped at N hops) <span class="d-a">→</span> synthesize across all retrieved evidence</pre></div>
             <p><strong>Distinction from decomposition (#2):</strong> decomposition plans all sub-questions <em>up front</em>; iterative retrieval discovers each next query <em>from the previous result</em>, so it can't be parallelized and needs a hard hop cap even more than decomposition does.</p>
             <p><strong>When to use it:</strong> open-ended research-style questions where the information need only becomes clear as evidence accumulates.</p>
             <h3>6. Tool-augmented / multi-source retrieval agent — <em>the retriever is just one tool</em>
             </h3>
             <p><strong>Problem it solves:</strong> the answer might live in a <abbr title="a database that indexes embeddings for nearest-neighbour search">vector store</abbr>, a SQL database, a live API, or the open web — and which one depends on the query. Instead of a router picking one index (#1), the agent has all of them as <strong>tools</strong> and reasons ReAct-style about which to call, possibly combining several.</p>
             <div class="diagram"><pre>"What's our current stock of SKU 4471, and does the spec sheet mention a recall?"
-  → tool call 1: sql_query(sku=4471)              → "current stock: 340 units"
-  → tool call 2: vector_search("SKU 4471 spec sheet recall")  → recall clause found
-  → synthesize both tool results → answer</pre></div>
+  <span class="d-a">→</span> tool call 1: sql_query(sku=4471)              <span class="d-a">→</span> "current stock: 340 units"
+  <span class="d-a">→</span> tool call 2: vector_search("SKU 4471 spec sheet recall")  <span class="d-a">→</span> recall clause found
+  <span class="d-a">→</span> synthesize both tool results <span class="d-a">→</span> answer</pre></div>
             <p><strong>This is where agentic RAG merges into general tool-use agents</strong> (file 10, file 20's <abbr title="Model Context Protocol">MCP</abbr>) — the retriever loses any special status and becomes subject to the same tool-design discipline: few tools, strict schemas, validated/untrusted output (file 21 B3).</p>
             <div class="note">
               <p><strong>Disambiguate overlapping tools before adding them.</strong> The moment two tools <em>could</em> both plausibly answer a query (e.g. <code>vector_search</code> and <code>sql_query</code> both "know about" inventory), tool-selection accuracy drops — the model has no reliable signal for which to pick. Give each tool a <strong>non-overlapping</strong> description and trigger condition (<code>vector_search</code>: unstructured docs/policies; <code>sql_query</code>: structured, numeric, exact-lookup facts); if two tools genuinely overlap, merge them into one parametric tool rather than leaving the model to guess.</p>
@@ -5071,11 +5083,11 @@ Step 3: retrieve("drug interactions with {treatment from step 2}") → refined a
             <h3>7. Multi-agent RAG — <em>specialist retrieval agents behind a <abbr title="an agent that routes work to other agents and owns the overall plan">supervisor</abbr></em>
             </h3>
             <p><strong>Problem it solves:</strong> when the sources are numerous/heterogeneous enough that one agent juggling all of them (routing + querying + grading each) gets overloaded, split into specialist sub-agents, each scoped to one source, coordinated by a supervisor.</p>
-            <div class="diagram"><pre>supervisor ──┬─▶ policy-docs agent   (owns the docs vector store + its own grading)
-             ├─▶ ticket-history agent (owns the support-tickets index)
-             └─▶ code agent           (owns the codebase index)
-                          │
-             supervisor synthesizes all sub-agent answers → final answer</pre></div>
+            <div class="diagram"><pre>supervisor <span class="d-l">──┬─</span><span class="d-a">►</span> policy-docs agent   (owns the docs vector store + its own grading)
+             <span class="d-l">├─</span><span class="d-a">►</span> ticket-history agent (owns the support-tickets index)
+             <span class="d-l">└─</span><span class="d-a">►</span> code agent           (owns the codebase index)
+                          <span class="d-l">│</span>
+             supervisor synthesizes all sub-agent answers <span class="d-a">→</span> final answer</pre></div>
             <p><strong>Same trade-off as file 21 B5:</strong> more agents = more coordination surface (redundant work, conflicting answers, cost multiplication). <strong>Default to a single agent with routing (#1) or tool access (#6) first</strong>; only split into specialist agents when one source's retrieval+grading logic is complex enough to genuinely overload a single agent's context/tool budget.</p>
             <h3>8. GraphRAG — <em>relationships across many documents</em>
             </h3>
@@ -5092,23 +5104,23 @@ Step 3: retrieve("drug interactions with {treatment from step 2}") → refined a
             <h3>Architecture: a production agentic RAG system, assembled</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f46AgenticRAGmd-88"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>                                  ┌──────────────────────────────────────────┐
-query ──▶ [1. ROUTE] ──▶ needs retrieval? ──no──▶ answer directly            │
-              │                                                              │
-             yes                                                             │
-              ▼                                                              │
-      [2. DECOMPOSE?] ──single-hop──▶ [RETRIEVE] ──────────┐                 │
-              │                                             │                │
-          multi-hop                                         ▼                │
-              ▼                                    [3/4. GRADE evidence]     │
-    per sub-question:                                       │                │
-    [RETRIEVE] → evidence_i                        ┌─sufficient──▶ [GENERATE + cite] ──▶ answer
-              │                                    │                                        │
-      [synthesize evidences] ─────────────────────┘                                         │
-              │                                                              │
-                                          insufficient (capped retries, [5])                │
-                                                     ▼                                      │
-                                    rewrite query / switch source (#6) / abstain ───────────┘</pre></div>
+            <div class="diagram"><pre>                                  <span class="d-l">┌──────────────────────────────────────────┐</span>
+query <span class="d-l">──</span><span class="d-a">►</span> [1. ROUTE] <span class="d-l">──</span><span class="d-a">►</span> needs retrieval? <span class="d-l">──</span>no<span class="d-l">──</span><span class="d-a">►</span> answer directly            <span class="d-l">│</span>
+              <span class="d-l">│</span>                                                              <span class="d-l">│</span>
+             yes                                                             <span class="d-l">│</span>
+              <span class="d-a">▼</span>                                                              <span class="d-l">│</span>
+      [2. DECOMPOSE?] <span class="d-l">──</span>single-hop<span class="d-l">──</span><span class="d-a">►</span> [RETRIEVE] <span class="d-l">──────────┐</span>                 <span class="d-l">│</span>
+              <span class="d-l">│</span>                                             <span class="d-l">│</span>                <span class="d-l">│</span>
+          multi-hop                                         <span class="d-a">▼</span>                <span class="d-l">│</span>
+              <span class="d-a">▼</span>                                    [3/4. GRADE evidence]     <span class="d-l">│</span>
+    per sub-question:                                       <span class="d-l">│</span>                <span class="d-l">│</span>
+    [RETRIEVE] <span class="d-a">→</span> evidence_i                        <span class="d-l">┌─</span>sufficient<span class="d-l">──</span><span class="d-a">►</span> [GENERATE + cite] <span class="d-l">──</span><span class="d-a">►</span> answer
+              <span class="d-l">│</span>                                    <span class="d-l">│</span>                                        <span class="d-l">│</span>
+      [synthesize evidences] <span class="d-l">─────────────────────┘</span>                                         <span class="d-l">│</span>
+              <span class="d-l">│</span>                                                              <span class="d-l">│</span>
+                                          insufficient (capped retries, [5])                <span class="d-l">│</span>
+                                                     <span class="d-a">▼</span>                                      <span class="d-l">│</span>
+                                    rewrite query / switch source (#6) / abstain <span class="d-l">───────────┘</span></pre></div>
             <div class="note">
               <p>Every arrow that loops back is bounded by a <strong>hop cap</strong> (file 10 §1) — the single most important guardrail in this whole diagram.</p>
             </div>
@@ -5307,14 +5319,14 @@ query ──▶ [1. ROUTE] ──▶ needs retrieval? ──no──▶ answer d
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Vanilla RAG (file 17) in production, but eval shows a gap. Which agentic pattern fixes it?
-  │
-  ├─ Some queries need no retrieval at all, or need a DIFFERENT index? → ROUTING (#1) — cheapest, add first
-  ├─ Retrieval is fine sometimes, bad other times, and wrong answers are costly? → CRAG (#3) or Self-RAG (#4)
-  ├─ Question needs facts CHAINED across two+ lookups?         → DECOMPOSITION (#2)
-  ├─ The right next query only becomes clear after seeing evidence? → ITERATIVE RETRIEVAL (#5)
-  ├─ Answer might live in a DB/API, not just unstructured docs? → TOOL-AUGMENTED retrieval agent (#6)
-  ├─ Question needs a RELATIONSHIP spanning many docs (X caused Y affecting Z)? → GraphRAG (#8), often + routing
-  └─ One agent juggling all sources is overloaded (context/tool budget)? → MULTI-AGENT RAG (#7) — last resort, most coordination overhead
+  <span class="d-l">│</span>
+  <span class="d-l">├─</span> Some queries need no retrieval at all, or need a DIFFERENT index? <span class="d-a">→</span> ROUTING (#1) — cheapest, add first
+  <span class="d-l">├─</span> Retrieval is fine sometimes, bad other times, and wrong answers are costly? <span class="d-a">→</span> CRAG (#3) or Self-RAG (#4)
+  <span class="d-l">├─</span> Question needs facts CHAINED across two+ lookups?         <span class="d-a">→</span> DECOMPOSITION (#2)
+  <span class="d-l">├─</span> The right next query only becomes clear after seeing evidence? <span class="d-a">→</span> ITERATIVE RETRIEVAL (#5)
+  <span class="d-l">├─</span> Answer might live in a DB/API, not just unstructured docs? <span class="d-a">→</span> TOOL-AUGMENTED retrieval agent (#6)
+  <span class="d-l">├─</span> Question needs a RELATIONSHIP spanning many docs (X caused Y affecting Z)? <span class="d-a">→</span> GraphRAG (#8), often + routing
+  <span class="d-l">└─</span> One agent juggling all sources is overloaded (context/tool budget)? <span class="d-a">→</span> MULTI-AGENT RAG (#7) — last resort, most coordination overhead
 
 At every step: cap hops (file 10), evaluate the DECISION not just the answer (file 19),
 and A/B the agentic version against vanilla RAG before shipping it — prove the loop earns its cost.</pre></div>
@@ -5964,15 +5976,15 @@ and A/B the agentic version against vanilla RAG before shipping it — prove the
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Trace per-hop first (embed / retrieve / rerank / prefill / decode) — never guess-and-optimize, never guess-and-debug.
-  │
-  ├─ Answer is confidently wrong, nothing errored?     → check Layer D's relevance threshold + Layer G's groundedness check — the two silent-failure gates
-  ├─ Retrieval itself slow?                            → check Layer C's RAM fit first (the cliff), then HNSW/IVF+PQ params or sharding
-  ├─ Rerank slow?                                      → bound candidate count first, then distill/quantize the reranker
-  ├─ Generation dominates (usual)?                     → prefix cache the static prompt → cascade cheap/expensive models → quantize/batch the server
-  ├─ Bursty traffic causing p99 spikes?                → continuous batching + autoscale on queue depth, not CPU%
-  ├─ Repeated/near-duplicate queries?                  → semantic cache in front of the whole pipeline — biggest win if traffic repeats at all
-  ├─ Cost, not latency, is the complaint?               → generation tokens usually dominate: trim context (Layer F), cap output length, cascade models
-  └─ System is LOOPING (re-retrieving, grading, deciding)? → that's file 27's diagnostic tree, not this one — an agent is now multiplying this pipeline</pre></div>
+  <span class="d-l">│</span>
+  <span class="d-l">├─</span> Answer is confidently wrong, nothing errored?     <span class="d-a">→</span> check Layer D's relevance threshold + Layer G's groundedness check — the two silent-failure gates
+  <span class="d-l">├─</span> Retrieval itself slow?                            <span class="d-a">→</span> check Layer C's RAM fit first (the cliff), then HNSW/IVF+PQ params or sharding
+  <span class="d-l">├─</span> Rerank slow?                                      <span class="d-a">→</span> bound candidate count first, then distill/quantize the reranker
+  <span class="d-l">├─</span> Generation dominates (usual)?                     <span class="d-a">→</span> prefix cache the static prompt <span class="d-a">→</span> cascade cheap/expensive models <span class="d-a">→</span> quantize/batch the server
+  <span class="d-l">├─</span> Bursty traffic causing p99 spikes?                <span class="d-a">→</span> continuous batching + autoscale on queue depth, not CPU%
+  <span class="d-l">├─</span> Repeated/near-duplicate queries?                  <span class="d-a">→</span> semantic cache in front of the whole pipeline — biggest win if traffic repeats at all
+  <span class="d-l">├─</span> Cost, not latency, is the complaint?               <span class="d-a">→</span> generation tokens usually dominate: trim context (Layer F), cap output length, cascade models
+  <span class="d-l">└─</span> System is LOOPING (re-retrieving, grading, deciding)? <span class="d-a">→</span> that's file 27's diagnostic tree, not this one — an agent is now multiplying this pipeline</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f47ScalingOptim-107">
@@ -6036,9 +6048,9 @@ and A/B the agentic version against vanilla RAG before shipping it — prove the
             <div class="note">
               <p><strong>One-sentence idea:</strong> Every agentic <abbr title="retrieval-augmented generation">RAG</abbr> pattern — routing, decomposition, grading, iterative retrieval — buys accuracy by spending <strong>extra <abbr title="large language model">LLM</abbr> calls and extra passes through file 26's pipeline</strong>, and it introduces a new failure class vanilla RAG doesn't have at all: <strong>the loop itself can fail</strong> — it can spin forever, trust a bad grade, or chase evidence that was never in the corpus.</p>
             </div>
-            <div class="diagram"><pre>Vanilla RAG (file 26):  [ one pass: embed → retrieve → rerank → generate ]                 ≈ 867ms, $X
+            <div class="diagram"><pre>Vanilla RAG (file 26):  [ one pass: embed <span class="d-a">→</span> retrieve <span class="d-a">→</span> rerank <span class="d-a">→</span> generate ]                 ≈ 867ms, $X
 
-Agentic RAG adds:       [ROUTE] → [DECOMPOSE?] → N × [ file-26 pass + GRADE ] → [SYNTHESIZE]
+Agentic RAG adds:       [ROUTE] <span class="d-a">→</span> [DECOMPOSE?] <span class="d-a">→</span> N × [ file-26 pass + GRADE ] <span class="d-a">→</span> [SYNTHESIZE]
                           +150ms    +LLM call        N passes × ≈325ms each      +900ms
                                                                                   ≈ 2,025ms for N=3, ~2.3x vanilla</pre></div>
             <p><strong>The interview framing that ties both halves together:</strong> a vanilla RAG pipeline fails <em>in</em> a step. An agentic RAG loop can also fail <em>as a loop</em> — it can keep looping past the point of any benefit. So every layer below gets the same two questions as file 26 (what breaks, how do you make it fast/cheap), plus a third one unique to this file: <strong>how do you stop the loop from running longer than it should?</strong>
@@ -6262,7 +6274,7 @@ hop 1: retrieve (file 26 pipeline) + grade         ≈ 25ms + 300ms(grader LLM c
 hop 2: retrieve + grade                            ≈ 325ms
 hop 3: retrieve + grade                            ≈ 325ms
 final synthesis (bigger context, longer output)    ≈ 900ms
-─────────────────────────────────────────────────────
+<span class="d-l">─────────────────────────────────────────────────────</span>
 total                                               ≈ 2,025ms   (~2.3x vanilla RAG's ~867ms, file 26)</pre></div>
             <div class="note">
               <p>A 3-hop agentic RAG query costs roughly <strong>2–2.5x</strong> a vanilla query in latency, proportionally more in billed tokens. <strong>Bring both numbers — accuracy delta and cost/latency delta — to any design review that proposes this loop.</strong>
@@ -6320,17 +6332,17 @@ total                                               ≈ 2,025ms   (~2.3x vanilla
             <h3>Decision Flow: "the loop is slow, expensive, or stuck — which layer, and what do I do?"</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f48ScalingOptim-119"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>First: is the underlying per-pass pipeline itself slow? → that's file 26, fix it there first — a loop only multiplies whatever one pass already costs.
-  │
-  ├─ Routing overhead not paying for itself?             → measure % traffic actually skipped/redirected; remove or fix the classifier if near-zero
-  ├─ Wrong-source routing (confidently wrong answers)?    → labeled routing eval set; non-overlapping source descriptions
-  ├─ Decomposition slow?                                  → check if sub-questions are independent and PARALLELIZABLE — sequential-by-mistake is the #1 fixable cause
-  ├─ Decomposition producing compounded wrong answers?    → validate/ground each hop's extracted fact before building the next query
-  ├─ Grading adding too much per-hop cost?                → distill the grader to a small/cheap model; verify it's still calibrated
-  ├─ Loop never terminates / keeps re-retrieving?         → tighten the hop cap; check evidence-gain-per-hop — likely diminishing after hop 2; abstain on cap-hit
-  ├─ Repeated/near-identical retrieval sub-queries across hops? → tool-result cache keyed on (query, source) — file 28
-  ├─ Multi-agent RAG or tool-augmented retrieval slow/wrong? → this is file 28's diagnostic tree, not a RAG-specific fix
-  └─ Can't tell if the loop is worth it at all?           → A/B against vanilla RAG (file 26) on cost+latency AND accuracy — never ship the multiplier on faith</pre></div>
+            <div class="diagram"><pre>First: is the underlying per-pass pipeline itself slow? <span class="d-a">→</span> that's file 26, fix it there first — a loop only multiplies whatever one pass already costs.
+  <span class="d-l">│</span>
+  <span class="d-l">├─</span> Routing overhead not paying for itself?             <span class="d-a">→</span> measure % traffic actually skipped/redirected; remove or fix the classifier if near-zero
+  <span class="d-l">├─</span> Wrong-source routing (confidently wrong answers)?    <span class="d-a">→</span> labeled routing eval set; non-overlapping source descriptions
+  <span class="d-l">├─</span> Decomposition slow?                                  <span class="d-a">→</span> check if sub-questions are independent and PARALLELIZABLE — sequential-by-mistake is the #1 fixable cause
+  <span class="d-l">├─</span> Decomposition producing compounded wrong answers?    <span class="d-a">→</span> validate/ground each hop's extracted fact before building the next query
+  <span class="d-l">├─</span> Grading adding too much per-hop cost?                <span class="d-a">→</span> distill the grader to a small/cheap model; verify it's still calibrated
+  <span class="d-l">├─</span> Loop never terminates / keeps re-retrieving?         <span class="d-a">→</span> tighten the hop cap; check evidence-gain-per-hop — likely diminishing after hop 2; abstain on cap-hit
+  <span class="d-l">├─</span> Repeated/near-identical retrieval sub-queries across hops? <span class="d-a">→</span> tool-result cache keyed on (query, source) — file 28
+  <span class="d-l">├─</span> Multi-agent RAG or tool-augmented retrieval slow/wrong? <span class="d-a">→</span> this is file 28's diagnostic tree, not a RAG-specific fix
+  <span class="d-l">└─</span> Can't tell if the loop is worth it at all?           <span class="d-a">→</span> A/B against vanilla RAG (file 26) on cost+latency AND accuracy — never ship the multiplier on faith</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f48ScalingOptim-120">
@@ -6391,18 +6403,18 @@ total                                               ≈ 2,025ms   (~2.3x vanilla
             <div class="note">
               <p><strong>One-sentence idea:</strong> An agent system's scaling problem is <strong>coordination</strong>, and its failure problem is <strong>an unbounded loop that can also take real-world actions</strong> — both come from the same root cause: every extra step, tool call, or sub-agent is decided <em>at runtime by the model</em>, not fixed in advance, so nothing about cost, latency, or safety is bounded unless you enforce it yourself.</p>
             </div>
-            <div class="diagram"><pre>                         ┌─────────────────────────────────────────────────────┐
-  ORCHESTRATION          │  Agent loop: decide → act (tool) → observe → repeat │  coordination-bound, loop-failure-prone
-                         └─────────────────────────────────────────────────────┘
-                                                │
-                         ┌─────────────────────────────────────────────────────┐
-  MULTI-AGENT            │  Supervisor/swarm coordinating N specialist agents  │  compounding-cost-bound
-                         └─────────────────────────────────────────────────────┘
-                                                │
-                         ┌─────────────────────────────────────────────────────┐
-  UNDERNEATH             │  Tool-result caching, distributed tracing,          │  cost/reliability-bound
-                         │  load balancing, autoscaling, backpressure          │
-                         └─────────────────────────────────────────────────────┘</pre></div>
+            <div class="diagram"><pre>                         <span class="d-l">┌─────────────────────────────────────────────────────┐</span>
+  ORCHESTRATION          <span class="d-l">│</span>  Agent loop: decide <span class="d-a">→</span> act (tool) <span class="d-a">→</span> observe <span class="d-a">→</span> repeat <span class="d-l">│</span>  coordination-bound, loop-failure-prone
+                         <span class="d-l">└─────────────────────────────────────────────────────┘</span>
+                                                <span class="d-l">│</span>
+                         <span class="d-l">┌─────────────────────────────────────────────────────┐</span>
+  MULTI-AGENT            <span class="d-l">│</span>  Supervisor/swarm coordinating N specialist agents  <span class="d-l">│</span>  compounding-cost-bound
+                         <span class="d-l">└─────────────────────────────────────────────────────┘</span>
+                                                <span class="d-l">│</span>
+                         <span class="d-l">┌─────────────────────────────────────────────────────┐</span>
+  UNDERNEATH             <span class="d-l">│</span>  Tool-result caching, distributed tracing,          <span class="d-l">│</span>  cost/reliability-bound
+                         <span class="d-l">│</span>  load balancing, autoscaling, backpressure          <span class="d-l">│</span>
+                         <span class="d-l">└─────────────────────────────────────────────────────┘</span></pre></div>
             <p><strong>The interview framing that ties both halves together:</strong> a hard cap (steps, cost, time) is simultaneously the fix for the scaling problem (bound how much capacity one run can consume) and the fix for the failure problem (bound how much damage one runaway run can do). It is the single mechanism this whole file keeps returning to.</p>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -6646,17 +6658,17 @@ total                                               ≈ 2,025ms   (~2.3x vanilla
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Trace per-hop first (each model call, each tool call, each routing decision as its own span) — never guess-and-optimize, never guess-and-debug.
-  │
-  ├─ Same tool called repeatedly with near-identical args?  → runaway loop: repeat detection + hard step limit (Layer 1)
-  ├─ Confidently wrong answer, no error thrown?              → error compounding: validate each step's output; checkpoint + critic pass (Layer 1)
-  ├─ Sequential tool calls that don't depend on each other?  → PARALLELIZE — usually the single biggest win, check this first
-  ├─ Tool-selection errors / wrong tool picked?              → cut tool count in context; disambiguate overlapping descriptions (Layer 2)
-  ├─ Same deterministic tool call repeating across runs?     → tool-result cache keyed on (tool, args)
-  ├─ Cost dominated by frontier-model calls on narrow tasks? → distill those sub-tasks (routing/parsing/formatting); cascade the rest
-  ├─ Multi-agent slow, expensive, or looping?                → compare total call count against a single-agent baseline; check for mutual loops/deadlock (Layer 3)
-  ├─ An irreversible action is about to run?                 → HITL gate, least privilege, audit log — never optimize this layer for speed (Layer 4)
-  ├─ Bursty traffic, p99 spikes?                             → continuous batching + autoscale on queue depth, not CPU%
-  └─ Can't tell where the latency/cost/failure actually is?  → you don't have distributed tracing yet — that's the prerequisite, not optional</pre></div>
+  <span class="d-l">│</span>
+  <span class="d-l">├─</span> Same tool called repeatedly with near-identical args?  <span class="d-a">→</span> runaway loop: repeat detection + hard step limit (Layer 1)
+  <span class="d-l">├─</span> Confidently wrong answer, no error thrown?              <span class="d-a">→</span> error compounding: validate each step's output; checkpoint + critic pass (Layer 1)
+  <span class="d-l">├─</span> Sequential tool calls that don't depend on each other?  <span class="d-a">→</span> PARALLELIZE — usually the single biggest win, check this first
+  <span class="d-l">├─</span> Tool-selection errors / wrong tool picked?              <span class="d-a">→</span> cut tool count in context; disambiguate overlapping descriptions (Layer 2)
+  <span class="d-l">├─</span> Same deterministic tool call repeating across runs?     <span class="d-a">→</span> tool-result cache keyed on (tool, args)
+  <span class="d-l">├─</span> Cost dominated by frontier-model calls on narrow tasks? <span class="d-a">→</span> distill those sub-tasks (routing/parsing/formatting); cascade the rest
+  <span class="d-l">├─</span> Multi-agent slow, expensive, or looping?                <span class="d-a">→</span> compare total call count against a single-agent baseline; check for mutual loops/deadlock (Layer 3)
+  <span class="d-l">├─</span> An irreversible action is about to run?                 <span class="d-a">→</span> HITL gate, least privilege, audit log — never optimize this layer for speed (Layer 4)
+  <span class="d-l">├─</span> Bursty traffic, p99 spikes?                             <span class="d-a">→</span> continuous batching + autoscale on queue depth, not CPU%
+  <span class="d-l">└─</span> Can't tell where the latency/cost/failure actually is?  <span class="d-a">→</span> you don't have distributed tracing yet — that's the prerequisite, not optional</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="f49ScalingOptim-131">

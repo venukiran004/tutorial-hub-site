@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1245,9 +1257,9 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
               neuron draws a single boundary. <strong>Stacking</strong> neurons in layers lets later layers combine
               earlier ones into curved, composite boundaries — each hidden layer builds higher-level
               features from the previous layer's outputs.</p>
-            <div class="diagram"><pre> x1 ──►(h1)──►            input layer → hidden layer → output
- x2 ──►(h2)──►(o)         each ── is a weight; each (·) applies φ(Σ w·x + b)
- x3 ──►(h3)──►            depth = #layers, width = #neurons per layer</pre></div>
+            <div class="diagram"><pre> x1 <span class="d-l">──</span><span class="d-a">►</span>(h1)<span class="d-l">──</span><span class="d-a">►</span>            input layer <span class="d-a">→</span> hidden layer <span class="d-a">→</span> output
+ x2 <span class="d-l">──</span><span class="d-a">►</span>(h2)<span class="d-l">──</span><span class="d-a">►</span>(o)         each <span class="d-l">──</span> is a weight; each (·) applies φ(Σ w·x + b)
+ x3 <span class="d-l">──</span><span class="d-a">►</span>(h3)<span class="d-l">──</span><span class="d-a">►</span>            depth = #layers, width = #neurons per layer</pre></div>
             <p>The <strong>non-linearity is essential</strong>: without it, stacking linear layers
               <span class="mth"><i>W</i><sub>2</sub>(<i>W</i><sub>1</sub> <i>x</i>)<span class="mth-op">=</span>(<i>W</i><sub>2</sub><i>W</i><sub>1</sub>)<i>x</i></span> is just one linear layer. The activation is what gives the network
               its expressive power.</p>
@@ -1747,8 +1759,8 @@ opt = torch.optim.<span class="fn">AdamW</span>(model.<span class="fn">parameter
               <li><strong>Hierarchy:</strong> early layers detect edges; deeper layers combine them into textures, parts,
                   then whole objects.</li>
             </ul>
-            <div class="diagram"><pre>input image ─► [Conv+ReLU] ─► [Pool] ─► [Conv+ReLU] ─► [Pool] ─► flatten ─► [FC] ─► class
-   (H×W×3)        feature maps      ↓ downsample          deeper features        logits</pre></div>
+            <div class="diagram"><pre>input image <span class="d-l">─</span><span class="d-a">►</span> [Conv+ReLU] <span class="d-l">─</span><span class="d-a">►</span> [Pool] <span class="d-l">─</span><span class="d-a">►</span> [Conv+ReLU] <span class="d-l">─</span><span class="d-a">►</span> [Pool] <span class="d-l">─</span><span class="d-a">►</span> flatten <span class="d-l">─</span><span class="d-a">►</span> [FC] <span class="d-l">─</span><span class="d-a">►</span> class
+   (H×W×3)        feature maps      <span class="d-a">↓</span> downsample          deeper features        logits</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
         <article class="q" id="fcnnmd-17">
@@ -2721,11 +2733,11 @@ out, h_n = <span class="fn">gru</span>(x)            <span class="cmt"># out: (b
               <li class="dl"><b class="dt">Output gate</b><span class="dd">what part of the belt to <em>expose</em> as the hidden state.</span>
               </li>
             </ul>
-            <div class="diagram"><pre>   C_{t-1} ──►(× forget)──►(+ input·candidate)──► C_t  (cell state: additive flow)
-                  ▲                ▲                │
+            <div class="diagram"><pre>   C_{t-1} <span class="d-l">──</span><span class="d-a">►</span>(× forget)<span class="d-l">──</span><span class="d-a">►</span>(+ input·candidate)<span class="d-l">──</span><span class="d-a">►</span> C_t  (cell state: additive flow)
+                  <span class="d-a">▲</span>                <span class="d-a">▲</span>                <span class="d-l">│</span>
                 f_t              i_t·C̃_t          (× output, via tanh)
-                                                    ▼
-   h_{t-1},x_t ─► gates ─────────────────────────► h_t  (hidden state / output)</pre></div>
+                                                    <span class="d-a">▼</span>
+   h_{t-1},x_t <span class="d-l">─</span><span class="d-a">►</span> gates <span class="d-l">─────────────────────────</span><span class="d-a">►</span> h_t  (hidden state / output)</pre></div>
             <p>Because the cell is updated by <strong>addition</strong> (not repeated matrix multiplication), gradients
               flow through it almost unattenuated — the "<strong>constant error carousel</strong>."</p>
           </div><button class="reveal">Reveal answer</button>
@@ -3200,9 +3212,9 @@ out, (h_n, c_n) = <span class="fn">lstm</span>(x)        <span class="cmt"># out
             </div>
             <p>Reading a sentence word by word, you keep a running understanding of what you've read so far.
               The <abbr title="recurrent neural network">RNN</abbr>'s <strong>hidden state</strong> is that running summary: each step updates it with the new input.</p>
-            <div class="diagram"><pre>x1 ─►[RNN]─► x2 ─►[RNN]─► x3 ─►[RNN]─► …      (same cell reused each step)
-        │h1          │h2          │h3
-   h0 ──┘       h1 ──┘       h2 ──┘            hidden state = memory passed forward</pre></div>
+            <div class="diagram"><pre>x1 <span class="d-l">─</span><span class="d-a">►</span>[RNN]<span class="d-l">─</span><span class="d-a">►</span> x2 <span class="d-l">─</span><span class="d-a">►</span>[RNN]<span class="d-l">─</span><span class="d-a">►</span> x3 <span class="d-l">─</span><span class="d-a">►</span>[RNN]<span class="d-l">─</span><span class="d-a">►</span> …      (same cell reused each step)
+        <span class="d-l">│</span>h1          <span class="d-l">│</span>h2          <span class="d-l">│</span>h3
+   h0 <span class="d-l">──┘</span>       h1 <span class="d-l">──┘</span>       h2 <span class="d-l">──┘</span>            hidden state = memory passed forward</pre></div>
             <p>Unrolled over time, it's a very deep network that <strong>shares one set of weights</strong> across all
               steps — which is exactly why its gradients misbehave (below).</p>
           </div><button class="reveal">Reveal answer</button>
@@ -3612,20 +3624,20 @@ out, h_n = <span class="fn">rnn</span>(x)            <span class="cmt"># x: (bat
           <div class="diagram"><pre>  Input Layer       Hidden Layer(s)      Output Layer
   (features)        (learned patterns)   (prediction)
 
-    x₁ ──────→  ●  ──────→  ●  ──────→  ŷ₁
-                 ↗↘          ↗↘
-    x₂ ──────→  ●  ──────→  ●  ──────→  ŷ₂
-                 ↗↘          ↗↘
-    x₃ ──────→  ●  ──────→  ●
+    x₁ <span class="d-l">──────</span><span class="d-a">→</span>  ●  <span class="d-l">──────</span><span class="d-a">→</span>  ●  <span class="d-l">──────</span><span class="d-a">→</span>  ŷ₁
+                 /\          /\
+    x₂ <span class="d-l">──────</span><span class="d-a">→</span>  ●  <span class="d-l">──────</span><span class="d-a">→</span>  ●  <span class="d-l">──────</span><span class="d-a">→</span>  ŷ₂
+                 /\          /\
+    x₃ <span class="d-l">──────</span><span class="d-a">→</span>  ●  <span class="d-l">──────</span><span class="d-a">→</span>  ●
 
   Each arrow has a WEIGHT (learned during training)
   Each neuron has a BIAS and an ACTIVATION FUNCTION</pre></div>
           <h3>2.2 How a Single Neuron Works</h3>
           <span class="mth mth-block"><i>z</i> <span class="mth-op">=</span> <i>w</i><sub>1</sub> <i>x</i><sub>1</sub> <span class="mth-op">+</span> <i>w</i><sub>2</sub> <i>x</i><sub>2</sub> <span class="mth-op">+</span> ... <span class="mth-op">+</span> <i>w</i><sub><i>n</i></sub> <i>x</i><sub><i>n</i></sub> <span class="mth-op">+</span> <i>b</i> <span class="mth-op">=</span> <b><i>w</i></b><sup><i>T</i></sup> <b><i>x</i></b> <span class="mth-op">+</span> <i>b</i></span>
           <span class="mth mth-block"><i>a</i> <span class="mth-op">=</span> <span class="mth-gr">σ</span>(<i>z</i>)   <span class="mth-txt">(activation function)</span></span>
-          <div class="diagram"><pre>   x₁ ──w₁──┐
-   x₂ ──w₂──┤──→ Σ (weighted sum + bias) ──→ σ(z) ──→ output
-   x₃ ──w₃──┘                                  ↑
+          <div class="diagram"><pre>   x₁ <span class="d-l">──</span>w₁<span class="d-l">──┐</span>
+   x₂ <span class="d-l">──</span>w₂<span class="d-l">──┤──</span><span class="d-a">→</span> Σ (weighted sum + bias) <span class="d-l">──</span><span class="d-a">→</span> σ(z) <span class="d-l">──</span><span class="d-a">→</span> output
+   x₃ <span class="d-l">──</span>w₃<span class="d-l">──┘</span>                                  <span class="d-a">↑</span>
               + b                          Activation
                                           Function</pre></div>
           <p><strong>Real-Time Analogy:</strong> A neuron is like a decision maker:
@@ -3697,17 +3709,17 @@ Tanh:    ___/‾‾‾              Leaky ReLU:    /
     ‾‾‾/___                           /</code></pre>
           <h3>2.4 Forward Propagation</h3>
           <p>Data flows <strong>forward</strong> through the network:</p>
-          <div class="diagram"><pre>Layer 1 (Input → Hidden₁):
+          <div class="diagram"><pre>Layer 1 (Input <span class="d-a">→</span> Hidden₁):
    z₁ = W₁·x + b₁
    a₁ = ReLU(z₁)
 
-Layer 2 (Hidden₁ → Hidden₂):
+Layer 2 (Hidden₁ <span class="d-a">→</span> Hidden₂):
    z₂ = W₂·a₁ + b₂
    a₂ = ReLU(z₂)
 
-Layer 3 (Hidden₂ → Output):
+Layer 3 (Hidden₂ <span class="d-a">→</span> Output):
    z₃ = W₃·a₂ + b₃
-   ŷ = Sigmoid(z₃)    ← for binary classification</pre></div>
+   ŷ = Sigmoid(z₃)    <span class="d-a">←</span> for binary classification</pre></div>
           <h3>2.5 Loss Functions</h3>
           <div class="tbl-wrap">
             <table class="t3 t-grouped">
@@ -3751,10 +3763,10 @@ Layer 3 (Hidden₂ → Output):
           <h3>2.6 Backpropagation</h3>
           <p>The learning algorithm that adjusts weights using the <strong>chain rule</strong>:</p>
           <span class="mth mth-block"><span class="mth-frac"><span class="mth-num">∂ <i>L</i></span><span class="mth-den">∂ <i>w</i></span></span> <span class="mth-op">=</span> <span class="mth-frac"><span class="mth-num">∂ <i>L</i></span><span class="mth-den">∂ <i>ŷ</i></span></span> · <span class="mth-frac"><span class="mth-num">∂ <i>ŷ</i></span><span class="mth-den">∂ <i>z</i></span></span> · <span class="mth-frac"><span class="mth-num">∂ <i>z</i></span><span class="mth-den">∂ <i>w</i></span></span></span>
-          <div class="diagram"><pre>Step 1: Forward pass   → compute predictions
-Step 2: Compute loss   → how wrong are we?
-Step 3: Backward pass  → compute gradients (∂L/∂w for every weight)
-Step 4: Update weights → w = w - lr × ∂L/∂w
+          <div class="diagram"><pre>Step 1: Forward pass   <span class="d-a">→</span> compute predictions
+Step 2: Compute loss   <span class="d-a">→</span> how wrong are we?
+Step 3: Backward pass  <span class="d-a">→</span> compute gradients (∂L/∂w for every weight)
+Step 4: Update weights <span class="d-a">→</span> w = w - lr × ∂L/∂w
 Step 5: Repeat</pre></div>
           <p><strong>Real-Time Analogy:</strong> 
             - You throw darts at a target (forward pass)
@@ -3866,15 +3878,15 @@ y_train = torch.<span class="fn">randint</span>(<span class="num">0</span>, <spa
         <span class="fn">print</span>(f<span class="str">"Epoch {epoch+1}/100 | Loss: {loss.item():.4f}"</span>)</code></pre>
           <h3>2.10 ANN vs <abbr title="convolutional neural network">CNN</abbr> vs <abbr title="recurrent neural network">RNN</abbr>
           </h3>
-          <div class="diagram"><pre>ANN (Feed-Forward):     Input → [Dense Layers] → Output
+          <div class="diagram"><pre>ANN (Feed-Forward):     Input <span class="d-a">→</span> [Dense Layers] <span class="d-a">→</span> Output
                         Best for: Tabular/structured data
                         No spatial or temporal awareness
 
-CNN (Convolutional):    Input → [Conv + Pool Layers] → Output
+CNN (Convolutional):    Input <span class="d-a">→</span> [Conv + Pool Layers] <span class="d-a">→</span> Output
                         Best for: Images, spatial data
                         Learns spatial patterns (edges, textures)
 
-RNN (Recurrent):        Input₁→₂→₃ → [Recurrent Layers] → Output
+RNN (Recurrent):        Input₁<span class="d-a">→</span>₂<span class="d-a">→</span>₃ <span class="d-a">→</span> [Recurrent Layers] <span class="d-a">→</span> Output
                         Best for: Sequences, time series
                         Learns temporal patterns (order matters)</pre></div>
         </div>
@@ -3883,11 +3895,11 @@ RNN (Recurrent):        Input₁→₂→₃ → [Recurrent Layers] → Output
         <div class="q-a" style="margin:0 0 12px">
           <h3>2.1 Concept</h3>
           <p>An <abbr title="recurrent neural network">RNN</abbr> processes sequences <strong>one element at a time</strong>, maintaining a <strong>hidden state</strong> that acts as memory.</p>
-          <div class="diagram"><pre>         ┌──────────┐     ┌──────────┐     ┌──────────┐
-  x₁ ──→ │  RNN Cell │──→ │  RNN Cell │──→ │  RNN Cell │──→ ...
-         │    h₁     │  h₁│    h₂     │  h₂│    h₃    │
-         └────┬──────┘     └────┬──────┘     └────┬───┘
-              ↓                  ↓                  ↓
+          <div class="diagram"><pre>         <span class="d-l">┌──────────┐</span>     <span class="d-l">┌──────────┐</span>     <span class="d-l">┌──────────┐</span>
+  x₁ <span class="d-l">──</span><span class="d-a">→</span> <span class="d-l">│</span>  RNN Cell <span class="d-l">│──</span><span class="d-a">→</span> <span class="d-l">│</span>  RNN Cell <span class="d-l">│──</span><span class="d-a">→</span> <span class="d-l">│</span>  RNN Cell <span class="d-l">│──</span><span class="d-a">→</span> ...
+         <span class="d-l">│</span>    h₁     <span class="d-l">│</span>  h₁<span class="d-l">│</span>    h₂     <span class="d-l">│</span>  h₂<span class="d-l">│</span>    h₃    <span class="d-l">│</span>
+         <span class="d-l">└────┬──────┘</span>     <span class="d-l">└────┬──────┘</span>     <span class="d-l">└────┬───┘</span>
+              <span class="d-a">↓</span>                  <span class="d-a">↓</span>                  <span class="d-a">↓</span>
              y₁                 y₂                 y₃</pre></div>
           <h3>2.2 Mathematical Formulation</h3>
           <span class="mth mth-block"><i>h</i><sub><i>t</i></sub> <span class="mth-op">=</span> <span class="mth-fn">tanh</span>(<i>W</i><sub><i>x</i><i>h</i></sub> · <i>x</i><sub><i>t</i></sub> <span class="mth-op">+</span> <i>W</i><sub><i>h</i><i>h</i></sub> · <i>h</i><sub><i>t</i><span class="mth-op">−</span>1</sub> <span class="mth-op">+</span> <i>b</i><sub><i>h</i></sub>)</span>
@@ -3900,10 +3912,10 @@ RNN (Recurrent):        Input₁→₂→₃ → [Recurrent Layers] → Output
             - <span class="mth"><i>W</i><sub><i>h</i><i>y</i></sub></span> = hidden-to-output weights</p>
           <h3>2.3 Real-Time Example: Next Character Prediction</h3>
           <p><strong>Problem:</strong> Given the text "hell", predict the next character → "o"</p>
-          <div class="diagram"><pre>Step 1: Input 'h' → h₁ = tanh(W·'h' + W·h₀)
-Step 2: Input 'e' → h₂ = tanh(W·'e' + W·h₁)  ← carries info about 'h'
-Step 3: Input 'l' → h₃ = tanh(W·'l' + W·h₂)  ← carries info about 'he'
-Step 4: Input 'l' → h₄ = tanh(W·'l' + W·h₃)  ← carries info about 'hel'
+          <div class="diagram"><pre>Step 1: Input 'h' <span class="d-a">→</span> h₁ = tanh(W·'h' + W·h₀)
+Step 2: Input 'e' <span class="d-a">→</span> h₂ = tanh(W·'e' + W·h₁)  <span class="d-a">←</span> carries info about 'h'
+Step 3: Input 'l' <span class="d-a">→</span> h₃ = tanh(W·'l' + W·h₂)  <span class="d-a">←</span> carries info about 'he'
+Step 4: Input 'l' <span class="d-a">→</span> h₄ = tanh(W·'l' + W·h₃)  <span class="d-a">←</span> carries info about 'hel'
 Output: Predict 'o' from h₄</pre></div>
           <h3>2.4 Problems with Vanilla RNN</h3>
           <h4>Vanishing Gradient Problem</h4>
@@ -3919,7 +3931,7 @@ Output: Predict 'o' from h₄</pre></div>
 "The cat, which was sitting on the mat in the room that 
  had been recently painted, ____."
 
-                     ↑ RNN forgets "cat" by this point</pre></div>
+                     <span class="d-a">↑</span> RNN forgets "cat" by this point</pre></div>
           <h4>Exploding Gradient Solution: Gradient Clipping</h4>
           <pre class="code" data-lang="python"><code>torch.nn.utils.<span class="fn">clip_grad_norm_</span>(model.<span class="fn">parameters</span>(), max_norm=<span class="num">5.0</span>)</code></pre>
           <h3>2.5 RNN in PyTorch</h3>
@@ -3974,16 +3986,16 @@ output = <span class="fn">model</span>(x)             <span class="cmt"># shape:
           <p><abbr title="long short-term memory">LSTM</abbr> was designed to solve the <strong>vanishing gradient problem</strong>. It introduces a <strong>cell state</strong> (long-term memory highway) and <strong>gates</strong> to control information flow.</p>
           <h3>3.2 Architecture</h3>
           <div class="diagram"><pre>                        Cell State (Cₜ)
-            ─────────────────────────────────────→
-                  ↑ ×          ↑ +           
-                  │            │             
-            ┌─────┴──┐  ┌─────┴──────┐  ┌───┴────┐
-            │ Forget  │  │   Input    │  │ Output│
-            │  Gate   │  │   Gate     │  │  Gate │
-            │  (fₜ)   │  │ (iₜ)(C̃ₜ)  │  │  (oₜ) │
-            └─────────┘  └───────────┘  └────────┘
-                 ↑              ↑              ↑
-            ─────┴──────────────┴──────────────┴──→ hₜ
+            <span class="d-l">─────────────────────────────────────</span><span class="d-a">→</span>
+                  <span class="d-a">↑</span> ×          <span class="d-a">↑</span> +           
+                  <span class="d-l">│</span>            <span class="d-l">│</span>             
+            <span class="d-l">┌─────┴──┐</span>  <span class="d-l">┌─────┴──────┐</span>  <span class="d-l">┌───┴────┐</span>
+            <span class="d-l">│</span> Forget  <span class="d-l">│</span>  <span class="d-l">│</span>   Input    <span class="d-l">│</span>  <span class="d-l">│</span> Output<span class="d-l">│</span>
+            <span class="d-l">│</span>  Gate   <span class="d-l">│</span>  <span class="d-l">│</span>   Gate     <span class="d-l">│</span>  <span class="d-l">│</span>  Gate <span class="d-l">│</span>
+            <span class="d-l">│</span>  (fₜ)   <span class="d-l">│</span>  <span class="d-l">│</span> (iₜ)(C̃ₜ)  <span class="d-l">│</span>  <span class="d-l">│</span>  (oₜ) <span class="d-l">│</span>
+            <span class="d-l">└─────────┘</span>  <span class="d-l">└───────────┘</span>  <span class="d-l">└────────┘</span>
+                 <span class="d-a">↑</span>              <span class="d-a">↑</span>              <span class="d-a">↑</span>
+            <span class="d-l">─────┴──────────────┴──────────────┴──</span><span class="d-a">→</span> hₜ
                          [hₜ₋₁, xₜ]</pre></div>
           <h3>3.3 The Three Gates + Cell State</h3>
           <h4>Gate 1: Forget Gate — "What to throw away"</h4>
@@ -4003,22 +4015,22 @@ output = <span class="fn">model</span>(x)             <span class="cmt"># shape:
           <p><strong>Real-Time Analogy:</strong> When someone asks "What happened in the story?", you don't tell them <em>everything</em> you remember — you select relevant information.</p>
           <h3>3.4 Complete Walkthrough: Sentiment Analysis</h3>
           <p><strong>Input:</strong> "The movie was not good but the acting was excellent"</p>
-          <div class="diagram"><pre>Token: "The"     → Forget: keep nothing   | Input: neutral   | Cell: [neutral]
-Token: "movie"   → Forget: keep context   | Input: topic     | Cell: [movie, neutral]
-Token: "was"     → Forget: keep all       | Input: low       | Cell: [movie, neutral]
-Token: "not"     → Forget: keep all       | Input: negation  | Cell: [movie, negation]
-Token: "good"    → Forget: keep negation  | Input: neg+good  | Cell: [movie, negative]
-Token: "but"     → Forget: reduce neg     | Input: contrast  | Cell: [movie, contrast]
-Token: "the"     → Forget: keep contrast  | Input: low       | Cell: [movie, contrast]
-Token: "acting"  → Forget: keep contrast  | Input: topic2    | Cell: [movie, acting, contrast]
-Token: "was"     → Forget: keep all       | Input: low       | Cell: [movie, acting, contrast]
-Token: "excellent"→ Forget: reduce neg    | Input: strong+   | Cell: [movie, mixed→positive]
+          <div class="diagram"><pre>Token: "The"     <span class="d-a">→</span> Forget: keep nothing   | Input: neutral   | Cell: [neutral]
+Token: "movie"   <span class="d-a">→</span> Forget: keep context   | Input: topic     | Cell: [movie, neutral]
+Token: "was"     <span class="d-a">→</span> Forget: keep all       | Input: low       | Cell: [movie, neutral]
+Token: "not"     <span class="d-a">→</span> Forget: keep all       | Input: negation  | Cell: [movie, negation]
+Token: "good"    <span class="d-a">→</span> Forget: keep negation  | Input: neg+good  | Cell: [movie, negative]
+Token: "but"     <span class="d-a">→</span> Forget: reduce neg     | Input: contrast  | Cell: [movie, contrast]
+Token: "the"     <span class="d-a">→</span> Forget: keep contrast  | Input: low       | Cell: [movie, contrast]
+Token: "acting"  <span class="d-a">→</span> Forget: keep contrast  | Input: topic2    | Cell: [movie, acting, contrast]
+Token: "was"     <span class="d-a">→</span> Forget: keep all       | Input: low       | Cell: [movie, acting, contrast]
+Token: "excellent"<span class="d-a">→</span> Forget: reduce neg    | Input: strong+   | Cell: [movie, mixed<span class="d-a">→</span>positive]
 
-Output Gate → Overall sentiment: slightly positive (mixed review)</pre></div>
+Output Gate <span class="d-a">→</span> Overall sentiment: slightly positive (mixed review)</pre></div>
           <h3>3.5 Why LSTM Solves Vanishing Gradient</h3>
-          <div class="diagram"><pre>RNN:   hₜ = tanh(W·hₜ₋₁ + ...)     ← multiplicative, gradients shrink
+          <div class="diagram"><pre>RNN:   hₜ = tanh(W·hₜ₋₁ + ...)     <span class="d-a">←</span> multiplicative, gradients shrink
 
-LSTM:  Cₜ = fₜ⊙Cₜ₋₁ + iₜ⊙C̃ₜ       ← ADDITIVE, gradient flows freely
+LSTM:  Cₜ = fₜ⊙Cₜ₋₁ + iₜ⊙C̃ₜ       <span class="d-a">←</span> ADDITIVE, gradient flows freely
                                         (like a highway / residual connection)</pre></div>
           <p>The cell state acts as a <strong>gradient highway</strong> — information can flow unchanged across many time steps when <span class="mth"><i>f</i><sub><i>t</i></sub> ≈ 1</span>.</p>
           <h3>3.6 LSTM in PyTorch</h3>
@@ -4076,16 +4088,16 @@ model = <span class="fn">LSTMClassifier</span>(vocab_size=<span class="num">1000
           <h3>4.1 Motivation</h3>
           <p><abbr title="gated recurrent unit">GRU</abbr> simplifies <abbr title="long short-term memory">LSTM</abbr> by merging the forget and input gates into a single <strong>update gate</strong> and combining cell state + hidden state. Fewer parameters → faster training with similar performance.</p>
           <h3>4.2 Architecture</h3>
-          <div class="diagram"><pre>         ┌───────────────────────────────────────┐
-         │              GRU Cell                 │
-         │                                       │
-  xₜ ──→ │   ┌────────┐    ┌────────┐            │
-  hₜ₋₁→ │   │ Reset  │    │ Update │            │ ──→ hₜ
-         │   │ Gate rₜ│    │ Gate zₜ│            │
-         │   └────────┘    └────────┘            │
-         │        ↓              ↓               │
-         │   Candidate h̃ₜ     Interpolation     │
-         └───────────────────────────────────────┘</pre></div>
+          <div class="diagram"><pre>         <span class="d-l">┌───────────────────────────────────────┐</span>
+         <span class="d-l">│</span>              GRU Cell                 <span class="d-l">│</span>
+         <span class="d-l">│</span>                                       <span class="d-l">│</span>
+  xₜ <span class="d-l">──</span><span class="d-a">→</span> <span class="d-l">│</span>   <span class="d-l">┌────────┐</span>    <span class="d-l">┌────────┐</span>            <span class="d-l">│</span>
+  hₜ₋₁<span class="d-a">→</span> <span class="d-l">│</span>   <span class="d-l">│</span> Reset  <span class="d-l">│</span>    <span class="d-l">│</span> Update <span class="d-l">│</span>            <span class="d-l">│</span> <span class="d-l">──</span><span class="d-a">→</span> hₜ
+         <span class="d-l">│</span>   <span class="d-l">│</span> Gate rₜ<span class="d-l">│</span>    <span class="d-l">│</span> Gate zₜ<span class="d-l">│</span>            <span class="d-l">│</span>
+         <span class="d-l">│</span>   <span class="d-l">└────────┘</span>    <span class="d-l">└────────┘</span>            <span class="d-l">│</span>
+         <span class="d-l">│</span>        <span class="d-a">↓</span>              <span class="d-a">↓</span>               <span class="d-l">│</span>
+         <span class="d-l">│</span>   Candidate h̃ₜ     Interpolation     <span class="d-l">│</span>
+         <span class="d-l">└───────────────────────────────────────┘</span></pre></div>
           <h3>4.3 Mathematical Formulation</h3>
           <h4>Reset Gate — "How much past to forget"</h4>
           <span class="mth mth-block"><i>r</i><sub><i>t</i></sub> <span class="mth-op">=</span> <span class="mth-gr">σ</span>(<i>W</i><sub><i>r</i></sub> · [<i>h</i><sub><i>t</i><span class="mth-op">−</span>1</sub>, <i>x</i><sub><i>t</i></sub>] <span class="mth-op">+</span> <i>b</i><sub><i>r</i></sub>)</span>
@@ -4097,26 +4109,26 @@ model = <span class="fn">LSTMClassifier</span>(vocab_size=<span class="num">1000
           <span class="mth mth-block"><i>h</i><sub><i>t</i></sub> <span class="mth-op">=</span> (1 <span class="mth-op">−</span> <i>z</i><sub><i>t</i></sub>) ⊙ <i>h</i><sub><i>t</i><span class="mth-op">−</span>1</sub> <span class="mth-op">+</span> <i>z</i><sub><i>t</i></sub> ⊙ <i>h̃</i><sub><i>t</i></sub></span>
           <h3>4.4 LSTM vs GRU Comparison</h3>
           <div class="diagram"><pre>LSTM (4 gates equivalent):           GRU (2 gates):
-─────────────────────────            ──────────────
-Forget gate (fₜ)          ──→       Update gate (zₜ)  
-Input gate (iₜ)           ──→       ← merged into zₜ
+<span class="d-l">─────────────────────────</span>            <span class="d-l">──────────────</span>
+Forget gate (fₜ)          <span class="d-l">──</span><span class="d-a">→</span>       Update gate (zₜ)  
+Input gate (iₜ)           <span class="d-l">──</span><span class="d-a">→</span>       <span class="d-a">←</span> merged into zₜ
                                      (1 - zₜ) replaces forget
-Cell state (Cₜ)           ──→       ← merged into hₜ
-Output gate (oₜ)          ──→       Reset gate (rₜ)
+Cell state (Cₜ)           <span class="d-l">──</span><span class="d-a">→</span>       <span class="d-a">←</span> merged into hₜ
+Output gate (oₜ)          <span class="d-l">──</span><span class="d-a">→</span>       Reset gate (rₜ)
 
 Parameters: 4 × (n² + n·m + n)      Parameters: 3 × (n² + n·m + n)
 More expressive                      Faster, less memory
 Better for very long sequences       Good for shorter sequences</pre></div>
           <h3>4.5 Real-Time Example: Weather Prediction</h3>
           <p><strong>Task:</strong> Predict tomorrow's temperature from the last 7 days.</p>
-          <div class="diagram"><pre>Day 1: 30°C  → GRU sees first temp, hₜ captures "hot"
-Day 2: 31°C  → Update gate: "similar, keep old info" (zₜ ≈ low)
-Day 3: 29°C  → Update gate: "slight change, update a bit"
-Day 4: 15°C  → Update gate: HIGH → "big change, heavily update hₜ"
-               Reset gate: HIGH → "forget old warm pattern"
-Day 5: 14°C  → Update gate: low → "same cold, keep info"
-Day 6: 16°C  → Update gate: low → "still cold"
-Day 7: 15°C  → Update gate: low → "stable cold pattern"
+          <div class="diagram"><pre>Day 1: 30°C  <span class="d-a">→</span> GRU sees first temp, hₜ captures "hot"
+Day 2: 31°C  <span class="d-a">→</span> Update gate: "similar, keep old info" (zₜ ≈ low)
+Day 3: 29°C  <span class="d-a">→</span> Update gate: "slight change, update a bit"
+Day 4: 15°C  <span class="d-a">→</span> Update gate: HIGH <span class="d-a">→</span> "big change, heavily update hₜ"
+               Reset gate: HIGH <span class="d-a">→</span> "forget old warm pattern"
+Day 5: 14°C  <span class="d-a">→</span> Update gate: low <span class="d-a">→</span> "same cold, keep info"
+Day 6: 16°C  <span class="d-a">→</span> Update gate: low <span class="d-a">→</span> "still cold"
+Day 7: 15°C  <span class="d-a">→</span> Update gate: low <span class="d-a">→</span> "stable cold pattern"
 
 Prediction: ~15°C (cold trend learned)</pre></div>
           <h3>4.6 GRU in PyTorch</h3>
@@ -4184,14 +4196,14 @@ pred = <span class="fn">model</span>(x)              <span class="cmt"># shape: 
           </div>
           <p><strong>Transformer's solution:</strong> Process <strong>all tokens simultaneously</strong> using <strong>Self-Attention</strong>.</p>
           <h3>5.2 High-Level Architecture</h3>
-          <div class="diagram"><pre>              ┌────────────────────────────────────┐
-              │           TRANSFORMER              │
-              │                                    │
-  Input ──→   │  ┌──────────┐    ┌──────────┐      │ ──→ Output
-              │  │ ENCODER  │    │ DECODER  │      │
-              │  │ (×N)     │──→ │ (×N)     │      │
-              │  └──────────┘    └──────────┘      │
-              └────────────────────────────────────┘
+          <div class="diagram"><pre>              <span class="d-l">┌────────────────────────────────────┐</span>
+              <span class="d-l">│</span>           TRANSFORMER              <span class="d-l">│</span>
+              <span class="d-l">│</span>                                    <span class="d-l">│</span>
+  Input <span class="d-l">──</span><span class="d-a">→</span>   <span class="d-l">│</span>  <span class="d-l">┌──────────┐</span>    <span class="d-l">┌──────────┐</span>      <span class="d-l">│</span> <span class="d-l">──</span><span class="d-a">→</span> Output
+              <span class="d-l">│</span>  <span class="d-l">│</span> ENCODER  <span class="d-l">│</span>    <span class="d-l">│</span> DECODER  <span class="d-l">│</span>      <span class="d-l">│</span>
+              <span class="d-l">│</span>  <span class="d-l">│</span> (×N)     <span class="d-l">│──</span><span class="d-a">→</span> <span class="d-l">│</span> (×N)     <span class="d-l">│</span>      <span class="d-l">│</span>
+              <span class="d-l">│</span>  <span class="d-l">└──────────┘</span>    <span class="d-l">└──────────┘</span>      <span class="d-l">│</span>
+              <span class="d-l">└────────────────────────────────────┘</span>
 
   Encoder-only:  BERT, sentence classification
   Decoder-only:  GPT, text generation
@@ -4202,19 +4214,19 @@ pred = <span class="fn">model</span>(x)              <span class="cmt"># shape: 
           </p>
           <div class="diagram"><pre>Sentence: "The animal didn't cross the street because it was too tired"
 
-                                    ↑
+                                    <span class="d-a">↑</span>
                                What does "it" refer to?
 
 Self-Attention scores for "it":
-  The      → 0.02
-  animal   → 0.85  ← HIGH attention! "it" = "animal"
-  didn't   → 0.01
-  cross    → 0.03
-  the      → 0.01
-  street   → 0.05
-  because  → 0.01
-  it       → 0.01
-  was      → 0.01</pre></div>
+  The      <span class="d-a">→</span> 0.02
+  animal   <span class="d-a">→</span> 0.85  <span class="d-a">←</span> HIGH attention! "it" = "animal"
+  didn't   <span class="d-a">→</span> 0.01
+  cross    <span class="d-a">→</span> 0.03
+  the      <span class="d-a">→</span> 0.01
+  street   <span class="d-a">→</span> 0.05
+  because  <span class="d-a">→</span> 0.01
+  it       <span class="d-a">→</span> 0.01
+  was      <span class="d-a">→</span> 0.01</pre></div>
           <h4>Mathematical Formulation: Scaled Dot-Product Attention</h4>
           <p>For each token, create three vectors:
             - <strong>Q</strong> (Query): "What am I looking for?"
@@ -4225,9 +4237,9 @@ Self-Attention scores for "it":
           <h4>Step-by-Step Example</h4>
           <p><strong>Input:</strong> "I love AI" (3 tokens)</p>
           <div class="diagram"><pre>Step 1: Embed tokens
-  "I"    → x₁ = [0.2, 0.1, 0.5, 0.3]
-  "love" → x₂ = [0.8, 0.3, 0.1, 0.7]
-  "AI"   → x₃ = [0.1, 0.9, 0.4, 0.2]
+  "I"    <span class="d-a">→</span> x₁ = [0.2, 0.1, 0.5, 0.3]
+  "love" <span class="d-a">→</span> x₂ = [0.8, 0.3, 0.1, 0.7]
+  "AI"   <span class="d-a">→</span> x₃ = [0.1, 0.9, 0.4, 0.2]
 
 Step 2: Create Q, K, V (by multiplying with weight matrices)
   Q₁ = x₁ · Wq,  K₁ = x₁ · Wk,  V₁ = x₁ · Wv
@@ -4240,13 +4252,13 @@ Step 3: Compute attention scores (Q·Kᵀ / √dₖ)
     score(love, love) = Q₂ · K₂ᵀ / √dₖ = 3.5
     score(love, AI)   = Q₂ · K₃ᵀ / √dₖ = 2.8
 
-Step 4: Softmax → attention weights
-    [1.2, 3.5, 2.8] → softmax → [0.05, 0.62, 0.33]
+Step 4: Softmax <span class="d-a">→</span> attention weights
+    [1.2, 3.5, 2.8] <span class="d-a">→</span> softmax <span class="d-a">→</span> [0.05, 0.62, 0.33]
     "love" pays 62% attention to itself, 33% to "AI", 5% to "I"
 
 Step 5: Weighted sum of Values
     output₂ = 0.05 · V₁ + 0.62 · V₂ + 0.33 · V₃
-    → new contextualized representation of "love"</pre></div>
+    <span class="d-a">→</span> new contextualized representation of "love"</pre></div>
           <h3>5.4 Multi-Head Attention</h3>
           <p>Instead of one attention, use <strong>multiple heads</strong> — each head learns different relationships.</p>
           <span class="mth mth-block"><span class="mth-txt">MultiHead</span>(<i>Q</i>,<i>K</i>,<i>V</i>) <span class="mth-op">=</span> <span class="mth-txt">Concat</span>(<i>h</i><i>e</i><i>a</i><i>d</i><sub>1</sub>, ..., <i>h</i><i>e</i><i>a</i><i>d</i><sub><i>h</i></sub>) · <i>W</i><sup><i>O</i></sup></span>
@@ -4255,7 +4267,7 @@ Step 5: Weighted sum of Values
 Head 2: might learn semantic relationships (synonyms)
 Head 3: might learn positional relationships (adjacent words)
 ...
-Head 8: might learn coreference (pronouns → nouns)</pre></div>
+Head 8: might learn coreference (pronouns <span class="d-a">→</span> nouns)</pre></div>
           <h3>5.5 Positional Encoding</h3>
           <p>Since Transformers process all tokens <strong>in parallel</strong> (no sequential order), we must explicitly inject position information.</p>
           <span class="mth mth-block"><i>P</i><i>E</i><sub>(<i>p</i><i>o</i><i>s</i>, 2<i>i</i>)</sub> <span class="mth-op">=</span> <span class="mth-fn">sin</span><span class="mth-d">(</span><span class="mth-frac"><span class="mth-num"><i>p</i><i>o</i><i>s</i></span><span class="mth-den">10000<sup>2<i>i</i>/<i>d</i><sub><i>m</i><i>o</i><i>d</i><i>e</i><i>l</i></sub></sup></span></span><span class="mth-d">)</span></span>
@@ -4280,44 +4292,44 @@ Head 8: might learn coreference (pronouns → nouns)</pre></div>
         <span class="kw">return</span> <span class="kw">self</span>.<span class="fn">dropout</span>(x)</code></pre>
           <h3>5.6 Encoder Block</h3>
           <div class="diagram"><pre>Input Embeddings + Positional Encoding
-         ↓
-    ┌────────────────────┐
-    │  Multi-Head        │
-    │  Self-Attention    │ ← Each token attends to all tokens
-    └────────┬───────────┘
-         ↓ + residual
-    ┌────────────────────┐
-    │  Layer Norm        │
-    └────────┬───────────┘
-         ↓
-    ┌────────────────────┐
-    │  Feed-Forward      │ ← FFN(x) = ReLU(xW₁ + b₁)W₂ + b₂
-    │  Network (FFN)     │
-    └────────┬───────────┘
-         ↓ + residual
-    ┌────────────────────┐
-    │  Layer Norm        │
-    └────────┬───────────┘
-         ↓
+         <span class="d-a">↓</span>
+    <span class="d-l">┌────────────────────┐</span>
+    <span class="d-l">│</span>  Multi-Head        <span class="d-l">│</span>
+    <span class="d-l">│</span>  Self-Attention    <span class="d-l">│</span> <span class="d-a">←</span> Each token attends to all tokens
+    <span class="d-l">└────────┬───────────┘</span>
+         <span class="d-a">↓</span> + residual
+    <span class="d-l">┌────────────────────┐</span>
+    <span class="d-l">│</span>  Layer Norm        <span class="d-l">│</span>
+    <span class="d-l">└────────┬───────────┘</span>
+         <span class="d-a">↓</span>
+    <span class="d-l">┌────────────────────┐</span>
+    <span class="d-l">│</span>  Feed-Forward      <span class="d-l">│</span> <span class="d-a">←</span> FFN(x) = ReLU(xW₁ + b₁)W₂ + b₂
+    <span class="d-l">│</span>  Network (FFN)     <span class="d-l">│</span>
+    <span class="d-l">└────────┬───────────┘</span>
+         <span class="d-a">↓</span> + residual
+    <span class="d-l">┌────────────────────┐</span>
+    <span class="d-l">│</span>  Layer Norm        <span class="d-l">│</span>
+    <span class="d-l">└────────┬───────────┘</span>
+         <span class="d-a">↓</span>
     Output (repeat N times)</pre></div>
           <h3>5.7 Decoder Block</h3>
           <div class="diagram"><pre>Output Embeddings + Positional Encoding
-         ↓
-    ┌────────────────────┐
-    │  Masked Multi-Head │ ← Can only attend to PREVIOUS tokens
-    │  Self-Attention    │   (prevents cheating during generation)
-    └────────┬───────────┘
-         ↓ + residual + LayerNorm
-    ┌────────────────────┐
-    │  Cross-Attention   │ ← Q from decoder, K/V from encoder
-    │  (Encoder-Decoder) │   (attend to source sentence)
-    └────────┬───────────┘
-         ↓ + residual + LayerNorm
-    ┌────────────────────┐
-    │  Feed-Forward      │
-    │  Network           │
-    └────────┬───────────┘
-         ↓ + residual + LayerNorm
+         <span class="d-a">↓</span>
+    <span class="d-l">┌────────────────────┐</span>
+    <span class="d-l">│</span>  Masked Multi-Head <span class="d-l">│</span> <span class="d-a">←</span> Can only attend to PREVIOUS tokens
+    <span class="d-l">│</span>  Self-Attention    <span class="d-l">│</span>   (prevents cheating during generation)
+    <span class="d-l">└────────┬───────────┘</span>
+         <span class="d-a">↓</span> + residual + LayerNorm
+    <span class="d-l">┌────────────────────┐</span>
+    <span class="d-l">│</span>  Cross-Attention   <span class="d-l">│</span> <span class="d-a">←</span> Q from decoder, K/V from encoder
+    <span class="d-l">│</span>  (Encoder-Decoder) <span class="d-l">│</span>   (attend to source sentence)
+    <span class="d-l">└────────┬───────────┘</span>
+         <span class="d-a">↓</span> + residual + LayerNorm
+    <span class="d-l">┌────────────────────┐</span>
+    <span class="d-l">│</span>  Feed-Forward      <span class="d-l">│</span>
+    <span class="d-l">│</span>  Network           <span class="d-l">│</span>
+    <span class="d-l">└────────┬───────────┘</span>
+         <span class="d-a">↓</span> + residual + LayerNorm
     Output (repeat N times)</pre></div>
           <h3>5.8 Masked Self-Attention (Causal Mask)</h3>
           <p>In the decoder, future tokens are masked so the model can't "cheat":</p>
@@ -4388,11 +4400,11 @@ output = <span class="fn">model</span>(tokens)                         <span cla
   After 6 layers: rich contextual representations
 
 DECODER generates Hindi word by word:
-  Step 1: &lt;start&gt; → Cross-attend to encoder → predict "मुझे"
-  Step 2: &lt;start&gt; मुझे → Cross-attend → predict "AI"
-  Step 3: &lt;start&gt; मुझे AI → Cross-attend → predict "पसंद"
-  Step 4: &lt;start&gt; मुझे AI पसंद → Cross-attend → predict "है"
-  Step 5: &lt;start&gt; मुझे AI पसंद है → predict &lt;end&gt; → STOP</pre></div>
+  Step 1: &lt;start&gt; <span class="d-a">→</span> Cross-attend to encoder <span class="d-a">→</span> predict "मुझे"
+  Step 2: &lt;start&gt; मुझे <span class="d-a">→</span> Cross-attend <span class="d-a">→</span> predict "AI"
+  Step 3: &lt;start&gt; मुझे AI <span class="d-a">→</span> Cross-attend <span class="d-a">→</span> predict "पसंद"
+  Step 4: &lt;start&gt; मुझे AI पसंद <span class="d-a">→</span> Cross-attend <span class="d-a">→</span> predict "है"
+  Step 5: &lt;start&gt; मुझे AI पसंद है <span class="d-a">→</span> predict &lt;end&gt; <span class="d-a">→</span> STOP</pre></div>
         </div>
         <div class="parthead" id="frnnlstmgrutran-p6"><span><svg class="ic" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>7. Comparison Summary</span><i></i>
         </div>
@@ -5284,8 +5296,8 @@ test_sentences = [<span class="str">"i am a student"</span>, <span class="str">"
             <div class="keyterms"><span class="kt">both directions</span><span class="kt">both past and future</span><span class="kt">Not suitable</span>
             </div>
             <p>A Bi-LSTM processes the sequence in <strong>both directions</strong> (left-to-right and right-to-left) and concatenates the outputs:</p>
-            <div class="diagram"><pre>Forward:  The → cat → sat → on → mat  →  h_fwd
-Backward: mat → on → sat → cat → The  →  h_bwd
+            <div class="diagram"><pre>Forward:  The <span class="d-a">→</span> cat <span class="d-a">→</span> sat <span class="d-a">→</span> on <span class="d-a">→</span> mat  <span class="d-a">→</span>  h_fwd
+Backward: mat <span class="d-a">→</span> on <span class="d-a">→</span> sat <span class="d-a">→</span> cat <span class="d-a">→</span> The  <span class="d-a">→</span>  h_bwd
 Output:   [h_fwd ; h_bwd]</pre></div>
             <p>This gives each token context from <strong>both past and future</strong>, improving tasks like <abbr title="named entity recognition">NER</abbr>, POS tagging, and text classification. <strong>Not suitable</strong> for autoregressive generation (can't look at future tokens).</p>
           </div><button class="reveal">Reveal answer</button>
@@ -5503,13 +5515,13 @@ Head 3: positional (adjacent word patterns)</code></pre>
           </div>
           <div class="q-a">
             <div class="diagram"><pre>Sequence Length:    10      100     1,000    10,000
-─────────────────────────────────────────────────
-RNN                 ✓       ✗        ✗        ✗
-LSTM                ✓       ✓        ~        ✗
-GRU                 ✓       ✓        ~        ✗
-Transformer         ✓       ✓        ✓        ~*
+<span class="d-l">─────────────────────────────────────────────────</span>
+RNN                 √       ×        ×        ×
+LSTM                √       √        ~        ×
+GRU                 √       √        ~        ×
+Transformer         √       √        √        ~*
 
-✓ = works well, ~ = degrades, ✗ = fails
+√ = works well, ~ = degrades, × = fails
 * Requires efficient attention variants (sparse, linear)</pre></div>
           </div><button class="reveal">Reveal answer</button>
         </article>
@@ -5685,8 +5697,8 @@ Transformer         ✓       ✓        ✓        ~*
             <h3>Q29: What is the difference between Pre-LayerNorm and Post-LayerNorm Transformers?</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="frnnlstmgrutran-99"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>Post-LayerNorm (original):  x → Attention → Add(x) → LayerNorm
-Pre-LayerNorm (modern):     x → LayerNorm → Attention → Add(x)
+            <div class="diagram"><pre>Post-LayerNorm (original):  x <span class="d-a">→</span> Attention <span class="d-a">→</span> Add(x) <span class="d-a">→</span> LayerNorm
+Pre-LayerNorm (modern):     x <span class="d-a">→</span> LayerNorm <span class="d-a">→</span> Attention <span class="d-a">→</span> Add(x)
 
 Pre-LayerNorm is more stable for deep models and is used in GPT-2, LLaMA, etc.</pre></div>
           </div><button class="reveal">Reveal answer</button>

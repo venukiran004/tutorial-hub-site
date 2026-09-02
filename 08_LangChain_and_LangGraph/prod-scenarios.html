@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1625,7 +1637,7 @@ state = app.<span class="fn">get_state</span>(cfg)                 <span class="
             </div>
           </div>
           <h3>Vanilla RAG pipeline</h3>
-          <div class="diagram"><pre>ingest → chunk → embed → index → [query] → retrieve (hybrid) → rerank → assemble context → generate → post-process/cite</pre></div>
+          <div class="diagram"><pre>ingest <span class="d-a">→</span> chunk <span class="d-a">→</span> embed <span class="d-a">→</span> index <span class="d-a">→</span> [query] <span class="d-a">→</span> retrieve (hybrid) <span class="d-a">→</span> rerank <span class="d-a">→</span> assemble context <span class="d-a">→</span> generate <span class="d-a">→</span> post-process/cite</pre></div>
           <p>The failure mode this is judged on in interviews: naming <em>where</em> it breaks (chunk boundary cuts a fact in half, <abbr title="a dense numeric vector representing text so that similar meanings sit close together">embedding</abbr> model mismatch between query/doc domain, retrieval returns topically-similar-but-wrong-answer chunks, <abbr title="the total number of tokens a model can attend to in a single call">context window</abbr> can't fit enough evidence, generation ignores retrieved context and hallucinates anyway). Full per-step failure/detect/recover table: <a href="production.html#f45RAGandAgentS">RAG and Agent Stepwise Failure Handling</a>.</p>
           <h3>RRF and MMR, worked</h3>
           <pre class="code" data-lang="python"><code><span class="kw">def</span> <span class="fn">reciprocal_rank_fusion</span>(ranked_lists, k=<span class="num">60</span>):
@@ -1647,16 +1659,16 @@ state = app.<span class="fn">get_state</span>(cfg)                 <span class="
     <span class="kw">return</span> selected</code></pre>
           <h3>Why Agentic RAG, concretely</h3>
           <p>Vanilla RAG retrieves <strong>once, unconditionally</strong>, then generates — even when the query needs no retrieval, needs <em>multiple</em> retrievals against different sources, or the first retrieval is garbage. Agentic RAG wraps retrieval in a decision loop:</p>
-          <div class="diagram"><pre>                         ┌────────────────────────────┐
- user query ──► Agent ──►│ decide: retrieve? which    │
-                         │ source? rewrite query?     │
-                         └─────────────┬──────────────┘
-                                        ▼
+          <div class="diagram"><pre>                         <span class="d-l">┌────────────────────────────┐</span>
+ user query <span class="d-l">──</span><span class="d-a">►</span> Agent <span class="d-l">──</span><span class="d-a">►</span><span class="d-l">│</span> decide: retrieve? which    <span class="d-l">│</span>
+                         <span class="d-l">│</span> source? rewrite query?     <span class="d-l">│</span>
+                         <span class="d-l">└─────────────┬──────────────┘</span>
+                                        <span class="d-a">▼</span>
                               retrieve (vector / SQL / web / graph)
-                                        ▼
+                                        <span class="d-a">▼</span>
                               grade evidence (relevant? sufficient?)
-                              ├── good enough ──► generate + cite
-                              └── weak/irrelevant ──► rewrite query / try another source / retrieve again
+                              <span class="d-l">├──</span> good enough <span class="d-l">──</span><span class="d-a">►</span> generate + cite
+                              <span class="d-l">└──</span> weak/irrelevant <span class="d-l">──</span><span class="d-a">►</span> rewrite query / try another source / retrieve again
                                                         (bounded retry count — never infinite)</pre></div>
           <p>Concrete Agentic-RAG behaviors worth naming in interview:
             - <strong><abbr title="splitting a multi-part question into sub-questions retrieved separately">Query decomposition</abbr>/routing</strong> — split a multi-part question into sub-queries, route each to the right index (product docs vs FAQs vs SQL database) instead of one flat vector search.
@@ -1910,9 +1922,9 @@ crag_app = graph.<span class="fn">compile</span>()</code></pre>
             <li><strong>Orchestrator vs Supervisor vs Swarm</strong> (see <a href="patterns.html#f19Orchestrator">Orchestrator vs Supervisor</a> for the deep dive): an <strong>orchestrator</strong> runs a mostly-fixed plan across workers; a <strong>supervisor</strong> is itself an LLM that dynamically decides which worker to call next and when to stop; a <strong>swarm/network</strong> lets agents hand off to each other directly without a central router — more flexible, harder to reason about/debug/bound cost.</li>
           </ul>
           <h3>Memory, concretely</h3>
-          <div class="diagram"><pre>short-term (thread-scoped)      → conversation buffer / running summary, keyed by thread_id,
+          <div class="diagram"><pre>short-term (thread-scoped)      <span class="d-a">→</span> conversation buffer / running summary, keyed by thread_id,
                                    persisted by the checkpointer, restored automatically on resume
-long-term (cross-session store) → semantic memory (facts about the user/domain), episodic memory
+long-term (cross-session store) <span class="d-a">→</span> semantic memory (facts about the user/domain), episodic memory
                                    (past interactions/outcomes), procedural memory (learned
                                    preferences/rules) — retrieved via similarity search and
                                    injected into context only when relevant, not dumped wholesale</pre></div>
@@ -1933,8 +1945,8 @@ long-term (cross-session store) → semantic memory (facts about the user/domain
           <h3>Latency optimization — the full request lifecycle</h3>
           <p>Treat latency as a <strong>budget spent across every hop</strong>, not one number to optimize at the model. Walking one agentic-RAG turn end to end, with the lever at each hop:</p>
           <div class="diagram"><pre> hop                              latency lever
- ─────────────────────────────    ──────────────────────────────────────────────────
- client → API gateway              connection pooling / keep-alive, edge/CDN termination
+ <span class="d-l">─────────────────────────────</span>    <span class="d-l">──────────────────────────────────────────────────</span>
+ client <span class="d-a">→</span> API gateway              connection pooling / keep-alive, edge/CDN termination
  auth + guardrail input check      cheap, fast classifier — not a full LLM call
  context assembly (memory recall)  bounded-k memory search, not a full history scan
  retrieval (vector/hybrid)         ANN index (HNSW), filtered search, parallel multi-source fan-out (§2)
@@ -1944,7 +1956,7 @@ long-term (cross-session store) → semantic memory (facts about the user/domain
                                     accuracy bar, speculative decoding / continuous batching server-side
  tool calls                        parallelize independent calls; timeout + circuit-breaker per tool
  output validation                 schema check is cheap (ms); keep the auto-retry-on-failure loop bounded
- response → client                 stream partial output rather than waiting for the full generation</pre></div>
+ response <span class="d-a">→</span> client                 stream partial output rather than waiting for the full generation</pre></div>
           <p>The single highest-leverage habit for an interview answer: <strong>name where in this chain the latency actually is</strong> (<abbr title="time to first token — what the user perceives as responsiveness">TTFT</abbr> vs <abbr title="time per output token">TPOT</abbr> vs retrieval vs tool calls) before proposing a fix — "make it faster" without localizing the hop is the answer that loses points. Measure with per-hop tracing/spans (OpenTelemetry-style), not just end-to-end wall clock.</p>
           <h3>Scaling</h3>
           <ul>
@@ -2195,19 +2207,19 @@ app = graph.<span class="fn">compile</span>(checkpointer=checkpointer)
           </ul>
           <p>Ragas also ships a <strong>TestsetGenerator</strong> that synthesizes (question, ground-truth answer, source chunks) triples directly from your corpus using an LLM — solving the classic "we don't have a labeled eval set" bootstrap problem, including generating harder multi-hop/reasoning questions on purpose, not just simple lookups.</p>
           <h3>TruLens — the RAG Triad</h3>
-          <div class="diagram"><pre>                     ┌──────────────────┐
-        query ──────►│ Context Relevance│──► is retrieved context relevant to the query?
-                     └──────────────────┘
-                              │
-                              ▼
-                     ┌──────────────────┐
-     context ───────►│   Groundedness   │──► is the generated answer supported by that context?
-     + answer         └─────────────────┘
-                              │
-                              ▼
-                     ┌──────────────────┐
-   answer + query ──►│ Answer Relevance │──► does the answer actually address the question?
-                     └──────────────────┘</pre></div>
+          <div class="diagram"><pre>                     <span class="d-l">┌──────────────────┐</span>
+        query <span class="d-l">──────</span><span class="d-a">►</span><span class="d-l">│</span> Context Relevance<span class="d-l">│──</span><span class="d-a">►</span> is retrieved context relevant to the query?
+                     <span class="d-l">└──────────────────┘</span>
+                              <span class="d-l">│</span>
+                              <span class="d-a">▼</span>
+                     <span class="d-l">┌──────────────────┐</span>
+     context <span class="d-l">───────</span><span class="d-a">►</span><span class="d-l">│</span>   Groundedness   <span class="d-l">│──</span><span class="d-a">►</span> is the generated answer supported by that context?
+     + answer        <span class="d-l">└──────────────────┘</span>
+                              <span class="d-l">│</span>
+                              <span class="d-a">▼</span>
+                     <span class="d-l">┌──────────────────┐</span>
+   answer + query <span class="d-l">──</span><span class="d-a">►</span><span class="d-l">│</span> Answer Relevance <span class="d-l">│──</span><span class="d-a">►</span> does the answer actually address the question?
+                     <span class="d-l">└──────────────────┘</span></pre></div>
           <p>Why three separate scores instead of one: they <strong>localize the failure</strong>.
             - Context Relevance low → <strong>retrieval problem</strong> (wrong chunks fetched) — fix chunking/embeddings/<abbr title="fusing keyword (BM25) and dense vector results, usually with reciprocal rank fusion">hybrid search</abbr>.
             - Context Relevance high, Groundedness low → <strong>generation problem</strong> — model ignored good context and hallucinated — fix the prompt's <abbr title="tying a generated answer to retrieved evidence rather than model memory">grounding</abbr> instruction, or the model.
@@ -2406,15 +2418,15 @@ tru_rag = <span class="fn">instrument</span>(rag_chain, feedbacks=[f_groundednes
           </ul>
           <p>The trade-off to always name back: more agents = more coordination overhead, more places for errors to compound, harder to debug/trace, and no free accuracy — a well-scoped single agent often beats a poorly-decomposed multi-agent system.</p>
           <h3>Topologies, compared</h3>
-          <div class="diagram"><pre>Sequential:     A ──► B ──► C ──► done          simple, predictable, no dynamic routing, brittle to
+          <div class="diagram"><pre>Sequential:     A <span class="d-l">──</span><span class="d-a">►</span> B <span class="d-l">──</span><span class="d-a">►</span> C <span class="d-l">──</span><span class="d-a">►</span> done          simple, predictable, no dynamic routing, brittle to
                                                   unexpected sub-task order
 
-Supervisor:            ┌── worker 1 ──┐
-                Sup ──► ┼── worker 2 ──┼──► Sup synthesizes   bounded, debuggable, central bottleneck
-                        └── worker 3 ──┘                      /cost-controllable, single point of failure
+Supervisor:            <span class="d-l">┌──</span> worker 1 <span class="d-l">──┐</span>
+                Sup <span class="d-l">──</span><span class="d-a">►</span> <span class="d-l">┼──</span> worker 2 <span class="d-l">──┼──</span><span class="d-a">►</span> Sup synthesizes   bounded, debuggable, central bottleneck
+                        <span class="d-l">└──</span> worker 3 <span class="d-l">──┘</span>                      /cost-controllable, single point of failure
 
-Hierarchical:   TopSup ──► MidSup A ──► workers               scales supervisor pattern to many agents,
-                        └► MidSup B ──► workers                adds latency (multiple routing hops)
+Hierarchical:   TopSup <span class="d-l">──</span><span class="d-a">►</span> MidSup A <span class="d-l">──</span><span class="d-a">►</span> workers               scales supervisor pattern to many agents,
+                        <span class="d-l">└</span><span class="d-a">►</span> MidSup B <span class="d-l">──</span><span class="d-a">►</span> workers                adds latency (multiple routing hops)
 
 Network/Swarm:  A ⇄ B ⇄ C  (any handoff to any)                most flexible/emergent, hardest to bound
                                                                  cost/termination/predictability</pre></div>

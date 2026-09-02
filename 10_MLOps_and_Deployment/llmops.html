@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1286,15 +1298,15 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <div class="keyterms"><span class="kt">Test</span><span class="kt">Unit cost</span>
             </div>
             <div class="diagram"><pre>              MLOps                                LLMOps
-              ─────                                ──────
-  build       train a model on your data     →     pick a model, write a prompt
-  test        accuracy / F1 on a holdout     →     rubric scores on a golden set
-  artefact    code + data + weights          →     code + prompt + index + model pin
-  deploy      ship the weights               →     ship a config (prompt + version)
-  monitor     input drift, accuracy          →     input drift, quality, tokens, cost
-  retrain     new data → new weights         →     new eval data → new prompt / RAG fix
-  rollback    previous model file            →     previous prompt version
-  unit cost   GPU hours (fixed-ish)          →     tokens (varies with the user)</pre></div>
+              <span class="d-l">─────</span>                                <span class="d-l">──────</span>
+  build       train a model on your data     <span class="d-a">→</span>     pick a model, write a prompt
+  test        accuracy / F1 on a holdout     <span class="d-a">→</span>     rubric scores on a golden set
+  artefact    code + data + weights          <span class="d-a">→</span>     code + prompt + index + model pin
+  deploy      ship the weights               <span class="d-a">→</span>     ship a config (prompt + version)
+  monitor     input drift, accuracy          <span class="d-a">→</span>     input drift, quality, tokens, cost
+  retrain     new data <span class="d-a">→</span> new weights         <span class="d-a">→</span>     new eval data <span class="d-a">→</span> new prompt / RAG fix
+  rollback    previous model file            <span class="d-a">→</span>     previous prompt version
+  unit cost   GPU hours (fixed-ish)          <span class="d-a">→</span>     tokens (varies with the user)</pre></div>
             <p>Two rows deserve attention because they are where teams get hurt.</p>
             <p><strong>Test.</strong> There is no single correct output, so there is no accuracy. You replace it with a scored suite — and scores are noisy, which means you need to know your own noise floor before you can call a change a regression (see §5).</p>
             <p><strong>Unit cost.</strong> A GPU costs the same whether the request was easy or hard. A token bill does not. A user who pastes a 40-page PDF costs <span class="mag">30×</span> a user who asks a one-line question, and nothing in your infrastructure stops them.</p>
@@ -1452,7 +1464,7 @@ log_fields = {<span class="str">"prompt_name"</span>: p.name, <span class="str">
             <p><strong>Building the golden set:</strong> take real traces, not invented questions. 150–300 items is enough to be useful; stratify by intent so a regression in one intent cannot hide inside an average. Every production incident adds an item — that is how the suite earns its keep over time.</p>
             <p><strong>Knowing your noise floor before you call something a regression.</strong> This is the step almost everyone skips.</p>
             <p>With a golden set of <code>n = 300</code> and a pass rate around <code>p = 0.90</code>, the standard error on that rate is:</p>
-            <div class="diagram"><pre>SE = sqrt(p(1-p)/n) = sqrt(0.90 × 0.10 / 300) = sqrt(0.0003) = 0.0173  →  ±1.7 pp</pre></div>
+            <div class="diagram"><pre>SE = sqrt(p(1-p)/n) = sqrt(0.90 × 0.10 / 300) = sqrt(0.0003) = 0.0173  <span class="d-a">→</span>  ±1.7 pp</pre></div>
             <p>So:</p>
             <ul>
               <li>a <strong>2 pp</strong> drop (0.90 → 0.88) is <strong>1.15 SE</strong> — noise. Do not block a release on it.</li>
@@ -1504,9 +1516,9 @@ MIN_DELTA = <span class="num">0.03</span>         <span class="cmt"># ~1.7 SE at
             <div class="keyterms"><span class="kt">The ordering that works</span><span class="kt">Offline</span><span class="kt">Shadow</span><span class="kt">Canary</span><span class="kt">Ramp</span>
             </div>
             <p>Everything you know about progressive delivery applies, with the prompt version as the thing being rolled out.</p>
-            <div class="diagram"><pre>   1% ──► 10% ──► 50% ──► 100%
-    │       │       │
-    └───────┴───────┴──► automatic rollback on: quality score, error rate,
+            <div class="diagram"><pre>   1% <span class="d-l">──</span><span class="d-a">►</span> 10% <span class="d-l">──</span><span class="d-a">►</span> 50% <span class="d-l">──</span><span class="d-a">►</span> 100%
+    <span class="d-l">│</span>       <span class="d-l">│</span>       <span class="d-l">│</span>
+    <span class="d-l">└───────┴───────┴──</span><span class="d-a">►</span> automatic rollback on: quality score, error rate,
                           p95 latency, or cost per request breaching its budget</pre></div>
             <p><strong>The ordering that works:</strong>
             </p>
@@ -1957,12 +1969,12 @@ daily_cost       = requests_per_day × cost_per_request</code></pre>
             </div>
             <p>This is the arrow that turns a launch into a lifecycle, and it is the one most teams never close.</p>
             <div class="diagram"><pre>production traces
-       │
-       ├──► sampled + judged ────► the quality metric you alert on
-       │
-       ├──► thumbs-down + escalations ──► new golden-set items ──► the eval gate
-       │
-       └──► accepted answers, curated ──► few-shot examples ──► fine-tuning set</pre></div>
+       <span class="d-l">│</span>
+       <span class="d-l">├──</span><span class="d-a">►</span> sampled + judged <span class="d-l">────</span><span class="d-a">►</span> the quality metric you alert on
+       <span class="d-l">│</span>
+       <span class="d-l">├──</span><span class="d-a">►</span> thumbs-down + escalations <span class="d-l">──</span><span class="d-a">►</span> new golden-set items <span class="d-l">──</span><span class="d-a">►</span> the eval gate
+       <span class="d-l">│</span>
+       <span class="d-l">└──</span><span class="d-a">►</span> accepted answers, curated <span class="d-l">──</span><span class="d-a">►</span> few-shot examples <span class="d-l">──</span><span class="d-a">►</span> fine-tuning set</pre></div>
             <p><strong>How the loop is actually run:</strong>
             </p>
             <ul>
@@ -1980,34 +1992,34 @@ daily_cost       = requests_per_day × cost_per_request</code></pre>
             <h3>13. Reference architecture</h3><label class="q-done" title="Mark as covered"><input type="checkbox" data-id="f08LLMOpsmd-14"><span></span></label>
           </div>
           <div class="q-a">
-            <div class="diagram"><pre>                    ┌──────────────┐
-    user ──────────►│  API / app   │
-                    └──────┬───────┘
-                           │  prompt_version, model_id, index_version on every request
-      ┌────────────────────┼────────────────────┐
-      ▼                    ▼                    ▼
-┌───────────┐      ┌───────────────┐     ┌─────────────┐
-│  prompt   │      │   retrieval   │     │  guardrails │
-│ registry  │      │  (index vN)   │     │  in / out   │
-│  (git)    │      └───────┬───────┘     └──────┬──────┘
-└─────┬─────┘              │                    │
-      │                    ▼                    │
-      │            ┌───────────────┐            │
-      └───────────►│   LLM call    │◄───────────┘
-                   │ pinned version│
-                   └───────┬───────┘
-                           │
-      ┌────────────────────┼────────────────────┐
-      ▼                    ▼                    ▼
-┌───────────┐      ┌───────────────┐     ┌─────────────┐
-│  traces   │      │  token / cost │     │  eval store │
-│ (spans)   │      │   accounting  │     │  + judge    │
-└─────┬─────┘      └───────────────┘     └──────┬──────┘
-      │                                          │
-      └────────── sampled, scored, curated ──────┘
-                            │
-                            ▼
-                    golden set → CI eval gate → canary → release</pre></div>
+            <div class="diagram"><pre>                    <span class="d-l">┌──────────────┐</span>
+    user <span class="d-l">──────────</span><span class="d-a">►</span><span class="d-l">│</span>  API / app   <span class="d-l">│</span>
+                    <span class="d-l">└──────┬───────┘</span>
+                           <span class="d-l">│</span>  prompt_version, model_id, index_version on every request
+      <span class="d-l">┌────────────────────┼────────────────────┐</span>
+      <span class="d-a">▼</span>                    <span class="d-a">▼</span>                    <span class="d-a">▼</span>
+<span class="d-l">┌───────────┐</span>      <span class="d-l">┌───────────────┐</span>     <span class="d-l">┌─────────────┐</span>
+<span class="d-l">│</span>  prompt   <span class="d-l">│</span>      <span class="d-l">│</span>   retrieval   <span class="d-l">│</span>     <span class="d-l">│</span>  guardrails <span class="d-l">│</span>
+<span class="d-l">│</span> registry  <span class="d-l">│</span>      <span class="d-l">│</span>  (index vN)   <span class="d-l">│</span>     <span class="d-l">│</span>  in / out   <span class="d-l">│</span>
+<span class="d-l">│</span>  (git)    <span class="d-l">│</span>      <span class="d-l">└───────┬───────┘</span>     <span class="d-l">└──────┬──────┘</span>
+<span class="d-l">└─────┬─────┘</span>              <span class="d-l">│</span>                    <span class="d-l">│</span>
+      <span class="d-l">│</span>                    <span class="d-a">▼</span>                    <span class="d-l">│</span>
+      <span class="d-l">│</span>            <span class="d-l">┌───────────────┐</span>            <span class="d-l">│</span>
+      <span class="d-l">└───────────</span><span class="d-a">►</span><span class="d-l">│</span>   LLM call    <span class="d-l">│</span><span class="d-a">◄</span><span class="d-l">───────────┘</span>
+                   <span class="d-l">│</span> pinned version<span class="d-l">│</span>
+                   <span class="d-l">└───────┬───────┘</span>
+                           <span class="d-l">│</span>
+      <span class="d-l">┌────────────────────┼────────────────────┐</span>
+      <span class="d-a">▼</span>                    <span class="d-a">▼</span>                    <span class="d-a">▼</span>
+<span class="d-l">┌───────────┐</span>      <span class="d-l">┌───────────────┐</span>     <span class="d-l">┌─────────────┐</span>
+<span class="d-l">│</span>  traces   <span class="d-l">│</span>      <span class="d-l">│</span>  token / cost <span class="d-l">│</span>     <span class="d-l">│</span>  eval store <span class="d-l">│</span>
+<span class="d-l">│</span> (spans)   <span class="d-l">│</span>      <span class="d-l">│</span>   accounting  <span class="d-l">│</span>     <span class="d-l">│</span>  + judge    <span class="d-l">│</span>
+<span class="d-l">└─────┬─────┘</span>      <span class="d-l">└───────────────┘</span>     <span class="d-l">└──────┬──────┘</span>
+      <span class="d-l">│</span>                                          <span class="d-l">│</span>
+      <span class="d-l">└──────────</span> sampled, scored, curated <span class="d-l">──────┘</span>
+                            <span class="d-l">│</span>
+                            <span class="d-a">▼</span>
+                    golden set <span class="d-a">→</span> CI eval gate <span class="d-a">→</span> canary <span class="d-a">→</span> release</pre></div>
             <p><strong>The tool landscape, by job rather than by brand</strong> — tools change, the jobs do not:</p>
             <div class="tbl-wrap">
               <table class="t2">

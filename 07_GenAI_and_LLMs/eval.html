@@ -152,8 +152,16 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 /* ---------- per-answer visual furniture ---------- */
 .keyterms{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px}
 .kt{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--surface-3);border:1px solid var(--border);color:var(--ink-2);font-weight:600}
-.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-sm);padding:14px 16px 12px;margin:13px 0;position:relative;overflow-x:auto}
-.diagram::before{content:"DIAGRAM";position:absolute;top:0;left:0;font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--ink-mut);background:var(--surface-3);border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);border-radius:var(--radius-sm) 0 7px 0;padding:2px 8px}
+.diagram{background:linear-gradient(180deg,var(--surface-2),color-mix(in srgb,var(--surface-2) 55%,var(--bg)));
+  border:1px solid var(--border);border-radius:12px;padding:30px 18px 15px;margin:16px 0;
+  position:relative;overflow-x:auto}
+.diagram::before{content:"DIAGRAM";position:absolute;top:9px;left:14px;font-size:8.5px;font-weight:800;
+  letter-spacing:.14em;color:var(--ink-mut);background:var(--surface-3);
+  border:1px solid var(--border-soft);border-radius:5px;padding:2px 7px}
+/* the drawing and the words, told apart: rules dim, arrows in the page accent,
+   labels at full text weight */
+.diagram .d-l{color:var(--ink-mut);opacity:.9}
+.diagram .d-a{color:var(--tc,var(--accent))}
 /* Box-drawing glyphs must come from the same font as the letters or the borders go
    ragged: the default stack resolved them from a fallback whose advance width did
    not match, so a run of horizontal rule ended short of the verticals around it.
@@ -162,7 +170,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
   font-family:Consolas,"Cascadia Mono","DejaVu Sans Mono","Liberation Mono",Menlo,
     "Courier New",monospace;
   font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-kerning:none;
-  font-size:12.2px;line-height:1.5;color:var(--ink-2);white-space:pre}
+  /* line-height must be 1: a box-drawing glyph fills its em box exactly, so it only
+     tiles into a continuous vertical rule at 1.0. At 1.5 every │ became a separate
+     stroke with a gap above and below it - which is what made the boxes look broken
+     while the horizontals, which do not tile vertically, looked fine. */
+  font-size:12.2px;line-height:1;color:var(--ink);white-space:pre}
 .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:13px 0;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm)}
 .flow .st{font-size:12.3px;font-weight:650;padding:5px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--ink)}
 .flow .ar{color:var(--accent);font-weight:800;padding:0 8px;font-size:13px}
@@ -1136,7 +1148,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p><strong>You cannot improve what you cannot measure — and for LLMs, "measure" is hard because output is
               open-ended.</strong> There is rarely one right answer, so evaluation blends:</p>
-            <div class="diagram"><pre>   exact metrics  ──▶  reference-based metrics  ──▶  model-graded (LLM-as-judge)  ──▶  human judgment
+            <div class="diagram"><pre>   exact metrics  <span class="d-l">──</span><span class="d-a">►</span>  reference-based metrics  <span class="d-l">──</span><span class="d-a">►</span>  model-graded (LLM-as-judge)  <span class="d-l">──</span><span class="d-a">►</span>  human judgment
    (cheap, narrow)     (BLEU/ROUGE/F1)              (scalable, noisy)                 (gold, expensive)</pre></div>
             <p>The skill is choosing the <strong>cheapest method that still correlates with what users care about</strong>, and
               building a <strong>repeatable harness</strong> so every prompt/model/retriever change is scored before it ships.</p>
@@ -1161,9 +1173,9 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p>Perplexity measures how "surprised" a language model is by held-out text — the exponential of the
               average per-token cross-entropy. Lower is better.</p>
-            <div class="diagram"><pre>                ┌   1   N                  ┐
-PPL(X) = exp ⎢ - ─── Σ  log p(xᵢ | x&lt;ᵢ) ⎢
-                └   N  i=1                 ┘</pre></div>
+            <div class="diagram"><pre>                <span class="d-l">┌</span>   1   N                  <span class="d-l">┐</span>
+PPL(X) = exp <span class="d-l">│</span> - <span class="d-l">───</span> Σ  log p(xᵢ | x&lt;ᵢ) <span class="d-l">│</span>
+                <span class="d-l">└</span>   N  i=1                 <span class="d-l">┘</span></pre></div>
             <ul>
               <li>Cross-entropy <code>H = -(1/N) Σ log p(xᵢ|x&lt;ᵢ)</code> (in nats or bits); <code>PPL = e^H</code> (or <code>2^H</code> for bits).</li>
               <li>Intuition: PPL = the effective number of equally-likely choices the model is deciding among at
@@ -1368,7 +1380,7 @@ PPL(X) = exp ⎢ - ─── Σ  log p(xᵢ | x&lt;ᵢ) ⎢
             <p><strong>LMSYS Chatbot Arena</strong> collects blind pairwise human votes ("which answer is better?") and converts
               them to an <strong>Elo rating</strong> (the chess system). Each comparison updates ratings:</p>
             <div class="diagram"><pre>Expected(A) = 1 / (1 + 10^((R_B - R_A)/400))
-R_A ← R_A + K · (S_A - Expected(A))        # S_A = 1 win, 0 loss, 0.5 tie</pre></div>
+R_A <span class="d-a">←</span> R_A + K · (S_A - Expected(A))        # S_A = 1 win, 0 loss, 0.5 tie</pre></div>
             <p>Strength: captures holistic human preference no static benchmark can. Weakness: preference ≠
               correctness (favors confident, well-formatted answers), and it's slow/expensive.</p>
           </div><button class="reveal">Reveal answer</button>
@@ -1467,10 +1479,10 @@ Output: {"winner": "A"|"B"|"tie", "reason": "..."}</code></pre>
           <p>The model is one component. Users experience the <strong>system</strong>: retrieval + prompt + tools + <abbr title="checks around a model that block or rewrite unsafe or malformed input and output">guardrails</abbr>
             + orchestration. Most production "<abbr title="large language model">LLM</abbr> is wrong" bugs are actually <strong>retrieval</strong> or <strong>orchestration</strong>
             bugs. Evaluate the pipeline, component by component, then end-to-end.</p>
-          <div class="diagram"><pre>        ┌──────────── component evals ────────────┐   ┌── end-to-end ──┐   ┌────── online ──┐
-query ─▶│ retrieval quality │ generation quality   │ ▶ │ task success    │ ▶ │ A/B, feedback│
-        │ (recall, nDCG)    │ (faithfulness, ...)  │   │ on golden set   │   │ drift, cost  │
-        └──────────────────────────────────────────┘   └────────────────┘   └───────────────┘</pre></div>
+          <div class="diagram"><pre>        <span class="d-l">┌────────────</span> component evals <span class="d-l">────────────┐</span>   <span class="d-l">┌──</span> end-to-end <span class="d-l">──┐</span>   <span class="d-l">┌──────</span> online <span class="d-l">──┐</span>
+query <span class="d-l">─</span><span class="d-a">►</span><span class="d-l">│</span> retrieval quality <span class="d-l">│</span> generation quality   <span class="d-l">│</span> <span class="d-a">►</span> <span class="d-l">│</span> task success    <span class="d-l">│</span> <span class="d-a">►</span> <span class="d-l">│</span> A/B, feedback<span class="d-l">│</span>
+        <span class="d-l">│</span> (recall, nDCG)    <span class="d-l">│</span> (faithfulness, ...)  <span class="d-l">│</span>   <span class="d-l">│</span> on golden set   <span class="d-l">│</span>   <span class="d-l">│</span> drift, cost  <span class="d-l">│</span>
+        <span class="d-l">└──────────────────────────────────────────┘</span>   <span class="d-l">└────────────────┘</span>   <span class="d-l">└───────────────┘</span></pre></div>
         </div>
         <article class="q" id="f06LLMEvaluatio-7">
           <div class="q-h"><span class="q-n">&bull;</span>
