@@ -1943,7 +1943,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
                       <span class="d-a">▼</span>                     <span class="d-a">▼</span>
               <span class="d-l">┌──────────────┐</span>    <span class="d-l">┌─────────────────────────────┐</span>
               <span class="d-l">│</span> Return data  <span class="d-l">│</span>    <span class="d-l">│</span> Fetch from DATABASE (disk)  <span class="d-l">│</span>
-              <span class="d-l">│</span> INSTANTLY * <span class="d-l">│</span>    <span class="d-l">│</span> Save a copy to cache        <span class="d-l">│</span>
+              <span class="d-l">│</span> INSTANTLY * <span class="d-l">││</span>   <span class="d-l">│</span> Save a copy to cache        <span class="d-l">│</span>
               <span class="d-l">└──────────────┘</span>    <span class="d-l">│</span> Return data                 <span class="d-l">│</span>
                                   <span class="d-l">└─────────────────────────────┘</span></pre></div>
             <p><strong>Where caches live (multiple layers):</strong>
@@ -2164,7 +2164,7 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
               layer optimized for extreme read/write volumes and low latency</strong>:</p>
             <div class="diagram"><pre>   <span class="d-l">┌──────┐</span>   static media    <span class="d-l">┌───────────┐</span>  direct pull   <span class="d-l">┌──────────────┐</span>
    <span class="d-l">│</span>CLIENT<span class="d-l">│</span> <span class="d-l">─────────────────</span><span class="d-a">►</span><span class="d-l">│</span> CDN EDGE  <span class="d-l">│───────────────</span><span class="d-a">►</span><span class="d-l">│</span> BLOB STORAGE <span class="d-l">│</span> (videos/images)
-   <span class="d-l">│</span>           <span class="d-l">│</span>      <span class="d-l">│</span>   NODE                                                             <span class="d-l">│</span>                <span class="d-l">└──────────────┘</span>
+   <span class="d-l">│</span>      <span class="d-l">│</span>    <span class="d-l">│</span>      <span class="d-l">│</span>   NODE                                                             <span class="d-l">│</span>                <span class="d-l">└──────────────┘</span>
    <span class="d-l">└──┬───┘</span>                   <span class="d-l">└───────────┘</span>
       <span class="d-l">│</span> dynamic requests
       <span class="d-a">▼</span>
@@ -2351,9 +2351,9 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             <p><strong>The solution.</strong> <strong>Asynchronous decoupling.</strong> A <strong>producer drops tasks into a queue</strong>; a
               <strong>consumer processes them at its own pace.</strong>
             </p>
-            <div class="diagram"><pre>   <span class="d-l">┌──────────┐</span>  enqueue  <span class="d-l">┌────────────</span> MESSAGE QUEUE <span class="d-l">────────────┐</span>  dequeue  <span class="d-l">┌────────────┐</span>
-   <span class="d-l">│</span> PRODUCER <span class="d-l">│</span> <span class="d-l">─────────</span><span class="d-a">►</span><span class="d-l">│</span>  @ @ @ @ @  (durable buffer)  @ @ @ <span class="d-l">│</span> <span class="d-l">─────────</span><span class="d-a">►</span><span class="d-l">│</span> CONSUMER     <span class="d-l">│</span>
-   <span class="d-l">└──────────┘</span>           <span class="d-l">└─────────────────────────────────────────┘</span>           <span class="d-l">└──────────┘</span></pre></div>
+            <div class="diagram"><pre>   <span class="d-l">┌────────────┐</span> enqueue    <span class="d-l">┌────────────</span> MESSAGE QUEUE <span class="d-l">─────────────┐</span> dequeue    <span class="d-l">┌────────────┐</span>
+   <span class="d-l">│</span>  PRODUCER  <span class="d-l">│───────────</span><span class="d-a">►</span><span class="d-l">│</span>   ▪ ▪ ▪ ▪ ▪  (durable buffer)  ▪ ▪ ▪   <span class="d-l">│───────────</span><span class="d-a">►</span><span class="d-l">│</span>  CONSUMER  <span class="d-l">│</span>
+   <span class="d-l">└────────────┘</span>            <span class="d-l">└────────────────────────────────────────┘</span>            <span class="d-l">└────────────┘</span></pre></div>
             <p><strong>What it buys you:</strong>
               - <strong>Absorbs massive traffic spikes</strong> — the queue buffers a surge; consumers drain it steadily
                 (load leveling). Prevents internal system overloads.
@@ -2452,27 +2452,40 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </div>
             <p><em>From a single computer to a global architecture.</em> Every concept assembled into the foundational
               blueprint of modern system design:</p>
-            <div class="diagram"><pre>                 <span class="d-l">┌────────</span> EDGE / ENTRY <span class="d-l">────────┐</span>   <span class="d-l">┌─────────────────</span> COMPUTE: MICROSERVICES <span class="d-l">────────────┐</span>
-   <span class="d-l">┌──────┐</span> DNS  <span class="d-l">│</span>  <span class="d-l">┌─────┐</span>    <span class="d-l">┌──────────────┐</span> <span class="d-l">│</span>   <span class="d-l">│</span>  [user svc] [order svc] [payment svc] [inventory]   <span class="d-l">│</span>
-   <span class="d-l">│</span>CLIENT<span class="d-l">│─────</span><span class="d-a">►</span><span class="d-l">│</span>  <span class="d-l">│</span> CDN <span class="d-l">│</span>    <span class="d-l">│</span> API GATEWAY  <span class="d-l">│</span> <span class="d-l">│</span>   <span class="d-l">│</span>       <span class="d-l">│</span>          <span class="d-l">│</span>           <span class="d-l">│</span>           <span class="d-l">│</span>          <span class="d-l">│</span>
-   <span class="d-l">│</span>      <span class="d-l">│</span> HTTP <span class="d-l">│</span>  <span class="d-l">└──┬──┘</span>    <span class="d-l">│</span> + RATE LIMIT <span class="d-l">│</span> <span class="d-l">│</span>   <span class="d-l">│</span>       <span class="d-l">└────┬─────┴───────────┘</span>           <span class="d-l">│</span>          <span class="d-l">│</span>
-   <span class="d-l">└──────┘</span>      <span class="d-l">│</span>     <span class="d-l">│</span>       <span class="d-l">└──────┬───────┘</span> <span class="d-l">│</span>   <span class="d-l">│</span>            <span class="d-a">▼</span>   MESSAGE QUEUE (MQ)        <span class="d-l">│</span>          <span class="d-l">│</span>
-                 <span class="d-l">└─────┼──────────────┼─────────┘</span>   <span class="d-l">│</span>      @ @ @ (async, decoupled) @ @ @     <span class="d-l">│</span>           <span class="d-l">│</span>
-                       <span class="d-l">│</span>              <span class="d-a">▼</span>             <span class="d-l">└─────────────┬────────────────────────────┘</span>          <span class="d-l">│</span>
-                       <span class="d-l">│</span>      <span class="d-l">┌──────────────┐</span>    <span class="d-l">│</span>                                                       <span class="d-l">│</span>
-                       <span class="d-l">│</span>      <span class="d-l">│</span> LOAD BALANCER<span class="d-l">│──────</span><span class="d-a">►</span> app/service fleet (stateless, scaled out)           <span class="d-l">│</span>
-                       <span class="d-l">│</span>      <span class="d-l">│</span> (×N, HA)     <span class="d-l">│</span>                   <span class="d-l">│</span>                                        <span class="d-l">│</span>
-                                                  <span class="d-l">│</span>      <span class="d-l">└──────────────┘</span>                   <span class="d-a">▼</span>             <span class="d-l">│</span>
-                       <span class="d-l">│</span>                          <span class="d-l">┌────────────────────</span> DATA LAYER <span class="d-l">───────────────────────┐</span>
-                       <span class="d-l">│</span>                          <span class="d-l">│</span>  <span class="d-l">┌───────┐</span>   <span class="d-l">┌──────────┐</span>  <span class="d-l">┌─────────┐</span>  <span class="d-l">┌──────────┐</span>  <span class="d-l">│</span>
-                       <span class="d-l">└─────────────────────────</span><span class="d-a">►</span><span class="d-l">│</span>  <span class="d-l">│</span> CACHE <span class="d-l">│</span>   <span class="d-l">│</span> SQL PRI- <span class="d-l">│</span>  <span class="d-l">│</span> SQL     <span class="d-l">│</span>  <span class="d-l">│</span> SHARDED  <span class="d-l">│</span>  <span class="d-l">│</span>
-                          static media            <span class="d-l">│</span>  <span class="d-l">│</span>(Redis)<span class="d-l">│</span>   <span class="d-l">│</span> MARY     <span class="d-l">│─</span><span class="d-a">►</span><span class="d-l">│</span> REPLICA <span class="d-l">│</span>  <span class="d-l">│</span> NoSQL    <span class="d-l">│</span>  <span class="d-l">│</span>
-                                                  <span class="d-l">│</span>  <span class="d-l">└───────┘</span>   <span class="d-l">└──────────┘</span>  <span class="d-l">└─────────┘</span>  <span class="d-l">│</span> CLUSTER  <span class="d-l">│</span>  <span class="d-l">│</span>
-                                                  <span class="d-l">│</span>                                          <span class="d-l">└──────────┘</span> <span class="d-l">│</span>
-                                                  <span class="d-l">│</span>  <span class="d-l">┌──────────────┐</span>                                     <span class="d-l">│</span>
-                       <span class="d-l">│</span>      <span class="d-l">│</span> BLOB STORAGE <span class="d-l">│</span> <span class="d-a">◄</span><span class="d-l">──</span> CDN pulls media from here                              <span class="d-l">│</span>
-                                                  <span class="d-l">│</span>  <span class="d-l">└──────────────┘</span>                                     <span class="d-l">│</span>
-                                                  <span class="d-l">└───────────────────────────────────────────────────────┘</span></pre></div>
+            <div class="diagram"><pre>                         <span class="d-l">┌───────────┐</span>
+                         <span class="d-l">│</span>  CLIENT   <span class="d-l">│</span>
+                         <span class="d-l">└─────┬─────┘</span>
+                               <span class="d-l">│</span> DNS, then HTTP
+                               <span class="d-a">▼</span>
+ <span class="d-l">┌───────────────────────</span> EDGE / ENTRY <span class="d-l">───────────────────────┐</span>
+ <span class="d-l">│</span>  <span class="d-l">┌───────────┐</span>    <span class="d-l">┌────────────────┐</span>    <span class="d-l">┌───────────────┐</span>  <span class="d-l">│</span>
+ <span class="d-l">│</span>  <span class="d-l">│</span>    CDN    <span class="d-l">│</span>    <span class="d-l">│</span>  BLOB STORAGE  <span class="d-l">│</span>    <span class="d-l">│</span>  API GATEWAY  <span class="d-l">│</span>  <span class="d-l">│</span>
+ <span class="d-l">│</span>  <span class="d-l">│</span>   edge    <span class="d-l">│───</span><span class="d-a">►</span><span class="d-l">│</span>    (media)     <span class="d-l">│</span>    <span class="d-l">│</span> + RATE LIMIT  <span class="d-l">│</span>  <span class="d-l">│</span>
+ <span class="d-l">│</span>  <span class="d-l">└───────────┘</span>    <span class="d-l">└────────────────┘</span>    <span class="d-l">└───────────────┘</span>  <span class="d-l">│</span>
+ <span class="d-l">└─────────────────────────────┬──────────────────────────────┘</span>
+                               <span class="d-l">│</span>
+                               <span class="d-a">▼</span>
+                    <span class="d-l">┌─────────────────────┐</span>
+                    <span class="d-l">│</span>    LOAD BALANCER    <span class="d-l">│</span>
+                    <span class="d-l">│</span>      (×N, HA)       <span class="d-l">│</span>
+                    <span class="d-l">└──────────┬──────────┘</span>
+                               <span class="d-l">│</span>
+                               <span class="d-a">▼</span>
+ <span class="d-l">┌──────────────────</span> COMPUTE: MICROSERVICES <span class="d-l">──────────────────┐</span>
+ <span class="d-l">│</span>  [user]   [order]   [payment]   [inventory]                <span class="d-l">│</span>
+ <span class="d-l">│</span>    <span class="d-l">┌──────────────────────────────────────────────────┐</span>    <span class="d-l">│</span>
+ <span class="d-l">│</span>    <span class="d-l">│</span>            MESSAGE QUEUE   ▪ ▪ ▪ ▪ ▪             <span class="d-l">│</span>    <span class="d-l">│</span>
+ <span class="d-l">│</span>    <span class="d-l">│</span>                 async, decoupled                 <span class="d-l">│</span>    <span class="d-l">│</span>
+ <span class="d-l">│</span>    <span class="d-l">└──────────────────────────────────────────────────┘</span>    <span class="d-l">│</span>
+ <span class="d-l">└─────────────────────────────┬──────────────────────────────┘</span>
+                               <span class="d-l">│</span>
+                               <span class="d-a">▼</span>
+ <span class="d-l">┌────────────────────────</span> DATA LAYER <span class="d-l">────────────────────────┐</span>
+ <span class="d-l">│</span>  <span class="d-l">┌──────────────┐</span>  <span class="d-l">┌─────────────────┐</span>  <span class="d-l">┌──────────────┐</span>   <span class="d-l">│</span>
+ <span class="d-l">│</span>  <span class="d-l">│</span>    CACHE     <span class="d-l">│</span>  <span class="d-l">│</span>       SQL       <span class="d-l">│</span>  <span class="d-l">│</span>   SHARDED    <span class="d-l">│</span>   <span class="d-l">│</span>
+ <span class="d-l">│</span>  <span class="d-l">│</span>   (Redis)    <span class="d-l">│</span>  <span class="d-l">│</span> PRIMARY/REPLICA <span class="d-l">│</span>  <span class="d-l">│</span>    NoSQL     <span class="d-l">│</span>   <span class="d-l">│</span>
+ <span class="d-l">│</span>  <span class="d-l">└──────────────┘</span>  <span class="d-l">└─────────────────┘</span>  <span class="d-l">└──────────────┘</span>   <span class="d-l">│</span>
+ <span class="d-l">└────────────────────────────────────────────────────────────┘</span></pre></div>
             <p><strong>End-to-end request walkthrough:</strong>
               1. <strong>Client → <abbr title="domain name system">DNS</abbr></strong> resolves your domain to an entry IP.
               2. <strong>Static assets</strong> (images/video/CSS/JS) are served from the <strong><abbr title="content delivery network">CDN</abbr> edge</strong> (pulling from

@@ -1472,9 +1472,9 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
             </ul>
             <p><strong>Real-world example — Google Maglev.</strong> Google fronts services like Search and Gmail with Maglev, a <em>software</em> network load balancer running on ordinary servers. A cluster of Maglev machines advertises a single virtual IP (VIP) to the internet and spreads the incoming packet flood across hundreds of backend servers, with each Maglev box able to saturate a 10 Gbps link. It uses consistent hashing on the connection's 5-tuple so that when a backend is added or removed, existing TCP connections stay pinned to the same server instead of being reset. Because the backends are stateless web servers (session state lives in a shared store — the exact precondition this pattern demands), any backend can answer any request, so Google can lose individual backends, or even whole Maglev nodes, without users noticing. The same idea in smaller form is what <strong>AWS ALB/ELB</strong> and <strong>Nginx/HAProxy</strong> do for ordinary web apps.</p>
             <div class="diagram"><pre>            <span class="d-l">┌──────────────┐</span>
-client <span class="d-l">───</span><span class="d-a">►</span> <span class="d-l">│</span> Load Balancer <span class="d-l">│──</span><span class="d-a">►</span> Server A   (Round Robin: A, B, C, A, B, C…)
-            <span class="d-l">│</span>  (health      <span class="d-l">│──</span><span class="d-a">►</span> Server B   (Least-Conn: pick fewest active)
-            <span class="d-l">│</span>   checks)     <span class="d-l">│──</span><span class="d-a">►</span> Server C   (IP Hash: same client <span class="d-a">→</span> same server)
+client <span class="d-l">───</span><span class="d-a">►</span> <span class="d-l">│</span> Load Balancer<span class="d-l">││──</span><span class="d-a">►</span> Server A   (Round Robin: A, B, C, A, B, C…)
+            <span class="d-l">│</span>  (health     <span class="d-l">││──</span><span class="d-a">►</span> Server B   (Least-Conn: pick fewest active)
+            <span class="d-l">│</span>   checks)    <span class="d-l">││──</span><span class="d-a">►</span> Server C   (IP Hash: same client <span class="d-a">→</span> same server)
             <span class="d-l">└──────────────┘</span></pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">from</span> itertools <span class="kw">import</span> cycle
 
@@ -3020,7 +3020,7 @@ cp.<span class="fn">register</span>(a); cp.<span class="fn">register</span>(b)  
             <span class="d-l">│</span>   <span class="d-l">┌──</span> public subnet 10.0.1.0/24 <span class="d-l">──┐</span>  <span class="d-l">┌────</span> private subnet 10.0.2.0/24 <span class="d-l">──┐</span>
             <span class="d-l">│</span>   <span class="d-l">│</span>  load balancer · NAT gateway  <span class="d-l">│</span>  <span class="d-l">│</span>  app servers · database          <span class="d-l">│</span>
             <span class="d-l">│</span>   <span class="d-l">└────────────────────────────────┘</span>  <span class="d-l">└─────────────────────────────────┘</span>
-            <span class="d-l">│</span>   route: 0.0.0.0/0 <span class="d-a">→</span> IGW              route: 0.0.0.0/0 <span class="d-a">→</span> NAT (outbound only)
+            <span class="d-l">│</span>   route: 0.0.0.0/0 <span class="d-a">→</span> IGW              route: 0.0.0.0/0 <span class="d-a">→</span><span class="d-l">│</span>NAT (outbound only)
             <span class="d-l">└────────────</span> isolated from every other tenant's VPC <span class="d-l">─────┘</span></pre></div>
             <pre class="code" data-lang="python"><code><span class="kw">import</span> ipaddress
 
@@ -3076,10 +3076,10 @@ staging = <span class="fn">VPC</span>(<span class="str">"staging"</span>, <span 
             <p><strong>Real-world example — the classic 3-tier layout.</strong> The canonical web architecture maps each tier to its own subnet, replicated across two or three availability zones. A <strong>public</strong> subnet holds the application load balancer and the NAT gateway; a <strong>private app</strong> subnet holds the EC2 instances or containers; a <strong>private data</strong> subnet holds the RDS database. Routing differs by subnet — the public subnet's route table points the default route at the internet gateway, the private subnets point it at the NAT gateway — and <strong>security groups</strong> lock down traffic <em>between</em> subnets, e.g. the database subnet accepts port 5432 only from the app subnet, never from the internet. Spreading each tier across <code>us-east-1a</code> and <code>us-east-1b</code> means losing an entire availability zone takes out one copy of each tier, not the system. The trade-off shows up operationally: AWS reserves 5 addresses in every subnet, so a <code>/28</code> yields only 11 usable IPs, and a busy Kubernetes/EKS cluster that assigns an IP per pod can <em>exhaust a subnet</em>, which is exactly why teams size data-plane subnets generously (a <code>/24</code> or larger) from the start.</p>
             <div class="diagram"><pre>        <span class="d-l">┌─────────────────</span> VPC  10.0.0.0/16 <span class="d-l">────────────────┐</span>
         <span class="d-l">│</span>   AZ us-east-1a                AZ us-east-1b      <span class="d-l">│</span>
-        <span class="d-l">│</span>  <span class="d-l">┌</span> public  10.0.1.0/24 <span class="d-l">┐</span>     <span class="d-l">┌</span> public  10.0.3.0/24 <span class="d-l">┐</span>   <span class="d-a">→</span> route 0.0.0.0/0 <span class="d-a">→</span> IGW
+        <span class="d-l">│</span>  <span class="d-l">┌</span> public  10.0.1.0/24 <span class="d-l">┐</span>     <span class="d-l">┌</span> public  10.0.3.0/24<span class="d-l">│┐</span>   <span class="d-a">→</span> route 0.0.0.0/0 <span class="d-a">→</span> IGW
         <span class="d-l">│</span>  <span class="d-l">│</span>  load balancer       <span class="d-l">│</span>     <span class="d-l">│</span>  load balancer    <span class="d-l">│</span>
         <span class="d-l">│</span>  <span class="d-l">├</span> private 10.0.2.0/24 <span class="d-l">─┤</span>     <span class="d-l">├</span> private 10.0.4.0/24 <span class="d-l">┤</span>   <span class="d-a">→</span> route 0.0.0.0/0 <span class="d-a">→</span> NAT
-        <span class="d-l">│</span>  <span class="d-l">│</span>  app · database       <span class="d-l">│</span>     <span class="d-l">│</span>  app · database     <span class="d-l">│</span>   (no inbound from internet)
+        <span class="d-l">│</span>  <span class="d-l">│</span>  app · database       <span class="d-l">│</span>     <span class="d-l">│</span>  app · database  <span class="d-l">│</span>  <span class="d-l">│</span>   (no inbound from internet)
         <span class="d-l">│</span>  <span class="d-l">└──────────────────────┘</span>     <span class="d-l">└───────────────────┘</span>
         <span class="d-l">└───────────────────────────────────────────────────┘</span>
               same tier in 2 AZs <span class="d-a">→</span> survives losing a whole zone</pre></div>
@@ -3658,7 +3658,7 @@ CQRS (Command Query Responsibility Segregation)
   <span class="d-l">│</span>  Client <span class="d-l">──</span>Command<span class="d-l">──</span><span class="d-a">→</span> <span class="d-l">┌──────────────┐</span>                   <span class="d-l">│</span>
   <span class="d-l">│</span>                       <span class="d-l">│</span> Write Model  <span class="d-l">│──</span><span class="d-a">→</span> Event Store   <span class="d-l">│</span>
   <span class="d-l">│</span>                       <span class="d-l">│</span> (normalized) <span class="d-l">│</span>                  <span class="d-l">│</span>
-  <span class="d-l">│</span>                      <span class="d-l">└──────────────┘</span>                  <span class="d-l">│</span>
+  <span class="d-l">│</span>                      <span class="d-l">└──────────────┘</span>                  <span class="d-l">││</span>
   <span class="d-l">│</span>                              <span class="d-l">│</span>                          <span class="d-l">│</span>
   <span class="d-l">│</span>                         Events <span class="d-a">↓</span>                        <span class="d-l">│</span>
   <span class="d-l">│</span>                              <span class="d-l">│</span>                          <span class="d-l">│</span>
