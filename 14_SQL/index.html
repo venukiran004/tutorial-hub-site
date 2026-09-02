@@ -176,7 +176,11 @@ abbr[title]:hover{text-decoration-color:var(--accent)}
 .sec > h2{font-size:25px;margin:0 0 4px;letter-spacing:-.5px;padding-bottom:9px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:11px}
 .sec > h2 .hn{font-size:11.5px;font-family:var(--mono);font-weight:800;background:var(--tc,var(--accent));color:#fff;border-radius:7px;padding:3px 8px}
 .parthead{display:flex;align-items:center;gap:12px;margin:52px 0 16px}
-.parthead span{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mut);white-space:nowrap}
+/* Not nowrap: a long part heading ("Custom Context Managers - Generator-Based
+   (@contextmanager)") was 97px wider than a phone screen and scrolled the whole
+   document sideways. min-width:0 lets it shrink inside the flex row; the rule line
+   after it still fills whatever is left. */
+.parthead span{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mut);min-width:0;overflow-wrap:anywhere}
 .parthead i{flex:1;height:1px;background:var(--border)}
 .q{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 18px;margin:16px 0;scroll-margin-top:60px}
 .q:target{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
@@ -320,8 +324,16 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-3);border:1p
   figure.viz{padding:13px 12px 8px;margin:18px 0}
   figure.viz figcaption b{font-size:14px}
 
-  /* long inline formulas were set nowrap, so they ran off the edge */
-  .mth{white-space:normal}
+  /* Long inline formulas were set nowrap, so they ran off the edge. Allowing a normal
+     wrap was not enough on its own: a formula is a run of inline-block atoms with no
+     spaces, so there was nowhere to break and the page still scrolled sideways.
+     `anywhere` gives the browser a last-resort break point. */
+  .mth,.mth-sqrt,.mth-op,.mth-gr{white-space:normal;overflow-wrap:anywhere}
+
+  /* A single unbreakable token in prose - a long identifier, a URL - was enough to
+     push the whole page sideways. break-word (not anywhere) breaks only the word
+     that would otherwise overflow, so ordinary text still wraps normally. */
+  .q-a,.q-a p,.q-a li,.lede,.filehead,.parthead{overflow-wrap:break-word}
   .mth-block{white-space:nowrap;text-align:left}
 
   .diagram{padding:12px 10px 10px}
@@ -597,7 +609,10 @@ body.searching .parthead{opacity:.5}
   --bg:#070a12; --bg-2:#0a0e18;
   --surface:#0f131e; --surface-2:#141a27; --surface-3:#1c2333;
   --border:#232c40; --border-soft:#19202f;
-  --ink:#eaf0fb; --ink-2:#9fabc4; --ink-mut:#6b7690;
+  /* --ink-mut was #6b7690: 4.25:1 on this background, just under WCAG AA's 4.5 for
+     small text, and it carries the nav group labels, "On this page", and the section
+     counts. #717c95 measures 4.62:1 and is barely a shade lighter. */
+  --ink:#eaf0fb; --ink-2:#9fabc4; --ink-mut:#717c95;
 
   --accent:#7c9dff; --accent-2:#b18cff;
   --accent-soft:rgba(124,157,255,.15); --accent-bd:rgba(124,157,255,.40);
@@ -619,7 +634,9 @@ html[data-theme="light"]{
   --bg:#f6f8fe; --bg-2:#eef2fb;
   --surface:#fff; --surface-2:#fafbff; --surface-3:#eef2fb;
   --border:#dce3f2; --border-soft:#e9edf8;
-  --ink:#111828; --ink-2:#4c586f; --ink-mut:#7c8699;
+  /* same fix on the light side, where it was worse: #7c8699 was 3.49:1. #687180
+     measures 4.64:1. */
+  --ink:#111828; --ink-2:#4c586f; --ink-mut:#687180;
 
   --accent:#4f6fe6; --accent-2:#8b5cf6;
   --accent-soft:rgba(79,111,230,.10); --accent-bd:rgba(79,111,230,.34);
@@ -1083,7 +1100,6 @@ nav a.nav-sub.active::after{background:var(--accent);opacity:1}
           </div>
         </div>
       </section>
-      <div class="no-result" id="noRes">Nothing matches.</div>
       <div class="no-result" id="noRes">Nothing on this page matches that search.</div>
     </div>
   </main>
